@@ -5,3 +5,5 @@ Description: Creates all additional indexes not defined in the table definitions
 */
 
 CREATE NONCLUSTERED INDEX IX_User_UserType ON [identity].[User]([UserTypeId]);
+
+/*This comment is just to test the CI*/
