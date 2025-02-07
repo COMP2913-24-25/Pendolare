@@ -28,6 +28,7 @@ jobs:
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS_SQL }}
+        allow-no-subscriptions: 'true'
 
     - name: Deploy Database
       uses: azure/sql-action@v2.3
