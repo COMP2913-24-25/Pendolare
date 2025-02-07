@@ -43,7 +43,7 @@ jobs:
           echo "" >> wiki/Home.md
 
           # Define frontend services
-          FRONTEND_SERVICES=("AdminDashboard" "ClientApp")
+          FRONTEND_SERVICES=("pendo.AdminDashboard" "pendo.ClientApp")
 
           # Find all README.md files excluding the wiki folder itself
           find . -type f -path '*/README.md' ! -path "./wiki/*" | while read file; do
