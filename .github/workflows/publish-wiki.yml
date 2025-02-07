@@ -1,12 +1,11 @@
-name: Publish wiki
-
+name: Publish Wiki
 on:
   push:
     branches: [main]
     paths:
-      - '**/README.md'
-      - .github/workflows/publish-wiki.yml
-      - '**/swagger.json'
+      - "**/README.md"
+      - "wiki/api-routes/*.json"
+      - ".github/workflows/publish-wiki.yml"
 
 concurrency:
   group: publish-wiki
@@ -21,65 +20,79 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
-      - name: Set up Git
-        run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
+      - name: Install jq (for JSON processing)
+        run: sudo apt-get install jq -y
 
       - name: Prepare Wiki Files
         run: |
+          # Create Wiki directory if it doesn't exist
           mkdir -p wiki
-          mkdir -p wiki/api-routes  # Create the API routes folder
 
-          echo "# Services" > wiki/Home.md
+          # Initialize Home.md
+          echo "# Documentation" > wiki/Home.md
           echo "" >> wiki/Home.md
-          echo "## Home" >> wiki/Home.md
-          echo "" >> wiki/Home.md
+
           echo "## Frontend Software" >> wiki/Home.md
           echo "" >> wiki/Home.md
+          
           echo "## Backend Software" >> wiki/Home.md
           echo "" >> wiki/Home.md
 
-          FRONTEND_SERVICES=("Pendo.AdminDashboard" "Pendo.ClientApp")
+          echo "## API Routes" >> wiki/Home.md
+          echo "" >> wiki/Home.md
 
-          find . -type f -path '*/README.md' ! -path "./wiki/*" ! -path "./wiki/api-routes/*" | while read file; do
-            folder_name=$(dirname "$file" | sed 's|./||')
-            base_name=$(basename "$folder_name")
+          # Find all README.md files, excluding the wiki folder
+          find . -path ./wiki -prune -o -name "README.md" -print | while read file; do
+              dir=$(dirname "$file")
+              service_name=$(basename "$dir")
 
-            # Ensure proper naming
-            if [[ "$base_name" != Pendo.* ]]; then
-              formatted_name="Pendo.$base_name"
-            else
-              formatted_name="$base_name"
-            fi
+              # Remove "pendo." prefix if it's duplicated
+              service_name=${service_name#Pendo.}
+              
+              # Convert camel case to spaced words (e.g., "AdminDashboard" → "Admin Dashboard")
+              display_name=$(echo "$service_name" | sed -r 's/([a-z])([A-Z])/\1 \2/g')
 
-            new_file="wiki/${formatted_name}.md"
-            cp "$file" "$new_file"
+              # Determine category (Frontend or Backend)
+              if [[ "$service_name" == "AdminDashboard" || "$service_name" == "ClientApp" ]]; then
+                  category="Frontend Software"
+              else
+                  category="Backend Software"
+              fi
 
-            # Process Swagger API Docs
-            SWAGGER_JSON="./$folder_name/swagger.json"
-            if [[ -f "$SWAGGER_JSON" ]]; then
-              cp "$SWAGGER_JSON" "wiki/api-routes/${formatted_name}.json"
-            fi
+              # Copy README.md to Wiki
+              cp "$file" "wiki/${service_name}.md"
 
-            wiki_link="https://github.com/COMP2913-24-25/software-engineering-project-team-2/wiki/${formatted_name}"
-
-            if [[ "$folder_name" == wiki/* ]]; then
-              echo "- [${formatted_name}](${wiki_link})" >> wiki/Home.md
-            elif [[ " ${FRONTEND_SERVICES[@]} " =~ " ${base_name} " ]]; then
-              echo "- [${formatted_name}](${wiki_link})" >> wiki/Home.md
-            else
-              echo "- [${formatted_name}](${wiki_link})" >> wiki/Home.md
-            fi
+              # Update Home.md with links
+              echo "- [${display_name}](https://github.com/COMP2913-24-25/software-engineering-project-team-2/wiki/${service_name})" >> wiki/Home.md
           done
 
-      - name: Debug Wiki Structure
-        run: ls -R wiki
+      - name: Generate API Documentation
+        run: |
+          mkdir -p wiki/api-routes
+          
+          for json_file in wiki/api-routes/*.json; do
+              service_name=$(basename "$json_file" .json)
+              md_file="wiki/${service_name}-API.md"
 
-      - name: Publish Wiki
+              echo "# ${service_name} API Routes" > "$md_file"
+              echo "" >> "$md_file"
+              echo "| Method | Endpoint | Summary |" >> "$md_file"
+              echo "|--------|---------|---------|" >> "$md_file"
+
+              jq -r '
+              .paths as $paths |
+              to_entries[] |
+              .key as $endpoint |
+              .value | to_entries[] |
+              [ .key, $endpoint, .value.summary ] |
+              @tsv
+              ' "$json_file" | while IFS=$'\t' read -r method endpoint summary; do
+                  echo "| \`$method\` | **$endpoint** | ${summary:-N/A} |" >> "$md_file"
+              done
+
+              echo "- [${service_name} API](https://github.com/COMP2913-24-25/software-engineering-project-team-2/wiki/${service_name}-API)" >> wiki/Home.md
+          done
+
+      - name: Publish to Wiki
         uses: Andrew-Chen-Wang/github-wiki-action@v4
-        with:
-          path: wiki
