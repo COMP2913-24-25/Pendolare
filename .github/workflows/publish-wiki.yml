@@ -31,7 +31,7 @@ jobs:
       - name: Prepare Wiki Files
         run: |
           mkdir -p wiki  # Ensure wiki directory exists
-          
+
           # Create Home.md with categories
           echo "# Services" > wiki/Home.md
           echo "" >> wiki/Home.md
@@ -42,23 +42,25 @@ jobs:
           echo "## Backend Software" >> wiki/Home.md
           echo "" >> wiki/Home.md
 
-          # List of frontend services
-          FRONTEND_SERVICES=("AdminDashboard" "ClientApp")
+          # Define frontend services
+          FRONTEND_SERVICES=("pendo.AdminDashboard" "pendo.ClientApp")
 
-          # Find all README.md files
-          find . -type f -path '*/README.md' | while read file; do
+          # Find all README.md files excluding the wiki folder itself
+          find . -type f -path '*/README.md' ! -path "./wiki/*" | while read file; do
             folder_name=$(dirname "$file" | sed 's|./||')  # Extract folder path
-            formatted_name=$(echo "$folder_name" | sed -r 's/([A-Z])([A-Z]+)/\1\L\2/g' | sed 's/\([^A-Z]\)\([A-Z]\)/\1 \2/g' | sed 's/\b\w/\u\0/g')  # Convert to Title Case
-            new_file="wiki/pendo.${formatted_name// /_}.md"
+            base_name=$(basename "$folder_name")  # Extract the last folder name
+            formatted_name="pendo.$base_name"  # Prefix with "pendo."
+
+            new_file="wiki/${formatted_name}.md"
             cp "$file" "$new_file"
 
-            # Categorize based on location
+            # Categorize properly
             if [[ "$folder_name" == wiki/* ]]; then
-              echo "- [${formatted_name}](./pendo.${formatted_name// /_}.md)" >> wiki/Home.md
-            elif [[ " ${FRONTEND_SERVICES[@]} " =~ " ${folder_name} " ]]; then
-              echo "- [${formatted_name}](./pendo.${formatted_name// /_}.md)" >> wiki/Home.md
+              echo "- [${formatted_name}](./${formatted_name}.md)" >> wiki/Home.md
+            elif [[ " ${FRONTEND_SERVICES[@]} " =~ " ${formatted_name} " ]]; then
+              echo "- [${formatted_name}](./${formatted_name}.md)" >> wiki/Home.md
             else
-              echo "- [${formatted_name}](./pendo.${formatted_name// /_}.md)" >> wiki/Home.md
+              echo "- [${formatted_name}](./${formatted_name}.md)" >> wiki/Home.md
             fi
           done
 
