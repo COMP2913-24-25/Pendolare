@@ -71,7 +71,7 @@ jobs:
             fi
           done
 
-          FRONTEND_SERVICES=("Pendo.AdminDashboard" "Pendo.ClientApp")
+          FRONTEND_SERVICES=("AdminDashboard" "ClientApp")
 
           find . -type f -path '*/README.md' ! -path "./wiki/*" ! -path "./wiki/api-routes/*" | while read file; do
             folder_name=$(dirname "$file" | sed 's|./||')
