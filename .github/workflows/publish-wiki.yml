@@ -46,6 +46,31 @@ jobs:
           echo "## Backend Software" >> wiki/Home.md
           echo "" >> wiki/Home.md
 
+          # Process API routes
+          for json_file in wiki/api-routes/Pendo.*.json; do
+            if [ -f "$json_file" ]; then
+              service_name=$(basename "$json_file" .json)
+              markdown_file="wiki/api-routes/${service_name}.md"
+              
+              echo "# ${service_name} API Routes" > "$markdown_file"
+              echo "" >> "$markdown_file"
+              echo "| Method | Endpoint | Summary |" >> "$markdown_file"
+              echo "|--------|----------|----------|" >> "$markdown_file"
+              
+              jq -r '
+                select(type == "object") |
+                .paths // {} |
+                to_entries[] |
+                .key as $endpoint |
+                .value | to_entries[] |
+                [ .key, $endpoint, (.value.summary // "No summary provided") ] |
+                @tsv
+              ' "$json_file" | while IFS=$'\t' read -r method endpoint summary; do
+                echo "| \`$method\` | **$endpoint** | $summary |" >> "$markdown_file"
+              done
+            fi
+          done
+
           FRONTEND_SERVICES=("Pendo.AdminDashboard" "Pendo.ClientApp")
 
           find . -type f -path '*/README.md' ! -path "./wiki/*" ! -path "./wiki/api-routes/*" | while read file; do
@@ -60,27 +85,6 @@ jobs:
 
             new_file="wiki/${formatted_name}.md"
             cp "$file" "$new_file"
-
-            SWAGGER_JSON="./$folder_name/swagger.json"
-            if [[ -f "$SWAGGER_JSON" ]]; then
-              API_DOC="wiki/api-routes/${formatted_name}.md"
-              echo "# ${formatted_name} API Routes" > "$API_DOC"
-              echo "" >> "$API_DOC"
-              echo "| Method | Endpoint | Summary |" >> "$API_DOC"
-              echo "|--------|----------|----------|" >> "$API_DOC"
-              
-              jq -r '
-                select(type == "object") |
-                .paths as $paths |
-                to_entries[] |
-                .key as $endpoint |
-                .value | to_entries[] |
-                [ .key, $endpoint, .value.summary // "No summary provided" ] |
-                @tsv
-              ' "$SWAGGER_JSON" | while IFS=$'\t' read -r method endpoint summary; do
-                echo "| \`$method\` | **$endpoint** | $summary |" >> "$API_DOC"
-              done
-            fi
 
             wiki_link="https://github.com/COMP2913-24-25/software-engineering-project-team-2/wiki/${formatted_name}"
 
