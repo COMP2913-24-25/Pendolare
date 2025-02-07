@@ -12,30 +12,17 @@ permissions:
   contents: read
 
 jobs:
-  build:
+
+  build_deploy:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        submodules: 'true'
 
     - name: Setup .NET 8.0
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
-
-    - name: Build SQL Project
-      working-directory: ./Pendo.Database
-      run: dotnet build -c Release
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v4
 
     - name: Azure Login
       uses: azure/login@v1
@@ -46,5 +33,7 @@ jobs:
       uses: azure/sql-action@v2.3
       with:
         connection-string: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
-        path: './bin/Release/Pendo.Database.dacpac'
+        path: './Pendo.Database/Pendo.Database.sqlproj'
         action: 'publish'
+        build-arguments: '-c Release'
+        arguments: '/p:DropObjectsNotInSource=true'
