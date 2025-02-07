@@ -1,4 +1,4 @@
-# Service Name
+# Client App
 
 Brief description of what this specific service does and its role in the Pendolare system.
 
