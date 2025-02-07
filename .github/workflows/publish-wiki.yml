@@ -4,7 +4,6 @@ on:
   push:
     branches: [main]
     paths:
-      - wiki/**
       - '**/README.md'  # Track README changes in all subdirectories
       - .github/workflows/publish-wiki.yml
 
@@ -32,17 +31,35 @@ jobs:
       - name: Prepare Wiki Files
         run: |
           mkdir -p wiki  # Ensure wiki directory exists
-          echo "# Services" > wiki/Home.md  # Create Home page
+          
+          # Create Home.md with categories
+          echo "# Services" > wiki/Home.md
+          echo "" >> wiki/Home.md
+          echo "## Home" >> wiki/Home.md
+          echo "" >> wiki/Home.md
+          echo "## Frontend Software" >> wiki/Home.md
+          echo "" >> wiki/Home.md
+          echo "## Backend Software" >> wiki/Home.md
           echo "" >> wiki/Home.md
 
-          # Find all README.md files and copy them to the wiki directory
+          # List of frontend services
+          FRONTEND_SERVICES=("AdminDashboard" "ClientApp")
+
+          # Find all README.md files
           find . -type f -path '*/README.md' | while read file; do
-            folder_name=$(dirname "$file" | sed 's|./||;s|/|-|g')  # Convert path to a valid filename
-            new_file="wiki/${folder_name}.md"
+            folder_name=$(dirname "$file" | sed 's|./||')  # Extract folder path
+            formatted_name=$(echo "$folder_name" | sed -r 's/([A-Z])([A-Z]+)/\1\L\2/g' | sed 's/\([^A-Z]\)\([A-Z]\)/\1 \2/g' | sed 's/\b\w/\u\0/g')  # Convert to Title Case
+            new_file="wiki/pendo.${formatted_name// /_}.md"
             cp "$file" "$new_file"
 
-            # Add the service to Home.md
-            echo "- [${folder_name}](./${folder_name}.md)" >> wiki/Home.md
+            # Categorize based on location
+            if [[ "$folder_name" == wiki/* ]]; then
+              echo "- [${formatted_name}](./pendo.${formatted_name// /_}.md)" >> wiki/Home.md
+            elif [[ " ${FRONTEND_SERVICES[@]} " =~ " ${folder_name} " ]]; then
+              echo "- [${formatted_name}](./pendo.${formatted_name// /_}.md)" >> wiki/Home.md
+            else
+              echo "- [${formatted_name}](./pendo.${formatted_name// /_}.md)" >> wiki/Home.md
+            fi
           done
 
       - name: Debug Wiki Structure
