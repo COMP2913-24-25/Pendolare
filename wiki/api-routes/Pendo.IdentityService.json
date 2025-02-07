@@ -1,0 +1,245 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "pendo.identityapi",
+    "description": "API for client authentication in the Identity Service.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "prod (tbc)"
+    },
+    {
+      "url": "dev (tbc)"
+    }
+  ],
+  "paths": {
+    "/client/authenticate": {
+      "post": {
+        "summary": "Authenticate a client using Client ID and Secret",
+        "operationId": "authenticateClient",
+        "tags": [
+          "Client Authentication"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "client_id": {
+                    "type": "string",
+                    "description": "The unique identifier for the client."
+                  },
+                  "client_secret": {
+                    "type": "string",
+                    "description": "The secret key associated with the client ID."
+                  }
+                },
+                "required": [
+                  "client_id",
+                  "client_secret"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully authenticated. Returns an access token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": {
+                      "type": "string",
+                      "description": "The JWT access token."
+                    },
+                    "token_type": {
+                      "type": "string",
+                      "enum": [
+                        "Bearer"
+                      ],
+                      "description": "The type of token issued."
+                    },
+                    "expires_in": {
+                      "type": "integer",
+                      "description": "Expiry time of the token in seconds."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request due to missing or invalid parameters."
+          },
+          "401": {
+            "description": "Unauthorised. Invalid Client ID or Secret."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        }
+      }
+    },
+    "/users/auth/register": {
+      "post": {
+        "summary": "Registers a new user.",
+        "tags": [
+          "User Operations - Authentication"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "description": "The email of the user to be registered."
+                  },
+                  "first_name": {
+                    "type": "string"
+                  },
+                  "last_name": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/auth/request-otp": {
+      "get": {
+        "summary": "Requests a One-Time-Passcode for the user to login with.",
+        "tags": [
+          "User Operations - Authentication"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/users/auth/verify-otp": {
+      "post": {
+        "summary": "Verifies the One-Time-Passcode is correct for the user.",
+        "tags": [
+          "User Operations - Authentication"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/users/auth/logout": {
+      "post": {
+        "summary": "Logs a user out.",
+        "tags": [
+          "User Operations - Authentication"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/users/auth/login-external": {
+      "post": {
+        "tags": [
+          "User Operations - Authentication"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/users/auth/callback-external": {
+      "post": {
+        "tags": [
+          "User Operations - Authentication"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/users/auth/refresh-token": {
+      "post": {
+        "tags": [
+          "User Operations - Authentication"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/users/getuser": {
+      "get": {
+        "tags": [
+          "User Operations"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/users/updateuser": {
+      "post": {
+        "tags": [
+          "User Operations"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/management/auth/register": {
+      "post": {
+        "summary": "Registers a new manager - not sure how this will work?",
+        "tags": [
+          "Management User Operations"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
