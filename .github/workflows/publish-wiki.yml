@@ -38,14 +38,12 @@ jobs:
 
          echo "# Services" > wiki/Home.md
          echo "" >> wiki/Home.md
-         echo "## Home" >> wiki/Home.md
-         echo "" >> wiki/Home.md
          echo "## Frontend Software" >> wiki/Home.md
          echo "" >> wiki/Home.md
          echo "## Backend Software" >> wiki/Home.md
          echo "" >> wiki/Home.md
 
-         FRONTEND_SERVICES=("Pendo.AdminDashboard" "Pendo.ClientApp")
+         FRONTEND_SERVICES=("Pendo.ClientApp" "Pendo.AdminDashboard")
 
          find . -type f -path '*/README.md' ! -path "./wiki/*" | while read file; do
            folder_name=$(dirname "$file" | sed 's|./||')
@@ -84,12 +82,10 @@ jobs:
 
            wiki_link="https://github.com/COMP2913-24-25/software-engineering-project-team-2/wiki/${formatted_name}"
 
-           if [[ "$folder_name" == wiki/* ]]; then
-             echo "- [${formatted_name}](${wiki_link})" >> wiki/Home.md
-           elif [[ " ${FRONTEND_SERVICES[@]} " =~ " ${base_name} " ]]; then
-             echo "- [${formatted_name}](${wiki_link})" >> wiki/Home.md
+           if [[ " ${FRONTEND_SERVICES[@]} " =~ " ${formatted_name} " ]]; then
+             sed -i "/^## Frontend Software/a - [${formatted_name}](${wiki_link})" wiki/Home.md
            else
-             echo "- [${formatted_name}](${wiki_link})" >> wiki/Home.md
+             sed -i "/^## Backend Software/a - [${formatted_name}](${wiki_link})" wiki/Home.md
            fi
          done
 
