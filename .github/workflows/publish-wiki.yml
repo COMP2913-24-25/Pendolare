@@ -2,7 +2,7 @@ name: Publish Wiki
 
 on:
   push:
-    branches: [master]
+    branches: [main]
     paths:
       - "wiki/**"
       - ".github/workflows/publish-wiki.yml"
@@ -36,7 +36,7 @@ jobs:
           while read -r file; do
             filename=$(basename "$(dirname "$file")")  # Extracts directory name
             formatted_name=$(echo "$filename" | sed -E 's/([a-z])([A-Z])/\1 \2/g') # Convert CamelCase to spaces
-            mv "$file" "formatted_readmes/pendo.${filename}.md"
+            mv "$file" "formatted_readmes/Pendo.${filename}.md"
           done < readmes.txt
 
       - name: Convert API routes JSON to Markdown
@@ -44,7 +44,7 @@ jobs:
           mkdir -p formatted_api
           for jsonfile in wiki/api-routes/*.json; do
             servicename=$(basename "$jsonfile" .json)
-            markdownfile="formatted_api/pendo.${servicename}.md"
+            markdownfile="formatted_api/Pendo.${servicename}.md"
 
             echo "# ${servicename} API Routes" > "$markdownfile"
             echo "" >> "$markdownfile"
