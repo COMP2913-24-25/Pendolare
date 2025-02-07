@@ -46,5 +46,5 @@ jobs:
       uses: azure/sql-action@v2.3
       with:
         connection-string: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
-        path: './Pendo.Database/bin/Release/Pendo.Database.dacpac'
+        path: './bin/Release/Pendo.Database.dacpac'
         action: 'publish'
