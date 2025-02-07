@@ -23,14 +23,16 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - name: Install SQLPackage
+    - name: Install sqlpackage
       run: |
-        sudo apt-get update
-        sudo apt-get install -y unzip
-        wget -O sqlpackage.zip https://aka.ms/sqlpackage-linux
-        unzip sqlpackage.zip -d sqlpackage
-        chmod +x sqlpackage/sqlpackage
-        sudo mv sqlpackage/sqlpackage /usr/local/bin/sqlpackage
+        wget -q https://aka.ms/sqlpackage-linux -O sqlpackage.zip
+        unzip -q sqlpackage.zip -d sqlpackage
+        sudo mv sqlpackage/sqlpackage /usr/local/bin
+        sqlpackage -?
+    
+    - name: Build project
+      working-directory: ./Pendo.Database
+      run: dotnet build --configuration Release
         
     - name: Azure Login
       uses: azure/login@v1
@@ -39,12 +41,7 @@ jobs:
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         allow-no-subscriptions: 'true'
-
-    - name: Deploy Database
-      uses: azure/sql-action@v2.3
-      with:
-        connection-string: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
-        path: './Pendo.Database/Pendo.Database.sqlproj'
-        action: 'publish'
-        build-arguments: '-c Release'
-        arguments: '/p:DropObjectsNotInSource=true'
+  
+    - name: Publish database
+      run: |
+        sqlpackage /Action:Publish /TargetConnectionString:"Server=tcp:pendolare.database.windows.net,1433;Initial Catalog=Pendolare.Database;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication=Active Directory Default;" /SourceFile:Pendo.Database/bin/Release/Pendo.Database.dacpac /p:DropObjectsNotInSource=true
