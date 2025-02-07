@@ -1,0 +1,51 @@
+name: CI-Database
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'Pendo.Database/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        submodules: 'true'
+
+    - name: Setup .NET 8.0
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Build SQL Project
+      working-directory: ./Pendo.Database
+      run: dotnet build -c Release
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Azure Login (OIDC)
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        allow-no-subscriptions: true
+
+    - name: Deploy Database
+      uses: azure/sql-action@v2
+      with:
+        server-name: comp2913-dev.database.windows.net
+        database-name: Pendo.Database
+        authentication: azure-ad
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        path: 'Pendo.Database/bin/Release/Pendo.Database.dacpac'
