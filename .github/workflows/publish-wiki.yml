@@ -34,9 +34,14 @@ jobs:
         run: |
           mkdir -p formatted_readmes
           while read -r file; do
-            filename=$(basename "$(dirname "$file")")  # Extracts directory name
-            formatted_name=$(echo "$filename" | sed -E 's/([a-z])([A-Z])/\1 \2/g') # Convert CamelCase to spaces
-            mv "$file" "formatted_readmes/Pendo.${filename}.md"
+            folder=$(dirname "$file" | sed 's|.*/||')  # Extract folder name
+            formatted_name=$(echo "$folder" | sed -E 's/([a-z])([A-Z])/\1 \2/g')  # Convert CamelCase
+            if [[ "$folder" =~ ^(ClientApp|AdminDashboard)$ ]]; then
+              category="Frontend Software"
+            else
+              category="Backend Software"
+            fi
+            echo -e "# $formatted_name\n\n$(cat "$file")" > "formatted_readmes/pendo.${folder}.md"
           done < readmes.txt
 
       - name: Convert API routes JSON to Markdown
@@ -44,7 +49,7 @@ jobs:
           mkdir -p formatted_api
           for jsonfile in wiki/api-routes/*.json; do
             servicename=$(basename "$jsonfile" .json)
-            markdownfile="formatted_api/Pendo.${servicename}.md"
+            markdownfile="formatted_api/pendo.${servicename}.md"
 
             echo "# ${servicename} API Routes" > "$markdownfile"
             echo "" >> "$markdownfile"
