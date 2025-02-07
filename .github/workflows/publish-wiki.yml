@@ -60,16 +60,16 @@ jobs:
             new_file="wiki/${formatted_name}.md"
             cp "$file" "$new_file"
 
-            # Format the wiki link (no .md extension)
-            wiki_link="${formatted_name}"
+            # Format the wiki link with correct repo details
+            wiki_link="https://github.com/COMP2913-24-25/software-engineering-project-team-2/wiki/${formatted_name}"
 
             # Categorize properly
             if [[ "$folder_name" == wiki/* ]]; then
-              echo "- [${formatted_name}](https://github.com/OWNER/REPO/wiki/${wiki_link})" >> wiki/Home.md
+              echo "- [${formatted_name}](${wiki_link})" >> wiki/Home.md
             elif [[ " ${FRONTEND_SERVICES[@]} " =~ " ${base_name} " ]]; then
-              echo "- [${formatted_name}](https://github.com/OWNER/REPO/wiki/${wiki_link})" >> wiki/Home.md
+              echo "- [${formatted_name}](${wiki_link})" >> wiki/Home.md
             else
-              echo "- [${formatted_name}](https://github.com/OWNER/REPO/wiki/${wiki_link})" >> wiki/Home.md
+              echo "- [${formatted_name}](${wiki_link})" >> wiki/Home.md
             fi
           done
 
