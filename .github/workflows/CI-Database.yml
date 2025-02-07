@@ -7,6 +7,10 @@ on:
       - 'Pendo.Database/**'
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -33,10 +37,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Azure Login (OIDC)
+    - name: Azure Login
       uses: azure/login@v1
       with:
-        allow-no-subscriptions: true
+        creds: ${{ secrets.AZURE_CREDENTIALS_SQL }}
 
     - name: Deploy Database
       uses: azure/sql-action@v2
