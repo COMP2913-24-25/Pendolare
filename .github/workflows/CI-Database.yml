@@ -23,6 +23,9 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
+    - name: Install SQLPackage
+      run: dotnet tool install -g microsoft.sqlpackage
+
     - name: Build project
       working-directory: ./Pendo.Database
       run: dotnet build --configuration Release
