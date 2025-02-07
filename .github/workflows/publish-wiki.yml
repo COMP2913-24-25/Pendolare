@@ -1,20 +1,54 @@
 name: Publish wiki
+
 on:
   push:
     branches: [main]
     paths:
       - wiki/**
+      - '**/README.md'  # Track README changes in all subdirectories
       - .github/workflows/publish-wiki.yml
+
 concurrency:
   group: publish-wiki
   cancel-in-progress: true
+
 permissions:
   contents: write
+
 jobs:
   publish-wiki:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v3
         with:
-          fetch-depth: 0
-      - uses: Andrew-Chen-Wang/github-wiki-action@v4
+          fetch-depth: 0  # Ensure full repo history is available
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
+      - name: Prepare Wiki Files
+        run: |
+          mkdir -p wiki  # Ensure wiki directory exists
+          echo "# Services" > wiki/Home.md  # Create Home page
+          echo "" >> wiki/Home.md
+
+          # Find all README.md files and copy them to the wiki directory
+          find . -type f -path '*/README.md' | while read file; do
+            folder_name=$(dirname "$file" | sed 's|./||;s|/|-|g')  # Convert path to a valid filename
+            new_file="wiki/${folder_name}.md"
+            cp "$file" "$new_file"
+
+            # Add the service to Home.md
+            echo "- [${folder_name}](./${folder_name}.md)" >> wiki/Home.md
+          done
+
+      - name: Debug Wiki Structure
+        run: ls -R wiki  # Check the wiki folder structure
+
+      - name: Publish Wiki
+        uses: Andrew-Chen-Wang/github-wiki-action@v4
+        with:
+          path: wiki  # Ensure this points to your wiki directory
