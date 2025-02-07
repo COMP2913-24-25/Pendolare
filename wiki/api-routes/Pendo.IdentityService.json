@@ -1,245 +1,106 @@
-{
-  "openapi": "3.1.0",
-  "info": {
-    "title": "pendo.identityapi",
-    "description": "API for client authentication in the Identity Service.",
-    "version": "1.0.0"
-  },
-  "servers": [
-    {
-      "url": "prod (tbc)"
-    },
-    {
-      "url": "dev (tbc)"
-    }
-  ],
-  "paths": {
-    "/client/authenticate": {
-      "post": {
-        "summary": "Authenticate a client using Client ID and Secret",
-        "operationId": "authenticateClient",
-        "tags": [
-          "Client Authentication"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "client_id": {
-                    "type": "string",
-                    "description": "The unique identifier for the client."
-                  },
-                  "client_secret": {
-                    "type": "string",
-                    "description": "The secret key associated with the client ID."
-                  }
-                },
-                "required": [
-                  "client_id",
-                  "client_secret"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successfully authenticated. Returns an access token.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "access_token": {
-                      "type": "string",
-                      "description": "The JWT access token."
-                    },
-                    "token_type": {
-                      "type": "string",
-                      "enum": [
-                        "Bearer"
-                      ],
-                      "description": "The type of token issued."
-                    },
-                    "expires_in": {
-                      "type": "integer",
-                      "description": "Expiry time of the token in seconds."
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request due to missing or invalid parameters."
-          },
-          "401": {
-            "description": "Unauthorised. Invalid Client ID or Secret."
-          },
-          "500": {
-            "description": "Internal server error."
-          }
-        }
-      }
-    },
-    "/users/auth/register": {
-      "post": {
-        "summary": "Registers a new user.",
-        "tags": [
-          "User Operations - Authentication"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "description": "The email of the user to be registered."
-                  },
-                  "first_name": {
-                    "type": "string"
-                  },
-                  "last_name": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/users/auth/request-otp": {
-      "get": {
-        "summary": "Requests a One-Time-Passcode for the user to login with.",
-        "tags": [
-          "User Operations - Authentication"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/users/auth/verify-otp": {
-      "post": {
-        "summary": "Verifies the One-Time-Passcode is correct for the user.",
-        "tags": [
-          "User Operations - Authentication"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/users/auth/logout": {
-      "post": {
-        "summary": "Logs a user out.",
-        "tags": [
-          "User Operations - Authentication"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/users/auth/login-external": {
-      "post": {
-        "tags": [
-          "User Operations - Authentication"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/users/auth/callback-external": {
-      "post": {
-        "tags": [
-          "User Operations - Authentication"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/users/auth/refresh-token": {
-      "post": {
-        "tags": [
-          "User Operations - Authentication"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/users/getuser": {
-      "get": {
-        "tags": [
-          "User Operations"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/users/updateuser": {
-      "post": {
-        "tags": [
-          "User Operations"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/management/auth/register": {
-      "post": {
-        "summary": "Registers a new manager - not sure how this will work?",
-        "tags": [
-          "Management User Operations"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    }
-  },
-  "components": {
-    "securitySchemes": {
-      "BearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT"
-      }
-    }
-  }
-}
+name: Publish wiki
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**/README.md'
+      - .github/workflows/publish-wiki.yml
+      - '**/swagger.json'
+
+concurrency:
+  group: publish-wiki
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  publish-wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
+      - name: Prepare Wiki Files
+        run: |
+          mkdir -p wiki
+          mkdir -p wiki/api-routes
+
+          echo "# Services" > wiki/Home.md
+          echo "" >> wiki/Home.md
+          echo "## Home" >> wiki/Home.md
+          echo "" >> wiki/Home.md
+          echo "## Frontend Software" >> wiki/Home.md
+          echo "" >> wiki/Home.md
+          echo "## Backend Software" >> wiki/Home.md
+          echo "" >> wiki/Home.md
+
+          # Process API routes
+          for json_file in wiki/api-routes/Pendo.*.json; do
+            if [ -f "$json_file" ]; then
+              service_name=$(basename "$json_file" .json)
+              markdown_file="wiki/api-routes/${service_name}.md"
+              
+              echo "# ${service_name} API Routes" > "$markdown_file"
+              echo "" >> "$markdown_file"
+              echo "| Method | Endpoint | Summary |" >> "$markdown_file"
+              echo "|--------|----------|----------|" >> "$markdown_file"
+              
+              jq -r '
+                select(type == "object") |
+                .paths // {} |
+                to_entries[] |
+                .key as $endpoint |
+                .value | to_entries[] |
+                [ .key, $endpoint, (.value.summary // "No summary provided") ] |
+                @tsv
+              ' "$json_file" | while IFS=$'\t' read -r method endpoint summary; do
+                echo "| \`$method\` | **$endpoint** | $summary |" >> "$markdown_file"
+              done
+            fi
+          done
+
+          FRONTEND_SERVICES=("Pendo.AdminDashboard" "Pendo.ClientApp")
+
+          find . -type f -path '*/README.md' ! -path "./wiki/*" ! -path "./wiki/api-routes/*" | while read file; do
+            folder_name=$(dirname "$file" | sed 's|./||')
+            base_name=$(basename "$folder_name")
+
+            if [[ "$base_name" != Pendo.* ]]; then
+              formatted_name="Pendo.$base_name"
+            else
+              formatted_name="$base_name"
+            fi
+
+            new_file="wiki/${formatted_name}.md"
+            cp "$file" "$new_file"
+
+            wiki_link="https://github.com/COMP2913-24-25/software-engineering-project-team-2/wiki/${formatted_name}"
+
+            if [[ "$folder_name" == wiki/* ]]; then
+              echo "- [${formatted_name}](${wiki_link})" >> wiki/Home.md
+            elif [[ " ${FRONTEND_SERVICES[@]} " =~ " ${base_name} " ]]; then
+              echo "- [${formatted_name}](${wiki_link})" >> wiki/Home.md
+            else
+              echo "- [${formatted_name}](${wiki_link})" >> wiki/Home.md
+            fi
+          done
+
+      - name: Debug Wiki Structure
+        run: ls -R wiki
+
+      - name: Publish Wiki
+        uses: Andrew-Chen-Wang/github-wiki-action@v4
+        with:
+          path: wiki
