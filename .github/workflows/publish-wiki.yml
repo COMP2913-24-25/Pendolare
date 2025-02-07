@@ -1,10 +1,10 @@
 name: Publish Wiki
+
 on:
   push:
-    branches: [main]
+    branches: [master]
     paths:
-      - "**/README.md"
-      - "wiki/api-routes/*.json"
+      - "wiki/**"
       - ".github/workflows/publish-wiki.yml"
 
 concurrency:
@@ -17,82 +17,62 @@ permissions:
 jobs:
   publish-wiki:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install jq (for JSON processing)
-        run: sudo apt-get install jq -y
+      - name: Install jq for JSON processing
+        run: sudo apt-get install -y jq
 
-      - name: Prepare Wiki Files
+      - name: Find all README files (excluding wiki/api-routes)
+        id: find_readmes
         run: |
-          # Create Wiki directory if it doesn't exist
-          mkdir -p wiki
+          find . -type f -name "README.md" ! -path "./wiki/api-routes/*" > readmes.txt
 
-          # Initialize Home.md
-          echo "# Documentation" > wiki/Home.md
-          echo "" >> wiki/Home.md
-
-          echo "## Frontend Software" >> wiki/Home.md
-          echo "" >> wiki/Home.md
-          
-          echo "## Backend Software" >> wiki/Home.md
-          echo "" >> wiki/Home.md
-
-          echo "## API Routes" >> wiki/Home.md
-          echo "" >> wiki/Home.md
-
-          # Find all README.md files, excluding the wiki folder
-          find . -path ./wiki -prune -o -name "README.md" -print | while read file; do
-              dir=$(dirname "$file")
-              service_name=$(basename "$dir")
-
-              # Remove "pendo." prefix if it's duplicated
-              service_name=${service_name#Pendo.}
-              
-              # Convert camel case to spaced words (e.g., "AdminDashboard" → "Admin Dashboard")
-              display_name=$(echo "$service_name" | sed -r 's/([a-z])([A-Z])/\1 \2/g')
-
-              # Determine category (Frontend or Backend)
-              if [[ "$service_name" == "AdminDashboard" || "$service_name" == "ClientApp" ]]; then
-                  category="Frontend Software"
-              else
-                  category="Backend Software"
-              fi
-
-              # Copy README.md to Wiki
-              cp "$file" "wiki/${service_name}.md"
-
-              # Update Home.md with links
-              echo "- [${display_name}](https://github.com/COMP2913-24-25/software-engineering-project-team-2/wiki/${service_name})" >> wiki/Home.md
-          done
-
-      - name: Generate API Documentation
+      - name: Format README files for Wiki
         run: |
-          mkdir -p wiki/api-routes
-          
-          for json_file in wiki/api-routes/*.json; do
-              service_name=$(basename "$json_file" .json)
-              md_file="wiki/${service_name}-API.md"
+          mkdir -p formatted_readmes
+          while read -r file; do
+            filename=$(basename "$(dirname "$file")")  # Extracts directory name
+            formatted_name=$(echo "$filename" | sed -E 's/([a-z])([A-Z])/\1 \2/g') # Convert CamelCase to spaces
+            mv "$file" "formatted_readmes/pendo.${filename}.md"
+          done < readmes.txt
 
-              echo "# ${service_name} API Routes" > "$md_file"
-              echo "" >> "$md_file"
-              echo "| Method | Endpoint | Summary |" >> "$md_file"
-              echo "|--------|---------|---------|" >> "$md_file"
+      - name: Convert API routes JSON to Markdown
+        run: |
+          mkdir -p formatted_api
+          for jsonfile in wiki/api-routes/*.json; do
+            servicename=$(basename "$jsonfile" .json)
+            markdownfile="formatted_api/pendo.${servicename}.md"
 
-              jq -r '
+            echo "# ${servicename} API Routes" > "$markdownfile"
+            echo "" >> "$markdownfile"
+            echo "| Method  | Endpoint                  | Summary                                      |" >> "$markdownfile"
+            echo "|---------|---------------------------|----------------------------------------------|" >> "$markdownfile"
+
+            jq -r '
               .paths as $paths |
               to_entries[] |
               .key as $endpoint |
               .value | to_entries[] |
-              [ .key, $endpoint, .value.summary ] |
+              [ .key, $endpoint, .value.summary // "No summary provided" ] |
               @tsv
-              ' "$json_file" | while IFS=$'\t' read -r method endpoint summary; do
-                  echo "| \`$method\` | **$endpoint** | ${summary:-N/A} |" >> "$md_file"
-              done
-
-              echo "- [${service_name} API](https://github.com/COMP2913-24-25/software-engineering-project-team-2/wiki/${service_name}-API)" >> wiki/Home.md
+            ' "$jsonfile" | while IFS=$'\t' read -r method endpoint summary; do
+              echo "| \`$method\`  | **$endpoint**   | $summary |" >> "$markdownfile"
+            done
           done
 
-      - name: Publish to Wiki
+      - name: Upload Wiki content
         uses: Andrew-Chen-Wang/github-wiki-action@v4
+        with:
+          path: formatted_readmes
+          strategy: normal
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload API Documentation to Wiki
+        uses: Andrew-Chen-Wang/github-wiki-action@v4
+        with:
+          path: formatted_api
+          strategy: normal
+          token: ${{ secrets.GITHUB_TOKEN }}
