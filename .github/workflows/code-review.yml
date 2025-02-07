@@ -1,0 +1,75 @@
+name: SonarCloud PR Analysis
+
+on:
+  pull_request:
+    branches:
+      - main  # or your default branch
+
+jobs:
+  sonarcloud:
+    name: Run SonarCloud analysis
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    # Detecting if the project is .NET
+    - name: Set up .NET (for .NET projects)
+      if: ${{ contains(github.event.head_commit.message, '.csproj') || github.event.pull_request.head.ref == 'main' }}
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '6.0'  # Change to the version of .NET you're using
+
+    # Detecting if the project is Node.js/JavaScript/TypeScript
+    - name: Set up Node.js (for JS/TS projects)
+      if: ${{ contains(github.event.head_commit.message, 'package.json') }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'  # Specify the Node.js version you use
+
+    # Detecting if the project is Python
+    - name: Set up Python (for Python projects)
+      if: ${{ contains(github.event.head_commit.message, 'requirements.txt') }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'  # Specify the Python version you use
+
+    # Install dependencies for .NET
+    - name: Install dependencies (for .NET)
+      if: ${{ contains(github.event.head_commit.message, '.csproj') }}
+      run: |
+        dotnet restore
+
+    # Install dependencies for JS/TS
+    - name: Install dependencies (for JS/TS)
+      if: ${{ contains(github.event.head_commit.message, 'package.json') }}
+      run: |
+        npm install
+
+    # Install dependencies for Python
+    - name: Install dependencies (for Python)
+      if: ${{ contains(github.event.head_commit.message, 'requirements.txt') }}
+      run: |
+        pip install -r requirements.txt
+
+    # Run SonarCloud analysis for .NET
+    - name: Run SonarCloud analysis for .NET
+      if: ${{ contains(github.event.head_commit.message, '.csproj') }}
+      run: |
+        dotnet build
+        dotnet sonarscanner begin /k:pendo_carsharing /d:sonar.login=${{ secrets.SONAR_TOKEN }}
+        dotnet build
+        dotnet sonarscanner end /d:sonar.login=${{ secrets.SONAR_TOKEN }}
+
+    # Run SonarCloud analysis for JS/TS
+    - name: Run SonarCloud analysis for JS/TS
+      if: ${{ contains(github.event.head_commit.message, 'package.json') }}
+      run: |
+        sonar-scanner -Dsonar.projectKey=pendo_carsharing -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+
+    # Run SonarCloud analysis for Python
+    - name: Run SonarCloud analysis for Python
+      if: ${{ contains(github.event.head_commit.message, 'requirements.txt') }}
+      run: |
+        sonar-scanner -Dsonar.projectKey=pendo_carsharing -Dsonar.login=${{ secrets.SONAR_TOKEN }}
