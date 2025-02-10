@@ -3,94 +3,121 @@
 name: Publish wiki
 
 on:
- push:
-   branches: [main]
+  push:
+    branches: [main]
 
 concurrency:
- group: publish-wiki
- cancel-in-progress: true
+  group: publish-wiki
+  cancel-in-progress: true
 
 permissions:
- contents: write
+  contents: write
 
 jobs:
- publish-wiki:
-   runs-on: ubuntu-latest
-   steps:
-     - name: Checkout Repository
-       uses: actions/checkout@v3
-       with:
-         fetch-depth: 0
+  publish-wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-     - name: Install jq
-       run: sudo apt-get install -y jq
+      - name: Install jq
+        run: sudo apt-get install -y jq
 
-     - name: Set up Git
-       run: |
-         git config --global user.name "github-actions"
-         git config --global user.email "github-actions@github.com"
+      - name: Set up Git
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
 
-     - name: Prepare Wiki Files
-       run: |
-         mkdir -p wiki
+      - name: Prepare Wiki Files
+        run: |
+          mkdir -p wiki
 
-         echo "# Services" > wiki/Home.md
-         echo "" >> wiki/Home.md
-         echo "## Frontend Software" >> wiki/Home.md
-         echo "" >> wiki/Home.md
-         echo "## Backend Software" >> wiki/Home.md
-         echo "" >> wiki/Home.md
+          # Initialize sidebar
+          echo "### [[Home]]" > wiki/_Sidebar.md
+          echo "" >> wiki/_Sidebar.md
+          echo "### Documentation" >> wiki/_Sidebar.md
+          
+          # Add documentation files dynamically
+          find . -type f -name "*.md" ! -path "./wiki/*" ! -path "*/README.md" | while read file; do
+            name=$(basename "$file" .md)
+            echo "* [[${name}]]" >> wiki/_Sidebar.md
+          done
 
-         FRONTEND_SERVICES=("Pendo.ClientApp" "Pendo.AdminDashboard")
+          # Add meeting minutes dynamically
+          echo "" >> wiki/_Sidebar.md
+          echo "### Meeting Minutes" >> wiki/_Sidebar.md
+          find . -type f -name "Minutes*.md" ! -path "./wiki/*" | sort | while read file; do
+            name=$(basename "$file" .md)
+            echo "* [[${name}]]" >> wiki/_Sidebar.md
+          done
 
-         find . -type f -path '*/README.md' ! -path "./wiki/*" | while read file; do
-           folder_name=$(dirname "$file" | sed 's|./||')
-           base_name=$(basename "$folder_name")
+          # Initialize service sections
+          echo "" >> wiki/_Sidebar.md
+          echo "### Frontend Services" >> wiki/_Sidebar.md
+          echo "" >> wiki/_Sidebar.md
+          echo "### Backend Services" >> wiki/_Sidebar.md
 
-           if [[ "$base_name" != Pendo.* ]]; then
-             formatted_name="Pendo.$base_name"
-           else
-             formatted_name="$base_name"
-           fi
+          # Create Home.md
+          echo "# Services" > wiki/Home.md
+          echo "" >> wiki/Home.md
+          echo "## Frontend Software" >> wiki/Home.md
+          echo "" >> wiki/Home.md
+          echo "## Backend Software" >> wiki/Home.md
+          echo "" >> wiki/Home.md
 
-           new_file="wiki/${formatted_name}.md"
-           cp "$file" "$new_file"
+          FRONTEND_SERVICES=("Pendo.ClientApp" "Pendo.AdminDashboard")
 
-           # Process API routes if swagger.json exists in wiki/api-routes
-           API_JSON="wiki/api-routes/${formatted_name}.json"
-           if [[ -f "$API_JSON" ]]; then
-             echo "" >> "$new_file"
-             echo "## API Routes" >> "$new_file"
-             echo "" >> "$new_file"
-             echo "| Method | Endpoint | Summary |" >> "$new_file"
-             echo "|--------|----------|----------|" >> "$new_file"
-             
-             jq -r '
-               select(type == "object") |
-               .paths // {} |
-               to_entries[] |
-               .key as $endpoint |
-               .value | to_entries[] |
-               [ .key, $endpoint, (.value.summary // "No summary provided") ] |
-               @tsv
-             ' "$API_JSON" | while IFS=$'\t' read -r method endpoint summary; do
-               echo "| \`$method\` | **$endpoint** | $summary |" >> "$new_file"
-             done
-           fi
+          find . -type f -path '*/README.md' ! -path "./wiki/*" | while read file; do
+            folder_name=$(dirname "$file" | sed 's|./||')
+            base_name=$(basename "$folder_name")
 
-           wiki_link="https://github.com/COMP2913-24-25/software-engineering-project-team-2/wiki/${formatted_name}"
+            if [[ "$base_name" != Pendo.* ]]; then
+              formatted_name="Pendo.$base_name"
+            else
+              formatted_name="$base_name"
+            fi
 
-           if [[ " ${FRONTEND_SERVICES[@]} " =~ " ${formatted_name} " ]]; then
-             sed -i "/^## Frontend Software/a - [${formatted_name}](${wiki_link})" wiki/Home.md
-           else
-             sed -i "/^## Backend Software/a - [${formatted_name}](${wiki_link})" wiki/Home.md
-           fi
-         done
+            new_file="wiki/${formatted_name}.md"
+            cp "$file" "$new_file"
 
-     - name: Debug Wiki Structure
-       run: ls -R wiki
+            # Add to appropriate sidebar section
+            if [[ " ${FRONTEND_SERVICES[@]} " =~ " ${formatted_name} " ]]; then
+              sed -i "/^### Frontend Services/a * [[${formatted_name}]]" wiki/_Sidebar.md
+              sed -i "/^## Frontend Software/a - [${formatted_name}](${wiki_link})" wiki/Home.md
+            else
+              sed -i "/^### Backend Services/a * [[${formatted_name}]]" wiki/_Sidebar.md
+              sed -i "/^## Backend Software/a - [${formatted_name}](${wiki_link})" wiki/Home.md
+            fi
 
-     - name: Publish Wiki
-       uses: Andrew-Chen-Wang/github-wiki-action@v4
-       with:
-         path: wiki
+            # Process API routes
+            API_JSON="wiki/api-routes/${formatted_name}.json"
+            if [[ -f "$API_JSON" ]]; then
+              echo "" >> "$new_file"
+              echo "## API Routes" >> "$new_file"
+              echo "" >> "$new_file"
+              echo "| Method | Endpoint | Summary |" >> "$new_file"
+              echo "|--------|----------|----------|" >> "$new_file"
+              
+              jq -r '
+                select(type == "object") |
+                .paths // {} |
+                to_entries[] |
+                .key as $endpoint |
+                .value | to_entries[] |
+                [ .key, $endpoint, (.value.summary // "No summary provided") ] |
+                @tsv
+              ' "$API_JSON" | while IFS=$'\t' read -r method endpoint summary; do
+                echo "| \`$method\` | **$endpoint** | $summary |" >> "$new_file"
+              done
+            fi
+          done
+
+      - name: Debug Wiki Structure
+        run: ls -R wiki
+
+      - name: Publish Wiki
+        uses: Andrew-Chen-Wang/github-wiki-action@v4
+        with:
+          path: wiki
