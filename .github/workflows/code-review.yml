@@ -11,6 +11,7 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
+      # [Previous detect-changes job steps remain the same]
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0  # Required for detecting changes
@@ -141,7 +142,12 @@ jobs:
           /d:sonar.host.url="https://sonarcloud.io" \
           /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
           /d:sonar.cs.vstest.reportsPaths="**/*.trx" \
-          /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
+          /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
+          /d:sonar.pullrequest.key="${{ github.event.pull_request.number }}" \
+          /d:sonar.pullrequest.branch="${{ github.head_ref }}" \
+          /d:sonar.pullrequest.base="${{ github.base_ref }}" \
+          /d:sonar.pullrequest.github.repository="${{ github.repository }}" \
+          /d:sonar.scm.provider=git
         dotnet build --no-incremental
         dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
@@ -157,7 +163,12 @@ jobs:
           -Dsonar.organization=pendo \
           -Dsonar.sources=. \
           -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+          -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
+          -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
+          -Dsonar.pullrequest.branch=${{ github.head_ref }} \
+          -Dsonar.pullrequest.base=${{ github.base_ref }} \
+          -Dsonar.pullrequest.github.repository=${{ github.repository }} \
+          -Dsonar.scm.provider=git
 
     - name: SonarCloud Python analysis
       if: matrix.type == 'python'
@@ -172,4 +183,42 @@ jobs:
           -Dsonar.sources=. \
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.python.version=3.9 \
-          -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+          -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
+          -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
+          -Dsonar.pullrequest.branch=${{ github.head_ref }} \
+          -Dsonar.pullrequest.base=${{ github.base_ref }} \
+          -Dsonar.pullrequest.github.repository=${{ github.repository }} \
+          -Dsonar.scm.provider=git
+
+    # Comment with analysis results
+    - name: Add PR Comment
+      uses: actions/github-script@v6
+      if: always()
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const projectKey = 'pendo_carsharing';
+          const organization = 'pendo';
+          const pullRequestNumber = context.payload.pull_request.number;
+          
+          const sonarCloudUrl = `https://sonarcloud.io/dashboard?id=${projectKey}&pullRequest=${pullRequestNumber}`;
+          
+          const comment = `## SonarCloud Analysis Results 🔍
+          
+          The analysis has completed! You can view the detailed results here:
+          [View Analysis Results](${sonarCloudUrl})
+          
+          This analysis includes:
+          - Code quality metrics
+          - Code coverage data
+          - Security vulnerabilities
+          - Code smells and technical debt
+          
+          Please review the results and address any issues found.`;
+          
+          await github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: pullRequestNumber,
+            body: comment
+          });
