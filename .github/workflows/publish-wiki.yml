@@ -1,5 +1,3 @@
-# Developed with the use of ChatGPT
-
 name: Publish wiki
 
 on:
@@ -38,17 +36,12 @@ jobs:
           echo "### [[Home]]" > wiki/_Sidebar.md
           echo "" >> wiki/_Sidebar.md
           echo "### Documentation" >> wiki/_Sidebar.md
+          echo "* [[DevGuide]]" >> wiki/_Sidebar.md
           
-          # Add documentation files dynamically
-          find . -type f -name "*.md" ! -path "./wiki/*" ! -path "*/README.md" | while read file; do
-            name=$(basename "$file" .md)
-            echo "* [[${name}]]" >> wiki/_Sidebar.md
-          done
-
           # Add meeting minutes dynamically
           echo "" >> wiki/_Sidebar.md
           echo "### Meeting Minutes" >> wiki/_Sidebar.md
-          find . -type f -name "Minutes*.md" ! -path "./wiki/*" | sort | while read file; do
+          find wiki/Meeting\ Minutes -type f -name "*.md" | sort | while read file; do
             name=$(basename "$file" .md)
             echo "* [[${name}]]" >> wiki/_Sidebar.md
           done
@@ -92,7 +85,7 @@ jobs:
             fi
 
             # Process API routes
-            API_JSON="wiki/api-routes/${formatted_name}.json"
+            API_JSON="wiki/Api Routes/${formatted_name}.json"
             if [[ -f "$API_JSON" ]]; then
               echo "" >> "$new_file"
               echo "## API Routes" >> "$new_file"
