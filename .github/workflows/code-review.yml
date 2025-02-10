@@ -20,13 +20,17 @@ jobs:
         run: |
           CHANGES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep -oE "^Pendo\.[^/]+" | sort -u)
           echo "Changed directories: $CHANGES"
-          echo "::set-output name=dirs::$CHANGES"
+          echo "dirs=$CHANGES" >> $GITHUB_OUTPUT
 
       - name: Detect project types
         id: set-matrix
         run: |
           MATRIX="{\"include\":["
           FIRST=true
+          
+          # Default entry to ensure matrix is never empty
+          MATRIX="${MATRIX}{\"directory\":\".\",\"type\":\"default\"}"
+          
           for DIR in ${{ steps.changed-dirs.outputs.dirs }}; do
             if [ -f "$DIR/*.csproj" ]; then
               TYPE="dotnet"
@@ -38,16 +42,11 @@ jobs:
               continue
             fi
             
-            if [ "$FIRST" = true ]; then
-              FIRST=false
-            else
-              MATRIX="${MATRIX},"
-            fi
-            
-            MATRIX="${MATRIX}{\"directory\":\"$DIR\",\"type\":\"$TYPE\"}"
+            MATRIX="${MATRIX},{\"directory\":\"$DIR\",\"type\":\"$TYPE\"}"
           done
+          
           MATRIX="${MATRIX}]}"
-          echo "::set-output name=matrix::$MATRIX"
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
 
   sonarcloud:
     needs: detect-changes
@@ -59,6 +58,13 @@ jobs:
     - uses: actions/checkout@v3
       with:
         fetch-depth: 0
+
+    # Skip default entry
+    - name: Skip default entry
+      if: matrix.type == 'default'
+      run: |
+        echo "Skipping default matrix entry"
+        exit 0
 
     # Setup .NET
     - name: Setup .NET
