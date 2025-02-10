@@ -1,0 +1,90 @@
+_format_version: "2.1"
+_transform: true
+
+services:
+  - name: message-service
+    url: http://message-service:5006
+    routes:
+      - name: message-ws-route
+        protocols: 
+          - http
+          - https
+        paths:
+          - /ws
+        strip_path: true
+        headers:
+          upgrade: 
+            - websocket
+      - name: message-api-route
+        protocols:
+          - http
+          - https
+        paths:
+          - /api/messages
+        strip_path: false
+        methods:
+          - POST
+          - GET
+    plugins:
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - x-skip-auth:${request.querystring.skipAuth}
+      - name: jwt
+        config:
+          secret_is_base64: false
+          key_claim_name: kid
+          claims_to_verify:
+            - exp
+          anonymous: anonymous-consumer  # Allow anonymous access
+          run_on_preflight: false
+      - name: acl
+        config:
+          hide_groups_header: true
+          allow:
+            - anonymous
+            - authenticated
+
+  - name: identity-service
+    url: http://identity-service:5001
+    routes:
+      - name: auth-route
+        protocols:
+          - http
+          - https
+        paths:
+          - /api/auth
+        strip_path: true
+
+consumers:
+  - username: anonymous-consumer
+    acls:
+      - group: anonymous
+
+plugins:
+  - name: cors
+    config:
+      origins:
+        - '*'
+      methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+      headers:
+        - Accept
+        - Authorization
+        - Content-Type
+        - Upgrade
+        - Connection
+      exposed_headers:
+        - Authorization
+      credentials: true
+      max_age: 3600
+
+  - name: rate-limiting
+    config:
+      minute: 60
+      policy: local
