@@ -136,14 +136,14 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: |
         dotnet sonarscanner begin \
-          /k:"pendo_${{ matrix.directory }}" \
+          /k:"sc232jm_software-engineering-project-team-2" \
+          /o:"sc232jm" \
           /d:sonar.host.url="https://sonarcloud.io" \
-          /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
-          /d:sonar.organization="your-org-key" \
+          /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
           /d:sonar.cs.vstest.reportsPaths="**/*.trx" \
           /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
         dotnet build --no-incremental
-        dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+        dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
     - name: SonarCloud Node.js analysis
       if: matrix.type == 'node'
@@ -153,11 +153,11 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: |
         sonar-scanner \
-          -Dsonar.projectKey=pendo_${{ matrix.directory }} \
-          -Dsonar.organization="your-org-key" \
+          -Dsonar.projectKey=sc232jm_software-engineering-project-team-2 \
+          -Dsonar.organization=sc232jm \
           -Dsonar.sources=. \
-          -Dsonar.host.url="https://sonarcloud.io" \
-          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+          -Dsonar.host.url=https://sonarcloud.io \
+          -Dsonar.token=${{ secrets.SONAR_TOKEN }}
 
     - name: SonarCloud Python analysis
       if: matrix.type == 'python'
@@ -167,9 +167,9 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: |
         sonar-scanner \
-          -Dsonar.projectKey=pendo_${{ matrix.directory }} \
-          -Dsonar.organization="your-org-key" \
+          -Dsonar.projectKey=sc232jm_software-engineering-project-team-2 \
+          -Dsonar.organization=sc232jm \
           -Dsonar.sources=. \
-          -Dsonar.host.url="https://sonarcloud.io" \
+          -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.python.version=3.9 \
-          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+          -Dsonar.token=${{ secrets.SONAR_TOKEN }}
