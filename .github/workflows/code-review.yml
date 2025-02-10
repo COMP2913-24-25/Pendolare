@@ -6,97 +6,121 @@ on:
       - main
 
 jobs:
-  sonarcloud:
-    name: Run SonarCloud analysis
+  detect-changes:
     runs-on: ubuntu-latest
-
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Required for detecting changes
+          
+      - name: Get changed directories
+        id: changed-dirs
+        run: |
+          CHANGES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep -oE "^Pendo\.[^/]+" | sort -u)
+          echo "Changed directories: $CHANGES"
+          echo "::set-output name=dirs::$CHANGES"
+
+      - name: Detect project types
+        id: set-matrix
+        run: |
+          MATRIX="{\"include\":["
+          FIRST=true
+          for DIR in ${{ steps.changed-dirs.outputs.dirs }}; do
+            if [ -f "$DIR/*.csproj" ]; then
+              TYPE="dotnet"
+            elif [ -f "$DIR/package.json" ]; then
+              TYPE="node"
+            elif [ -f "$DIR/requirements.txt" ]; then
+              TYPE="python"
+            else
+              continue
+            fi
+            
+            if [ "$FIRST" = true ]; then
+              FIRST=false
+            else
+              MATRIX="${MATRIX},"
+            fi
+            
+            MATRIX="${MATRIX}{\"directory\":\"$DIR\",\"type\":\"$TYPE\"}"
+          done
+          MATRIX="${MATRIX}]}"
+          echo "::set-output name=matrix::$MATRIX"
+
+  sonarcloud:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{fromJson(needs.detect-changes.outputs.matrix)}}
+    
+    steps:
+    - uses: actions/checkout@v3
       with:
-        fetch-depth: 0  # Required for better SonarCloud analysis
+        fetch-depth: 0
 
-    # Language detection steps
-    - name: Detect project type
-      id: detect
-      run: |
-        if [ -f "*.csproj" ]; then
-          echo "project_type=dotnet" >> $GITHUB_OUTPUT
-        elif [ -f "package.json" ]; then
-          echo "project_type=nodejs" >> $GITHUB_OUTPUT
-        elif [ -f "requirements.txt" ]; then
-          echo "project_type=python" >> $GITHUB_OUTPUT
-        else
-          echo "project_type=unknown" >> $GITHUB_OUTPUT
-        fi
-
-    # .NET setup and analysis
-    - name: Set up .NET
-      if: steps.detect.outputs.project_type == 'dotnet'
+    # Setup .NET
+    - name: Setup .NET
+      if: matrix.type == 'dotnet'
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: '6.0'
 
-    - name: Install .NET dependencies
-      if: steps.detect.outputs.project_type == 'dotnet'
-      run: dotnet restore
-
-    - name: Install .NET SonarScanner
-      if: steps.detect.outputs.project_type == 'dotnet'
-      run: dotnet tool install --global dotnet-sonarscanner
-
-    # Node.js setup and analysis
-    - name: Set up Node.js
-      if: steps.detect.outputs.project_type == 'nodejs'
+    # Setup Node.js
+    - name: Setup Node.js
+      if: matrix.type == 'node'
       uses: actions/setup-node@v3
       with:
         node-version: '16'
 
-    - name: Install Node.js dependencies
-      if: steps.detect.outputs.project_type == 'nodejs'
-      run: npm install
-
-    # Python setup and analysis
-    - name: Set up Python
-      if: steps.detect.outputs.project_type == 'python'
-      uses: actions/setup-python@v4
+    # Setup Python
+    - name: Setup Python
+      if: matrix.type == 'python'
+      uses: actions/setup-python@v2
       with:
         python-version: '3.9'
 
-    - name: Install Python dependencies
-      if: steps.detect.outputs.project_type == 'python'
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+    # Install dependencies based on project type
+    - name: Install .NET dependencies
+      if: matrix.type == 'dotnet'
+      working-directory: ${{ matrix.directory }}
+      run: dotnet restore
 
-    # Install SonarCloud scanner
-    - name: Install SonarCloud scanner
-      if: steps.detect.outputs.project_type != 'dotnet'
-      run: |
-        wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip
-        unzip sonar-scanner-cli-4.7.0.2747-linux.zip
-        echo "$PWD/sonar-scanner-4.7.0.2747-linux/bin" >> $GITHUB_PATH
+    - name: Install Node.js dependencies
+      if: matrix.type == 'node'
+      working-directory: ${{ matrix.directory }}
+      run: npm install
+
+    - name: Install Python dependencies
+      if: matrix.type == 'python'
+      working-directory: ${{ matrix.directory }}
+      run: pip install -r requirements.txt
 
     # Run SonarCloud analysis based on project type
-    - name: SonarCloud .NET Analysis
-      if: steps.detect.outputs.project_type == 'dotnet'
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    - name: SonarCloud .NET analysis
+      if: matrix.type == 'dotnet'
+      working-directory: ${{ matrix.directory }}
       run: |
-        dotnet sonarscanner begin /k:"pendo_carsharing" /o:"your-organization" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
+        dotnet sonarscanner begin /k:"pendo_${{ matrix.directory }}" /d:sonar.login=${{ secrets.SONAR_TOKEN }}
         dotnet build
-        dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+        dotnet sonarscanner end /d:sonar.login=${{ secrets.SONAR_TOKEN }}
 
-    - name: SonarCloud JS/Python Analysis
-      if: steps.detect.outputs.project_type == 'nodejs' || steps.detect.outputs.project_type == 'python'
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    - name: SonarCloud Node.js analysis
+      if: matrix.type == 'node'
+      working-directory: ${{ matrix.directory }}
       run: |
         sonar-scanner \
-          -Dsonar.projectKey=pendo_carsharing \
-          -Dsonar.organization=your-organization \
+          -Dsonar.projectKey=pendo_${{ matrix.directory }} \
           -Dsonar.sources=. \
-          -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+
+    - name: SonarCloud Python analysis
+      if: matrix.type == 'python'
+      working-directory: ${{ matrix.directory }}
+      run: |
+        sonar-scanner \
+          -Dsonar.projectKey=pendo_${{ matrix.directory }} \
+          -Dsonar.sources=. \
+          -Dsonar.python.version=3.9 \
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
