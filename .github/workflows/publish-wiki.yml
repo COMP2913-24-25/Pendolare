@@ -38,7 +38,7 @@ jobs:
           echo "### Documentation" >> wiki/_Sidebar.md
           echo "* [[DevGuide]]" >> wiki/_Sidebar.md
           
-          # Add meeting minutes dynamically
+          # Add meeting minutes dynamically to sidebar
           echo "" >> wiki/_Sidebar.md
           echo "### Meeting Minutes" >> wiki/_Sidebar.md
           find wiki/Meeting\ Minutes -type f -name "*.md" | sort | while read file; do
@@ -46,14 +46,22 @@ jobs:
             echo "* [[${name}]]" >> wiki/_Sidebar.md
           done
 
-          # Initialize service sections
+          # Initialize service sections in sidebar
           echo "" >> wiki/_Sidebar.md
           echo "### Frontend Services" >> wiki/_Sidebar.md
           echo "" >> wiki/_Sidebar.md
           echo "### Backend Services" >> wiki/_Sidebar.md
 
-          # Create Home.md
+          # Create Home.md with meeting minutes section
           echo "# Services" > wiki/Home.md
+          echo "" >> wiki/Home.md
+          echo "## Meeting Minutes" >> wiki/Home.md
+          echo "" >> wiki/Home.md
+          find wiki/Meeting\ Minutes -type f -name "*.md" | sort | while read file; do
+            name=$(basename "$file" .md)
+            wiki_link="https://github.com/COMP2913-24-25/software-engineering-project-team-2/wiki/${name}"
+            echo "- [${name}](${wiki_link})" >> wiki/Home.md
+          done
           echo "" >> wiki/Home.md
           echo "## Frontend Software" >> wiki/Home.md
           echo "" >> wiki/Home.md
