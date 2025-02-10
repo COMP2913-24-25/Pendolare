@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main  # or your default branch
+      - dev
 
 jobs:
   sonarcloud:
