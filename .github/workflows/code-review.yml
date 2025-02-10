@@ -28,24 +28,41 @@ jobs:
           MATRIX="{\"include\":["
           FIRST=true
           
-          # Default entry to ensure matrix is never empty
-          MATRIX="${MATRIX}{\"directory\":\".\",\"type\":\"default\"}"
-          
           for DIR in ${{ steps.changed-dirs.outputs.dirs }}; do
-            if [ -f "$DIR/*.csproj" ]; then
-              TYPE="dotnet"
-            elif [ -f "$DIR/package.json" ]; then
-              TYPE="node"
-            elif [ -f "$DIR/requirements.txt" ]; then
-              TYPE="python"
-            else
+            if [ ! -d "$DIR" ]; then
               continue
             fi
             
-            MATRIX="${MATRIX},{\"directory\":\"$DIR\",\"type\":\"$TYPE\"}"
+            # Check for project files using find
+            if find "$DIR" -maxdepth 1 -name "*.sqlproj" | grep -q .; then
+              TYPE="sql"
+            elif find "$DIR" -maxdepth 1 -name "*.csproj" | grep -q .; then
+              TYPE="dotnet"
+            elif find "$DIR" -maxdepth 1 -name "package.json" | grep -q .; then
+              TYPE="node"
+            elif find "$DIR" -maxdepth 1 -name "requirements.txt" | grep -q .; then
+              TYPE="python"
+            else
+              echo "No recognized project files found in $DIR"
+              continue
+            fi
+            
+            if [ "$FIRST" = true ]; then
+              FIRST=false
+            else
+              MATRIX="${MATRIX},"
+            fi
+            
+            MATRIX="${MATRIX}{\"directory\":\"$DIR\",\"type\":\"$TYPE\"}"
           done
           
+          # Add default entry if no projects were found
+          if [ "$FIRST" = true ]; then
+            MATRIX="${MATRIX}{\"directory\":\".\",\"type\":\"default\"}"
+          fi
+          
           MATRIX="${MATRIX}]}"
+          echo "Generated matrix: $MATRIX"
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
 
   sonarcloud:
@@ -66,9 +83,9 @@ jobs:
         echo "Skipping default matrix entry"
         exit 0
 
-    # Setup .NET
+    # Setup .NET (needed for both .NET and SQL projects)
     - name: Setup .NET
-      if: matrix.type == 'dotnet'
+      if: matrix.type == 'dotnet' || matrix.type == 'sql'
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: '6.0'
@@ -87,9 +104,16 @@ jobs:
       with:
         python-version: '3.9'
 
+    # Install SonarScanner
+    - name: Install SonarScanner
+      if: matrix.type == 'sql' || matrix.type == 'dotnet'
+      run: |
+        dotnet tool install --global dotnet-sonarscanner
+        echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
     # Install dependencies based on project type
     - name: Install .NET dependencies
-      if: matrix.type == 'dotnet'
+      if: matrix.type == 'dotnet' || matrix.type == 'sql'
       working-directory: ${{ matrix.directory }}
       run: dotnet restore
 
@@ -104,29 +128,48 @@ jobs:
       run: pip install -r requirements.txt
 
     # Run SonarCloud analysis based on project type
-    - name: SonarCloud .NET analysis
-      if: matrix.type == 'dotnet'
+    - name: SonarCloud .NET/SQL analysis
+      if: matrix.type == 'dotnet' || matrix.type == 'sql'
       working-directory: ${{ matrix.directory }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: |
-        dotnet sonarscanner begin /k:"pendo_${{ matrix.directory }}" /d:sonar.login=${{ secrets.SONAR_TOKEN }}
-        dotnet build
-        dotnet sonarscanner end /d:sonar.login=${{ secrets.SONAR_TOKEN }}
+        dotnet sonarscanner begin \
+          /k:"pendo_${{ matrix.directory }}" \
+          /d:sonar.host.url="https://sonarcloud.io" \
+          /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
+          /d:sonar.organization="your-org-key" \
+          /d:sonar.cs.vstest.reportsPaths="**/*.trx" \
+          /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
+        dotnet build --no-incremental
+        dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
 
     - name: SonarCloud Node.js analysis
       if: matrix.type == 'node'
       working-directory: ${{ matrix.directory }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: |
         sonar-scanner \
           -Dsonar.projectKey=pendo_${{ matrix.directory }} \
+          -Dsonar.organization="your-org-key" \
           -Dsonar.sources=. \
+          -Dsonar.host.url="https://sonarcloud.io" \
           -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
     - name: SonarCloud Python analysis
       if: matrix.type == 'python'
       working-directory: ${{ matrix.directory }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: |
         sonar-scanner \
           -Dsonar.projectKey=pendo_${{ matrix.directory }} \
+          -Dsonar.organization="your-org-key" \
           -Dsonar.sources=. \
+          -Dsonar.host.url="https://sonarcloud.io" \
           -Dsonar.python.version=3.9 \
           -Dsonar.login=${{ secrets.SONAR_TOKEN }}
