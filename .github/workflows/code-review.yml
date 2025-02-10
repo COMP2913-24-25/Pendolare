@@ -136,8 +136,8 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: |
         dotnet sonarscanner begin \
-          /k:"sc232jm_software-engineering-project-team-2" \
-          /o:"sc232jm" \
+          /k:"pendo_carsharing" \
+          /o:"pendo" \
           /d:sonar.host.url="https://sonarcloud.io" \
           /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
           /d:sonar.cs.vstest.reportsPaths="**/*.trx" \
@@ -153,8 +153,8 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: |
         sonar-scanner \
-          -Dsonar.projectKey=sc232jm_software-engineering-project-team-2 \
-          -Dsonar.organization=sc232jm \
+          -Dsonar.projectKey=pendo_carsharing \
+          -Dsonar.organization=pendo \
           -Dsonar.sources=. \
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.token=${{ secrets.SONAR_TOKEN }}
@@ -167,8 +167,8 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: |
         sonar-scanner \
-          -Dsonar.projectKey=sc232jm_software-engineering-project-team-2 \
-          -Dsonar.organization=sc232jm \
+          -Dsonar.projectKey=pendo_carsharing \
+          -Dsonar.organization=pendo \
           -Dsonar.sources=. \
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.python.version=3.9 \
