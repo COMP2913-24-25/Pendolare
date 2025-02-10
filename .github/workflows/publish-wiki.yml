@@ -59,7 +59,8 @@ jobs:
           echo "" >> wiki/Home.md
           find wiki/Meeting\ Minutes -type f -name "*.md" | sort | while read file; do
             name=$(basename "$file" .md)
-            wiki_link="https://github.com/COMP2913-24-25/software-engineering-project-team-2/wiki/${name}"
+            url_safe_name=$(echo "$name" | sed 's/ /-/g')
+            wiki_link="https://github.com/COMP2913-24-25/software-engineering-project-team-2/wiki/${url_safe_name}"
             echo "- [${name}](${wiki_link})" >> wiki/Home.md
           done
           echo "" >> wiki/Home.md
@@ -82,6 +83,8 @@ jobs:
 
             new_file="wiki/${formatted_name}.md"
             cp "$file" "$new_file"
+
+            wiki_link="https://github.com/COMP2913-24-25/software-engineering-project-team-2/wiki/${formatted_name}"
 
             # Add to appropriate sidebar section
             if [[ " ${FRONTEND_SERVICES[@]} " =~ " ${formatted_name} " ]]; then
