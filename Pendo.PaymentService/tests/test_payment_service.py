@@ -1,0 +1,12 @@
+import pytest 
+from src.payment_service import some_testing_function
+
+def test_testing_function():
+    # Arrange
+    param = True
+
+    # Act
+    result = some_testing_function(param)
+
+    # Assert
+    assert result == param
