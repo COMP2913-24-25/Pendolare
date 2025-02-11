@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.Configuration", "I
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.Tests", "Identity.Tests\Identity.Tests.csproj", "{73493996-231F-4AE1-A2FE-BF1CE0546697}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.DataAccess", "Identity.DataAccess\Identity.DataAccess.csproj", "{8A875965-CAD4-4616-940F-00954D43386E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{73493996-231F-4AE1-A2FE-BF1CE0546697}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{73493996-231F-4AE1-A2FE-BF1CE0546697}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{73493996-231F-4AE1-A2FE-BF1CE0546697}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A875965-CAD4-4616-940F-00954D43386E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A875965-CAD4-4616-940F-00954D43386E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A875965-CAD4-4616-940F-00954D43386E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A875965-CAD4-4616-940F-00954D43386E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

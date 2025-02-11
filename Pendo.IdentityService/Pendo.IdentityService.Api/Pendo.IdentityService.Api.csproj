@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Identity.DataAccess\Identity.DataAccess.csproj" />
     <ProjectReference Include="..\Identity.Schema\Identity.Schema.csproj" />
     <ProjectReference Include="..\Identity.Util\Identity.Util.csproj" />
   </ItemGroup>

@@ -4,9 +4,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddFileConfiguration();
 
-builder.Services.AddConfigurations(builder.Configuration);
-builder.Services.AddControllers();
-builder.Services.AddDependencies();
+builder.Services.AddConfigurations(builder.Configuration)
+    .AddDependencies()
+    .AddDatabase()
+    .AddControllers();
 
 var app = builder.Build();
 
