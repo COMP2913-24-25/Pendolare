@@ -1,6 +1,6 @@
-# Service Name
+# API Gateway
 
-Brief description of what this specific service does and its role in the Pendolare system.
+The API Gateway facilitates communication between the Client and the Microservices. It is a barrier blocking any client-machine communication and validates all incoming requests. 
 
 ## Overview
 
@@ -12,8 +12,8 @@ Description of the service's main responsibilities and core functionalities.
 - Key feature 3
 
 ## Tech Stack
-- Language/Framework: [e.g., Node.js, Java, Python]
-- Other significant technologies
+- Language/Framework: Lua + Kong
+- Docker
 
 ## Prerequisites
 - Required software/tools with versions
@@ -25,47 +25,17 @@ Description of the service's main responsibilities and core functionalities.
 ### Installation
 ```bash
 # Clone the repository
-git clone [repository-url]
+git clone https://github.com/COMP2913-24-25/software-engineering-project-team-2.git
 
 # Navigate to service directory
-cd [service-name]
+cd Pendo.ApiGateway
 
-# Install dependencies
-npm install  # or equivalent command
+# Create docker container
+docker-compose up -d
 ```
 
 ### Configuration
-1. Copy `.env.example` to `.env`
-2. Update environment variables:
-   - `DATABASE_URL`
-   - `SERVICE_PORT`
-   - `OTHER_REQUIRED_VARS`
-
-### Running the Service
-```bash
-# Development mode
-npm run dev  # or equivalent command
-
-# Production mode
-npm run start  # or equivalent command
-```
-
-### Testing
-```bash
-# Run unit tests
-npm run test  # or equivalent command
-
-# Run integration tests
-npm run test:integration  # or equivalent command
-```
-
-## API Documentation
-
-### Endpoints
-- `GET /api/v1/resource` - Description
-- `POST /api/v1/resource` - Description
-- `PUT /api/v1/resource/:id` - Description
-- `DELETE /api/v1/resource/:id` - Description
+1. No initial configuration is required, everything is set-up as is. 
 
 ## Monitoring and Logging
 - Metrics collection
@@ -79,4 +49,4 @@ npm run test:integration  # or equivalent command
 
 
 ## Contact
-- User responsible: [Leeds Username]
+- User responsible: (Josh Mundray) @sc232jm
