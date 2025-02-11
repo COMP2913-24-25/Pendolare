@@ -1,0 +1,338 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+      "title": "Pendo.PaymentAPI",
+      "description": "API For managing transactions, balance, and payouts",
+      "version": "1.0.0"
+    },
+    "paths": {
+      "/payment/refund": {
+        "post": {
+          "operationId": "refundPayment",
+          "summary": "Allows a refund of a booking which did not happen",
+          "responses": {
+            "201": {
+              "description": "The request was successful, and a new resource was created.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "data": {
+                        "type": "object"
+                      }
+                    },
+                    "required": [
+                      "data"
+                    ]
+                  },
+                  "example": {
+                    "status": "success"
+                  }
+                }
+              }
+            },
+            "400": {
+              "$ref": "#/components/responses/BadRequest"
+            },
+            "401": {
+              "description": "Authentication is required to access the requested resource. The client must include the appropriate credentials.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "message"
+                    ]
+                  }
+                }
+              }
+            },
+            "500": {
+              "$ref": "#/components/responses/InternalServerErrror"
+            }
+          }
+        }
+      },
+      "/payment/view": {
+        "get": {
+          "operationId": "viewBalance",
+          "summary": "Get a User's Pending and Non-Pending Balance",
+          "responses": {
+            "200": {
+              "description": "The request was successful, and the server has returned the requested resource in the response body.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "data": {
+                        "type": "object"
+                      }
+                    },
+                    "required": [
+                      "data"
+                    ]
+                  },
+                  "example": {
+                    "pending": 10,
+                    "non-pending": 34.99
+                  }
+                }
+              }
+            },
+            "400": {
+              "$ref": "#/components/responses/BadRequest"
+            },
+            "401": {
+              "description": "Authentication is required to access the requested resource. The client must include the appropriate credentials.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "message"
+                    ]
+                  }
+                }
+              }
+            },
+            "500": {
+              "$ref": "#/components/responses/InternalServerErrror"
+            }
+          },
+          "parameters": [],
+          "description": "Returns both the pending and non-pending balance of a user"
+        }
+      },
+      "/payment/confirm": {
+        "post": {
+          "operationId": "confirmBookingHappened",
+          "summary": "On confirmation of a journey - credits Advertiser",
+          "responses": {
+            "201": {
+              "description": "The request was successful, and a new resource was created.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "data": {
+                        "type": "object"
+                      }
+                    },
+                    "required": [
+                      "data"
+                    ],
+                    "example": {
+                      "status": "success"
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "$ref": "#/components/responses/BadRequest"
+            },
+            "401": {
+              "description": "Authentication is required to access the requested resource. The client must include the appropriate credentials.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "message"
+                    ]
+                  }
+                }
+              }
+            },
+            "500": {
+              "$ref": "#/components/responses/InternalServerErrror"
+            }
+          },
+          "parameters": [],
+          "description": "When both users confirm a booking happened, the balance held as pending for the Advertiser is released to non-pending"
+        }
+      },
+      "/payment/take": {
+        "post": {
+          "operationId": "takePayment",
+          "summary": "Takes payment from Booker via non-pending / Stripe",
+          "responses": {
+            "201": {
+              "description": "The request was successful, and a new resource was created.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "data": {
+                        "type": "object"
+                      }
+                    },
+                    "required": [
+                      "data"
+                    ],
+                    "example": {
+                      "status": "success"
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "$ref": "#/components/responses/BadRequest"
+            },
+            "401": {
+              "description": "Authentication is required to access the requested resource. The client must include the appropriate credentials.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "message"
+                    ]
+                  }
+                }
+              }
+            },
+            "500": {
+              "$ref": "#/components/responses/InternalServerErrror"
+            }
+          },
+          "parameters": [],
+          "description": "Debits the booking amount from the booker, either through booker's non-pending balance or Stripe. Credits the Advertiser's non-pending balance"
+        }
+      },
+      "/payment/payout": {
+        "post": {
+          "operationId": "creditAdvertisersBankViaStripe",
+          "summary": "Credit Advertiser's bank via Stripe",
+          "responses": {
+            "201": {
+              "description": "The request was successful, and a new resource was created.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "data": {
+                        "type": "object"
+                      }
+                    },
+                    "required": [
+                      "data"
+                    ],
+                    "example": {
+                      "status": "success"
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "$ref": "#/components/responses/BadRequest"
+            },
+            "401": {
+              "description": "Authentication is required to access the requested resource. The client must include the appropriate credentials.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "message"
+                    ]
+                  }
+                }
+              }
+            },
+            "500": {
+              "$ref": "#/components/responses/InternalServerErrror"
+            }
+          },
+          "parameters": [],
+          "description": "Uses stripe to credit an Advertiser's bank via a Card refund"
+        }
+      }
+    },
+    "components": {
+      "responses": {
+        "BadRequest": {
+          "description": "The server could not understand the request due to invalid syntax. The client should modify the request and try again.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  },
+                  "errors": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "message"
+                ]
+              }
+            }
+          }
+        },
+        "InternalServerErrror": {
+          "description": "The server encountered an unexpected condition that prevented it from fulfilling the request. Report the issue to the support team if it persists.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "message"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
