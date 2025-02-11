@@ -15,39 +15,39 @@ Core responsibilities:
 flowchart TD
     Start(["Start Booking Request"])
     SelectJourney["Select Journey"]
-    ChoosePriceOption{"Book at\nAdvertised Price\nor Negotiate?"}
+    ChoosePriceOption{"Book at Advertised Price or Negotiate?"}
     AdvertisedPrice["Book at Advertised Price"]
     HagglePrice["User Negotiates Price"]
     PriceAgreement{"Price Agreed?"}
-    PriceDenied["Notify User:\nPrice Not Agreed"]
+    PriceDenied["Notify User: Price Not Agreed"]
     ConfirmDetails["Confirm Booking Details"]
-    SendToPayment["Send Payment Request"]
-    PaymentConfirmed["Receive Payment\nConfirmation"]
-    StoreBooking["Store Booking\nin Database"]
-    UpdateSeats["Update Journey\nAvailability"]
-    Notify["Send Confirmation to\nUser & Driver"]
+    SendToPayment["Send Payment Request to Payment Service"]
+    PaymentConfirmed["Receive Payment Confirmation"]
+    StoreBooking["Store Booking in Database"]
+    UpdateSeats["Update Journey Availability"]
+    Notify["Send Confirmation to User & Driver"]
     End(["Booking Complete"])
 
-    UpdateStart(["Update Booking Request"])
+    UpdateStart(["User Requests to Update Booking"])
     CheckUpdate{"Update Allowed?"}
-    UpdateDenied["Notify User:\nUpdate Not Allowed"]
+    UpdateDenied["Notify User: Update Not Allowed"]
     ApplyUpdate["Modify Booking Details"]
-    UpdateSeats2["Update Journey\nAvailability"]
-    NotifyUpdate["Send Update\nConfirmation"]
+    UpdateSeats2["Update Journey Availability"]
+    NotifyUpdate["Send Update Confirmation"]
 
-    CancelStart(["Cancel Booking Request"])
-    CheckCancel{"Cancellation\nAllowed?"}
-    CancelDenied["Notify User:\nCancellation Not Allowed"]
-    ProcessRefund["Request Refund"]
-    RemoveBooking["Remove Booking\nfrom Database"]
-    UpdateSeats3["Update Journey\nAvailability"]
-    NotifyCancel["Send Cancellation\nConfirmation"]
+    CancelStart(["User Requests to Cancel Booking"])
+    CheckCancel{"Cancellation Allowed?"}
+    CancelDenied["Notify User: Cancellation Not Allowed"]
+    ProcessRefund["Request Refund from Payment Service"]
+    RemoveBooking["Remove Booking from Database"]
+    UpdateSeats3["Update Journey Availability"]
+    NotifyCancel["Send Cancellation Confirmation"]
 
     Start --> SelectJourney
     SelectJourney --> ChoosePriceOption
-    ChoosePriceOption -->|"Advertised"| AdvertisedPrice
+    ChoosePriceOption -->|"Book at Advertised Price"| AdvertisedPrice
     AdvertisedPrice --> ConfirmDetails
-    ChoosePriceOption -->|"Negotiate"| HagglePrice
+    ChoosePriceOption -->|"Negotiate Price"| HagglePrice
     HagglePrice --> PriceAgreement
     PriceAgreement -->|"No"| PriceDenied
     PriceAgreement -->|"Yes"| ConfirmDetails
