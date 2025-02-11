@@ -1,5 +1,7 @@
 ﻿using Identity.Configuration;
+using Identity.DataAccess.Models;
 using Identity.Util;
+using Microsoft.EntityFrameworkCore;
 
 namespace Pendo.IdentityService.Api;
 
@@ -16,6 +18,9 @@ public static class StartupExtensions
         .AddTransient<IDateTimeProvider, DateTimeProvider>()
         .AddTransient<IOtpGenerator, NumericOtpGenerator>()
         .AddTransient<IJwtGenerator, JwtGenerator>();
+
+    public static IServiceCollection AddDatabase(this IServiceCollection services)
+        => services.AddDbContext<PendoDatabaseContext>();
 
     public static IServiceCollection AddConfigurations(this IServiceCollection services, IConfigurationManager configuration)
         => services

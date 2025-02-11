@@ -15,25 +15,7 @@ WHEN NOT MATCHED THEN
     INSERT (Type, Description, CreateDate)
     VALUES (source.Type, source.Description, GETUTCDATE());
 
-GO;
-
--- Populate API Clients
-MERGE INTO [shared].[ApiClient] AS target
-USING (VALUES
-    ("SendGrid", NULL, "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")
-    ) AS source (ApiName, ClientId, ClientSecret)
-    ON target.ApiName = source.ApiName
-WHEN NOT MATCHED THEN
-    INSERT (ApiName, ClientId, ClientSecret)
-    VALUES (source.ApiName, source.ClientId, source.ClientSecret)
-WHEN MATCHED AND 
-    (ISNULL(target.ClientId, '') <> ISNULL(source.ClientId, '') 
-    OR ISNULL(target.ClientSecret, '') <> ISNULL(source.ClientSecret, '')) THEN
-    UPDATE SET 
-        target.ClientId = source.ClientId,
-        target.ClientSecret = source.ClientSecret;
-
-GO;
+GO
 
 DECLARE @OtpConfiguration NVARCHAR(MAX) = '
 {
@@ -64,4 +46,4 @@ WHEN NOT MATCHED THEN
 WHEN MATCHED AND target.[Value] <> source.[Value] THEN
     UPDATE SET target.[Value] = source.[Value];
 
-GO;
+GO
