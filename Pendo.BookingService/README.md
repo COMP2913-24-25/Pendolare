@@ -6,6 +6,77 @@ Brief description of what this specific service does and its role in the Pendola
 
 Description of the service's main responsibilities and core functionalities.
 
+## Service Flowchart
+
+```mermaid
+graph TD;
+    %% Booking Process %%
+    Start(["Start Booking Request"])
+    SelectJourney["Select Journey"]
+    ChoosePriceOption{Book at Advertised Price or Negotiate?}
+    AdvertisedPrice["Book at Advertised Price"]
+    HagglePrice["User Negotiates Price"]
+    PriceAgreement{Price Agreed?}
+    PriceDenied["Notify User: Price Not Agreed"]
+    ConfirmDetails["Confirm Booking Details"]
+    SendToPayment["Send Payment Request to Payment Service"]
+    PaymentConfirmed["Receive Payment Confirmation"]
+    StoreBooking["Store Booking in Database"]
+    UpdateSeats["Update Journey Availability"]
+    Notify["Send Confirmation to User & Driver"]
+    End(["Booking Complete"])
+
+    %% Updating Booking %%
+    UpdateStart(["User Requests to Update Booking"])
+    CheckUpdate{Update Allowed?}
+    UpdateDenied["Notify User: Update Not Allowed"]
+    ApplyUpdate["Modify Booking Details"]
+    UpdateSeats2["Update Journey Availability"]
+    NotifyUpdate["Send Update Confirmation"]
+
+    %% Cancelling Booking %%
+    CancelStart(["User Requests to Cancel Booking"])
+    CheckCancel{Cancellation Allowed?}
+    CancelDenied["Notify User: Cancellation Not Allowed"]
+    ProcessRefund["Request Refund from Payment Service"]
+    RemoveBooking["Remove Booking from Database"]
+    UpdateSeats3["Update Journey Availability"]
+    NotifyCancel["Send Cancellation Confirmation"]
+
+    %% Booking Flow %%
+    Start --> SelectJourney
+    SelectJourney --> ChoosePriceOption
+    ChoosePriceOption -- "Book at Advertised Price" --> AdvertisedPrice
+    AdvertisedPrice --> ConfirmDetails
+    ChoosePriceOption -- "Negotiate Price" --> HagglePrice
+    HagglePrice --> PriceAgreement
+    PriceAgreement -- No --> PriceDenied
+    PriceAgreement -- Yes --> ConfirmDetails
+    ConfirmDetails --> SendToPayment
+    SendToPayment --> PaymentConfirmed
+    PaymentConfirmed --> StoreBooking
+    StoreBooking --> UpdateSeats
+    UpdateSeats --> Notify
+    Notify --> End
+
+    %% Updating Flow %%
+    UpdateStart --> CheckUpdate
+    CheckUpdate -- No --> UpdateDenied
+    CheckUpdate -- Yes --> ApplyUpdate
+    ApplyUpdate --> UpdateSeats2
+    UpdateSeats2 --> NotifyUpdate
+    NotifyUpdate --> End
+
+    %% Cancelling Flow %%
+    CancelStart --> CheckCancel
+    CheckCancel -- No --> CancelDenied
+    CheckCancel -- Yes --> ProcessRefund
+    ProcessRefund --> RemoveBooking
+    RemoveBooking --> UpdateSeats3
+    UpdateSeats3 --> NotifyCancel
+    NotifyCancel --> End
+```
+
 ### Features
 - Key feature 1
 - Key feature 2
