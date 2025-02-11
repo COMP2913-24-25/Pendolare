@@ -12,7 +12,7 @@ Core responsibilities:
 ## Service Flowchart
 
 ```mermaid
-graph TD;
+flowchart TD;
     %% Booking Process %%
     Start(["Start Booking Request"])
     SelectJourney["Select Journey"]
