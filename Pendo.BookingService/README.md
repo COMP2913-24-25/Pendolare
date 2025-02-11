@@ -1,10 +1,13 @@
-# Service Name
+# Booking Service
 
-Brief description of what this specific service does and its role in the Pendolare system.
+The Booking Service is responsible for handling all booking-related operations. It handles the booking, alterations to and cancelling of a chosen journey.
 
 ## Overview
 
-Description of the service's main responsibilities and core functionalities.
+Core responsibilities:
+ - Create booking
+ - Update booking
+ - Communicate with payment service
 
 ## Service Flowchart
 
@@ -78,18 +81,19 @@ graph TD;
 ```
 
 ### Features
-- Key feature 1
-- Key feature 2
-- Key feature 3
+- **Journey Booking:** users can book seats in available journeys.
+- **Booking Modification:** Users can negotiate the price with the driver prior to booking
+- **Cancellation System:** Allows users to cancel their booking before the journey starts.
+- **Payment Integration:** Interfaces with the Payment Service to manage transactions.
+- **Notifications:** Sends booking confirmation
 
 ## Tech Stack
-- Language/Framework: [e.g., Node.js, Java, Python]
-- Other significant technologies
+- Backend: Python (Flask)
+- Database: PostgreSQL
+- Testing Framework: Pytest
 
 ## Prerequisites
-- Required software/tools with versions
-- Environment dependencies
-- External service dependencies
+- to be updated
 
 ## Getting Started
 
