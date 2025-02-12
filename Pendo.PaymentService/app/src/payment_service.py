@@ -1,3 +1,9 @@
+# 
+# Python FastAPI implentation for Pendo.PaymentService
+# Author: Alexander McCall
+# Created: 12/02/2025
+#
+
 from fastapi import FastAPI
 
 app = FastAPI()

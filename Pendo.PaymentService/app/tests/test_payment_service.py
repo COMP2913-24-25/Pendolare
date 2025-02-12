@@ -1,3 +1,9 @@
+# 
+# Python testing implentation for Pendo.PaymentService using Pytest
+# Author: Alexander McCall
+# Created: 12/02/2025
+#
+
 import pytest 
 from src.payment_service import some_testing_function
 
