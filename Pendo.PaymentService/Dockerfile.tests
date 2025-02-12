@@ -1,3 +1,9 @@
+# 
+# Dockerfile Pytest image for Pendo.PaymentService
+# Author: Alexander McCall
+# Created: 12/02/2025
+#
+
 FROM python:3.9-slim
 
 WORKDIR /code
