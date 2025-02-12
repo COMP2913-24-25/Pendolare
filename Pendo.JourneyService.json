@@ -1,0 +1,153 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Journey API",
+    "description": "API for creating and viewing journeys.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/journeys/create": {
+      "post": {
+        "summary": "Create a new journey",
+        "description": "Creates a journey with details such as cost and number of passengers.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Journey"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Journey successfully created"
+          },
+          "400": {
+            "description": "Bad request (invalid input)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/journeys/view": {
+      "get": {
+        "summary": "View journeys",
+        "description": "Retrieve journeys with optional filters for date, time, start location, and end location.",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "description": "Date of the journey (YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2024-02-10"
+            }
+          },
+          {
+            "name": "time",
+            "in": "query",
+            "description": "Time of the journey (HH:MM)",
+            "schema": {
+              "type": "string",
+              "example": "14:30"
+            }
+          },
+          {
+            "name": "startLocation",
+            "in": "query",
+            "description": "Starting location of the journey",
+            "schema": {
+              "type": "string",
+              "example": "New York"
+            }
+          },
+          {
+            "name": "endLocation",
+            "in": "query",
+            "description": "Destination of the journey",
+            "schema": {
+              "type": "string",
+              "example": "Los Angeles"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of journeys matching the filter criteria",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Journey"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Journey": {
+        "type": "object",
+        "required": [
+          "cost",
+          "numPassengers",
+          "date",
+          "time",
+          "startLocation",
+          "endLocation"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "example": "2024-02-10"
+          },
+          "time": {
+            "type": "string",
+            "example": "14:30"
+          },
+          "startLocation": {
+            "type": "string",
+            "example": "New York"
+          },
+          "endLocation": {
+            "type": "string",
+            "example": "Los Angeles"
+          },
+          "cost": {
+            "type": "number",
+            "format": "float",
+            "example": 250.5
+          },
+          "numPassengers": {
+            "type": "integer",
+            "example": 3
+          }
+        }
+      }
+    }
+  }
+}
