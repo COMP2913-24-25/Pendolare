@@ -84,7 +84,7 @@ flowchart TD
 
 ## Tech Stack
 - Backend: Python (Flask)
-- Database: tba
+- Database: SQLAlchemy
 - Testing Framework: Pytest
 
 ## Prerequisites
