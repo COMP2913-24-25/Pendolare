@@ -12,6 +12,7 @@
     <Folder Include="Scripts" />
     <Folder Include="Tables" />
     <Folder Include="Tables\identity" />
+    <Folder Include="Tables\journey" />
     <Folder Include="Tables\payment" />
     <Folder Include="Tables\shared" />
   </ItemGroup>
