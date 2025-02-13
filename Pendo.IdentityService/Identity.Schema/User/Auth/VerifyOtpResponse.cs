@@ -9,4 +9,14 @@ public class VerifyOtpResponse
     /// The JWT issued to the user.
     /// </summary>
     public required string Jwt;
+
+    /// <summary>
+    /// Indicates if the user is new and should have name etc. updated.
+    /// </summary>
+    public bool IsNewUser;
+
+    /// <summary>
+    /// Indicates whether the user was authenticated or not.
+    /// </summary>
+    public bool Authenticated;
 }

@@ -5,7 +5,7 @@ namespace Identity.Schema.Client;
 /// <summary>
 /// Represents a client authentication request using client credentials.
 /// </summary>
-public class ClientAuthenticationRequest
+public class ClientAuthenticationRequest : IRequest
 {
     /// <summary>
     /// Gets or sets the client identifier.

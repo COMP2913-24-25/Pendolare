@@ -5,7 +5,7 @@ namespace Identity.Schema.User.Auth;
 /// <summary>
 /// Used to request a One-time-passcode.
 /// </summary>
-public class OtpRequest
+public class OtpRequest : IRequest
 {
     /// <summary>
     /// The email address to send the OTP to.
