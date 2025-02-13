@@ -1,0 +1,163 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Journey API",
+    "description": "API for creating and viewing journeys.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/journeys/create": {
+      "post": {
+        "summary": "Create a new journey",
+        "description": "Creates a journey with details such as cost and number of passengers.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Journey"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Journey successfully created"
+          },
+          "400": {
+            "description": "Bad request (invalid input)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/journeys/view": {
+      "get": {
+        "summary": "View journeys",
+        "description": "Retrieve journeys with optional filters for date, time, start location, and end location.",
+        "parameters": [
+          {
+            "name": "Date",
+            "in": "query",
+            "description": "Date of the journey (YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2024-02-10"
+            }
+          },
+          {
+            "name": "Time",
+            "in": "query",
+            "description": "Time of the journey (HH:MM)",
+            "schema": {
+              "type": "string",
+              "example": "14:30"
+            }
+          },
+          {
+            "name": "StartLocation",
+            "in": "query",
+            "description": "Starting location of the journey",
+            "schema": {
+              "type": "string",
+              "example": "New York"
+            }
+          },
+          {
+            "name": "EndLocation",
+            "in": "query",
+            "description": "Destination of the journey",
+            "schema": {
+              "type": "string",
+              "example": "Los Angeles"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of journeys matching the filter criteria",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Journey"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Journey": {
+        "type": "object",
+        "required": [
+          "UserId",
+          "Cost",
+          "NumPassengers",
+          "Date",
+          "Time",
+          "StartLocation",
+          "EndLocation",
+          "JourneyType"
+        ],
+        "properties": {
+          "UserId": {
+            "type": "integer",
+            "example": 1
+          },
+          "Date": {
+            "type": "string",
+            "format": "date",
+            "example": "2024-02-10"
+          },
+          "Time": {
+            "type": "string",
+            "example": "14:30"
+          },
+          "StartLocation": {
+            "type": "string",
+            "example": "New York"
+          },
+          "EndLocation": {
+            "type": "string",
+            "example": "Los Angeles"
+          },
+          "Cost": {
+            "type": "number",
+            "format": "float",
+            "example": 250.5
+          },
+          "NumPassengers": {
+            "type": "integer",
+            "example": 3
+          },
+          "JourneyType": {
+            "type": "string",
+            "example": "OneWay"
+          },
+          "RepeatFrequency": {
+            "type": "string",
+            "example": "weekly"
+          }
+        }
+      }
+    }
+  }
+}
