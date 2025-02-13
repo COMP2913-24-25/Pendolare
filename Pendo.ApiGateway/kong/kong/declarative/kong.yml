@@ -6,25 +6,35 @@ services:
     url: http://message-service:5006
     routes:
       - name: message-ws-route
-        protocols: 
-          - http
-          - https
-        paths:
-          - /ws
-        strip_path: true
-        headers:
-          upgrade: 
-            - websocket
-      - name: message-api-route
         protocols:
           - http
           - https
         paths:
-          - /api/messages
+          - /message/ws
+        strip_path: true
+        headers:
+          Upgrade:
+            - websocket
+        methods:
+          - GET
+      - name: message-history
+        protocols:
+          - http
+          - https
+        paths:
+          - /message/history
+        strip_path: false
+        methods:
+          - GET
+      - name: message-open-conversation
+        protocols:
+          - http
+          - https
+        paths:
+          - /message/open-conversation
         strip_path: false
         methods:
           - POST
-          - GET
     plugins:
       - name: request-transformer
         config:
@@ -37,7 +47,7 @@ services:
           key_claim_name: kid
           claims_to_verify:
             - exp
-          anonymous: anonymous-consumer  # Allow anonymous access
+          anonymous: anonymous-consumer
           run_on_preflight: false
       - name: acl
         config:
@@ -56,6 +66,159 @@ services:
         paths:
           - /api/auth
         strip_path: true
+      - name: auth-request-otp
+        protocols:
+          - http
+          - https
+        paths:
+          - /auth/request-otp
+        strip_path: false
+        methods:
+          - POST
+      - name: auth-verify-otp
+        protocols:
+          - http
+          - https
+        paths:
+          - /auth/verify-otp
+        strip_path: false
+        methods:
+          - POST
+      - name: user-update
+        protocols:
+          - http
+          - https
+        paths:
+          - /user/update
+        strip_path: false
+        methods:
+          - POST
+      - name: user-get
+        protocols:
+          - http
+          - https
+        paths:
+          - /user/get
+        strip_path: false
+        methods:
+          - GET
+          
+
+  - name: payment-service
+    url: http://payment-service:5004
+    routes:
+      - name: payment-refund
+        protocols:
+          - http
+          - https
+        paths:
+          - /payment/refund
+        strip_path: false
+        methods:
+          - POST
+      - name: payment-view
+        protocols:
+          - http
+          - https
+        paths:
+          - /payment/view
+        strip_path: false
+        methods:
+          - GET
+      - name: payment-confirm
+        protocols:
+          - http
+          - https
+        paths:
+          - /payment/confirm
+        strip_path: false
+        methods:
+          - POST
+      - name: payment-take
+        protocols:
+          - http
+          - https
+        paths:
+          - /payment/take
+        strip_path: false
+        methods:
+          - POST
+      - name: payment-payout
+        protocols:
+          - http
+          - https
+        paths:
+          - /payment/payout
+        strip_path: false
+        methods:
+          - POST
+
+
+  - name: api-service
+    url: http://api-service:5000
+    routes:
+      - name: api-ping
+        protocols:
+          - http
+          - https
+        paths:
+          - /api/ping
+        strip_path: false
+        methods:
+          - GET
+
+  - name: booking-service
+    url: http://booking-service:5003
+    routes:
+      - name: booking-create
+        protocols:
+          - http
+          - https
+        paths:
+          - /booking/create
+        strip_path: false
+        methods:
+          - POST
+      - name: booking-update
+        protocols:
+          - http
+          - https
+        paths:
+          - /booking/update
+        strip_path: false
+        methods:
+          - POST
+      - name: booking-get
+        protocols:
+          - http
+          - https
+        paths:
+          - /booking/get
+        strip_path: false
+        methods:
+          - GET
+
+  - name: journey-service
+    url: http://journey-service:5002
+    routes:
+      - name: journey-create
+        protocols:
+          - http
+          - https
+        paths:
+          - /journey/create
+        strip_path: false
+        methods:
+          - POST
+      - name: journey-view
+        protocols:
+          - http
+          - https
+        paths:
+          - /journey/view
+        strip_path: false
+        methods:
+          - GET
 
 consumers:
   - username: anonymous-consumer
@@ -66,7 +229,7 @@ plugins:
   - name: cors
     config:
       origins:
-        - '*'
+        - "*"
       methods:
         - GET
         - POST
