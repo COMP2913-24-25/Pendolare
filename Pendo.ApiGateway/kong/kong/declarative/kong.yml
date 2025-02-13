@@ -102,7 +102,6 @@ services:
         strip_path: false
         methods:
           - GET
-          
 
   - name: payment-service
     url: http://payment-service:5004
@@ -152,17 +151,15 @@ services:
         strip_path: false
         methods:
           - POST
-
-
-  - name: api-service
-    url: http://api-service:5000
+  - name: api-gateway-status
+    url: http://127.0.0.1:8001
     routes:
-      - name: api-ping
+      - name: gateway-status
         protocols:
           - http
           - https
         paths:
-          - /api/ping
+          - /status
         strip_path: false
         methods:
           - GET
