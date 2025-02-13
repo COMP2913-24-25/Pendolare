@@ -14,7 +14,7 @@ CREATE TABLE [journey].[Journeys]
   [JourneyType] NVARCHAR(100) NULL,
   [JourneyDate] DATE NOT NULL,
   [StartTime] INT NOT NULL,
-  [EndTime] INT NOT NULL,
+  [EndTime] NVARCHAR(100) NULL,
   [MaxPassengers] INT NOT NULL,
   [RegPlate] NVARCHAR(100) NULL,
   [CreateDate] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
