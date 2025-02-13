@@ -24,4 +24,9 @@ public class OtpConfiguration
     /// The template ID of the OTP email.
     /// </summary>
     public required string SendGridOtpTemplateId { get; set; }
+
+    /// <summary>
+    /// Number of minutes the code is valid for.
+    /// </summary>
+    public int ValidMinutes { get; set; } = 10;
 }

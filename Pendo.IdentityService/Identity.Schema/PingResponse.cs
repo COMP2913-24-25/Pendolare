@@ -3,7 +3,7 @@
 /// <summary>
 /// Response DTO for Ping requests.
 /// </summary>
-public class PingResponse
+public class PingResponse : IRequest
 {
     /// <summary>
     /// The message to return to the sender.
