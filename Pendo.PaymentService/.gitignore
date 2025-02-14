@@ -1,6 +1,5 @@
 /.pytest_cache
-/.paymentVenv3.9
-/.paymentVenv
+/.venv
 /app/src/__pycache__
 /app/tests/__pycache__
 /app/tests/.pytest_cache
