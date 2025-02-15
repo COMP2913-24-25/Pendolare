@@ -1,10 +1,22 @@
+import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { View, Image, Platform } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from "react-native-maps";
-import axios from "axios";
+
 import { icons } from "@/constants";
 
-const Map = ({ pickup, dropoff }) => {
+interface Location {
+  latitude: number;
+  longitude: number;
+  name?: string;
+}
+
+interface MapProps {
+  pickup: Location | null;
+  dropoff: Location | null;
+}
+
+const Map = ({ pickup, dropoff }: MapProps) => {
   const [isMapReady, setIsMapReady] = useState(false);
   const [mapRegion, setMapRegion] = useState({
     latitude: pickup?.latitude || 37.78825,
@@ -26,13 +38,15 @@ const Map = ({ pickup, dropoff }) => {
       // Fetch route from OpenRouteService API
       const fetchRoute = async () => {
         const response = await axios.get(
-          `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${process.env.EXPO_PUBLIC_OSR_KEY}&start=${pickup.longitude},${pickup.latitude}&end=${dropoff.longitude},${dropoff.latitude}`
+          `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${process.env.EXPO_PUBLIC_OSR_KEY}&start=${pickup.longitude},${pickup.latitude}&end=${dropoff.longitude},${dropoff.latitude}`,
         );
         const coordinates = response.data.features[0].geometry.coordinates;
-        const points = coordinates.map(([longitude, latitude]) => ({
-          latitude,
-          longitude,
-        }));
+        const points = coordinates.map(
+          ([longitude, latitude]: [number, number]) => ({
+            latitude,
+            longitude,
+          }),
+        );
         setRouteCoordinates(points);
       };
 
