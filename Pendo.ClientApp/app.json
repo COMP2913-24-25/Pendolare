@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "Pendolino",
+    "slug": "pendolino",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "myapp",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "server"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-secure-store"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "8d1dc9bd-9a58-4ea9-bed5-0d022703a12e"
+      },
+      "router": {
+        "origin": false
+      }
+    },
+    "experiments": {
+      "typedRoutes": true
+    },
+    "owner": "sc232jm"
+  }
+}
