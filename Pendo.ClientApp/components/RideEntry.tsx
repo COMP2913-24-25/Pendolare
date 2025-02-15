@@ -4,7 +4,18 @@ import { View, Text, TouchableOpacity, Image, Modal } from "react-native";
 import Map from "@/components/Map";
 import { icons } from "@/constants";
 
-const RideEntry = ({ ride }) => {
+interface RideProps {
+  driverName: string;
+  rating: number;
+  price: string;
+  departureTime: string;
+  destination: string;
+  availableSeats: number;
+  pickup: any;
+  dropoff: any;
+}
+
+const RideEntry = ({ ride }: { ride: RideProps }) => {
   const [showDetails, setShowDetails] = useState(false);
 
   return (

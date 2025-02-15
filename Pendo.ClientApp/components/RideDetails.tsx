@@ -12,7 +12,13 @@ import Map from "./Map";
 
 import { icons } from "@/constants";
 
-const RideDetails = ({ ride, visible, onClose }) => {
+interface RideDetailsProps {
+  ride: any;
+  visible: boolean;
+  onClose: () => void;
+}
+
+const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
   return (
     <Modal
       animationType="slide"
