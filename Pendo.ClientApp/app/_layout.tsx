@@ -6,8 +6,7 @@ import { useEffect } from "react";
 
 SplashScreen.preventAutoHideAsync();
 
-const publishableKey =
-  "pk_test_c2F2ZWQtbWFybW9zZXQtNDIuY2xlcmsuYWNjb3VudHMuZGV2JA";
+const publishableKey = process.env.EXPO_PUBLIC_PUBLISH_KEY;
 
 if (!publishableKey) {
   throw new Error("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is not set");
