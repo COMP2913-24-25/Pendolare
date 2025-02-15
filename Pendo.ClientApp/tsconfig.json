@@ -1,0 +1,12 @@
+// filepath: /c:/Users/Josh Mundray/OneDrive/Documents/GitHub/software-engineering-project-team-2/Pendo.ClientApp/tsconfig.json
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
+}
