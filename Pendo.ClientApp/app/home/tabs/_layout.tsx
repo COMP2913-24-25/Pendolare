@@ -18,7 +18,7 @@ const TabIcon = ({
       alignItems: "center",
       backgroundColor: focused ? "#2563EB" : "transparent",
       borderRadius: 20,
-      marginVertical: "auto", // Add vertical auto margin
+      marginVertical: "auto",
     }}
   >
     <Image
@@ -47,8 +47,8 @@ export default function Layout() {
           marginHorizontal: 20,
           marginBottom: 20,
           height: 65,
-          paddingBottom: 40, // Add bottom padding
-          paddingVertical: 10, // Add vertical padding
+          paddingBottom: 40,
+          paddingVertical: 10,
           paddingHorizontal: 20,
           position: "absolute",
           bottom: 0,
@@ -57,7 +57,7 @@ export default function Layout() {
           display: "flex",
           flexDirection: "row",
           justifyContent: "space-between",
-          alignItems: "center", // Center items vertically
+          alignItems: "center",
           borderTopWidth: 0,
         },
         headerShown: false,
@@ -69,6 +69,15 @@ export default function Layout() {
           title: "Home",
           tabBarIcon: ({ focused }) => (
             <TabIcon source={icons.home} focused={focused} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="book"
+        options={{
+          title: "Book",
+          tabBarIcon: ({ focused }) => (
+            <TabIcon source={icons.search} focused={focused} />
           ),
         }}
       />

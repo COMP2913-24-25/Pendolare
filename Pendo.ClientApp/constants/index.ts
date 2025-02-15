@@ -76,3 +76,45 @@ export const onboarding = [
 export const data = {
   onboarding,
 };
+
+export const dummyRides = [
+  {
+    id: 1,
+    driverName: "John Smith",
+    availableSeats: 3,
+    departureTime: "08:00 AM",
+    destination: "Leeds Train Station",
+    price: "£15",
+    rating: 4.8,
+    pickup: {
+      latitude: 53.806684,
+      longitude: -1.555031,
+      name: "University of Leeds",
+    },
+    dropoff: {
+      latitude: 53.794304,
+      longitude: -1.547692,
+      name: "Leeds Train Station",
+    },
+  },
+  {
+    id: 2,
+    driverName: "Sarah Wilson",
+    availableSeats: 2,
+    departureTime: "09:30 AM",
+    destination: "Hyde Park",
+    price: "$25",
+    rating: 4.9,
+    pickup: {
+      latitude: 53.806684,
+      longitude: -1.555031,
+      name: "University of Leeds",
+    },
+    dropoff: {
+      latitude: 53.809402,
+      longitude: -1.560743,
+      name: "Hyde Park",
+    },
+  },
+  // ...existing rides
+];
