@@ -54,7 +54,18 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
 
     try {
       const response = await axios.get(
-        `https://api.openrouteservice.org/geocode/search?api_key=${process.env.EXPO_PUBLIC_OSR_KEY}&text=${query}`,
+        `https://api.openrouteservice.org/geocode/search`,
+        {
+          params: {
+            api_key: process.env.EXPO_PUBLIC_OSR_KEY,
+            text: query,
+            "boundary.rect.min_lat": "49.674", // Southernmost point of UK
+            "boundary.rect.max_lat": "61.061", // Northernmost point of UK
+            "boundary.rect.min_lon": "-8.178", // Westernmost point of UK
+            "boundary.rect.max_lon": "1.987", // Easternmost point of UK
+            sources: "openstreetmap",
+          },
+        },
       );
 
       if (response.data.features) {
@@ -262,9 +273,17 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
           <Text className="text-2xl font-JakartaBold mt-4">Create a Ride</Text>
           <View className="w-10 mt-4" />
         </View>
-        <View className="flex-row justify-between mb-8 px-4">
+        <View className="flex-row items-center justify-between mb-8 px-4 relative">
+          <View
+            className="absolute top-4 h-[2px] bg-gray-300"
+            style={{
+              left: "15%", // Adjust line start position
+              right: "15%", // Adjust line end position
+              zIndex: 1,
+            }}
+          />
           {[1, 2, 3, 4].map((stepNumber) => (
-            <View key={stepNumber} className="flex-row items-center">
+            <View key={stepNumber} className="flex-row items-center z-10">
               <View
                 className={`w-8 h-8 rounded-full ${
                   step >= stepNumber ? "bg-blue-600" : "bg-gray-300"
@@ -274,13 +293,6 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
                   {stepNumber}
                 </Text>
               </View>
-              {stepNumber < 4 && (
-                <View
-                  className={`h-[2px] w-[30px] ${
-                    step > stepNumber ? "bg-blue-600" : "bg-gray-300"
-                  }`}
-                />
-              )}
             </View>
           ))}
         </View>
