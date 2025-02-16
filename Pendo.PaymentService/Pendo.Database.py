@@ -1,6 +1,6 @@
 from typing import List
 
-from sqlalchemy import CHAR, Column, DECIMAL, ForeignKeyConstraint, Identity, Index, Integer, PrimaryKeyConstraint, Unicode, Uuid, text
+from sqlalchemy import Boolean, CHAR, Column, DECIMAL, ForeignKeyConstraint, Identity, Index, Integer, PrimaryKeyConstraint, Unicode, Uuid, text
 from sqlalchemy.dialects.mssql import DATETIME2
 from sqlalchemy.orm import Mapped, declarative_base, mapped_column, relationship
 from sqlalchemy.orm.base import Mapped
@@ -11,7 +11,7 @@ Base = declarative_base()
 class UserType(Base):
     __tablename__ = 'UserType'
     __table_args__ = (
-        PrimaryKeyConstraint('UserTypeId', name='PK__UserType__40D2D816A7F1C546'),
+        PrimaryKeyConstraint('UserTypeId', name='PK__UserType__40D2D816D009C4A7'),
         {'schema': 'identity'}
     )
 
@@ -26,8 +26,8 @@ class UserType(Base):
 class TransactionStatus(Base):
     __tablename__ = 'TransactionStatus'
     __table_args__ = (
-        PrimaryKeyConstraint('TransactionStatusId', name='PK__Transact__57B5E1832050F9E5'),
-        Index('UQ__Transact__3A15923F8A389184', 'Status', unique=True),
+        PrimaryKeyConstraint('TransactionStatusId', name='PK__Transact__57B5E183DCC368E5'),
+        Index('UQ__Transact__3A15923FBECE6CBF', 'Status', unique=True),
         {'schema': 'payment'}
     )
 
@@ -42,8 +42,8 @@ class TransactionStatus(Base):
 class TransactionType(Base):
     __tablename__ = 'TransactionType'
     __table_args__ = (
-        PrimaryKeyConstraint('TransactionTypeId', name='PK__Transact__20266D0BF824E538'),
-        Index('UQ__Transact__F9B8A48BE552A567', 'Type', unique=True),
+        PrimaryKeyConstraint('TransactionTypeId', name='PK__Transact__20266D0B9D16F791'),
+        Index('UQ__Transact__F9B8A48B6250D402', 'Type', unique=True),
         {'schema': 'payment'}
     )
 
@@ -55,13 +55,45 @@ class TransactionType(Base):
     Transaction: Mapped[List['Transaction']] = relationship('Transaction', uselist=True, back_populates='TransactionType_')
 
 
+class ApiClient(Base):
+    __tablename__ = 'ApiClient'
+    __table_args__ = (
+        PrimaryKeyConstraint('ApiClientId', name='PK__ApiClien__FDC5B7C8DA36775F'),
+        Index('UQ__ApiClien__E67E1A25B56BAFE0', 'ClientId', unique=True),
+        {'schema': 'shared'}
+    )
+
+    ApiClientId = mapped_column(Integer, Identity(start=1, increment=1))
+    ApiName = mapped_column(Unicode(255, 'SQL_Latin1_General_CP1_CI_AS'), nullable=False)
+    ClientId = mapped_column(Unicode(255, 'SQL_Latin1_General_CP1_CI_AS'), nullable=False)
+    ClientSecret = mapped_column(Unicode(255, 'SQL_Latin1_General_CP1_CI_AS'), nullable=False)
+    IsActive = mapped_column(Boolean, nullable=False, server_default=text('((1))'))
+    CreateDate = mapped_column(DATETIME2, server_default=text('(getutcdate())'))
+    UpdateDate = mapped_column(DATETIME2, server_default=text('(getutcdate())'))
+
+
+class Configuration(Base):
+    __tablename__ = 'Configuration'
+    __table_args__ = (
+        PrimaryKeyConstraint('ConfigurationId', name='PK__Configur__95AA53BBAA7BB5B3'),
+        Index('UQ__Configur__C41E0289B226C267', 'Key', unique=True),
+        {'schema': 'shared'}
+    )
+
+    ConfigurationId = mapped_column(Uuid, server_default=text('(newsequentialid())'))
+    Key = mapped_column(Unicode(100, 'SQL_Latin1_General_CP1_CI_AS'), nullable=False)
+    Value = mapped_column(Unicode(100, 'SQL_Latin1_General_CP1_CI_AS'), nullable=False)
+    CreateDate = mapped_column(DATETIME2, nullable=False, server_default=text('(getutcdate())'))
+    UpdateDate = mapped_column(DATETIME2, nullable=False, server_default=text('(getutcdate())'))
+
+
 class User(Base):
     __tablename__ = 'User'
     __table_args__ = (
         ForeignKeyConstraint(['UserTypeId'], ['identity.UserType.UserTypeId'], name='FK_User_UserType'),
-        PrimaryKeyConstraint('UserId', name='PK__User__1788CC4CBC68D1B5'),
+        PrimaryKeyConstraint('UserId', name='PK__User__1788CC4CA40151A2'),
         Index('IX_User_UserType', 'UserTypeId'),
-        Index('UQ__User__A9D10534CFF81F5C', 'Email', unique=True),
+        Index('UQ__User__A9D105341FFF9E06', 'Email', unique=True),
         {'schema': 'identity'}
     )
 
@@ -83,7 +115,7 @@ class Transaction(Base):
         ForeignKeyConstraint(['TransactionStatusId'], ['payment.TransactionStatus.TransactionStatusId'], name='FK_Transaction_TransactionStatus'),
         ForeignKeyConstraint(['TransactionTypeId'], ['payment.TransactionType.TransactionTypeId'], name='FK_Transaction_TransactionType'),
         ForeignKeyConstraint(['UserId'], ['identity.User.UserId'], name='FK_Transaction_UserId'),
-        PrimaryKeyConstraint('TransactionId', name='PK__Transact__55433A6B9FC547A1'),
+        PrimaryKeyConstraint('TransactionId', name='PK__Transact__55433A6BB16EAB9D'),
         {'schema': 'payment'}
     )
 
