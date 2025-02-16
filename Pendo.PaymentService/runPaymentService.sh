@@ -29,7 +29,7 @@ printf "\033[1m Completed Tests image \033[1m\n"
 
 # run automated tests
 printf "\033[1m============================= Running Pytest ==========================================\033[1m\n"
-docker run --name Pendo.PaymentService.Tests pendo.paymentservice.tests.image
+docker run --name Pendo.PaymentService.Tests pendo.paymentservice.test.image
 
 # run service
 printf "\033[1m============================= Running Pendo.PaymentService.Deploy =====================\033[1m\n"
