@@ -12,4 +12,6 @@ public static class Constants
     public static string User => "User";
 
     public static string Manager => "Manager";
+
+    public static string ConfigPrefix => "Identity";
 }

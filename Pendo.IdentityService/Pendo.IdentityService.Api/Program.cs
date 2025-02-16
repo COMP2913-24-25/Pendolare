@@ -1,13 +1,25 @@
+using Identity.DataAccess.Models;
 using Pendo.IdentityService.Api;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddFileConfiguration();
 
-builder.Services.AddConfigurations(builder.Configuration)
+builder.Services
+    .AddConfigurations(builder.Configuration)
     .AddDependencies()
-    .AddDatabase()
+    .AddDatabase(builder.Configuration)
+    .AddHandlers()
     .AddControllers();
+
+builder.Services
+    .AddHealthChecks()
+    .AddDbContextCheck<PendoDatabaseContext>();
+
+// This must run after as it relies on the services.
+builder.AddDbConfiguration();
+
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 var app = builder.Build();
 
@@ -20,8 +32,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHealthChecks("/healthcheck");
 
 app.Run();

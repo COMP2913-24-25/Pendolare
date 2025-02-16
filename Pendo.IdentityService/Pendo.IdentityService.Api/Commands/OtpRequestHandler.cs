@@ -13,6 +13,7 @@ public class OtpRequestHandler : ICommandHandler<OtpRequest, bool>
     private readonly IOtpGenerator _otpGenerator;
     private readonly IRepositoryFactory _repositoryFactory;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IOtpHasher _otpHasher;
     private readonly ILogger _logger;
 
     private readonly OtpConfiguration _config;
@@ -23,12 +24,14 @@ public class OtpRequestHandler : ICommandHandler<OtpRequest, bool>
         ILogger logger,
         IRepositoryFactory repositoryFactory,
         IDateTimeProvider dateTimeProvider,
+        IOtpHasher otpHasher,
         IOptions<OtpConfiguration> options)
     {
         _mailer = mailer;
         _otpGenerator = otpGenerator;
         _repositoryFactory = repositoryFactory;
         _dateTimeProvider = dateTimeProvider;
+        _otpHasher = otpHasher;
         _logger = logger;
         _config = options.Value;
     }
@@ -53,9 +56,12 @@ public class OtpRequestHandler : ICommandHandler<OtpRequest, bool>
             await userRepo.Create(user);
         }
 
+        (var codeHash, var codeSalt) = _otpHasher.Hash(token);
+
         var login = new OtpLogin
         {
-            CodeHash = token, //TODO: add hashing!!
+            CodeHash = codeHash,
+            HashSalt = codeSalt,
             User = user,
             ExpiryDate = _dateTimeProvider.UtcNow().AddMinutes(_config.ValidMinutes)
         };
