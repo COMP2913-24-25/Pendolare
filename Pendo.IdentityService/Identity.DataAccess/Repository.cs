@@ -7,13 +7,13 @@ namespace Identity.DataAccess;
 /// <inheritdoc/>
 public class Repository<TModel> : IRepository<TModel> where TModel : class
 {
-    private readonly PendoDatabaseContext _dbContext;
+    private readonly DbContext _dbContext;
     private readonly DbSet<TModel> _dbSet;
 
-    public Repository(PendoDatabaseContext dbContext)
+    public Repository(DbContext dbContext)
     {
-        _dbSet = dbContext.Set<TModel>();
         _dbContext = dbContext;
+        _dbSet = _dbContext.Set<TModel>();
     }
 
     public async Task Create(TModel model, bool saveOnComplete = true)
@@ -28,12 +28,12 @@ public class Repository<TModel> : IRepository<TModel> where TModel : class
         await SaveOnComplete(saveOnComplete);
     }
 
-    public async Task<IEnumerable<TModel>> Read(Expression<Func<TModel, bool>>? filter = null)
+    public IEnumerable<TModel> Read(Expression<Func<TModel, bool>>? filter = null)
     {
         if (filter is null)
-            return await _dbSet.ToListAsync();
+            return _dbSet.ToList();
 
-        return await _dbSet.Where(filter).ToListAsync();
+        return _dbSet.AsQueryable().Where(filter).ToList();
     }
 
     public async Task Update(TModel model, bool saveOnComplete = true)

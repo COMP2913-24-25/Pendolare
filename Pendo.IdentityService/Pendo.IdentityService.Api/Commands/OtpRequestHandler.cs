@@ -21,7 +21,7 @@ public class OtpRequestHandler : ICommandHandler<OtpRequest, bool>
     public OtpRequestHandler(
         IMailer mailer, 
         IOtpGenerator otpGenerator,
-        ILogger logger,
+        ILogger<OtpRequestHandler> logger,
         IRepositoryFactory repositoryFactory,
         IDateTimeProvider dateTimeProvider,
         IOtpHasher otpHasher,
@@ -42,7 +42,7 @@ public class OtpRequestHandler : ICommandHandler<OtpRequest, bool>
         await using var userRepo = _repositoryFactory.Create<User>();
 
         //Find user with email
-        var user = (await userRepo.Read(user => user.Email.Equals(request.EmailAddress, StringComparison.InvariantCultureIgnoreCase))).FirstOrDefault();
+        var user = userRepo.Read(user => user.Email == request.EmailAddress)?.FirstOrDefault();
 
         if (user is null)
         {

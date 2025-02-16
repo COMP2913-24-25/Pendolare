@@ -25,15 +25,13 @@ public partial class PendoDatabaseContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.UseCollation("SQL_Latin1_General_CP1_CI_AS");
-
         modelBuilder.Entity<ApiClient>(entity =>
         {
-            entity.HasKey(e => e.ApiClientId).HasName("PK__ApiClien__FDC5B7C88C5139EA");
+            entity.HasKey(e => e.ApiClientId).HasName("PK__ApiClien__FDC5B7C888A9CD96");
 
             entity.ToTable("ApiClient", "shared");
 
-            entity.HasIndex(e => e.ApiName, "UQ__ApiClien__274112CF5B222880").IsUnique();
+            entity.HasIndex(e => e.ApiName, "UQ__ApiClien__274112CF2D747D87").IsUnique();
 
             entity.Property(e => e.ApiName)
                 .IsRequired()
@@ -49,11 +47,11 @@ public partial class PendoDatabaseContext : DbContext
 
         modelBuilder.Entity<Configuration>(entity =>
         {
-            entity.HasKey(e => e.ConfigurationId).HasName("PK__Configur__95AA53BB0AC1B491");
+            entity.HasKey(e => e.ConfigurationId).HasName("PK__Configur__95AA53BB316B46EA");
 
             entity.ToTable("Configuration", "shared");
 
-            entity.HasIndex(e => e.Key, "UQ__Configur__C41E028916637BDF").IsUnique();
+            entity.HasIndex(e => e.Key, "UQ__Configur__C41E02892DD76308").IsUnique();
 
             entity.Property(e => e.ConfigurationId).HasDefaultValueSql("(newsequentialid())");
             entity.Property(e => e.CreateDate).HasDefaultValueSql("(getutcdate())");
@@ -66,7 +64,7 @@ public partial class PendoDatabaseContext : DbContext
 
         modelBuilder.Entity<OtpLogin>(entity =>
         {
-            entity.HasKey(e => e.OtpLoginId).HasName("PK__tmp_ms_x__C597BB31609B87FC");
+            entity.HasKey(e => e.OtpLoginId).HasName("PK__OtpLogin__C597BB3125B8E061");
 
             entity.ToTable("OtpLogin", "identity");
 
@@ -88,25 +86,21 @@ public partial class PendoDatabaseContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__User__1788CC4C4B712E8A");
+            entity.HasKey(e => e.UserId).HasName("PK__User__1788CC4C56FE41B7");
 
             entity.ToTable("User", "identity");
 
             entity.HasIndex(e => e.UserTypeId, "IX_User_UserType");
 
-            entity.HasIndex(e => e.Email, "UQ__User__A9D10534F9A0D229").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__User__A9D1053444ACF208").IsUnique();
 
             entity.Property(e => e.UserId).HasDefaultValueSql("(newsequentialid())");
             entity.Property(e => e.CreateDate).HasDefaultValueSql("(getutcdate())");
             entity.Property(e => e.Email)
                 .IsRequired()
                 .HasMaxLength(255);
-            entity.Property(e => e.FirstName)
-                .IsRequired()
-                .HasMaxLength(255);
-            entity.Property(e => e.LastName)
-                .IsRequired()
-                .HasMaxLength(255);
+            entity.Property(e => e.FirstName).HasMaxLength(255);
+            entity.Property(e => e.LastName).HasMaxLength(255);
             entity.Property(e => e.UpdateDate).HasDefaultValueSql("(getutcdate())");
 
             entity.HasOne(d => d.UserType).WithMany(p => p.User)
@@ -117,7 +111,7 @@ public partial class PendoDatabaseContext : DbContext
 
         modelBuilder.Entity<UserType>(entity =>
         {
-            entity.HasKey(e => e.UserTypeId).HasName("PK__UserType__40D2D816FA76BF79");
+            entity.HasKey(e => e.UserTypeId).HasName("PK__UserType__40D2D816516A6BAF");
 
             entity.ToTable("UserType", "identity");
 

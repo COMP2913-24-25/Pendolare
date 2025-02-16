@@ -14,14 +14,13 @@ public class AuthController : ControllerBase
     private readonly ICommandDispatcher _commandDispatcher;
     private readonly ILogger _logger;
 
-    public AuthController(ICommandDispatcher commandDispatcher, ILogger logger)
+    public AuthController(ICommandDispatcher commandDispatcher, ILogger<AuthController> logger)
     {
         _commandDispatcher = commandDispatcher;
         _logger = logger;
     }
 
     [HttpPost("request-otp", Name = "Request One-Time-Passcode Email")]
-    [Authorize]
     public async Task<IActionResult> RequestOtp([FromBody] OtpRequest request)
     {
         _logger.LogDebug($"Executing {nameof(OtpRequest)}. Body: {JsonConvert.SerializeObject(request)}");

@@ -14,7 +14,7 @@ public class OtpHasher : IOtpHasher
     }
 
     public bool VerifyHash(string otp, string hash, string salt)
-        => hash == Hash(otp, Encoding.UTF8.GetBytes(salt));
+        => hash == Hash(otp, Convert.FromBase64String(salt));
 
     private static string Hash(string otp, byte[] salt) 
         => Convert.ToBase64String(KeyDerivation.Pbkdf2(otp, salt, KeyDerivationPrf.HMACSHA256, 10000, 32));
