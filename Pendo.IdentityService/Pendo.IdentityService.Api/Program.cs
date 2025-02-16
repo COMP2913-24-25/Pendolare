@@ -7,6 +7,7 @@ builder.AddFileConfiguration();
 
 builder.Services
     .AddConfigurations(builder.Configuration)
+    .AddLogging()
     .AddDependencies()
     .AddDatabase(builder.Configuration)
     .AddHandlers()

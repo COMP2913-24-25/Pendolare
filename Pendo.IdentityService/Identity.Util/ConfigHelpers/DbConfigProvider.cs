@@ -1,4 +1,5 @@
-﻿using Identity.DataAccess;
+﻿using System.Text.Json;
+using Identity.DataAccess;
 using Identity.DataAccess.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,8 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Identity.Util.ConfigHelpers;
 
 /// <summary>
-/// Loads configuration from database.
-/// <see cref="https://learn.microsoft.com/en-us/dotnet/core/extensions/custom-configuration-provider"/> was used to help here!
+/// Loads configuration from the database and structures JSON values into hierarchical sections.
 /// </summary>
 public class DbConfigProvider : ConfigurationProvider
 {
@@ -24,8 +24,44 @@ public class DbConfigProvider : ConfigurationProvider
         using var scope = _scopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<PendoDatabaseContext>();
 
-        Data = context.Configuration
-            .Where(cfg => cfg.Key.StartsWith(Constants.ConfigPrefix))
-            .ToDictionary(e => e.Key, e => (string?)e.Value);
+        foreach (var entry in context.Configuration
+            .Where(cfg => cfg.Key.StartsWith(Constants.ConfigPrefix)))
+        {
+            var key = entry.Key[Constants.ConfigPrefix.Length..].TrimStart('.'); // Remove prefix
+            SetValue(Data, key, entry.Value);
+        }
     }
+
+    private void SetValue(IDictionary<string, string?> data, string key, string value)
+    {
+        try
+        {
+            using var jsonDoc = JsonDocument.Parse(value);
+            var root = jsonDoc.RootElement;
+
+            if (root.ValueKind is JsonValueKind.Object)
+            {
+                foreach (var element in root.EnumerateObject())
+                {
+                    SetValue(data, $"{key}:{element.Name}", element.Value.ToString());
+                }
+                return;
+            }
+            
+            if (root.ValueKind is JsonValueKind.Array)
+            {
+                data[key] = root.ToString();
+                return;
+            }
+
+            data[key] = root.ToString();
+            return;
+        }
+        catch (JsonException)
+        {
+            // If it's not JSON, store it as a plain string
+            data[key] = value;
+        }
+    }
+
 }

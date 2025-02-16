@@ -8,15 +8,15 @@ public class VerifyOtpResponse
     /// <summary>
     /// The JWT issued to the user.
     /// </summary>
-    public required string Jwt;
+    public required string Jwt { get; set; }
 
     /// <summary>
     /// Indicates if the user is new and should have name etc. updated.
     /// </summary>
-    public bool IsNewUser;
+    public bool IsNewUser { get; set; }
 
     /// <summary>
     /// Indicates whether the user was authenticated or not.
     /// </summary>
-    public bool Authenticated;
+    public bool Authenticated { get; set; }
 }

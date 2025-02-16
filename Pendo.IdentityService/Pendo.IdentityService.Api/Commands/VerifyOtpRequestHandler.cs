@@ -16,7 +16,7 @@ public class VerifyOtpRequestHandler : ICommandHandler<VerifyOtpRequest, VerifyO
     public VerifyOtpRequestHandler(
         IJwtGenerator jwtGenerator, 
         IRepositoryFactory repositoryFactory, 
-        ILogger logger, 
+        ILogger<VerifyOtpRequestHandler> logger, 
         IDateTimeProvider dateTimeProvider,
         IOtpHasher otpHasher)
     {
@@ -37,9 +37,9 @@ public class VerifyOtpRequestHandler : ICommandHandler<VerifyOtpRequest, VerifyO
     {
         await using var userRepo = _repositoryFactory.Create<User>();
 
-        var userResult = await userRepo.Read(user => user.Email == request.Email);
+        var userResult = userRepo.Read(user => user.Email.ToLower() == request.Email.ToLower());
 
-        if (userResult.Count() is > 1 or 0)
+        if (userResult is null || userResult.Count() is > 1 or 0)
         {
             _logger.LogWarning("User either does not exist or the unique constraint has been violated. Please check logs and database records.");
 
@@ -54,7 +54,7 @@ public class VerifyOtpRequestHandler : ICommandHandler<VerifyOtpRequest, VerifyO
 
         await using var repo = _repositoryFactory.Create<OtpLogin>();
 
-        var codeResult = (await repo.Read(login => login.UserId == user.UserId))
+        var codeResult = repo.Read(login => login.UserId == user.UserId)
             .OrderByDescending(login => login.IssueDate)
             .FirstOrDefault();
 
@@ -89,7 +89,7 @@ public class VerifyOtpRequestHandler : ICommandHandler<VerifyOtpRequest, VerifyO
         await repo.Update(codeResult);
 
         // Should probably do this more robustly, ok for now.
-        var isNewUser = (await repo.Read(login => login.UserId == codeResult.UserId && login.Verified)).Count() == 1;
+        var isNewUser = repo.Read(login => login.UserId == codeResult.UserId && login.Verified)?.Count() == 1;
 
         return new VerifyOtpResponse
         {

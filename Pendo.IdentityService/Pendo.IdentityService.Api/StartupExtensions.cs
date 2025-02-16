@@ -73,7 +73,8 @@ public static class StartupExtensions
     public static IServiceCollection AddConfigurations(this IServiceCollection services, IConfigurationManager configuration)
         => services
         .Configure<IdentityConfiguration>(configuration.GetSection(nameof(IdentityConfiguration)))
-        .Configure<OtpConfiguration>(configuration.GetSection(nameof(OtpConfiguration)));
+        .Configure<OtpConfiguration>(configuration.GetSection(nameof(OtpConfiguration)))
+        .Configure<JwtConfiguration>(configuration.GetSection(nameof(JwtConfiguration)));
 
     public static IConfigurationBuilder AddFileConfiguration(this WebApplicationBuilder builder)
     {
