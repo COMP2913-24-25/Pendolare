@@ -1,7 +1,7 @@
-import { Text, View, TouchableOpacity, Modal } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useState } from "react";
+import { Text, View, TouchableOpacity, Modal } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import Map from "@/components/Map";
 
@@ -14,7 +14,7 @@ const Home = () => {
 
   const confirmSignOut = () => {
     setShowModal(false);
-    router.replace("/auth/sign-up");
+    router.replace("/auth/sign-in");
   };
 
   return (
@@ -36,14 +36,14 @@ const Home = () => {
           Your current location
         </Text>
         <View className="flex flex-row items-center bg-transparent h-[300px] border-2 border-gray-300 rounded-lg p-2">
-          <Map />
+          <Map pickup={null} dropoff={null} />
         </View>
       </View>
 
       <View className="px-4 mt-5">
-        <Text className="text-xl font-JakartaBold mb-3">Recent Rides</Text>
+        <Text className="text-xl font-JakartaBold mb-3">Upcoming Rides</Text>
         <View className="bg-white rounded-lg p-4 shadow-md">
-          <Text className="text-gray-500">No recent rides available</Text>
+          <Text className="text-gray-500">No upcoming rides</Text>
         </View>
       </View>
 

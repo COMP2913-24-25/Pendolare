@@ -1,6 +1,18 @@
 import { TouchableOpacity, Text } from "react-native";
 
-const BookingCategory = ({ title, description, onPress, isSelected }) => (
+interface BookingCategoryProps {
+  title: string;
+  description: string;
+  onPress: () => void;
+  isSelected: boolean;
+}
+
+const BookingCategory = ({
+  title,
+  description,
+  onPress,
+  isSelected,
+}: BookingCategoryProps) => (
   <TouchableOpacity
     onPress={onPress}
     className={`p-5 rounded-xl mb-4 ${isSelected ? "bg-blue-600" : "bg-white"}`}

@@ -18,6 +18,10 @@ interface RideProps {
 const RideEntry = ({ ride }: { ride: RideProps }) => {
   const [showDetails, setShowDetails] = useState(false);
 
+  if (!ride) {
+    return null; // or some fallback UI
+  }
+
   return (
     <>
       <TouchableOpacity

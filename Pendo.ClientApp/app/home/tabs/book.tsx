@@ -10,12 +10,14 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import BookingCategory from "@/components/BookingCategory";
+import CreateRide from "@/components/CreateRide";
 import RideEntry from "@/components/RideEntry";
 import { icons, dummyRides } from "@/constants";
 
 const Book = () => {
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showRides, setShowRides] = useState(false);
+  const [showCreateRideModal, setShowCreateRideModal] = useState(false);
 
   return (
     <SafeAreaView className="flex-1 bg-general-500">
@@ -70,6 +72,21 @@ const Book = () => {
             </View>
           )
         )}
+
+        <TouchableOpacity
+          className="bg-blue-500 p-4 rounded-lg mt-5"
+          onPress={() => setShowCreateRideModal(true)}
+        >
+          <Text className="text-white text-center">Create a Ride</Text>
+        </TouchableOpacity>
+
+        <Modal
+          visible={showCreateRideModal}
+          animationType="slide"
+          onRequestClose={() => setShowCreateRideModal(false)}
+        >
+          <CreateRide onClose={() => setShowCreateRideModal(false)} />
+        </Modal>
       </ScrollView>
     </SafeAreaView>
   );
