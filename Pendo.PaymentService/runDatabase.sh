@@ -21,3 +21,7 @@ docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=reallyStrongPwd123" -p 1433:
 printf "\e[32mContainer Created\e[0m\n"
 printf "\e[32mPendo.Database is running on localhost:1433\e[0m\n"
 printf "\e[32mPendo.Database Username: SA, Password: reallyStrongPwd123\e[0m\n"
+
+# update Pendo.Database.py with sqlacodegen to create sqlalchemy python file based off database schema
+#printf "\033[1m============================= Updating Pendo.Database.py =====================\033[1m\n"
+#sqlacodegen_v2 --schema identity,payment,shared  mssql+pymssql://SA:reallyStrongPwd123@localhost:1433/Pendo.Database > Pendo.Database.py
