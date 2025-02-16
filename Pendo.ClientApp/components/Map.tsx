@@ -1,4 +1,5 @@
 import axios from "axios";
+import * as Location from "expo-location";
 import React, { useEffect, useState } from "react";
 import { View, Image, Platform } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from "react-native-maps";
@@ -18,13 +19,36 @@ interface MapProps {
 
 const Map = ({ pickup, dropoff }: MapProps) => {
   const [isMapReady, setIsMapReady] = useState(false);
+  const [userLocation, setUserLocation] =
+    useState<Location.LocationObjectCoords | null>(null);
   const [mapRegion, setMapRegion] = useState({
-    latitude: pickup?.latitude || 37.78825,
-    longitude: pickup?.longitude || -122.4324,
+    latitude: 53.8008, // Leeds default
+    longitude: -1.5491,
     latitudeDelta: 0.0922,
     longitudeDelta: 0.0421,
   });
   const [routeCoordinates, setRouteCoordinates] = useState([]);
+
+  useEffect(() => {
+    const requestLocationPermission = async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Permission to access location was denied");
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      setUserLocation(location.coords);
+      setMapRegion({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      });
+    };
+
+    requestLocationPermission();
+  }, []);
 
   useEffect(() => {
     if (pickup && dropoff) {
@@ -70,6 +94,8 @@ const Map = ({ pickup, dropoff }: MapProps) => {
         })}
         onMapReady={onMapReady}
         loadingEnabled={true}
+        showsUserLocation={true}
+        followsUserLocation={true}
       >
         {isMapReady && pickup && (
           <Marker
