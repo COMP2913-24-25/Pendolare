@@ -1,12 +1,18 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import { Text, View, TouchableOpacity, Modal } from "react-native";
+import { Text, View, TouchableOpacity, Modal, ScrollView, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import Map from "@/components/Map";
+import UpcomingRide from "@/components/UpcomingRide";
+import { icons, upcomingRides, pastRides } from "@/constants";
 
 const Home = () => {
   const [showModal, setShowModal] = useState(false);
+  const [showAllRides, setShowAllRides] = useState(false);
+  const [showPastRides, setShowPastRides] = useState(false);
+  
+  const nextRide = upcomingRides[0]; // Get the next upcoming ride
 
   const handleSignOut = () => {
     setShowModal(true);
@@ -18,34 +24,119 @@ const Home = () => {
   };
 
   return (
-    <SafeAreaView className="bg-general-500 flex-1">
-      <View className="flex flex-row items-center justify-between my-5 px-4">
-        <Text className="text-2xl font-JakartaExtraBold">
-          Welcome {"John"}👋
-        </Text>
-        <TouchableOpacity
-          onPress={handleSignOut}
-          className="justify-center items-center w-10 h-10 rounded-full bg-white"
-        >
-          {/* <Image source={icons.out} className="w-4 h-4" /> */}
-        </TouchableOpacity>
-      </View>
+    <SafeAreaView className="flex-1 bg-general-500">
+      <ScrollView className="flex-1">
+        <View className="px-4">
+          {/* Header */}
+          <View className="flex-row items-center justify-between my-5">
+            <Text className="text-2xl font-JakartaExtraBold">
+              Welcome {"John"}👋
+            </Text>
+            <TouchableOpacity
+              onPress={handleSignOut}
+              className="justify-center items-center w-10 h-10 rounded-full bg-white"
+            >
+              <Image source={icons.out} className="w-4 h-4" />
+            </TouchableOpacity>
+          </View>
 
-      <View className="px-4">
-        <Text className="text-xl font-JakartaBold mt-5 mb-3">
-          Your current location
-        </Text>
-        <View className="flex flex-row items-center bg-transparent h-[300px] border-2 border-gray-300 rounded-lg p-2">
-          <Map pickup={null} dropoff={null} />
-        </View>
-      </View>
+          {/* Map Section - Reduced height */}
+          <Text className="text-xl font-JakartaBold mt-2 mb-3">
+            Your current location
+          </Text>
+          <View className="h-[200px] border-2 border-gray-300 rounded-lg overflow-hidden">
+            <Map pickup={null} dropoff={null} />
+          </View>
 
-      <View className="px-4 mt-5">
-        <Text className="text-xl font-JakartaBold mb-3">Upcoming Rides</Text>
-        <View className="bg-white rounded-lg p-4 shadow-md">
-          <Text className="text-gray-500">No upcoming rides</Text>
+          {/* Next Ride Section */}
+          <View className="mt-5">
+            <Text className="text-xl font-JakartaBold mb-3">Next Ride</Text>
+            {nextRide ? (
+              <UpcomingRide ride={nextRide} />
+            ) : (
+              <View className="bg-white rounded-lg p-4 shadow-md">
+                <Text className="text-gray-500">No upcoming rides</Text>
+              </View>
+            )}
+          </View>
+
+          {/* View All Rides Button */}
+          {upcomingRides.length > 1 && (
+            <TouchableOpacity
+              onPress={() => setShowAllRides(true)}
+              className="mt-4 bg-blue-600 py-3 rounded-xl"
+            >
+              <Text className="text-white text-center font-JakartaBold">
+                View All Upcoming Rides
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
-      </View>
+      </ScrollView>
+
+      {/* All Rides Modal */}
+      <Modal
+        visible={showAllRides}
+        animationType="slide"
+        onRequestClose={() => setShowAllRides(false)}
+      >
+        <SafeAreaView className="flex-1 bg-general-500">
+          <View className="flex-1 px-4">
+            <View className="flex-row items-center justify-between my-5">
+              <TouchableOpacity 
+                onPress={() => setShowAllRides(false)}
+                className="p-2"
+              >
+                <Image source={icons.backArrow} className="w-6 h-6" />
+              </TouchableOpacity>
+              <Text className="text-2xl font-JakartaBold">
+                {showPastRides ? "Ride History" : "Upcoming Rides"}
+              </Text>
+              <View className="w-8" />
+            </View>
+
+            <View className="flex-row bg-gray-100 rounded-xl p-1 mb-4">
+              <TouchableOpacity
+                className={`flex-1 py-2 rounded-lg ${!showPastRides ? 'bg-white shadow' : ''}`}
+                onPress={() => setShowPastRides(false)}
+              >
+                <Text 
+                  className={`text-center font-JakartaMedium ${
+                    !showPastRides ? 'text-blue-600' : 'text-gray-500'
+                  }`}
+                >
+                  Upcoming
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className={`flex-1 py-2 rounded-lg ${showPastRides ? 'bg-white shadow' : ''}`}
+                onPress={() => setShowPastRides(true)}
+              >
+                <Text 
+                  className={`text-center font-JakartaMedium ${
+                    showPastRides ? 'text-blue-600' : 'text-gray-500'
+                  }`}
+                >
+                  Past
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {(showPastRides ? pastRides : upcomingRides).map((ride) => (
+                <UpcomingRide key={ride.id} ride={ride} />
+              ))}
+              {(showPastRides ? pastRides : upcomingRides).length === 0 && (
+                <View className="bg-white rounded-lg p-4 shadow-md">
+                  <Text className="text-gray-500">
+                    No {showPastRides ? 'past' : 'upcoming'} rides
+                  </Text>
+                </View>
+              )}
+            </ScrollView>
+          </View>
+        </SafeAreaView>
+      </Modal>
 
       <Modal
         animationType="fade"
