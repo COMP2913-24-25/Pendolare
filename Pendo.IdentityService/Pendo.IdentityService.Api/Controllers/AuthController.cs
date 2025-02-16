@@ -1,10 +1,9 @@
 ﻿using Identity.Configuration;
 using Identity.Schema.User.Auth;
-using Identity.Util;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
+using Pendo.IdentityService.Api.Commands;
+using Newtonsoft.Json;
 
 namespace Pendo.IdentityService.Api.Controllers;
 
@@ -12,47 +11,31 @@ namespace Pendo.IdentityService.Api.Controllers;
 [ApiController]
 public class AuthController : ControllerBase
 {
-    private readonly IMailer _mailer;
-    private readonly IOtpGenerator _otpGenerator;
-    private readonly IJwtGenerator _jwtGenerator;
+    private readonly ICommandDispatcher _commandDispatcher;
+    private readonly ILogger _logger;
 
-    public AuthController(IMailer mailer, IOtpGenerator otpGenerator, IJwtGenerator jwtGenerator)
+    public AuthController(ICommandDispatcher commandDispatcher, ILogger logger)
     {
-        _mailer = mailer;
-        _otpGenerator = otpGenerator;
-        _jwtGenerator = jwtGenerator;
+        _commandDispatcher = commandDispatcher;
+        _logger = logger;
     }
 
     [HttpPost("request-otp", Name = "Request One-Time-Passcode Email")]
+    [Authorize]
     public async Task<IActionResult> RequestOtp([FromBody] OtpRequest request)
     {
-        var otp = _otpGenerator.GenerateToken();
-        //Persist OTP to table
-
-        var result = await _mailer.Send(request.EmailAddress, new
-        {
-            otp_code = otp
-        });
-
-        //Record as sent if success, if not, record as failed
+        _logger.LogDebug($"Executing {nameof(OtpRequest)}. Body: {JsonConvert.SerializeObject(request)}");
+        var result = await _commandDispatcher.Dispatch<OtpRequest, bool>(request);
 
         return result ? Ok() : BadRequest();
     }
 
-
     [HttpPost("verify-otp", Name = "Verify One-Time-Passcode")]
-    public IActionResult VerifyOtp([FromBody] VerifyOtpRequest request)
+    public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest request)
     {
-        //verify otp against the one we popped in the database
-        if (request.Otp == "123456")
-        {
-            //Record login as allowed
-        }
+        _logger.LogDebug($"Executing {nameof(VerifyOtpRequest)}. Body: {JsonConvert.SerializeObject(request)}");
+        var result = await _commandDispatcher.Dispatch<VerifyOtpRequest, VerifyOtpResponse>(request);
 
-        //Issue JWT if valid!
-        return Ok(new VerifyOtpResponse
-        { 
-            Jwt = _jwtGenerator.GenerateJwt("email@email.net", false) 
-        });
+        return result.Authenticated ? Ok(result) : BadRequest(result);
     }
 }

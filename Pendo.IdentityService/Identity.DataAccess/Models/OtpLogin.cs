@@ -13,7 +13,9 @@ public partial class OtpLogin
 
     public string CodeHash { get; set; }
 
-    public DateTime IssueDate { get; set; }
+    public string HashSalt { get; set; }
+
+    public DateTime? IssueDate { get; set; }
 
     public DateTime ExpiryDate { get; set; }
 

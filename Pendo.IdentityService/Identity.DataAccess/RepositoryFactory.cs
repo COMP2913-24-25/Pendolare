@@ -1,16 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Identity.DataAccess.Models;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Identity.DataAccess;
 
 /// <inheritdoc/>
 public class RepositoryFactory : IRepositoryFactory
 {
+    private readonly IServiceProvider _serviceProvider;
+
+    public RepositoryFactory(IServiceProvider serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+    }
+
     public IRepository<TModel> Create<TModel>() where TModel : class
     {
-        throw new NotImplementedException();
+        var context = _serviceProvider.GetRequiredService<PendoDatabaseContext>();
+        return new Repository<TModel>(context);
     }
 }
