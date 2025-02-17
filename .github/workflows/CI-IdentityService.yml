@@ -1,0 +1,49 @@
+name: CI-Database
+
+on:
+  pull_request:
+    branches: [ main, dev, project/identity_service ] # Remove dev branches once workflow is stable
+    paths:
+      - 'Pendo.IdentityService/**'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build_deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0'
+
+    - name: Restore dependencies
+      run: dotnet restore Pendo.IdentityService.sln
+
+    - name: Run NUnit Tests
+      run: dotnet test Pendo.IdentityService.Tests/Pendo.IdentityService.Tests.csproj --configuration Release --no-build --logger "trx;LogFileName=test_results.trx"
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        allow-no-subscriptions: 'true'
+
+    - name: Build and deploy Identity Service
+      uses: azure/container-apps-deploy-action@v1
+      with:
+        appSourcePath: ${{ github.workspace }}/Pendo.IdentityService
+        acrName: pendocontainerregistry
+        dockerfilePath: Pendo.IdentityService.Api/Dockerfile
+        containerAppName: pendo.identityservice
+        targetPort: 5001
+        ingress: external
