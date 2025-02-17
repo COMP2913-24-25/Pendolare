@@ -37,7 +37,7 @@ public class VerifyOtpRequestHandler : ICommandHandler<VerifyOtpRequest, VerifyO
     {
         await using var userRepo = _repositoryFactory.Create<User>();
 
-        var userResult = userRepo.Read(user => user.Email.ToLower() == request.Email.ToLower());
+        var userResult = await userRepo.Read(user => user.Email.ToLower() == request.Email.ToLower());
 
         if (userResult is null || userResult.Count() is > 1 or 0)
         {
@@ -54,7 +54,7 @@ public class VerifyOtpRequestHandler : ICommandHandler<VerifyOtpRequest, VerifyO
 
         await using var repo = _repositoryFactory.Create<OtpLogin>();
 
-        var codeResult = repo.Read(login => login.UserId == user.UserId)
+        var codeResult = (await repo.Read(login => login.UserId == user.UserId))
             .OrderByDescending(login => login.IssueDate)
             .FirstOrDefault();
 
@@ -89,7 +89,7 @@ public class VerifyOtpRequestHandler : ICommandHandler<VerifyOtpRequest, VerifyO
         await repo.Update(codeResult);
 
         // Should probably do this more robustly, ok for now.
-        var isNewUser = repo.Read(login => login.UserId == codeResult.UserId && login.Verified)?.Count() == 1;
+        var isNewUser = (await repo.Read(login => login.UserId == codeResult.UserId && login.Verified))?.Count() is 1;
 
         return new VerifyOtpResponse
         {

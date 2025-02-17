@@ -38,8 +38,8 @@ public class JwtGenerator : IJwtGenerator
     }
 
     private Dictionary<string, object> GetClaims(string userEmail, bool isManager) 
-        => new Dictionary<string, object>
-            {
+        => new()
+        {
                 { ClaimTypes.Name, userEmail },
                 { Constants.UserTypeClaim, isManager ? Constants.Manager : Constants.User },
                 { JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString() }

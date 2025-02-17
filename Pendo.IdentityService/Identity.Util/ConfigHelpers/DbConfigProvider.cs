@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using Identity.DataAccess;
 using Identity.DataAccess.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,8 +23,7 @@ public class DbConfigProvider : ConfigurationProvider
         using var scope = _scopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<PendoDatabaseContext>();
 
-        foreach (var entry in context.Configuration
-            .Where(cfg => cfg.Key.StartsWith(Constants.ConfigPrefix)))
+        foreach (var entry in context.Configuration.Where(cfg => cfg.Key.StartsWith(Constants.ConfigPrefix)))
         {
             var key = entry.Key[Constants.ConfigPrefix.Length..].TrimStart('.'); // Remove prefix
             SetValue(Data, key, entry.Value);
@@ -59,7 +57,7 @@ public class DbConfigProvider : ConfigurationProvider
         }
         catch (JsonException)
         {
-            // If it's not JSON, store it as a plain string
+            // If not JSON, store it as a plain string
             data[key] = value;
         }
     }
