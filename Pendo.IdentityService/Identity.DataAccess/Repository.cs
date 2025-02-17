@@ -28,12 +28,12 @@ public class Repository<TModel> : IRepository<TModel> where TModel : class
         await SaveOnComplete(saveOnComplete);
     }
 
-    public IEnumerable<TModel> Read(Expression<Func<TModel, bool>>? filter = null)
+    public async Task<IEnumerable<TModel>> Read(Expression<Func<TModel, bool>>? filter = null)
     {
         if (filter is null)
-            return _dbSet.ToList();
+            return await _dbSet.ToListAsync();
 
-        return _dbSet.AsQueryable().Where(filter).ToList();
+        return await _dbSet.AsQueryable().Where(filter).ToListAsync();
     }
 
     public async Task Update(TModel model, bool saveOnComplete = true)

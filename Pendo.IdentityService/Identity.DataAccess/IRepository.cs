@@ -13,7 +13,7 @@ public interface IRepository<TModel> : IAsyncDisposable where TModel : class
     /// </summary>
     /// <param name="filter">Boolean predicate filter to filter records by.</param>
     /// <returns>An enumerable of <see cref="{TModel}"/>.</returns>
-    IEnumerable<TModel> Read(Expression<Func<TModel, bool>>? filter = null);
+    Task<IEnumerable<TModel>> Read(Expression<Func<TModel, bool>>? filter = null);
 
     /// <summary>
     /// Updates a database record.
