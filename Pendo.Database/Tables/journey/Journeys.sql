@@ -17,7 +17,10 @@ CREATE TABLE [journey].[Journeys]
   [EndTime] NVARCHAR(100) NULL,
   [MaxPassengers] INT NOT NULL,
   [RegPlate] NVARCHAR(100) NULL,
+  [BootWidth] FLOAT NOT NULL,
+  [BootHeight] FLOAT NOT NULL,
   [CreateDate] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+  [UpdateDate] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
 
   CONSTRAINT FK_Journeys_UserId FOREIGN KEY ([UserId]) 
   REFERENCES [identity].[User](UserId)
