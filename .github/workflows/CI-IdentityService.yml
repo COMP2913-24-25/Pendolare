@@ -2,7 +2,7 @@ name: CI-Database
 
 on:
   pull_request:
-    branches: [ main, dev, project/identity_service ] # Remove dev branches once workflow is stable
+    branches: [ main, dev, project/identity-service ] # Remove dev branches once workflow is stable
     paths:
       - 'Pendo.IdentityService/**'
   workflow_dispatch:
