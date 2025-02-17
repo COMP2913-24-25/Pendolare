@@ -1,7 +1,7 @@
 /*
 Author: Catherine Weightman
 Created: 11/02/2025
-Description: Creates Commuting Details Table
+Description: Creates Commuting Journey Details Table
 */
 
 CREATE TABLE [journey].[CommutingDetails]
