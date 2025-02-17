@@ -79,4 +79,4 @@ npm run test:integration  # or equivalent command
 
 
 ## Contact
-- User responsible: Alexander McCall : sc23am3@leeds.ac.uk
+- User responsible: [Leeds Username]
