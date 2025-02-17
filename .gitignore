@@ -1,4 +1,8 @@
-*/obj
-*/bin/Debug/*
-
+bin/
+obj/
 *.dacpac
+.vs
+.vscode
+efpt.config.json
+efpt.config.json.user
+/Pendo.IdentityService/Identity.DataAccess/efpt.config.json
