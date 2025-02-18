@@ -1,10 +1,6 @@
 */obj
 */bin/Debug/*
-
 *.dacpac
-
 .DS_Store
-
 __pycache__/
-
 Pendo.BookingService/.booking-service
