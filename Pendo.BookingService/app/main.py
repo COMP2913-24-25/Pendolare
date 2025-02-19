@@ -3,7 +3,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 import os
 from dotenv import load_dotenv
-from app.pendo_database import User, Booking, Journey, UserType
+from app.Pendo_Database import User, Booking, Journey, UserType
+from sqlalchemy import text
 
 # Load environment variables from .env file
 load_dotenv()
@@ -41,7 +42,7 @@ from fastapi import Depends
 @app.get("/test-db")
 def test_db(db: Session = Depends(get_db)):
     try:
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         return {"db_connection": "successful"}
     except Exception as e:
         return {"db_connection": "failed", "error": str(e)}
