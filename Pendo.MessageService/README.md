@@ -10,6 +10,9 @@ Description of the service's main responsibilities and core functionalities.
 - Key feature 1
 - Key feature 2
 - Key feature 3
+  
+### Service Flowchart
+![Flowchart](https://github.com/user-attachments/assets/1efb103d-632a-4d6b-ba48-9ed30ed76152)
 
 ## Tech Stack
 - Language/Framework: [e.g., Node.js, Java, Python]
