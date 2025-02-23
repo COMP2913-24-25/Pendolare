@@ -4,7 +4,7 @@
 # Created: 12/02/2025
 #
 
-printf "\033[1m============================= Running Payment Service... ==============================\033[1m\n"
+printf "\033[1m============================= Running Journey Service... ==============================\033[1m\n"
 
 # remove any existing contains that are already running / exist using that image
 printf "\033[1m============================= Removing Old Containers... ==============================\033[1m\n"
