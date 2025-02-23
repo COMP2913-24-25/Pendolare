@@ -20,3 +20,6 @@ def journey():
 def create_journey():
     item = "Create Journey"
     return item
+
+def some_testing_function(param):
+    return param
