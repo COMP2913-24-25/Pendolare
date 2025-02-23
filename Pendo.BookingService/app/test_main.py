@@ -37,11 +37,22 @@ Base.metadata.create_all(bind=engine)
 client = TestClient(app)
 
 def test_create_booking():
+    # Create a journey first
+    journey_response = client.post(
+        "/journeys/",
+        json={
+            "name": "Test Journey",
+            "description": "A test journey"
+        },
+    )
+    journey_id = journey_response.json()["journey_id"]
+
+    # Now, create a booking
     response = client.post(
         "/bookings/",
         json={
             "user_id": str(uuid4()),
-            "journey_id": str(uuid4()),
+            "journey_id": journey_id,
             "status": "pending"
         },
     )
@@ -51,12 +62,22 @@ def test_create_booking():
     assert data["status"] == "pending"
 
 def test_get_booking():
+    # Create a journey first
+    journey_response = client.post(
+        "/journeys/",
+        json={
+            "name": "Test Journey",
+            "description": "A test journey"
+        },
+    )
+    journey_id = journey_response.json()["journey_id"]
+
     # First, create a booking to retrieve
     response = client.post(
         "/bookings/",
         json={
             "user_id": str(uuid4()),
-            "journey_id": str(uuid4()),
+            "journey_id": journey_id,
             "status": "pending"
         },
     )
@@ -69,12 +90,22 @@ def test_get_booking():
     assert data["booking_id"] == booking_id
 
 def test_update_booking_status():
+    # Create a journey first
+    journey_response = client.post(
+        "/journeys/",
+        json={
+            "name": "Test Journey",
+            "description": "A test journey"
+        },
+    )
+    journey_id = journey_response.json()["journey_id"]
+
     # First, create a booking to update
     response = client.post(
         "/bookings/",
         json={
             "user_id": str(uuid4()),
-            "journey_id": str(uuid4()),
+            "journey_id": journey_id,
             "status": "pending"
         },
     )
@@ -90,12 +121,22 @@ def test_update_booking_status():
     assert data["status"] == "confirmed"
 
 def test_delete_booking():
+    # Create a journey first
+    journey_response = client.post(
+        "/journeys/",
+        json={
+            "name": "Test Journey",
+            "description": "A test journey"
+        },
+    )
+    journey_id = journey_response.json()["journey_id"]
+
     # First, create a booking to delete
     response = client.post(
         "/bookings/",
         json={
             "user_id": str(uuid4()),
-            "journey_id": str(uuid4()),
+            "journey_id": journey_id,
             "status": "pending"
         },
     )
