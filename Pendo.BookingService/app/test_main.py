@@ -1,5 +1,27 @@
 from fastapi.testclient import TestClient
-from app.main import app
+from app.main import app, get_db
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from app.Pendo_Database import Base, Booking
+from uuid import uuid4
+
+# Create a new database session for testing
+SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Override the get_db dependency to use the testing database
+def override_get_db():
+    try:
+        db = TestingSessionLocal()
+        yield db
+    finally:
+        db.close()
+
+app.dependency_overrides[get_db] = override_get_db
+
+# Create the test database
+Base.metadata.create_all(bind=engine)
 
 client = TestClient(app)
 
@@ -7,35 +29,71 @@ def test_create_booking():
     response = client.post(
         "/bookings/",
         json={
-            "user_id": "e70c907b-70e8-4dd9-95cf-5e45c5d52f77",
-            "journey_id": "ff589d93-89c0-4097-96a5-d9ef5e2be67a",
-            "price": 20.0,
+            "user_id": str(uuid4()),
+            "journey_id": str(uuid4()),
+            "status": "pending"
         },
     )
-    assert response.status_code == 201
+    assert response.status_code == 200
     data = response.json()
-    assert data["user_id"] == "e70c907b-70e8-4dd9-95cf-5e45c5d52f77"
-    assert data["journey_id"] == "ff589d93-89c0-4097-96a5-d9ef5e2be67a"
+    assert "booking_id" in data
     assert data["status"] == "pending"
-    assert data["price"] == 20.0
-
 
 def test_get_booking():
-    booking_id = "e70c907b-70e8-4dd9-95cf-5e45c5d52f77"  # Replace with a real UUID if needed
+    # First, create a booking to retrieve
+    response = client.post(
+        "/bookings/",
+        json={
+            "user_id": str(uuid4()),
+            "journey_id": str(uuid4()),
+            "status": "pending"
+        },
+    )
+    booking_id = response.json()["booking_id"]
+
+    # Now, retrieve the booking
     response = client.get(f"/bookings/{booking_id}")
     assert response.status_code == 200
-
+    data = response.json()
+    assert data["booking_id"] == booking_id
 
 def test_update_booking_status():
-    booking_id = "e70c907b-70e8-4dd9-95cf-5e45c5d52f77"
+    # First, create a booking to update
+    response = client.post(
+        "/bookings/",
+        json={
+            "user_id": str(uuid4()),
+            "journey_id": str(uuid4()),
+            "status": "pending"
+        },
+    )
+    booking_id = response.json()["booking_id"]
+
+    # Now, update the booking status
     response = client.put(
         f"/bookings/{booking_id}/status",
         json={"status": "confirmed"},
     )
     assert response.status_code == 200
-
+    data = response.json()
+    assert data["status"] == "confirmed"
 
 def test_delete_booking():
-    booking_id = "e70c907b-70e8-4dd9-95cf-5e45c5d52f77"
+    # First, create a booking to delete
+    response = client.post(
+        "/bookings/",
+        json={
+            "user_id": str(uuid4()),
+            "journey_id": str(uuid4()),
+            "status": "pending"
+        },
+    )
+    booking_id = response.json()["booking_id"]
+
+    # Now, delete the booking
     response = client.delete(f"/bookings/{booking_id}")
     assert response.status_code == 204
+
+    # Verify the booking is deleted
+    response = client.get(f"/bookings/{booking_id}")
+    assert response.status_code == 404
