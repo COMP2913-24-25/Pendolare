@@ -11,6 +11,10 @@ html = """
     </head>
     <body>
         <h1>WebSocket Client</h1>
+        <form action"" onsubmit="sendMessage(event)">
+            <input text="text" 
+
+
         <button onclick="connectWebSocket()">Connect</button>
         <button onclick="sendMessage()">Send Message</button>
         <div id="messages"></div>
