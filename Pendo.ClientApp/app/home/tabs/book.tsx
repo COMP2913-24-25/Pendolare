@@ -10,27 +10,35 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import BookingCategory from "@/components/BookingCategory";
-import CreateRide from "@/components/CreateRide";
-import RideEntry from "@/components/RideEntry";
+import CreateRide from "@/components/CreateRide/CreateRide";
+import RideEntry from "@/components/RideView/RideEntry";
 import { icons, dummyRides } from "@/constants";
+import { useTheme } from "@/context/ThemeContext";
 
 const Book = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showRides, setShowRides] = useState(false);
   const [showCreateRideModal, setShowCreateRideModal] = useState(false);
+  const { isDarkMode } = useTheme();
 
   return (
-    <SafeAreaView className="flex-1 bg-general-500">
+    <SafeAreaView
+      className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-general-500"}`}
+    >
       <ScrollView
         className="px-5"
         contentContainerStyle={{ paddingBottom: 120 }}
       >
-        <Text className="text-2xl font-JakartaBold my-5">Book a Ride</Text>
+        <Text
+          className={`text-2xl font-JakartaBold my-5 ${isDarkMode ? "text-white" : "text-black"}`}
+        >
+          Book a Journey
+        </Text>
 
         <View className="mb-5">
           <BookingCategory
-            title="Search for Ride"
-            description="Find available rides to your destination"
+            title="Search for Journey"
+            description="Find available journeys to your destination"
             onPress={() => {
               setSelectedCategory("search");
               setShowRides(true);
@@ -40,7 +48,7 @@ const Book = () => {
 
           <BookingCategory
             title="Commuter Journey"
-            description="Set up regular rides for your daily commute"
+            description="Set up regular journeys for your daily commute"
             onPress={() => {
               setSelectedCategory("commuter");
               setShowRides(false);
@@ -51,8 +59,10 @@ const Book = () => {
 
         {showRides ? (
           <View>
-            <Text className="text-xl font-JakartaBold mb-4">
-              Available Rides
+            <Text
+              className={`text-xl font-JakartaBold mb-4 ${isDarkMode ? "text-white" : "text-black"}`}
+            >
+              Available Journeys
             </Text>
             {dummyRides.map((ride) => (
               <RideEntry key={ride.id} ride={ride} />
@@ -60,12 +70,20 @@ const Book = () => {
           </View>
         ) : (
           selectedCategory === "commuter" && (
-            <View className="bg-white p-5 rounded-xl">
-              <Text className="text-xl font-JakartaBold mb-4">
+            <View
+              className={`p-5 rounded-xl ${isDarkMode ? "bg-slate-800" : "bg-white"}`}
+            >
+              <Text
+                className={`text-xl font-JakartaBold mb-4 ${isDarkMode ? "text-white" : "text-black"}`}
+              >
                 Schedule Commuter Journey
               </Text>
-              <View className="bg-gray-100 p-4 rounded-lg">
-                <Text className="text-gray-600">
+              <View
+                className={`p-4 rounded-lg ${isDarkMode ? "bg-slate-700" : "bg-gray-100"}`}
+              >
+                <Text
+                  className={isDarkMode ? "text-gray-200" : "text-gray-600"}
+                >
                   Commuter booking form will be implemented here
                 </Text>
               </View>

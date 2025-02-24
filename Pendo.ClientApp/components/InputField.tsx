@@ -1,7 +1,7 @@
+import React from "react";
 import {
   TextInput,
   View,
-  Text,
   Image,
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
@@ -9,6 +9,8 @@ import {
   Platform,
 } from "react-native";
 
+import { Text } from "@/components/ThemedText";
+import { useTheme } from "@/context/ThemeContext";
 import { InputFieldProps } from "@/types/type";
 
 const InputField = ({
@@ -22,6 +24,8 @@ const InputField = ({
   className,
   ...props
 }: InputFieldProps) => {
+  const { isDarkMode } = useTheme();
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -32,13 +36,25 @@ const InputField = ({
             {label}
           </Text>
           <View
-            className={`flex flex-row justify-start items-center relative bg-neutral-100 rounded-full border border-neutral-100 focus:border-primary-500  ${containerStyle}`}
+            className={`flex flex-row justify-start items-center relative rounded-full border
+              ${
+                isDarkMode
+                  ? "bg-slate-700 border-slate-600"
+                  : "bg-neutral-100 border-neutral-100"
+              } ${containerStyle}`}
           >
             {icon && (
-              <Image source={icon} className={`w-6 h-6 ml-4 ${iconStyle}`} />
+              <Image
+                source={icon}
+                className={`w-6 h-6 ml-4 ${iconStyle}`}
+                style={{ tintColor: isDarkMode ? "#FFF" : undefined }}
+              />
             )}
             <TextInput
-              className={`rounded-full p-4 font-JakartaSemiBold text-[15px] flex-1 ${inputStyle} text-left`}
+              className={`rounded-full p-4 font-JakartaSemiBold text-[15px] flex-1 
+                ${isDarkMode ? "text-white" : "text-black"} 
+                ${inputStyle}`}
+              placeholderTextColor={isDarkMode ? "#9CA3AF" : "#6B7280"}
               secureTextEntry={secureTextEntry}
               {...props}
             />

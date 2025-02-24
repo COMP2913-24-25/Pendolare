@@ -1,17 +1,27 @@
+import { FontAwesome5 } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Text, View, TouchableOpacity, Modal, ScrollView, Image } from "react-native";
+import {
+  Text,
+  View,
+  TouchableOpacity,
+  Modal,
+  ScrollView,
+  Platform,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import Map from "@/components/Map";
-import UpcomingRide from "@/components/UpcomingRide";
+import Map from "@/components/Map/Map";
+import UpcomingRide from "@/components/RideView/UpcomingRide";
 import { icons, upcomingRides, pastRides } from "@/constants";
+import { useTheme } from "@/context/ThemeContext";
 
 const Home = () => {
   const [showModal, setShowModal] = useState(false);
   const [showAllRides, setShowAllRides] = useState(false);
   const [showPastRides, setShowPastRides] = useState(false);
-  
+  const { isDarkMode } = useTheme();
+
   const nextRide = upcomingRides[0]; // Get the next upcoming ride
 
   const handleSignOut = () => {
@@ -24,38 +34,60 @@ const Home = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-general-500">
+    <SafeAreaView
+      className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-general-500"}`}
+    >
       <ScrollView className="flex-1">
         <View className="px-4">
           {/* Header */}
           <View className="flex-row items-center justify-between my-5">
-            <Text className="text-2xl font-JakartaExtraBold">
+            <Text
+              className={`text-2xl font-JakartaExtraBold ${isDarkMode ? "text-white" : "text-black"}`}
+            >
               Welcome {"John"}👋
             </Text>
             <TouchableOpacity
               onPress={handleSignOut}
-              className="justify-center items-center w-10 h-10 rounded-full bg-white"
+              className={`justify-center items-center w-10 h-10 rounded-full ${
+                isDarkMode ? "bg-slate-800" : "bg-white"
+              }`}
             >
-              <Image source={icons.out} className="w-4 h-4" />
+              <FontAwesome5
+                name={icons.out}
+                size={20}
+                color={isDarkMode ? "#FFF" : "#000"}
+              />
             </TouchableOpacity>
           </View>
 
           {/* Map Section - Reduced height */}
-          <Text className="text-xl font-JakartaBold mt-2 mb-3">
+          <Text
+            className={`text-xl font-JakartaBold mt-2 mb-3 ${isDarkMode ? "text-white" : "text-black"}`}
+          >
             Your current location
           </Text>
           <View className="h-[200px] border-2 border-gray-300 rounded-lg overflow-hidden">
-            <Map pickup={null} dropoff={null} />
+            {Platform.OS === "web" ? (
+              <View className="flex-1 items-center justify-center">
+                <Text>Map not available on web</Text>
+              </View>
+            ) : (
+              <Map pickup={null} dropoff={null} />
+            )}
           </View>
 
           {/* Next Ride Section */}
           <View className="mt-5">
-            <Text className="text-xl font-JakartaBold mb-3">Next Ride</Text>
+            <Text
+              className={`text-xl font-JakartaBold mb-3 ${isDarkMode ? "text-white" : "text-black"}`}
+            >
+              Next Journey
+            </Text>
             {nextRide ? (
               <UpcomingRide ride={nextRide} />
             ) : (
               <View className="bg-white rounded-lg p-4 shadow-md">
-                <Text className="text-gray-500">No upcoming rides</Text>
+                <Text className="text-gray-500">No upcoming journeys</Text>
               </View>
             )}
           </View>
@@ -67,7 +99,7 @@ const Home = () => {
               className="mt-4 bg-blue-600 py-3 rounded-xl"
             >
               <Text className="text-white text-center font-JakartaBold">
-                View All Upcoming Rides
+                View All Upcoming Journeys
               </Text>
             </TouchableOpacity>
           )}
@@ -80,41 +112,71 @@ const Home = () => {
         animationType="slide"
         onRequestClose={() => setShowAllRides(false)}
       >
-        <SafeAreaView className="flex-1 bg-general-500">
+        <SafeAreaView
+          className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-general-500"}`}
+        >
           <View className="flex-1 px-4">
             <View className="flex-row items-center justify-between my-5">
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => setShowAllRides(false)}
                 className="p-2"
               >
-                <Image source={icons.backArrow} className="w-6 h-6" />
+                <FontAwesome5
+                  name={icons.backArrow}
+                  size={24}
+                  color={isDarkMode ? "#FFF" : "#000"}
+                />
               </TouchableOpacity>
-              <Text className="text-2xl font-JakartaBold">
-                {showPastRides ? "Ride History" : "Upcoming Rides"}
+              <Text
+                className={`text-2xl font-JakartaBold ${isDarkMode ? "text-white" : "text-black"}`}
+              >
+                {showPastRides ? "Journey History" : "Upcoming Journeys"}
               </Text>
               <View className="w-8" />
             </View>
 
-            <View className="flex-row bg-gray-100 rounded-xl p-1 mb-4">
+            <View
+              className={`flex-row rounded-xl p-1 ${isDarkMode ? "bg-slate-800" : "bg-gray-100"}`}
+            >
               <TouchableOpacity
-                className={`flex-1 py-2 rounded-lg ${!showPastRides ? 'bg-white shadow' : ''}`}
+                className={`flex-1 py-2 rounded-lg ${
+                  !showPastRides
+                    ? isDarkMode
+                      ? "bg-slate-700"
+                      : "bg-white shadow"
+                    : ""
+                }`}
                 onPress={() => setShowPastRides(false)}
               >
-                <Text 
+                <Text
                   className={`text-center font-JakartaMedium ${
-                    !showPastRides ? 'text-blue-600' : 'text-gray-500'
+                    !showPastRides
+                      ? "text-blue-600"
+                      : isDarkMode
+                        ? "text-gray-400"
+                        : "text-gray-500"
                   }`}
                 >
                   Upcoming
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                className={`flex-1 py-2 rounded-lg ${showPastRides ? 'bg-white shadow' : ''}`}
+                className={`flex-1 py-2 rounded-lg ${
+                  showPastRides
+                    ? isDarkMode
+                      ? "bg-slate-700"
+                      : "bg-white shadow"
+                    : ""
+                }`}
                 onPress={() => setShowPastRides(true)}
               >
-                <Text 
+                <Text
                   className={`text-center font-JakartaMedium ${
-                    showPastRides ? 'text-blue-600' : 'text-gray-500'
+                    showPastRides
+                      ? "text-blue-600"
+                      : isDarkMode
+                        ? "text-gray-400"
+                        : "text-gray-500"
                   }`}
                 >
                   Past
@@ -122,14 +184,21 @@ const Home = () => {
               </TouchableOpacity>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {(showPastRides ? pastRides : upcomingRides).map((ride) => (
-                <UpcomingRide key={ride.id} ride={ride} />
-              ))}
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingTop: 8 }}
+            >
+              {(showPastRides ? pastRides : upcomingRides).map(
+                (ride, index) => (
+                  <View key={ride.id} className={index > 0 ? "mt-4" : ""}>
+                    <UpcomingRide ride={ride} />
+                  </View>
+                ),
+              )}
               {(showPastRides ? pastRides : upcomingRides).length === 0 && (
                 <View className="bg-white rounded-lg p-4 shadow-md">
                   <Text className="text-gray-500">
-                    No {showPastRides ? 'past' : 'upcoming'} rides
+                    No {showPastRides ? "past" : "upcoming"} journeys
                   </Text>
                 </View>
               )}
@@ -145,21 +214,43 @@ const Home = () => {
         onRequestClose={() => setShowModal(false)}
       >
         <View className="flex-1 justify-center items-center bg-black/50">
-          <View className="bg-white p-6 rounded-2xl w-[80%] items-center">
-            <Text className="text-xl font-JakartaBold mb-4">Sign Out</Text>
-            <Text className="text-center text-gray-600 mb-6">
+          <View
+            className={`p-6 rounded-2xl w-[80%] items-center ${
+              isDarkMode ? "bg-slate-800" : "bg-white"
+            }`}
+          >
+            <Text
+              className={`text-xl font-JakartaBold mb-4 ${
+                isDarkMode ? "text-white" : "text-black"
+              }`}
+            >
+              Sign Out
+            </Text>
+            <Text
+              className={`text-center mb-6 ${
+                isDarkMode ? "text-gray-300" : "text-gray-600"
+              }`}
+            >
               Are you sure you want to sign out?
             </Text>
             <View className="flex-row gap-4">
               <TouchableOpacity
                 onPress={() => setShowModal(false)}
-                className="bg-gray-200 py-3 px-6 rounded-full"
+                className={`py-3 px-6 rounded-full ${
+                  isDarkMode ? "bg-slate-700" : "bg-gray-200"
+                }`}
               >
-                <Text className="font-JakartaMedium">Cancel</Text>
+                <Text
+                  className={`font-JakartaMedium ${
+                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                  }`}
+                >
+                  Cancel
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={confirmSignOut}
-                className="bg-general-400 py-3 px-6 rounded-full"
+                className="bg-blue-600 py-3 px-6 rounded-full"
               >
                 <Text className="text-white font-JakartaMedium">Sign Out</Text>
               </TouchableOpacity>
