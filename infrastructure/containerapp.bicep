@@ -7,11 +7,11 @@ param registryUsername string
 param registryPassword string
 
 // Reference existing environment
-resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2022-03-01' existing = {
+resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' existing = {
   name: containerAppEnvironmentName
 }
 
-resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
+resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
   name: containerAppName
   location: location
   properties: {
