@@ -1,18 +1,14 @@
 param location string = resourceGroup().location
 param containerAppName string = 'kong-gateway'
-param containerAppEnvironmentName string = 'prod-environment'
+param containerAppEnvironmentName string = 'pendo-env-dev'  // Updated to match existing environment
 param registryName string = 'pendocontainerregistry'
 param registryUsername string
 @secure()
 param registryPassword string
 
-// Create new Container App Environment instead of referencing existing one
-resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2022-03-01' = {
+// Reference existing environment
+resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2022-03-01' existing = {
   name: containerAppEnvironmentName
-  location: location
-  properties: {
-    type: 'managed'
-  }
 }
 
 resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {

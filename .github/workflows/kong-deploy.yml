@@ -56,6 +56,7 @@ jobs:
             --template-file infrastructure/containerapp.bicep \
             --parameters \
               containerAppName=${{ env.CONTAINER_APP_NAME }} \
+              containerAppEnvironmentName=pendo-env-dev \
               registryName=${{ env.ACR_NAME }} \
               registryUsername=${{ secrets.ACR_USERNAME }} \
               registryPassword=${{ secrets.ACR_PASSWORD }}
