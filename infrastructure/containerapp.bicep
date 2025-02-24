@@ -6,9 +6,13 @@ param registryUsername string
 @secure()
 param registryPassword string
 
-// Reference existing Container App Environment instead of creating new one
-resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2022-03-01' existing = {
+// Create new Container App Environment instead of referencing existing one
+resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2022-03-01' = {
   name: containerAppEnvironmentName
+  location: location
+  properties: {
+    type: 'managed'
+  }
 }
 
 resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
