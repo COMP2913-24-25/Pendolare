@@ -5,15 +5,22 @@ export default function HomeLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
-        animation: 'slide_from_right',
+        animation: "slide_from_right",
       }}
     >
       <Stack.Screen name="tabs" />
-      <Stack.Screen 
-        name="chat/[id]" 
+      <Stack.Screen
+        name="chat/[id]"
         options={{
-          presentation: 'card',
-          animation: 'slide_from_right',
+          presentation: "card",
+          animation: "slide_from_right",
+        }}
+      />
+      <Stack.Screen
+        name="settings"
+        options={{
+          presentation: "card",
+          animation: "slide_from_right",
         }}
       />
     </Stack>

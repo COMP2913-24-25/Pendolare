@@ -1,54 +1,56 @@
+import { FontAwesome5 } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
-import { Image, ImageSourcePropType, View } from "react-native";
+import { View } from "react-native";
 
 import { icons } from "@/constants";
+import { useTheme } from "@/context/ThemeContext";
 
-const TabIcon = ({
-  source,
-  focused,
-}: {
-  source: ImageSourcePropType;
-  focused: boolean;
-}) => (
+const TabIcon = ({ name, focused }: { name: string; focused: boolean }) => (
   <View
     style={{
-      width: 40,
-      height: 40,
+      width: 60,
+      height: 50, // Reduced to match tab bar height
       justifyContent: "center",
       alignItems: "center",
-      backgroundColor: focused ? "#2563EB" : "transparent",
-      borderRadius: 20,
-      marginVertical: "auto",
+      backgroundColor: "transparent",
     }}
   >
-    <Image
-      source={source}
+    <View
       style={{
-        width: 22,
-        height: 22,
-        tintColor: focused ? "#FFFFFF" : "#AAAAAA",
+        width: 40,
+        height: 40,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: focused ? "#2563EB" : "transparent",
+        borderRadius: 20,
       }}
-      resizeMode="contain"
-    />
+    >
+      <FontAwesome5
+        name={name}
+        size={22}
+        color={focused ? "#FFFFFF" : "#AAAAAA"}
+      />
+    </View>
   </View>
 );
 
 export default function Layout() {
+  const { isDarkMode } = useTheme();
+
   return (
     <Tabs
       initialRouteName="home"
       screenOptions={{
-        tabBarActiveTintColor: "white",
+        tabBarActiveTintColor: isDarkMode ? "#FFFFFF" : "#FFFFFF",
         tabBarInactiveTintColor: "#AAAAAA",
         tabBarShowLabel: false,
         tabBarStyle: {
-          backgroundColor: "#333333",
+          backgroundColor: isDarkMode ? "#374151" : "#333333",
           borderRadius: 25,
           marginHorizontal: 20,
-          marginBottom: 20,
-          height: 65,
-          paddingBottom: 40,
-          paddingVertical: 10,
+          marginBottom: 40,
+          height: 60, // Adjusted height
+          paddingVertical: 5, // Reduced padding
           paddingHorizontal: 20,
           position: "absolute",
           bottom: 0,
@@ -61,6 +63,11 @@ export default function Layout() {
           borderTopWidth: 0,
         },
         headerShown: false,
+        tabBarItemStyle: {
+          height: 25, // Adjusted to match new container height
+          paddingVertical: 10, // Added padding
+          marginHorizontal: 5, // Added margin
+        },
       }}
     >
       <Tabs.Screen
@@ -68,8 +75,9 @@ export default function Layout() {
         options={{
           title: "Home",
           tabBarIcon: ({ focused }) => (
-            <TabIcon source={icons.home} focused={focused} />
+            <TabIcon name={icons.home} focused={focused} />
           ),
+          headerShown: false, // Ensure header is not shown for this tab
         }}
       />
       <Tabs.Screen
@@ -77,8 +85,9 @@ export default function Layout() {
         options={{
           title: "Book",
           tabBarIcon: ({ focused }) => (
-            <TabIcon source={icons.search} focused={focused} />
+            <TabIcon name={icons.search} focused={focused} />
           ),
+          headerShown: false, // Ensure header is not shown for this tab
         }}
       />
       <Tabs.Screen
@@ -86,8 +95,9 @@ export default function Layout() {
         options={{
           title: "Chat",
           tabBarIcon: ({ focused }) => (
-            <TabIcon source={icons.chat} focused={focused} />
+            <TabIcon name={icons.chat} focused={focused} />
           ),
+          headerShown: false, // Ensure header is not shown for this tab
         }}
       />
       <Tabs.Screen
@@ -95,8 +105,9 @@ export default function Layout() {
         options={{
           title: "Profile",
           tabBarIcon: ({ focused }) => (
-            <TabIcon source={icons.profile} focused={focused} />
+            <TabIcon name={icons.profile} focused={focused} />
           ),
+          headerShown: false, // Ensure header is not shown for this tab
         }}
       />
     </Tabs>

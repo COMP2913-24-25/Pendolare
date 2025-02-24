@@ -3,14 +3,13 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+
+import { ThemeProvider } from "@/context/ThemeContext";
 
 SplashScreen.preventAutoHideAsync();
 
 const publishableKey = process.env.EXPO_PUBLIC_PUBLISH_KEY;
-
-if (!publishableKey) {
-  throw new Error("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is not set");
-}
 
 export default function RootLayout() {
   const [loaded] = useFonts({
@@ -34,13 +33,18 @@ export default function RootLayout() {
   }
 
   return (
-    <ClerkProvider publishableKey={publishableKey as string}>
-      <ClerkLoaded>
-        <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="auth" options={{ headerShown: false }} />
-        </Stack>
-      </ClerkLoaded>
-    </ClerkProvider>
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <ClerkProvider publishableKey={publishableKey as string}>
+          <ClerkLoaded>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="index" />
+              <Stack.Screen name="auth" />
+              <Stack.Screen name="home" />
+            </Stack>
+          </ClerkLoaded>
+        </ClerkProvider>
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }

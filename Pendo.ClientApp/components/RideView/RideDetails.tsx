@@ -1,0 +1,177 @@
+import { FontAwesome5 } from "@expo/vector-icons";
+import React from "react";
+import { View, TouchableOpacity, Modal, ScrollView } from "react-native";
+
+import Map from "../Map/Map";
+
+import { Text } from "@/components/ThemedText";
+import { icons } from "@/constants";
+import { useTheme } from "@/context/ThemeContext";
+
+interface RideDetailsProps {
+  ride: any;
+  visible: boolean;
+  onClose: () => void;
+}
+
+const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
+  const { isDarkMode } = useTheme();
+
+  return (
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={visible}
+      onRequestClose={onClose}
+    >
+      <View className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-white"}`}>
+        <View className="h-1/2">
+          <Map pickup={ride.pickup} dropoff={ride.dropoff} />
+          <TouchableOpacity
+            className={`absolute top-12 left-4 p-2 rounded-full shadow-sm ${
+              isDarkMode ? "bg-slate-800" : "bg-white"
+            }`}
+            onPress={onClose}
+          >
+            <FontAwesome5
+              name={icons.close}
+              size={24}
+              color={isDarkMode ? "#FFF" : "#000"}
+            />
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView className="p-5">
+          <View>
+            <View className="flex-row items-center justify-between mb-4">
+              <View className="flex-row items-center">
+                <View
+                  className={`w-12 h-12 rounded-full mr-3 items-center justify-center ${
+                    isDarkMode ? "bg-slate-700" : "bg-gray-200"
+                  }`}
+                >
+                  <FontAwesome5
+                    name={icons.person}
+                    size={24}
+                    color={isDarkMode ? "#FFF" : "#666666"}
+                  />
+                </View>
+                <View>
+                  <Text
+                    className={`font-JakartaBold text-lg ${isDarkMode ? "text-white" : "text-black"}`}
+                  >
+                    {ride.driverName}
+                  </Text>
+                  <View className="flex-row items-center">
+                    <FontAwesome5
+                      name={icons.star}
+                      size={16}
+                      color="#FFC107"
+                      style={{ marginRight: 4 }}
+                    />
+                    <Text
+                      className={isDarkMode ? "text-gray-300" : "text-gray-500"}
+                    >
+                      {ride.rating}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+              <Text className="font-JakartaBold text-2xl text-blue-600">
+                {ride.price}
+              </Text>
+            </View>
+
+            <View
+              className={`p-4 rounded-xl mb-4 ${
+                isDarkMode ? "bg-slate-800" : "bg-gray-50"
+              }`}
+            >
+              <View className="mb-3">
+                <Text
+                  className={isDarkMode ? "text-gray-300" : "text-gray-500"}
+                >
+                  From
+                </Text>
+                <Text
+                  className={`font-JakartaMedium ${isDarkMode ? "text-white" : "text-black"}`}
+                >
+                  {ride.pickup.name}
+                </Text>
+              </View>
+              <View className="mb-3">
+                <Text
+                  className={isDarkMode ? "text-gray-300" : "text-gray-500"}
+                >
+                  To
+                </Text>
+                <Text
+                  className={`font-JakartaMedium ${isDarkMode ? "text-white" : "text-black"}`}
+                >
+                  {ride.dropoff.name}
+                </Text>
+              </View>
+              <View className="mb-3">
+                <Text
+                  className={isDarkMode ? "text-gray-300" : "text-gray-500"}
+                >
+                  Departure
+                </Text>
+                <Text
+                  className={`font-JakartaMedium ${isDarkMode ? "text-white" : "text-black"}`}
+                >
+                  {ride.departureTime}
+                </Text>
+              </View>
+              <View>
+                <Text
+                  className={isDarkMode ? "text-gray-300" : "text-gray-500"}
+                >
+                  Price
+                </Text>
+                <Text
+                  className={`font-JakartaMedium ${isDarkMode ? "text-white" : "text-black"}`}
+                >
+                  {ride.price}
+                </Text>
+              </View>
+            </View>
+
+            <View
+              className={`p-4 rounded-xl mb-6 ${
+                isDarkMode ? "bg-slate-800" : "bg-gray-50"
+              }`}
+            >
+              <View className="flex-row items-center">
+                <FontAwesome5
+                  name={icons.person}
+                  size={20}
+                  color={isDarkMode ? "#FFF" : "#666666"}
+                  style={{ marginRight: 8 }}
+                />
+                <Text
+                  className={isDarkMode ? "text-gray-200" : "text-gray-600"}
+                >
+                  {ride.availableSeats} seats available
+                </Text>
+              </View>
+            </View>
+
+            <View className="flex-row justify-between space-x-4">
+              <TouchableOpacity
+                className="flex-1 bg-blue-600 py-4 rounded-xl items-center justify-center"
+                onPress={onClose}
+              >
+                <Text className="text-white text-center font-JakartaBold text-lg">
+                  Book Journey
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    </Modal>
+  );
+};
+
+export default RideDetails;

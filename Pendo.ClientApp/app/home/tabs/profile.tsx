@@ -1,37 +1,61 @@
 import { useUser } from "@clerk/clerk-expo";
-import { Image, ScrollView, Text, View } from "react-native";
+import { FontAwesome5 } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { Image, ScrollView, View, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import InputField from "@/components/InputField";
+import { Text } from "@/components/ThemedText";
+import { useTheme } from "@/context/ThemeContext";
 
 const Profile = () => {
   const { user } = useUser();
+  const { isDarkMode } = useTheme();
 
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView
+      className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-white"}`}
+    >
+      <View className="flex-row justify-between items-center px-5 my-5">
+        <Text className="text-2xl font-JakartaBold">My profile</Text>
+        <TouchableOpacity
+          onPress={() => router.push("/home/settings")}
+          className="p-2"
+        >
+          <FontAwesome5
+            name="cog"
+            size={24}
+            color={isDarkMode ? "#FFF" : "#000"}
+          />
+        </TouchableOpacity>
+      </View>
+
       <ScrollView
         className="px-5"
         contentContainerStyle={{ paddingBottom: 120 }}
       >
-        <Text className="text-2xl font-JakartaBold my-5">My profile</Text>
-
         <View className="flex items-center justify-center my-5">
           <Image
             source={{
               uri: user?.externalAccounts[0]?.imageUrl ?? user?.imageUrl,
             }}
             style={{ width: 110, height: 110, borderRadius: 110 / 2 }}
-            className=" rounded-full h-[110px] w-[110px] border-[3px] border-white shadow-sm shadow-neutral-300"
+            className="rounded-full h-[110px] w-[110px] border-[3px] border-white shadow-sm shadow-neutral-300"
           />
         </View>
 
-        <View className="flex flex-col items-start justify-center bg-white rounded-lg shadow-sm shadow-neutral-300 px-5 py-3">
+        <View
+          className={`flex flex-col items-start justify-center bg-white rounded-lg shadow-sm shadow-neutral-300 px-5 py-3 ${
+            isDarkMode ? "bg-slate-800 shadow-slate-800" : "bg-white"
+          }`}
+        >
           <View className="flex flex-col items-start justify-start w-full">
             <InputField
               label="First name"
               placeholder={user?.firstName || "Not Found"}
               containerStyle="w-full"
-              inputStyle="p-3.5"
+              inputStyle={`p-3.5 ${isDarkMode ? "text-white" : "text-black"}`}
+              labelStyle={isDarkMode ? "text-gray-300" : "text-gray-600"}
               editable={false}
             />
 
@@ -39,7 +63,8 @@ const Profile = () => {
               label="Last name"
               placeholder={user?.lastName || "Not Found"}
               containerStyle="w-full"
-              inputStyle="p-3.5"
+              inputStyle={`p-3.5 ${isDarkMode ? "text-white" : "text-black"}`}
+              labelStyle={isDarkMode ? "text-gray-300" : "text-gray-600"}
               editable={false}
             />
 
@@ -49,7 +74,8 @@ const Profile = () => {
                 user?.primaryEmailAddress?.emailAddress || "Not Found"
               }
               containerStyle="w-full"
-              inputStyle="p-3.5"
+              inputStyle={`p-3.5 ${isDarkMode ? "text-white" : "text-black"}`}
+              labelStyle={isDarkMode ? "text-gray-300" : "text-gray-600"}
               editable={false}
             />
 
@@ -57,7 +83,8 @@ const Profile = () => {
               label="Phone"
               placeholder={user?.primaryPhoneNumber?.phoneNumber || "Not Found"}
               containerStyle="w-full"
-              inputStyle="p-3.5"
+              inputStyle={`p-3.5 ${isDarkMode ? "text-white" : "text-black"}`}
+              labelStyle={isDarkMode ? "text-gray-300" : "text-gray-600"}
               editable={false}
             />
           </View>

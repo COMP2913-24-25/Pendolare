@@ -1,7 +1,8 @@
+import { FontAwesome5 } from "@expo/vector-icons";
 import axios from "axios";
 import * as Location from "expo-location";
 import React, { useEffect, useState } from "react";
-import { View, Image, Platform } from "react-native";
+import { View, Platform } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from "react-native-maps";
 
 import { icons } from "@/constants";
@@ -103,10 +104,9 @@ const Map = ({ pickup, dropoff }: MapProps) => {
             title="Pickup Location"
             description={pickup.name}
           >
-            <Image
-              source={icons.marker}
-              style={{ width: 40, height: 40, tintColor: "#2563EB" }}
-            />
+            <View className="bg-blue-600 p-2 rounded-full">
+              <FontAwesome5 name={icons.car} size={24} color="#FFF" />
+            </View>
           </Marker>
         )}
 
@@ -116,10 +116,9 @@ const Map = ({ pickup, dropoff }: MapProps) => {
             title="Destination"
             description={dropoff.name}
           >
-            <Image
-              source={icons.marker}
-              style={{ width: 40, height: 40, tintColor: "#DC2626" }}
-            />
+            <View className="bg-red-600 p-2 rounded-full">
+              <FontAwesome5 name={icons.flag} size={24} color="#FFF" />
+            </View>
           </Marker>
         )}
 

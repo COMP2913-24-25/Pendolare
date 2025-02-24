@@ -1,4 +1,8 @@
-import { TouchableOpacity, Text } from "react-native";
+import React from "react";
+import { TouchableOpacity } from "react-native";
+
+import { Text } from "@/components/ThemedText";
+import { useTheme } from "@/context/ThemeContext";
 
 interface BookingCategoryProps {
   title: string;
@@ -12,20 +16,38 @@ const BookingCategory = ({
   description,
   onPress,
   isSelected,
-}: BookingCategoryProps) => (
-  <TouchableOpacity
-    onPress={onPress}
-    className={`p-5 rounded-xl mb-4 ${isSelected ? "bg-blue-600" : "bg-white"}`}
-  >
-    <Text
-      className={`text-xl font-JakartaBold ${isSelected ? "text-white" : "text-black"}`}
+}: BookingCategoryProps) => {
+  const { isDarkMode } = useTheme();
+
+  return (
+    <TouchableOpacity
+      className={`p-4 mb-4 rounded-xl ${
+        isSelected
+          ? isDarkMode
+            ? "bg-blue-900"
+            : "bg-blue-100"
+          : isDarkMode
+            ? "bg-slate-800"
+            : "bg-white"
+      }`}
+      onPress={onPress}
     >
-      {title}
-    </Text>
-    <Text className={`mt-2 ${isSelected ? "text-white" : "text-gray-600"}`}>
-      {description}
-    </Text>
-  </TouchableOpacity>
-);
+      <Text
+        className={`text-lg font-JakartaBold ${
+          isSelected
+            ? isDarkMode
+              ? "text-blue-200"
+              : "text-blue-600"
+            : undefined
+        }`}
+      >
+        {title}
+      </Text>
+      <Text className={isDarkMode ? "text-gray-300" : "text-gray-600"}>
+        {description}
+      </Text>
+    </TouchableOpacity>
+  );
+};
 
 export default BookingCategory;
