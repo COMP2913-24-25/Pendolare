@@ -69,8 +69,8 @@ resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
             }
           ]
           resources: {
-            cpu: 1
-            memory: '1Gi'
+            cpu: json('0.5')    // Changed from 1 to 0.5
+            memory: '1.0Gi'     // Added .0 to match exact format
           }
           probes: [
             {
