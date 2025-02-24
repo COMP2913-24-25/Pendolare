@@ -4,3 +4,11 @@
 .DS_Store
 __pycache__/
 Pendo.BookingService/.booking-service
+bin/
+obj/
+*.dacpac
+.vs
+.vscode
+efpt.config.json
+efpt.config.json.user
+/Pendo.IdentityService/Identity.DataAccess/efpt.config.json
