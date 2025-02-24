@@ -9,11 +9,6 @@ param registryPassword string
 resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2022-03-01' = {
   name: containerAppEnvironmentName
   location: location
-  properties: {
-    appLogsConfiguration: {
-      destination: 'log-analytics'
-    }
-  }
 }
 
 resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
