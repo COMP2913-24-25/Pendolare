@@ -19,6 +19,9 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     
     steps:
     - uses: actions/checkout@v2
@@ -26,9 +29,10 @@ jobs:
     - name: Azure Login
       uses: azure/login@v1
       with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        client-id: '0a6d7ce5-4951-4af8-932a-94714dd9e70b'
+        tenant-id: '0adc3547-e686-4727-9a4c-0c5bb6699047'
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        enable-AzPSSession: true
 
     - name: Build and push image to ACR
       env:
