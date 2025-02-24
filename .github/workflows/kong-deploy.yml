@@ -1,7 +1,7 @@
 name: Deploy Kong Gateway to Azure
 
 on:
-  push:
+  pull_request:
     branches: 
       - main
       - project/api-gateway
