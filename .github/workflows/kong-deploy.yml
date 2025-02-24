@@ -4,6 +4,7 @@ on:
   pull_request:
     branches: 
       - main
+      - dev
       - project/api-gateway
     paths:
       - 'Pendo.ApiGateway/**'
