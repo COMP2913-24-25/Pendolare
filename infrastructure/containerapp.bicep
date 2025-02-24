@@ -9,6 +9,10 @@ param registryPassword string
 resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2022-03-01' = {
   name: containerAppEnvironmentName
   location: location
+  properties: {
+    zoneRedundant: false
+    infrastructureResourceGroup: '${resourceGroup().name}-managed'
+  }
 }
 
 resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
@@ -69,7 +73,7 @@ resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
             }
           ]
           resources: {
-            cpu: '0.5'
+            cpu: 1
             memory: '1Gi'
           }
           probes: [
