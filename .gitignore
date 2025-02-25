@@ -3,7 +3,6 @@
 *.dacpac
 .DS_Store
 __pycache__/
-Pendo.BookingService/.booking-service
 bin/
 obj/
 *.dacpac
@@ -12,3 +11,6 @@ obj/
 efpt.config.json
 efpt.config.json.user
 /Pendo.IdentityService/Identity.DataAccess/efpt.config.json
+/Pendo.BookingService/.venv-booking
+Pendo.BookingService/app/.env
+Pendo.BookingService/pyvenv.cfg
