@@ -1,7 +1,10 @@
 from pydantic import BaseModel
 
 class DbConfiguration(BaseModel):
-    db_server="localhost:1433"
-    db_database="Pendo.Database"
-    db_username="SA"
-    db_password="YourPassword123"
+    dbServer : str = None,
+    dbDatabase : str = None,
+    dbUsername : str = None,
+    dbPassword : str = None,
+
+    def getDbUrl(self) -> str: 
+        return f"mssql+pymssql://{self.dbUsername}:{self.dbPassword}@{self.dbServer}/{self.dbDatabase}"

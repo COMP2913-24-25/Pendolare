@@ -1,36 +1,8 @@
 from fastapi import FastAPI, HTTPException, Depends
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker, declarative_base, Session
-import os
-from dotenv import load_dotenv
-from app.Pendo_Database import User, Booking, Journey, UserType
-from uuid import UUID
-
-# Load environment variables from .env file
-load_dotenv()
+from .db_provider import get_db, Session, text
 
 # FastAPI app
 app = FastAPI()
-
-# Database Configuration
-DB_SERVER = os.getenv("DB_SERVER")
-DB_DATABASE = os.getenv("DB_DATABASE")
-DB_USERNAME = os.getenv("DB_USERNAME")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
-
-DATABASE_URL = f"mssql+pymssql://{DB_USERNAME}:{DB_PASSWORD}@{DB_SERVER}/{DB_DATABASE}"
-
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
-Base = declarative_base()
-
-# Dependency to get DB session
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @app.get("/healthcheck")
 def test_db(db: Session = Depends(get_db)):

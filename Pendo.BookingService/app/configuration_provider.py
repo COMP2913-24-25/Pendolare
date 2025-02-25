@@ -1,8 +1,8 @@
 # Provides configuration values for the application
 
 import json
-import os
 from pathlib import Path
+from .db_configuration import DbConfiguration
 
 class ConfigurationProvider:
 
@@ -10,11 +10,10 @@ class ConfigurationProvider:
         self.path = Path(path)
         self.data = self._loadConfiguration()
 
+        self.database = DbConfiguration(**self.data.get("DbConfiguration", {}))
+
     def _loadConfiguration(self) -> dict:
         if self.path.exists():
             with open(self.path, 'r') as file:
                 return json.load(file)
-        return {}
-    
-    def GetSection(self, key : str):
-        return self.data.get(key, {})
+        return FileNotFoundError(f"Configuration file not found at {self.path}")
