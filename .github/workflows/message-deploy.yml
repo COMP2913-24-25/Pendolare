@@ -53,7 +53,7 @@ jobs:
         inlineScript: |
           az deployment group create \
             --resource-group ${{ env.RESOURCE_GROUP }} \
-            --template-file infrastructure/containerapp.bicep \
+            --template-file infrastructure/message-service.bicep \
             --parameters \
               containerAppName=${{ env.CONTAINER_APP_NAME }} \
               containerAppEnvironmentName=pendo-env-dev \
