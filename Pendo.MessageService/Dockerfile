@@ -1,5 +1,12 @@
 FROM python:3.9-slim
 
+# Add build dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    python3-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 COPY requirements.txt .
