@@ -4,6 +4,7 @@ _transform: true
 services:
   - name: message-service
     url: http://message-service:5006
+    protocol: http
     routes:
       - name: message-ws-route
         protocols:
@@ -15,8 +16,11 @@ services:
         headers:
           Upgrade:
             - websocket
+          Connection:
+            - Upgrade
         methods:
           - GET
+          - OPTIONS
       - name: message-history
         protocols:
           - http
