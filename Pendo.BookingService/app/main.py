@@ -4,7 +4,6 @@ from sqlalchemy.orm import sessionmaker, declarative_base, Session
 import os
 from dotenv import load_dotenv
 from app.Pendo_Database import User, Booking, Journey, UserType
-from pydantic import BaseModel
 from uuid import UUID
 
 # Load environment variables from .env file
@@ -33,11 +32,7 @@ def get_db():
     finally:
         db.close()
 
-@app.get("/")
-def read_root():
-    return {"message": "Booking Service is Running!"}
-
-@app.get("/test-db")
+@app.get("/healthcheck")
 def test_db(db: Session = Depends(get_db)):
     try:
         db.execute(text("SELECT 1"))
