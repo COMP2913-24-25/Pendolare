@@ -1,6 +1,7 @@
 import asyncio
 import websockets
 import logging
+import json
 from src.message_handler import MessageHandler
 
 logging.basicConfig(level=logging.INFO)
@@ -15,6 +16,8 @@ async def websocket_handler(websocket, path):
         logger.warning(f"Invalid path: {path}")
         return
         
+    user_id = None
+    
     try:
         logger.info("Connection established")
         # For testing, handle mock websockets differently
@@ -26,12 +29,28 @@ async def websocket_handler(websocket, path):
             
         async for message in websocket:
             logger.info(f"Received message: {message}")
+            
+            # Check if this is a registration message
+            try:
+                data = json.loads(message)
+                if 'register' in data and data['register']:
+                    if 'user_id' in data:
+                        user_id = data['user_id']
+                        logger.info(f"User {user_id} registered")
+                        handler.register_user(user_id, websocket)
+            except json.JSONDecodeError:
+                logger.error("Invalid JSON message received")
+                continue
+                
             await handler.handle_message(websocket, message)
     except Exception as e:
         logger.error(f"Error in websocket handler: {str(e)}")
         if hasattr(websocket, 'connected'):
             websocket.connected = False
     finally:
+        if user_id:
+            handler.remove_user(user_id)
+            logger.info(f"User {user_id} disconnected")
         logger.info("Connection closed")
 
 async def main():
