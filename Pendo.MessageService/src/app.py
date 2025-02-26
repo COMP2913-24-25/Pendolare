@@ -31,6 +31,7 @@ HTTP_SERVER_PORT = None
 # Get environment variables
 WS_PORT = int(os.environ.get("WS_PORT", "5006"))
 HTTP_PORT = int(os.environ.get("HTTP_PORT", "5007"))  # Make HTTP port configurable
+IS_BEHIND_TLS_PROXY = os.environ.get("BEHIND_TLS_PROXY", "false").lower() == "true"
 
 try:
     handler = MessageHandler()
@@ -177,6 +178,14 @@ async def health_handler(path, headers):
     logger.debug(f"Request headers for {path}:")
     for name, value in headers.items():
         logger.debug(f"  {name}: {value}")
+    
+    # Special handling for Azure Container Apps - may have different headers
+    forwarded_proto = headers.get("X-Forwarded-Proto", "").lower()
+    original_proto = headers.get("X-Original-Proto", "").lower()
+    
+    # If we detect we're behind a TLS proxy, log it
+    if IS_BEHIND_TLS_PROXY or "https" in forwarded_proto or "wss" in original_proto:
+        logger.info("Detected TLS termination at proxy")
     
     # Check for WebSocket handshake headers regardless of path
     connection_header = headers.get("Connection", "").lower()

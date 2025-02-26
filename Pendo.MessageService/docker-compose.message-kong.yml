@@ -45,6 +45,8 @@ services:
       - SERVICE_NAME=message-service
       - WS_PORT=5006
       - HTTP_PORT=5007
+      # For local testing of Azure-like environment 
+      # - BEHIND_TLS_PROXY=true
     ports:
       - "5006:5006"
       - "5007:5007"

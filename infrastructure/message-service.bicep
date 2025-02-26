@@ -66,6 +66,10 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
               name: 'SERVICE_NAME'
               value: containerAppName
             }
+            {
+              name: 'BEHIND_TLS_PROXY'
+              value: 'true'
+            }
           ]
           resources: {
             cpu: json('0.5')
