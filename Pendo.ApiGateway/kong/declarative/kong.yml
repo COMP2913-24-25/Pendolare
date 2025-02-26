@@ -10,6 +10,8 @@ services:
         protocols:
           - http
           - https
+          - ws
+          - wss
         paths:
           - /message/ws
         strip_path: true

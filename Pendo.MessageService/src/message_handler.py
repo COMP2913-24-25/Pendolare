@@ -3,6 +3,11 @@ import json
 import time
 from typing import Dict, Set, List
 from datetime import datetime
+import logging
+import asyncio
+import websockets
+
+logger = logging.getLogger(__name__)
 
 class MessageType(Enum):
     USER_TO_USER = "user_message"
@@ -19,18 +24,36 @@ class MessageHandler:
         self.message_cache: Dict[str, List[Dict]] = {}
         # Track last activity time for users
         self.last_seen: Dict[str, float] = {}
+        # Maps user_id to websocket connection
+        self.user_connections: Dict[str, websockets.WebSocketServerProtocol] = {}
+        # Maps conversation_id to set of user_ids
+        self.conversations: Dict[str, Set[str]] = {}
+        # In-memory message store (would be replaced by database in production)
+        self.message_store: Dict[str, list] = {}
+        logger.info("MessageHandler initialized")
     
-    def register_user(self, user_id: str, websocket):
+    def register_user(self, user_id: str, websocket: websockets.WebSocketServerProtocol):
         """Register a user connection"""
         self.connections[user_id] = websocket
         self.last_seen[user_id] = time.time()
         if user_id not in self.message_cache:
             self.message_cache[user_id] = []
+        self.user_connections[user_id] = websocket
+        logger.info(f"User {user_id} registered")
     
     def remove_user(self, user_id: str):
         """Remove a user connection"""
         if user_id in self.connections:
             del self.connections[user_id]
+        if user_id in self.user_connections:
+            del self.user_connections[user_id]
+            # Remove user from any conversations they were part of
+            for conv_id, users in list(self.conversations.items()):
+                if user_id in users:
+                    users.remove(user_id)
+                    if not users:  # If conversation is now empty, remove it
+                        del self.conversations[conv_id]
+            logger.info(f"User {user_id} removed")
     
     def get_user_socket(self, user_id: str):
         """Get the websocket for a specific user"""
@@ -188,3 +211,87 @@ class MessageHandler:
                 'type': 'error',
                 'message': f'Invalid message format: {str(e)}'
             }))
+
+    async def _handle_chat_message(self, message):
+        """Handle a chat message"""
+        if not all(k in message for k in ['from', 'conversation_id', 'content']):
+            logger.error("Incomplete chat message")
+            return
+
+        # Add timestamp if not provided
+        if 'timestamp' not in message:
+            message['timestamp'] = datetime.utcnow().isoformat()
+        
+        # Store message
+        conversation_id = message['conversation_id']
+        if conversation_id not in self.message_store:
+            self.message_store[conversation_id] = []
+        self.message_store[conversation_id].append(message)
+        
+        # Send to all users in this conversation
+        if conversation_id in self.conversations:
+            for user_id in self.conversations[conversation_id]:
+                if user_id in self.user_connections:
+                    try:
+                        await self.user_connections[user_id].send(json.dumps(message))
+                    except websockets.exceptions.ConnectionClosed:
+                        logger.info(f"Connection closed for user {user_id}")
+                        self.remove_user(user_id)
+
+    async def _handle_typing_notification(self, message):
+        """Handle typing notification"""
+        if not all(k in message for k in ['from', 'conversation_id', 'is_typing']):
+            return
+        
+        conversation_id = message['conversation_id']
+        if conversation_id in self.conversations:
+            for user_id in self.conversations[conversation_id]:
+                if user_id != message['from'] and user_id in self.user_connections:
+                    try:
+                        await self.user_connections[user_id].send(json.dumps(message))
+                    except websockets.exceptions.ConnectionClosed:
+                        self.remove_user(user_id)
+    
+    async def _handle_read_receipt(self, message):
+        """Handle read receipt"""
+        if not all(k in message for k in ['from', 'conversation_id', 'message_id']):
+            return
+            
+        conversation_id = message['conversation_id']
+        if conversation_id in self.conversations:
+            for user_id in self.conversations[conversation_id]:
+                if user_id != message['from'] and user_id in self.user_connections:
+                    try:
+                        await self.user_connections[user_id].send(json.dumps(message))
+                    except websockets.exceptions.ConnectionClosed:
+                        self.remove_user(user_id)
+    
+    async def _handle_join_conversation(self, message):
+        """Handle user joining a conversation"""
+        if not all(k in message for k in ['user_id', 'conversation_id']):
+            return
+        
+        user_id = message['user_id']
+        conversation_id = message['conversation_id']
+        
+        if conversation_id not in self.conversations:
+            self.conversations[conversation_id] = set()
+        
+        self.conversations[conversation_id].add(user_id)
+        logger.info(f"User {user_id} joined conversation {conversation_id}")
+        
+    async def _handle_leave_conversation(self, message):
+        """Handle user leaving a conversation"""
+        if not all(k in message for k in ['user_id', 'conversation_id']):
+            return
+            
+        user_id = message['user_id'] 
+        conversation_id = message['conversation_id']
+        
+        if conversation_id in self.conversations and user_id in self.conversations[conversation_id]:
+            self.conversations[conversation_id].remove(user_id)
+            logger.info(f"User {user_id} left conversation {conversation_id}")
+            
+            # Remove conversation if empty
+            if not self.conversations[conversation_id]:
+                del self.conversations[conversation_id]

@@ -34,7 +34,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
       ingress: {
         external: true
         targetPort: 5006
-        transport: 'auto'
+        transport: 'auto'  // Ensures WebSocket support
         allowInsecure: false
         traffic: [
           {
@@ -59,16 +59,12 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
               value: 'INFO'
             }
             {
-              name: 'KONG_GATEWAY_HOST'
-              value: kongGatewayFqdn
+              name: 'KONG_GATEWAY_URL'
+              value: 'https://${kongGatewayFqdn}'
             }
             {
               name: 'SERVICE_NAME'
               value: containerAppName
-            }
-            {
-              name: 'CONTAINER_APP_ENV'
-              value: containerAppEnvironmentName
             }
           ]
           resources: {

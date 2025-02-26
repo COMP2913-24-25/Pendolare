@@ -70,6 +70,20 @@ jobs:
               registryPassword=${{ secrets.ACR_PASSWORD }} \
               kongGatewayFqdn=${{ steps.kong_fqdn.outputs.fqdn }}
     
+    # Wait for message service to be ready before updating Kong
+    - name: Wait for service to be ready
+      run: |
+        echo "Waiting for message-service to be ready..."
+        sleep 30
+
+    # Get Message Service FQDN for Kong configuration
+    - name: Get Message Service FQDN
+      id: message_fqdn
+      run: |
+        MESSAGE_FQDN=$(az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
+        echo "MESSAGE_SERVICE_FQDN=$MESSAGE_FQDN" >> $GITHUB_ENV
+        echo "::set-output name=fqdn::$MESSAGE_FQDN"
+
     # Configure Kong Gateway to route to Message Service
     - name: Configure Kong Gateway Routes
       uses: azure/CLI@v1

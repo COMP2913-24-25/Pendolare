@@ -33,11 +33,70 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
       ingress: {
         external: true
         targetPort: 8000
-        transport: 'auto'  // Changed from 'http' to 'auto' to support WebSockets
+        transport: 'auto'  // Ensures WebSocket support
         allowInsecure: false
+        traffic: [
+          {
+            latestRevision: true
+            weight: 100
+          }
+        ]
+        // Add additional ports for Kong admin
+        additionalPortMappings: [
+          {
+            targetPort: 8001
+            name: 'admin'
+            external: true
+          }
+        ]
       }
     }
-    // ...existing code...
+    template: {
+      containers: [
+        {
+          name: containerAppName
+          image: '${registryName}.azurecr.io/${containerAppName}:latest'
+          env: [
+            {
+              name: 'KONG_DATABASE'
+              value: 'off'
+            }
+            {
+              name: 'KONG_DECLARATIVE_CONFIG'
+              value: '/usr/local/kong/declarative/kong.yml'
+            }
+            {
+              name: 'KONG_PROXY_ACCESS_LOG'
+              value: '/dev/stdout'
+            }
+            {
+              name: 'KONG_ADMIN_ACCESS_LOG'
+              value: '/dev/stdout'
+            }
+            {
+              name: 'KONG_PROXY_ERROR_LOG'
+              value: '/dev/stderr'
+            }
+            {
+              name: 'KONG_ADMIN_ERROR_LOG'
+              value: '/dev/stderr'
+            }
+            {
+              name: 'KONG_ADMIN_LISTEN'
+              value: '0.0.0.0:8001'
+            }
+          ]
+          resources: {
+            cpu: json('0.5')
+            memory: '1.0Gi'
+          }
+        }
+      ]
+      scale: {
+        minReplicas: 1
+        maxReplicas: 3
+      }
+    }
   }
 }
 
