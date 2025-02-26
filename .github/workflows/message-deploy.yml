@@ -143,12 +143,16 @@ jobs:
           }
           EOL
           
-          # Create WebSocket route
+          # Create WebSocket route - FIXED: removed ws/wss protocols
           cat > kong-route-creation.json << EOL
           {
             "name": "${SERVICE_NAME}-ws-route",
             "paths": ["/ws"],
-            "protocols": ["http", "https", "ws", "wss"],
+            "protocols": ["http", "https"],
+            "headers": {
+              "Upgrade": ["websocket"],
+              "Connection": ["Upgrade"]
+            },
             "strip_path": false
           }
           EOL

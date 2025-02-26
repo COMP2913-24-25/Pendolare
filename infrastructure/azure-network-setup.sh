@@ -37,7 +37,11 @@ cat > kong-config-update.json << EOF
         {
           "name": "message-websocket-route",
           "paths": ["/messages"],
-          "protocols": ["http", "https", "ws", "wss"],
+          "protocols": ["http", "https"],
+          "headers": {
+            "Upgrade": ["websocket"],
+            "Connection": ["Upgrade"]
+          },
           "strip_path": false
         }
       ]

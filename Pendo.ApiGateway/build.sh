@@ -22,6 +22,13 @@ else
   fi
 fi
 
-# Proceed with the Docker build
-echo "Building Docker image..."
-docker build -t kong-gateway .
+# Run the configuration fix script
+if [ -f "kong-config-fix.sh" ]; then
+  echo "Running Kong configuration validator..."
+  chmod +x kong-config-fix.sh
+  ./kong-config-fix.sh
+else
+  # Proceed with the Docker build
+  echo "Building Docker image..."
+  docker build -t kong-gateway .
+fi
