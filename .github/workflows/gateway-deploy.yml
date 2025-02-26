@@ -6,6 +6,7 @@ on:
       - main
       - dev
       - project/api-gateway
+      - project/message-service
     paths:
       - 'Pendo.ApiGateway/**'
       - 'infrastructure/gateway-service.bicep'
