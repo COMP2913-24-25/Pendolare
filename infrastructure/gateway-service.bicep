@@ -77,6 +77,14 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
               name: 'KONG_ADMIN_LISTEN'
               value: '0.0.0.0:8001'
             }
+            {
+              name: 'KONG_NGINX_PROXY_READ_TIMEOUT'
+              value: '3600'
+            }
+            {
+              name: 'KONG_NGINX_PROXY_SEND_TIMEOUT'
+              value: '3600'
+            }
           ]
           resources: {
             cpu: json('0.5')
