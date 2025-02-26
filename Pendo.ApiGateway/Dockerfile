@@ -19,4 +19,7 @@ ENV KONG_LOG_LEVEL=debug
 # Remove invalid timeout env vars; use custom Nginx template instead.
 ENV KONG_NGINX_CONF=/usr/local/kong/custom_nginx.template
 
+# Add external DNS resolver for Azure
+ENV KONG_NGINX_RESOLVER=8.8.8.8
+
 EXPOSE 8000 8443 8001 8444
