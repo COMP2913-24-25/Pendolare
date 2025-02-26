@@ -34,7 +34,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
       ingress: {
         external: true
         targetPort: 5006
-        transport: 'http'  // Change from 'auto' to explicitly use 'http'
+        transport: 'auto'  // Updated from 'http'
         allowInsecure: true // Allow insecure connections for testing
         traffic: [
           {
