@@ -1,0 +1,82 @@
+_format_version: "2.1"
+_transform: true
+
+services:
+  - name: message-service
+    url: http://message-service:5006
+    protocol: http
+    routes:
+      - name: message-ws-route
+        protocols:
+          - http
+          - https
+        paths:
+          - /message/ws
+        strip_path: true
+        headers:
+          Upgrade:
+            - websocket
+          Connection:
+            - Upgrade
+        methods:
+          - GET
+          - OPTIONS
+      - name: message-websocket-direct
+        protocols:
+          - http
+          - https
+        paths:
+          - /ws
+        strip_path: false
+        headers:
+          Upgrade:
+            - websocket
+          Connection:
+            - Upgrade
+        methods:
+          - GET
+          - OPTIONS
+      - name: message-health-check
+        protocols:
+          - http
+          - https
+        paths:
+          - /message/health
+        strip_path: false
+        methods:
+          - GET
+    plugins:
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - x-skip-auth:${request.querystring.skipAuth}
+              - x-message-service-debug:true
+      - name: cors
+        config:
+          origins:
+            - "*"
+          methods:
+            - GET
+            - POST
+            - OPTIONS
+          headers:
+            - Accept
+            - Authorization
+            - Content-Type
+            - Upgrade
+            - Connection
+          credentials: true
+          max_age: 3600
+
+  # ... existing services ...
+
+plugins:
+  - name: prometheus
+    config:
+      status_code_metrics: true
+      latency_metrics: true
+      upstream_health_metrics: true
+      bandwidth_metrics: true
+
+  # ... existing plugins ...
