@@ -16,7 +16,7 @@ ENV KONG_ADMIN_ERROR_LOG=/dev/stderr
 ENV KONG_ADMIN_LISTEN=0.0.0.0:8001
 ENV KONG_LOG_LEVEL=debug
 
-# Remove timeout ENV variables that cause "read_timeout" to be injected.
+# Remove invalid timeout env vars; use custom Nginx template instead.
 ENV KONG_NGINX_CONF=/usr/local/kong/custom_nginx.template
 
 EXPOSE 8000 8443 8001 8444

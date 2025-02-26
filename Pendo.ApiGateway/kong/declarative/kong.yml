@@ -12,7 +12,7 @@ services:
           - https
         paths:
           - /message/ws
-        strip_path: false  # Changed to false - don't strip the path
+        strip_path: false
         headers:
           Upgrade:
             - websocket
@@ -275,7 +275,7 @@ services:
         config:
           allow:
             - 127.0.0.1
-            - 172.16.0.0/12  # Container App environment internal IPs
+            - 172.16.0.0/12
 
 consumers:
   - username: anonymous-consumer

@@ -21,7 +21,6 @@ http {
         ''      close;
     }
 
-    # These are valid directives in the http context
     proxy_read_timeout 3600s; 
     proxy_send_timeout 3600s;
     keepalive_timeout 65s;
