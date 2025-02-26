@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test Client</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #log { height: 300px; border: 1px solid #ccc; padding: 10px; overflow-y: scroll; margin-bottom: 10px; }
+        #connectionForm { margin-bottom: 20px; }
+        input[type="text"] { width: 300px; padding: 5px; }
+        button { padding: 5px 10px; }
+        .status { font-weight: bold; }
+        .connected { color: green; }
+        .disconnected { color: red; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Test Client</h1>
+    
+    <div id="connectionForm">
+        <label for="wsUrl">WebSocket URL:</label>
+        <input type="text" id="wsUrl" value="wss://kong-gateway.greensand-8499b34e.uksouth.azurecontainerapps.io/message/ws" />
+        <button id="connectBtn">Connect</button>
+        <button id="disconnectBtn" disabled>Disconnect</button>
+        <span id="status" class="status disconnected">Disconnected</span>
+    </div>
+    
+    <div>
+        <input type="text" id="messageInput" placeholder="Enter message to send" disabled />
+        <button id="sendBtn" disabled>Send</button>
+    </div>
+    
+    <h3>Debug Log:</h3>
+    <div id="log"></div>
+    
+    <script>
+        let socket;
+        const log = document.getElementById('log');
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const sendBtn = document.getElementById('sendBtn');
+        const messageInput = document.getElementById('messageInput');
+        const wsUrl = document.getElementById('wsUrl');
+        const status = document.getElementById('status');
+        
+        function appendLog(message, isError = false) {
+            const entry = document.createElement('div');
+            entry.textContent = `${new Date().toISOString()}: ${message}`;
+            if (isError) entry.classList.add('error');
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        connectBtn.addEventListener('click', () => {
+            try {
+                appendLog(`Attempting to connect to ${wsUrl.value}...`);
+                socket = new WebSocket(wsUrl.value);
+                
+                socket.onopen = (event) => {
+                    appendLog('Connection established!');
+                    status.textContent = 'Connected';
+                    status.classList.remove('disconnected');
+                    status.classList.add('connected');
+                    connectBtn.disabled = true;
+                    disconnectBtn.disabled = false;
+                    sendBtn.disabled = false;
+                    messageInput.disabled = false;
+                };
+                
+                socket.onclose = (event) => {
+                    appendLog(`Connection closed. Code: ${event.code}, Reason: ${event.reason || 'No reason provided'}`);
+                    status.textContent = 'Disconnected';
+                    status.classList.remove('connected');
+                    status.classList.add('disconnected');
+                    connectBtn.disabled = false;
+                    disconnectBtn.disabled = true;
+                    sendBtn.disabled = true;
+                    messageInput.disabled = true;
+                };
+                
+                socket.onerror = (error) => {
+                    appendLog('WebSocket error', true);
+                    console.error('WebSocket error:', error);
+                };
+                
+                socket.onmessage = (event) => {
+                    appendLog(`Received message: ${event.data}`);
+                };
+            } catch (error) {
+                appendLog(`Error creating WebSocket: ${error.message}`, true);
+            }
+        });
+        
+        disconnectBtn.addEventListener('click', () => {
+            if (socket) {
+                socket.close();
+                appendLog('Disconnected by user');
+            }
+        });
+        
+        sendBtn.addEventListener('click', () => {
+            if (socket && messageInput.value) {
+                socket.send(messageInput.value);
+                appendLog(`Sent message: ${messageInput.value}`);
+                messageInput.value = '';
+            }
+        });
+        
+        messageInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter' && !sendBtn.disabled) {
+                sendBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>

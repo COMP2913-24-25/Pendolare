@@ -13,9 +13,10 @@ import threading
 import socket
 import time
 import random
+from datetime import datetime
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=os.environ.get('LOG_LEVEL', 'DEBUG'),
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(sys.stdout)
@@ -172,71 +173,83 @@ async def health_handler(path, headers):
     """Handle health check requests for WebSocket server"""
     logger.info(f"Received request for path: {path}")
     
-    # Enhanced path handling for WebSockets through Kong
-    # Handle root path (/) or any path with /ws or /message/ws
-    if path == "/" or path == "/ws" or path == "/message/ws" or path.endswith("/ws"):
-        # Check for WebSocket headers
-        connection_header = headers.get("Connection", "").lower()
-        upgrade_header = headers.get("Upgrade", "").lower()
-        
-        if "upgrade" in connection_header and upgrade_header == "websocket":
-            logger.info(f"WebSocket handshake detected for path: {path}")
-            # Print all headers for debugging
-            logger.debug("WebSocket headers:")
-            for header, value in headers.items():
-                logger.debug(f"  {header}: {value}")
-            return None  # Continue with WebSocket processing
-        else:
-            logger.warning(f"Invalid WebSocket request on path {path}")
-            return 400, {"Content-Type": "text/plain"}, b"Expected WebSocket connection."
+    # DEBUG: Log all headers to help diagnose issues
+    logger.debug(f"Request headers for {path}:")
+    for name, value in headers.items():
+        logger.debug(f"  {name}: {value}")
     
-    # Special case for health check
+    # Check for WebSocket handshake headers regardless of path
+    connection_header = headers.get("Connection", "").lower()
+    upgrade_header = headers.get("Upgrade", "").lower()
+    
+    # If it's a WebSocket upgrade request, log it and pass through
+    if "upgrade" in connection_header and "websocket" in upgrade_header:
+        logger.info(f"WebSocket handshake detected for path: {path}")
+        return None  # Let the WebSocket handler take it
+    
+    # Handle health check path
     if path == "/health" or path == "/message/health":
         return 200, {"Content-Type": "text/plain"}, b"OK"
     
-    # Redirect to our HTTP server - use the discovered port
+    # For unknown paths, log and redirect to HTTP server or return 404
+    logger.warning(f"Unknown path requested: {path}")
     port = HTTP_SERVER_PORT if HTTP_SERVER_PORT else HTTP_PORT
-    return 307, {"Location": f"http://localhost:{port}{path}"}, b""
+    return 307, {"Location": f"http://localhost:{port}/test-client"}, b"Redirecting to test client"
 
 async def websocket_handler(websocket, path):
-    logger.info(f"New connection established on path: {path}")
+    client_id = id(websocket)
+    try:
+        client_info = f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
+    except Exception:
+        client_info = "unknown"
     
-    # Extract client information for logging
-    client_info = f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
-    logger.info(f"Client connected from {client_info}")
+    logger.info(f"New WebSocket connection: ID={client_id}, Path={path}, Client={client_info}")
     
-    # Log if the connection is coming through Kong (should have specific headers)
-    if "x-forwarded-for" in websocket.request_headers:
-        logger.info(f"Connection routed through Kong Gateway: {websocket.request_headers.get('x-forwarded-for')}")
-    
-    user_id = None
+    # DEBUG: Log all request headers
+    try:
+        logger.debug(f"WebSocket request headers:")
+        for name, value in websocket.request_headers.items():
+            logger.debug(f"  {name}: {value}")
+    except Exception as e:
+        logger.error(f"Could not log request headers: {e}")
     
     try:
+        # Send welcome message with path information
+        await websocket.send(json.dumps({
+            "type": "welcome",
+            "message": f"Connected to Message Service via path: {path}",
+            "timestamp": datetime.now().isoformat()
+        }))
+        
+        # Echo handler
         async for message in websocket:
-            logger.info(f"Received message: {message[:100]}...")  # Log first 100 chars
+            logger.info(f"Received from client {client_id}: {message}")
             
+            # Try parsing as JSON first
             try:
-                data = json.loads(message)
-                # Check if this is a registration message
-                if 'register' in data and data['register']:
-                    if 'user_id' in data:
-                        user_id = data['user_id']
-                        logger.info(f"User {user_id} registered")
-                        handler.register_user(user_id, websocket)
+                msg_data = json.loads(message)
+                if isinstance(msg_data, dict) and msg_data.get("type") == "ping":
+                    await websocket.send(json.dumps({
+                        "type": "pong",
+                        "timestamp": datetime.now().isoformat()
+                    }))
+                    continue
             except json.JSONDecodeError:
-                logger.error("Invalid JSON message received")
-                continue
-                
-            await handler.handle_message(websocket, message)
+                # Not JSON, treat as plain text
+                pass
+            
+            # Echo the message back
+            response = f"ECHO: {message}"
+            await websocket.send(response)
+            logger.info(f"Sent to client {client_id}: {response}")
+            
     except websockets.exceptions.ConnectionClosed as e:
-        logger.info(f"Connection closed: {e.code} {e.reason}")
+        logger.info(f"WebSocket connection closed for client {client_id}: code={e.code}, reason='{e.reason}'")
     except Exception as e:
-        logger.error(f"Error in websocket handler: {str(e)}")
+        logger.error(f"Error handling WebSocket for client {client_id}: {str(e)}")
+        logger.error(traceback.format_exc())
     finally:
-        if user_id:
-            handler.remove_user(user_id)
-            logger.info(f"User {user_id} disconnected")
-        logger.info("Connection closed")
+        logger.info(f"WebSocket connection ended: {client_id}")
 
 async def main():
     # Log startup information
@@ -254,7 +267,12 @@ async def main():
         websocket_handler, 
         "0.0.0.0", 
         WS_PORT,
-        process_request=health_handler
+        process_request=health_handler,
+        ping_interval=20,       # Send ping every 20 seconds
+        ping_timeout=20,        # Wait 20 seconds for pong
+        close_timeout=20,       # Wait 20 seconds for close to complete
+        max_size=10_485_760,    # 10MB max message size
+        max_queue=32            # Queue up to 32 messages
     ):
         http_port = HTTP_SERVER_PORT if HTTP_SERVER_PORT else HTTP_PORT
         logger.info(f"WebSocket server started on port {WS_PORT}")
