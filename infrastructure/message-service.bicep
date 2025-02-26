@@ -5,6 +5,7 @@ param registryName string = 'pendocontainerregistry'
 param registryUsername string
 @secure()
 param registryPassword string
+param kongGatewayFqdn string = 'kong-gateway.greensand-8499b34e.uksouth.azurecontainerapps.io'
 
 // Reference existing environment
 resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' existing = {
@@ -56,6 +57,18 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
             {
               name: 'LOG_LEVEL'
               value: 'INFO'
+            }
+            {
+              name: 'KONG_GATEWAY_HOST'
+              value: kongGatewayFqdn
+            }
+            {
+              name: 'SERVICE_NAME'
+              value: containerAppName
+            }
+            {
+              name: 'CONTAINER_APP_ENV'
+              value: containerAppEnvironmentName
             }
           ]
           resources: {

@@ -21,6 +21,18 @@ services:
         methods:
           - GET
           - OPTIONS
+      - name: message-websocket-direct
+        protocols:
+          - http
+          - https
+          - ws
+          - wss
+        paths:
+          - /ws
+        strip_path: false
+        methods:
+          - GET
+          - OPTIONS
       - name: message-history
         protocols:
           - http

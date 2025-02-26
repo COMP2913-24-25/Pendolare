@@ -2,37 +2,43 @@ import asyncio
 import websockets
 import logging
 import json
+import os
 from src.message_handler import MessageHandler
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 handler = MessageHandler()
 
+# Get Kong Gateway URL from environment, if available
+KONG_GATEWAY_URL = os.environ.get("KONG_GATEWAY_URL", None)
+SERVICE_NAME = os.environ.get("SERVICE_NAME", "message-service")
+
+async def health_handler(path, headers):
+    """Handle health check requests"""
+    if path == "/health":
+        return 200, {"Content-Type": "text/plain"}, b"OK"
+    return None  # Continue normal WebSocket processing
+
 async def websocket_handler(websocket, path):
-    logger.info(f"New connection attempt. Path: {path}")
+    logger.info(f"New connection established on path: {path}")
     
-    # Validate if the path is /message/ws or / (stripped by Kong)
-    if path not in ['/', '/message/ws']:
-        logger.warning(f"Invalid path: {path}")
-        return
-        
+    # Extract client information for logging
+    client_info = f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
+    logger.info(f"Client connected from {client_info}")
+    
+    # Log if the connection is coming through Kong (should have specific headers)
+    if "x-forwarded-for" in websocket.request_headers:
+        logger.info(f"Connection routed through Kong Gateway: {websocket.request_headers.get('x-forwarded-for')}")
+    
     user_id = None
     
     try:
-        logger.info("Connection established")
-        # For testing, handle mock websockets differently
-        if hasattr(websocket, 'test_messages'):
-            for message in websocket.test_messages:
-                await handler.handle_message(websocket, message)
-            websocket.connected = True
-            return
-            
         async for message in websocket:
-            logger.info(f"Received message: {message}")
+            logger.info(f"Received message: {message[:100]}...")  # Log first 100 chars
             
-            # Check if this is a registration message
             try:
                 data = json.loads(message)
+                # Check if this is a registration message
                 if 'register' in data and data['register']:
                     if 'user_id' in data:
                         user_id = data['user_id']
@@ -43,10 +49,10 @@ async def websocket_handler(websocket, path):
                 continue
                 
             await handler.handle_message(websocket, message)
+    except websockets.exceptions.ConnectionClosed as e:
+        logger.info(f"Connection closed: {e.code} {e.reason}")
     except Exception as e:
         logger.error(f"Error in websocket handler: {str(e)}")
-        if hasattr(websocket, 'connected'):
-            websocket.connected = False
     finally:
         if user_id:
             handler.remove_user(user_id)
@@ -54,12 +60,18 @@ async def websocket_handler(websocket, path):
         logger.info("Connection closed")
 
 async def main():
+    # Log startup information including environment details
+    logger.info(f"Starting Message Service...")
+    if KONG_GATEWAY_URL:
+        logger.info(f"Kong Gateway URL: {KONG_GATEWAY_URL}")
+    logger.info(f"Service Name: {SERVICE_NAME}")
+    
     # Start WebSocket server
     async with websockets.serve(
         websocket_handler, 
         "0.0.0.0", 
         5006,
-        process_request=lambda path, headers: None
+        process_request=health_handler
     ):
         logger.info("WebSocket server started on port 5006")
         await asyncio.Future()

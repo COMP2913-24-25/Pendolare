@@ -35,6 +35,14 @@ jobs:
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         enable-AzPSSession: true
 
+    # Get Kong Gateway FQDN
+    - name: Get Kong Gateway FQDN
+      id: kong_fqdn
+      run: |
+        KONG_FQDN=$(az containerapp show --name kong-gateway --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
+        echo "KONG_GATEWAY_FQDN=$KONG_FQDN" >> $GITHUB_ENV
+        echo "::set-output name=fqdn::$KONG_FQDN"
+
     - name: Build and push image to ACR
       env:
         ACR_USERNAME: ${{ secrets.ACR_USERNAME }}
@@ -59,4 +67,36 @@ jobs:
               containerAppEnvironmentName=pendo-env-dev \
               registryName=${{ env.ACR_NAME }} \
               registryUsername=${{ secrets.ACR_USERNAME }} \
-              registryPassword=${{ secrets.ACR_PASSWORD }}
+              registryPassword=${{ secrets.ACR_PASSWORD }} \
+              kongGatewayFqdn=${{ steps.kong_fqdn.outputs.fqdn }}
+    
+    # Configure Kong Gateway to route to Message Service
+    - name: Configure Kong Gateway Routes
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          MESSAGE_SERVICE_FQDN=$(az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
+          
+          # Create Kong configuration script to add the message service route
+          cat > update-kong.sh << 'EOF'
+          #!/bin/bash
+          MESSAGE_SERVICE_FQDN=$1
+          KONG_GATEWAY_FQDN=$2
+          
+          # Add message-service to Kong
+          curl -i -X POST https://$KONG_GATEWAY_FQDN:8001/services \
+            --data name=message-service \
+            --data url=http://$MESSAGE_SERVICE_FQDN:5006
+          
+          # Add WebSocket route
+          curl -i -X POST https://$KONG_GATEWAY_FQDN:8001/services/message-service/routes \
+            --data 'name=message-ws-route' \
+            --data 'paths[]=/messages' \
+            --data 'protocols[]=http' \
+            --data 'protocols[]=https' \
+            --data 'protocols[]=ws' \
+            --data 'protocols[]=wss'
+          EOF
+          
+          chmod +x update-kong.sh
+          ./update-kong.sh $MESSAGE_SERVICE_FQDN ${{ steps.kong_fqdn.outputs.fqdn }}
