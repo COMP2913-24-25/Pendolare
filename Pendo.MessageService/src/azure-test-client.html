@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Azure WebSocket Test Client</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #333; }
+        #status { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .connected { background-color: #d4edda; color: #155724; }
+        .disconnected { background-color: #f8d7da; color: #721c24; }
+        .connecting { background-color: #fff3cd; color: #856404; }
+        #log { 
+            height: 300px; 
+            overflow-y: scroll; 
+            border: 1px solid #ddd; 
+            padding: 10px;
+            background-color: #f8f9fa;
+            font-family: monospace;
+            margin-bottom: 10px;
+        }
+        button { 
+            background-color: #007bff; 
+            color: white; 
+            border: none; 
+            padding: 10px 15px; 
+            border-radius: 4px; 
+            cursor: pointer;
+        }
+        button:hover { background-color: #0056b3; }
+        input, select { padding: 8px; margin-bottom: 10px; width: 100%; box-sizing: border-box; }
+        .sent { color: #0066cc; }
+        .received { color: #006600; }
+        .error { color: #cc0000; }
+    </style>
+</head>
+<body>
+    <h1>Azure WebSocket Test Client</h1>
+    
+    <div>
+        <select id="wsUrl">
+            <option value="wss://kong-gateway.greensand-8499b34e.uksouth.azurecontainerapps.io/message/ws">Kong Gateway WSS</option>
+            <option value="ws://kong-gateway.greensand-8499b34e.uksouth.azurecontainerapps.io/message/ws">Kong Gateway WS</option>
+            <option value="wss://message-service.greensand-8499b34e.uksouth.azurecontainerapps.io/ws">Direct Message Service WSS</option>
+            <option value="ws://message-service.greensand-8499b34e.uksouth.azurecontainerapps.io/ws">Direct Message Service WS</option>
+        </select>
+        <button id="connectBtn">Connect</button>
+        <button id="disconnectBtn" disabled>Disconnect</button>
+    </div>
+    
+    <div id="status" class="disconnected">Disconnected</div>
+    
+    <div>
+        <h3>Connection Info</h3>
+        <pre id="connectionInfo">Not connected</pre>
+    </div>
+    
+    <div>
+        <h3>Message Log</h3>
+        <div id="log"></div>
+    </div>
+    
+    <div>
+        <h3>Send Message</h3>
+        <input type="text" id="userId" placeholder="User ID" value="test-user-1">
+        <input type="text" id="convId" placeholder="Conversation ID" value="test-conversation">
+        <input type="text" id="message" placeholder="Type your message here">
+        <button id="sendBtn" disabled>Send</button>
+    </div>
+    
+    <script>
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const sendBtn = document.getElementById('sendBtn');
+        const statusDiv = document.getElementById('status');
+        const logDiv = document.getElementById('log');
+        const urlSelect = document.getElementById('wsUrl');
+        const messageInput = document.getElementById('message');
+        const userIdInput = document.getElementById('userId');
+        const convIdInput = document.getElementById('convId');
+        const connectionInfoDiv = document.getElementById('connectionInfo');
+        
+        let socket = null;
+        let isRegistered = false;
+        
+        function updateStatus(connected, message) {
+            statusDiv.textContent = message;
+            statusDiv.className = connected ? 'connected' : 'disconnected';
+            if (connected === null) {
+                statusDiv.className = 'connecting';
+            }
+        }
+        
+        function log(message, type = '') {
+            const entry = document.createElement('div');
+            entry.className = type;
+            entry.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        connectBtn.addEventListener('click', () => {
+            const url = urlSelect.value;
+            try {
+                updateStatus(null, `Connecting to ${url}...`);
+                log(`Attempting to connect to ${url}`);
+                
+                socket = new WebSocket(url);
+                
+                socket.addEventListener('open', (event) => {
+                    updateStatus(true, 'Connected!');
+                    log('Connection established!');
+                    connectBtn.disabled = true;
+                    disconnectBtn.disabled = false;
+                    sendBtn.disabled = false;
+                    
+                    // Display connection info
+                    connectionInfoDiv.textContent = `Connected to: ${url}\nProtocol: ${socket.protocol}`;
+                    
+                    // Register user
+                    registerUser();
+                });
+                
+                socket.addEventListener('message', (event) => {
+                    log(`Received: ${event.data}`, 'received');
+                    try {
+                        const data = JSON.parse(event.data);
+                        if (data.type === 'error') {
+                            log(`Error: ${data.message}`, 'error');
+                        }
+                    } catch (e) {
+                        log(`Error parsing message: ${e}`, 'error');
+                    }
+                });
+                
+                socket.addEventListener('close', (event) => {
+                    updateStatus(false, `Disconnected (code: ${event.code})`);
+                    log(`Connection closed. Code: ${event.code}, Reason: ${event.reason}`);
+                    connectBtn.disabled = false;
+                    disconnectBtn.disabled = true;
+                    sendBtn.disabled = true;
+                    isRegistered = false;
+                    connectionInfoDiv.textContent = 'Not connected';
+                });
+                
+                socket.addEventListener('error', (event) => {
+                    log('WebSocket error occurred', 'error');
+                    console.error('WebSocket error:', event);
+                });
+                
+            } catch (error) {
+                updateStatus(false, `Error: ${error.message}`);
+                log(`Connection error: ${error.message}`, 'error');
+            }
+        });
+        
+        disconnectBtn.addEventListener('click', () => {
+            if (socket) {
+                socket.close();
+            }
+        });
+        
+        function registerUser() {
+            const userId = userIdInput.value;
+            if (!userId) {
+                log('User ID is required', 'error');
+                return;
+            }
+            
+            const registerMsg = {
+                register: true,
+                user_id: userId,
+                type: 'register'
+            };
+            
+            socket.send(JSON.stringify(registerMsg));
+            log(`Registering user: ${userId}`, 'sent');
+            isRegistered = true;
+            
+            // Join conversation
+            setTimeout(() => {
+                joinConversation();
+            }, 1000);
+        }
+        
+        function joinConversation() {
+            const convId = convIdInput.value;
+            const userId = userIdInput.value;
+            if (!convId) {
+                log('Conversation ID is required', 'error');
+                return;
+            }
+            
+            const joinMsg = {
+                type: 'join_conversation',
+                user_id: userId,
+                conversation_id: convId
+            };
+            
+            socket.send(JSON.stringify(joinMsg));
+            log(`Joining conversation: ${convId}`, 'sent');
+        }
+        
+        sendBtn.addEventListener('click', () => {
+            const msg = messageInput.value;
+            const userId = userIdInput.value;
+            const convId = convIdInput.value;
+            
+            if (!msg) {
+                log('Message cannot be empty', 'error');
+                return;
+            }
+            
+            const chatMsg = {
+                type: 'chat',
+                from: userId,
+                conversation_id: convId,
+                content: msg,
+                timestamp: new Date().toISOString()
+            };
+            
+            socket.send(JSON.stringify(chatMsg));
+            log(`Sent: ${msg}`, 'sent');
+            messageInput.value = '';
+        });
+        
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !sendBtn.disabled) {
+                sendBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>

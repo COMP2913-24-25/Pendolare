@@ -70,13 +70,13 @@ jobs:
               registryPassword=${{ secrets.ACR_PASSWORD }} \
               kongGatewayFqdn=${{ steps.kong_fqdn.outputs.fqdn }}
     
-    # Wait for message service to be ready before updating Kong
+    # Wait for message service to be ready
     - name: Wait for service to be ready
       run: |
         echo "Waiting for message-service to be ready..."
         sleep 30
 
-    # Get Message Service FQDN for Kong configuration
+    # Get Message Service FQDN 
     - name: Get Message Service FQDN
       id: message_fqdn
       run: |
@@ -84,29 +84,27 @@ jobs:
         echo "MESSAGE_SERVICE_FQDN=$MESSAGE_FQDN" >> $GITHUB_ENV
         echo "::set-output name=fqdn::$MESSAGE_FQDN"
 
-    # Configure Kong Gateway to route to Message Service
+    # Configure Kong Gateway to properly route to Message Service with correct FQDN
     - name: Configure Kong Gateway Routes
       uses: azure/CLI@v1
       with:
         inlineScript: |
-          MESSAGE_SERVICE_FQDN=$(az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
-          KONG_GATEWAY_FQDN=$(az containerapp show --name kong-gateway --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
+          MESSAGE_SERVICE_FQDN="${{ steps.message_fqdn.outputs.fqdn }}"
+          KONG_GATEWAY_FQDN="${{ steps.kong_fqdn.outputs.fqdn }}"
           
           echo "Updating Kong Gateway Configuration..."
+          echo "Message Service FQDN: $MESSAGE_SERVICE_FQDN"
+          echo "Kong Gateway FQDN: $KONG_GATEWAY_FQDN"
           
-          # We need to update the Kong configuration through the admin API proxy
-          # The admin API is available at the path /admin-api
+          # Delete existing service if it exists (to ensure clean update)
+          curl -s -i -X DELETE https://$KONG_GATEWAY_FQDN/admin-api/services/message-service || true
           
-          # Add message-service to Kong
+          # Create message-service in Kong with correct HTTPS URL
           curl -i -X POST https://$KONG_GATEWAY_FQDN/admin-api/services \
-            --data name=message-service \
-            --data url=https://$MESSAGE_SERVICE_FQDN
+            -H "Content-Type: application/json" \
+            -d "{\"name\":\"message-service\",\"url\":\"https://$MESSAGE_SERVICE_FQDN\"}"
           
-          # Add WebSocket route
+          # Add WebSocket route with proper headers
           curl -i -X POST https://$KONG_GATEWAY_FQDN/admin-api/services/message-service/routes \
-            --data 'name=message-ws-route' \
-            --data 'paths[]=/message/ws' \
-            --data 'protocols[]=http' \
-            --data 'protocols[]=https' \
-            --data 'protocols[]=ws' \
-            --data 'protocols[]=wss'
+            -H "Content-Type: application/json" \
+            -d "{\"name\":\"message-ws-route\",\"paths\":[\"/message/ws\"],\"protocols\":[\"http\",\"https\"],\"headers\":{\"Upgrade\":[\"websocket\"],\"Connection\":[\"Upgrade\"]},\"strip_path\":false}"
