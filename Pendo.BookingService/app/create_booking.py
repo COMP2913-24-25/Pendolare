@@ -56,8 +56,6 @@ class CreateBookingCommand:
 
             self.email_sender.SendBookingPending(user.Email, email_data)
             self.logger.debug("Booking pending email sent successfully.")
-
-            self.logger.info(f"Booking created successfully. BookingId: {booking.BookingId}")
             return {"Status": "Success", "createTime": datetime.now()}
         except Exception as e:
             self.logger.error(f"Error creating booking. Error: {str(e)}")
