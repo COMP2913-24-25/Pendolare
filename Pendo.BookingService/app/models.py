@@ -7,6 +7,7 @@ from sqlalchemy.orm.base import Mapped
 
 Base = declarative_base()
 
+
 class BookingStatus(Base):
     __tablename__ = 'BookingStatus'
     __table_args__ = (

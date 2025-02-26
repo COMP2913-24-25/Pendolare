@@ -45,13 +45,23 @@ DECLARE @JwtConfiguration NVARCHAR(MAX) = '
     "AppAudience": "Pendo.MobileApp",
     "ManagerAudience": "Pendo.ManagerDashboard",
     "SecretKey": "d8d5304c4624d4ee3461edde3a7df1d2a2a7aec0aaa689b7ef6ca563ae3a67bb",
-    "ExpiresInMinutes": 60
+    "ExpiresInMinutes": 60,
 }';
+
+DECLARE @BookingEmailConfiguration NVARCHAR(MAX) = '
+{
+    "apiKey": "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",
+    "fromEmail": "pendolare-dev@clsolutions.dev",
+    "pendingTemplateId": "d-f8a5d7c50b4a489ca2ecdc2c333e9b57",
+    "confirmedTemplateId": "d-0cd496b0ec5c4aaca9b72449dcb9d1be",
+    "cancelledTemplateId": "d-fd645e276ceb4cafa14dae1d678b5b93"
+}'
 
 MERGE INTO [shared].[Configuration] AS target
 USING (VALUES
     ('Identity.OtpConfiguration', @OtpConfiguration),
-    ('Identity.JwtConfiguration', @JwtConfiguration)
+    ('Identity.JwtConfiguration', @JwtConfiguration),
+    ('Booking.EmailConfiguration', @BookingEmailConfiguration)
 ) AS source ([Key], [Value])
 ON target.[Key] = source.[Key]
 WHEN NOT MATCHED THEN

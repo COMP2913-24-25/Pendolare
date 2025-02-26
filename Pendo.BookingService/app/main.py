@@ -1,10 +1,15 @@
 from fastapi import FastAPI, HTTPException, Depends
-from .db_provider import get_db, Session, text
+from .db_provider import get_db, Session, text, configProvider
+from .create_booking import CreateBookingCommand
+from .requests import CreateBookingRequest
+from .email_sender import MailSender
 
 app = FastAPI(
     title="Pendo.BookingService.Api", 
     version="1.0.0",
     root_path="/api")
+
+mailSender = MailSender(configProvider.LoadEmailConfiguration(next(get_db())))
 
 @app.get("/HealthCheck", tags=["HealthCheck"])
 def test_db(db: Session = Depends(get_db)):
@@ -19,8 +24,8 @@ def get_bookings(db: Session = Depends(get_db)):
     return {}
 
 @app.post("/CreateBooking", tags=["Create Bookings"])
-def create_booking(db: Session = Depends(get_db)):
-    return {}
+def create_booking(request: CreateBookingRequest, db: Session = Depends(get_db)):
+    return CreateBookingCommand(request, mailSender).Execute()
 
 @app.post("/UpdateBooking", tags=["Update Bookings"])
 def update_booking(db: Session = Depends(get_db)):
