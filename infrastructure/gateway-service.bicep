@@ -33,11 +33,93 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
       ingress: {
         external: true
         targetPort: 8000
-        transport: 'auto'  // Changed from 'http' to 'auto' to support WebSockets
+        transport: 'auto'  // Support all protocols including WebSockets
         allowInsecure: false
+        traffic: [
+          {
+            latestRevision: true
+            weight: 100
+          }
+        ]
       }
     }
-    // ...existing code...
+    template: {
+      containers: [
+        {
+          name: containerAppName
+          image: '${registryName}.azurecr.io/kong-gateway:latest'
+          env: [
+            {
+              name: 'KONG_DATABASE'
+              value: 'off'
+            }
+            {
+              name: 'KONG_DECLARATIVE_CONFIG'
+              value: '/usr/local/kong/declarative/kong.yml'
+            }
+            {
+              name: 'KONG_PROXY_ACCESS_LOG'
+              value: '/dev/stdout'
+            }
+            {
+              name: 'KONG_ADMIN_ACCESS_LOG'
+              value: '/dev/stdout'
+            }
+            {
+              name: 'KONG_PROXY_ERROR_LOG'
+              value: '/dev/stderr'
+            }
+            {
+              name: 'KONG_ADMIN_ERROR_LOG'
+              value: '/dev/stderr'
+            }
+            // Expose Admin API for service registration
+            {
+              name: 'KONG_ADMIN_LISTEN'
+              value: '0.0.0.0:8001'
+            }
+          ]
+          resources: {
+            cpu: json('0.5')
+            memory: '1.0Gi'
+          }
+          probes: [
+            {
+              type: 'liveness'
+              httpGet: {
+                path: '/status'
+                port: 8000
+              }
+              initialDelaySeconds: 15
+              periodSeconds: 30
+            }
+            {
+              type: 'readiness'
+              httpGet: {
+                path: '/status'
+                port: 8000
+              }
+              initialDelaySeconds: 5
+              periodSeconds: 10
+            }
+          ]
+        }
+      ]
+      scale: {
+        minReplicas: 1
+        maxReplicas: 3
+        rules: [
+          {
+            name: 'http-rule'
+            http: {
+              metadata: {
+                concurrentRequests: '100'
+              }
+            }
+          }
+        ]
+      }
+    }
   }
 }
 

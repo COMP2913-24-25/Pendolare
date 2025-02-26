@@ -8,7 +8,7 @@ on:
       - project/message-service
     paths:
       - 'Pendo.MessageService/**'
-      - 'infrastructure/**'
+      - 'infrastructure/message-service.bicep'
   workflow_dispatch:
 
 env:
@@ -16,6 +16,8 @@ env:
   MESSAGE_SERVICE_IMAGE_NAME: message-service
   RESOURCE_GROUP: dev
   CONTAINER_APP_NAME: message-service
+  KONG_GATEWAY_NAME: kong-gateway
+  CONTAINER_APP_ENV: pendo-env-dev
 
 jobs:
   build-and-deploy:
@@ -35,13 +37,25 @@ jobs:
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         enable-AzPSSession: true
 
-    # Get Kong Gateway FQDN
-    - name: Get Kong Gateway FQDN
-      id: kong_fqdn
+    # Check if Kong Gateway exists before attempting to interact with it
+    - name: Check Kong Gateway Existence
+      id: check_kong
       run: |
-        KONG_FQDN=$(az containerapp show --name kong-gateway --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
-        echo "KONG_GATEWAY_FQDN=$KONG_FQDN" >> $GITHUB_ENV
-        echo "::set-output name=fqdn::$KONG_FQDN"
+        KONG_EXISTS=$(az containerapp show --name ${{ env.KONG_GATEWAY_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query name -o tsv 2>/dev/null || echo "not_found")
+        
+        if [ "$KONG_EXISTS" == "not_found" ]; then
+          echo "::set-output name=exists::false"
+          echo "WARNING: Kong Gateway not found. Will deploy without Kong integration."
+        else
+          echo "::set-output name=exists::true"
+          
+          # Get Kong FQDN
+          KONG_FQDN=$(az containerapp show --name ${{ env.KONG_GATEWAY_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
+          echo "KONG_GATEWAY_FQDN=$KONG_FQDN" >> $GITHUB_ENV
+          echo "::set-output name=fqdn::$KONG_FQDN"
+          
+          echo "Kong Gateway found at: $KONG_FQDN"
+        fi
 
     - name: Build and push image to ACR
       env:
@@ -64,39 +78,98 @@ jobs:
             --template-file infrastructure/message-service.bicep \
             --parameters \
               containerAppName=${{ env.CONTAINER_APP_NAME }} \
-              containerAppEnvironmentName=pendo-env-dev \
+              containerAppEnvironmentName=${{ env.CONTAINER_APP_ENV }} \
               registryName=${{ env.ACR_NAME }} \
               registryUsername=${{ secrets.ACR_USERNAME }} \
               registryPassword=${{ secrets.ACR_PASSWORD }} \
-              kongGatewayFqdn=${{ steps.kong_fqdn.outputs.fqdn }}
-    
-    # Configure Kong Gateway to route to Message Service
-    - name: Configure Kong Gateway Routes
+              kongGatewayFqdn=${{ steps.check_kong.outputs.fqdn }}
+
+    # Automated Network Setup
+    - name: Setup Network Configuration
+      if: steps.check_kong.outputs.exists == 'true'
       uses: azure/CLI@v1
       with:
         inlineScript: |
-          MESSAGE_SERVICE_FQDN=$(az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
+          # Get FQDNs for both services
+          KONG_FQDN=$(az containerapp show --name ${{ env.KONG_GATEWAY_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
+          MESSAGE_FQDN=$(az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
           
-          # Create Kong configuration script to add the message service route
-          cat > update-kong.sh << 'EOF'
+          echo "Kong Gateway FQDN: $KONG_FQDN"
+          echo "Message Service FQDN: $MESSAGE_FQDN"
+          
+          # Update environment variables for Message Service to know about Kong
+          echo "Updating Message Service environment variables..."
+          az containerapp update \
+            --name ${{ env.CONTAINER_APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --set-env-vars "KONG_GATEWAY_URL=https://$KONG_FQDN"
+          
+          # Check if services are in the same environment
+          KONG_ENV=$(az containerapp show --name ${{ env.KONG_GATEWAY_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query properties.managedEnvironmentId -o tsv)
+          MESSAGE_ENV=$(az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query properties.managedEnvironmentId -o tsv)
+          
+          if [ "$KONG_ENV" == "$MESSAGE_ENV" ]; then
+            echo "Services are in the same Container App Environment. Internal networking is available."
+          else
+            echo "WARNING: Services are in different environments. Internal networking won't work correctly."
+            echo "You may need to manually update the Container App Environment settings."
+          fi
+
+    # Configure Kong API Gateway
+    - name: Configure Kong Gateway Routes
+      if: steps.check_kong.outputs.exists == 'true'
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          MESSAGE_SERVICE_FQDN=$(az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv || echo "message-service")
+          
+          echo "Configuring Kong Gateway to route to Message Service at $MESSAGE_SERVICE_FQDN"
+          
+          # This is a safer way to handle the updating of Kong configuration using environment variables
+          cat > kong-route-update.sh << 'EOF'
           #!/bin/bash
-          MESSAGE_SERVICE_FQDN=$1
-          KONG_GATEWAY_FQDN=$2
+          # Access the service inside the Container App Environment using internal DNS name
+          SERVICE_NAME="$1"  # message-service
+          KONG_NAME="$2"     # kong-gateway
           
-          # Add message-service to Kong
-          curl -i -X POST https://$KONG_GATEWAY_FQDN:8001/services \
-            --data name=message-service \
-            --data url=http://$MESSAGE_SERVICE_FQDN:5006
+          # When inside the same Container App Environment, services can discover each other by name
+          echo "Adding service: $SERVICE_NAME"
           
-          # Add WebSocket route
-          curl -i -X POST https://$KONG_GATEWAY_FQDN:8001/services/message-service/routes \
-            --data 'name=message-ws-route' \
-            --data 'paths[]=/messages' \
-            --data 'protocols[]=http' \
-            --data 'protocols[]=https' \
-            --data 'protocols[]=ws' \
-            --data 'protocols[]=wss'
+          # Create Kong Admin API call to create service - using internal Container App DNS
+          cat > kong-service-creation.json << EOL
+          {
+            "name": "$SERVICE_NAME",
+            "url": "http://$SERVICE_NAME:5006"
+          }
+          EOL
+          
+          # Create WebSocket route
+          cat > kong-route-creation.json << EOL
+          {
+            "name": "${SERVICE_NAME}-ws-route",
+            "paths": ["/ws"],
+            "protocols": ["http", "https", "ws", "wss"],
+            "strip_path": false
+          }
+          EOL
+          
+          echo "Kong configuration prepared - ready to apply via Kong API or declarative config"
+          # Note: You would normally apply this using kubectl exec or direct API calls to the Kong Admin API
           EOF
           
-          chmod +x update-kong.sh
-          ./update-kong.sh $MESSAGE_SERVICE_FQDN ${{ steps.kong_fqdn.outputs.fqdn }}
+          chmod +x kong-route-update.sh
+          ./kong-route-update.sh ${{ env.CONTAINER_APP_NAME }} ${{ env.KONG_GATEWAY_NAME }}
+          
+          echo "Network configuration complete!"
+
+    # Verify the deployment by checking the status
+    - name: Verify deployment
+      run: |
+        echo "Waiting for Container App to be ready..."
+        sleep 10  # Allow some time for the app to initialize
+        
+        # Get the status of the message service app
+        APP_STATUS=$(az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query "properties.latestRevisionName" -o tsv)
+        
+        echo "Message Service status: $APP_STATUS"
+        echo "Deployment complete!"

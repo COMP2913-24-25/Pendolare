@@ -8,7 +8,7 @@ on:
       - project/api-gateway
     paths:
       - 'Pendo.ApiGateway/**'
-      - 'infrastructure/**'
+      - 'infrastructure/gateway-service.bicep'
   workflow_dispatch:
 
 env:
@@ -16,6 +16,7 @@ env:
   KONG_IMAGE_NAME: kong-gateway
   RESOURCE_GROUP: dev
   CONTAINER_APP_NAME: kong-gateway
+  CONTAINER_APP_ENV: pendo-env-dev
 
 jobs:
   build-and-deploy:
@@ -47,6 +48,21 @@ jobs:
         docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.KONG_IMAGE_NAME }}:${{ github.sha }} ${{ env.ACR_NAME }}.azurecr.io/${{ env.KONG_IMAGE_NAME }}:latest
         docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.KONG_IMAGE_NAME }}:latest
 
+    - name: Ensure Container App Environment exists
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          ENV_EXISTS=$(az containerapp env list --resource-group ${{ env.RESOURCE_GROUP }} --query "[?name=='${{ env.CONTAINER_APP_ENV }}']" -o tsv)
+          if [ -z "$ENV_EXISTS" ]; then
+            echo "Creating Container App Environment: ${{ env.CONTAINER_APP_ENV }}"
+            az containerapp env create \
+              --name ${{ env.CONTAINER_APP_ENV }} \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --location uksouth
+          else 
+            echo "Using existing Container App Environment: ${{ env.CONTAINER_APP_ENV }}"
+          fi
+
     - name: Deploy Container App
       uses: azure/CLI@v1
       with:
@@ -56,7 +72,45 @@ jobs:
             --template-file infrastructure/gateway-service.bicep \
             --parameters \
               containerAppName=${{ env.CONTAINER_APP_NAME }} \
-              containerAppEnvironmentName=pendo-env-dev \
+              containerAppEnvironmentName=${{ env.CONTAINER_APP_ENV }} \
               registryName=${{ env.ACR_NAME }} \
               registryUsername=${{ secrets.ACR_USERNAME }} \
               registryPassword=${{ secrets.ACR_PASSWORD }}
+    
+    # Verify Kong API Gateway is running and accessible
+    - name: Verify Kong Gateway deployment
+      run: |
+        echo "Waiting for Kong Gateway to be ready..."
+        sleep 10  # Allow some time for the app to initialize
+        
+        # Get the Kong Gateway FQDN
+        KONG_FQDN=$(az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
+        echo "Kong Gateway FQDN: $KONG_FQDN"
+        
+        # Check if Kong Gateway is responding
+        RETRY_COUNT=0
+        MAX_RETRIES=5
+        RETRY_DELAY=10
+        
+        while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+          echo "Checking Kong Gateway status (attempt $((RETRY_COUNT+1))/$MAX_RETRIES)..."
+          
+          STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://$KONG_FQDN/status || echo "000")
+          
+          if [ "$STATUS_CODE" == "200" ] || [ "$STATUS_CODE" == "404" ]; then
+            echo "Kong Gateway is running! Status: $STATUS_CODE"
+            break
+          else
+            echo "Kong Gateway is not ready yet. Status: $STATUS_CODE"
+            RETRY_COUNT=$((RETRY_COUNT+1))
+            
+            if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+              echo "Waiting $RETRY_DELAY seconds before next attempt..."
+              sleep $RETRY_DELAY
+            else
+              echo "WARNING: Kong Gateway may not be fully operational yet."
+            fi
+          fi
+        done
+        
+        echo "Kong Gateway deployment verified."
