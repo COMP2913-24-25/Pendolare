@@ -33,7 +33,7 @@ def test_db(db: Session = Depends(get_db)):
         return {"db_connection": "successful"}
     except Exception as e:
         logger.error(f"DB connection failed. Error: {str(e)}")
-        return {"db_connection": "failed", "error": str(e)}
+        raise HTTPException(500, detail="DB connection failed.")
 
 @app.post("/GetBookings", tags=["Get Bookings"])
 def get_bookings(db: Session = Depends(get_db)):
