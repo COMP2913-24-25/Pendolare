@@ -4,7 +4,7 @@ import logging
 import json
 import os
 from src.message_handler import MessageHandler
-from src.diagnostics import handle_diagnostics_request, update_stats
+from src.http_server import start_http_server, update_status
 
 # Configure logging
 logging.basicConfig(
@@ -16,56 +16,32 @@ logger = logging.getLogger(__name__)
 # Get environment variables
 KONG_GATEWAY_URL = os.environ.get("KONG_GATEWAY_URL", None)
 SERVICE_NAME = os.environ.get("SERVICE_NAME", "message-service")
+HTTP_PORT = int(os.environ.get("HTTP_PORT", 5007))  # Separate port for HTTP server
 
 # Initialize message handler
 handler = MessageHandler()
 
-async def process_request(path, headers):
-    """Process HTTP requests including health checks and diagnostics"""
-    logger.debug(f"Received request to path: {path}")
-    
-    # Health check endpoint
+async def fallback_health_check(path, headers):
+    """
+    Simple health check handler for direct WebSocket requests
+    This is a fallback in case the HTTP server is not accessible
+    """
     if path == "/health":
+        logger.info("Health check requested through WebSocket server")
         return 200, {"Content-Type": "text/plain"}, b"OK"
-    
-    # New diagnostics endpoints
-    diagnostic_response = await handle_diagnostics_request(path)
-    if diagnostic_response:
-        return diagnostic_response
-    
-    # WebSocket logging for debugging
-    if path in ["/ws", "/message/ws"]:
-        logger.info(f"WebSocket request to {path}")
-        has_upgrade = False
-        has_connection = False
-        
-        for header_name, header_value in headers.items():
-            if header_name.lower() == 'upgrade' and 'websocket' in header_value.lower():
-                has_upgrade = True
-            if header_name.lower() == 'connection' and 'upgrade' in header_value.lower():
-                has_connection = True
-        
-        if has_upgrade and has_connection:
-            logger.info("Valid WebSocket handshake headers detected")
-        else:
-            logger.warning("Missing proper WebSocket handshake headers")
-    
-    return None  # Continue normal WebSocket processing
+    return None  # Continue with normal WebSocket handling
 
 async def websocket_handler(websocket, path):
     """Handle WebSocket connections"""
     logger.info(f"New connection established on path: {path}")
+    update_status('connection_opened', True)
+    
     remote_address = f"{websocket.remote_address[0]}:{websocket.remote_address[1]}" if hasattr(websocket, 'remote_address') else "unknown"
     logger.info(f"Client connected from {remote_address}")
     
-    # Update stats
-    update_stats('connection_open')
-    
     # Log headers for debugging
-    logger.debug("Connection headers:")
     if hasattr(websocket, 'request_headers'):
-        for name, value in websocket.request_headers.items():
-            logger.debug(f"  {name}: {value}")
+        logger.debug(f"Connection headers: {websocket.request_headers}")
         
         if "x-forwarded-for" in websocket.request_headers:
             logger.info(f"Connection routed through proxy: {websocket.request_headers.get('x-forwarded-for')}")
@@ -75,7 +51,6 @@ async def websocket_handler(websocket, path):
     try:
         async for message in websocket:
             logger.debug(f"Received message: {message[:100]}...")
-            update_stats('message_received')
             
             try:
                 data = json.loads(message)
@@ -88,7 +63,6 @@ async def websocket_handler(websocket, path):
                         "type": "welcome",
                         "message": f"Welcome, {user_id}!"
                     }))
-                    update_stats('message_sent')
                     continue
             except json.JSONDecodeError:
                 logger.error(f"Invalid JSON message received: {message}")
@@ -98,36 +72,51 @@ async def websocket_handler(websocket, path):
             try:
                 await handler.handle_message(websocket, message)
                 await websocket.send(json.dumps({"type": "ack", "status": "processed"}))
-                update_stats('message_sent')
             except Exception as e:
                 logger.error(f"Error processing message: {str(e)}")
-                update_stats('connection_fail', error=str(e))
+                update_status('error', str(e))
                 await websocket.send(json.dumps({"type": "error", "message": f"Error: {str(e)}"}))
-                update_stats('message_sent')
                 
     except websockets.exceptions.ConnectionClosed as e:
         logger.info(f"Connection closed: {e.code} {e.reason}")
-        update_stats('connection_close')
     except Exception as e:
         logger.error(f"Error in websocket handler: {str(e)}", exc_info=True)
-        update_stats('connection_fail', error=str(e))
+        update_status('error', str(e))
     finally:
         if user_id:
             handler.remove_user(user_id)
         logger.info(f"Connection from {remote_address} closed")
-        update_stats('connection_close')
+        update_status('connection_closed', True)
 
 async def main():
     """Main service entry point"""
     logger.info(f"Starting Message Service...")
-    if KONG_GATEWAY_URL:
-        logger.info(f"Kong Gateway URL: {KONG_GATEWAY_URL}")
+    
+    # Log important environment info
+    logger.info(f"Kong Gateway URL: {KONG_GATEWAY_URL}")
     logger.info(f"Service Name: {SERVICE_NAME}")
     
-    # Start WebSocket server
-    async with websockets.serve(websocket_handler, "0.0.0.0", 5006, process_request=process_request):
-        logger.info("WebSocket server started on port 5006")
-        await asyncio.Future()  # Run forever
+    try:
+        # Start the HTTP server for health checks and diagnostics
+        http_runner = await start_http_server(port=HTTP_PORT)
+        logger.info(f"HTTP server started on port {HTTP_PORT}")
+        
+        # Start WebSocket server
+        # Note: The WebSocket server doesn't handle HTTP requests anymore,
+        # but we keep the fallback health check just in case
+        async with websockets.serve(
+            websocket_handler, 
+            "0.0.0.0", 
+            5006,
+            process_request=fallback_health_check
+        ):
+            logger.info("WebSocket server started on port 5006")
+            update_status('websocket_server_status', 'running')
+            await asyncio.Future()  # Run forever
+    except Exception as e:
+        logger.critical(f"Failed to start servers: {str(e)}", exc_info=True)
+        update_status('error', f"Startup error: {str(e)}")
+        raise
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -33,7 +33,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
       ]
       ingress: {
         external: true
-        targetPort: 5006
+        targetPort: 5007  // Important: Changed to use HTTP port for probes
         transport: 'auto'  // This allows both HTTP and WebSocket traffic
         allowInsecure: false
         traffic: [
@@ -80,6 +80,10 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
               name: 'EXPOSE_DIAGNOSTICS'
               value: 'true'
             }
+            {
+              name: 'HTTP_PORT'
+              value: '5007'
+            }
           ]
           resources: {
             cpu: json('0.5')
@@ -90,7 +94,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
               type: 'liveness'
               httpGet: {
                 path: '/health'
-                port: 5006
+                port: 5007  // Use HTTP port for health checks
               }
               initialDelaySeconds: 15
               periodSeconds: 30
@@ -99,7 +103,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
               type: 'readiness'
               httpGet: {
                 path: '/health'
-                port: 5006
+                port: 5007  // Use HTTP port for health checks
               }
               initialDelaySeconds: 5
               periodSeconds: 10
