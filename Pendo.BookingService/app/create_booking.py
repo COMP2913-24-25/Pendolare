@@ -6,7 +6,7 @@ class CreateBookingCommand:
     CreateBookingCommand class is responsible for creating a new booking.
     """
 
-    def __init__(self, request, email_sender):
+    def __init__(self, request, email_sender, logger):
         """
         Constructor for CreateBookingCommand class.
         :param request: Request object containing the booking details.
@@ -14,6 +14,7 @@ class CreateBookingCommand:
         self.booking_repository = BookingRepository()
         self.email_sender = email_sender
         self.request = request
+        self.logger = logger
 
     def Execute(self):
         """
@@ -40,6 +41,7 @@ class CreateBookingCommand:
             )
 
             self.booking_repository.CreateBooking(booking)
+            self.logger.debug(f"Booking DB object created successfully. BookingId: {booking.BookingId}")
 
             email_data = {
                 "booking_id": f"{booking.BookingId}",
@@ -53,7 +55,10 @@ class CreateBookingCommand:
             }
 
             self.email_sender.SendBookingPending(user.Email, email_data)
+            self.logger.debug("Booking pending email sent successfully.")
 
+            self.logger.info(f"Booking created successfully. BookingId: {booking.BookingId}")
             return {"Status": "Success", "createTime": datetime.now()}
         except Exception as e:
+            self.logger.error(f"Error creating booking. Error: {str(e)}")
             return {"Status": "Failed", "Error": str(e)}

@@ -14,3 +14,4 @@ efpt.config.json.user
 /Pendo.BookingService/.venv-booking
 Pendo.BookingService/app/.env
 Pendo.BookingService/pyvenv.cfg
+Pendo.BookingService.log
