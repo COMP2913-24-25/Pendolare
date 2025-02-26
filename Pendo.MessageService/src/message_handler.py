@@ -15,11 +15,15 @@ class MessageType(Enum):
     USER_TO_SUPPORT = "support_request"
     HISTORY_REQUEST = "history_request"
     HISTORY_RESPONSE = "history_response"
+    CHAT = "chat"
+    JOIN_CONVERSATION = "join_conversation" 
+    LEAVE_CONVERSATION = "leave_conversation"
 
 class MessageHandler:
     def __init__(self):
         self.connections: Dict[str, object] = {}
         self.user_sessions: Dict[str, object] = {}
+
         # In-memory message cache: {recipient_id: [message_objects]}
         self.message_cache: Dict[str, List[Dict]] = {}
         # Track last activity time for users
@@ -30,7 +34,7 @@ class MessageHandler:
         self.conversations: Dict[str, Set[str]] = {}
         # In-memory message store (would be replaced by database in production)
         self.message_store: Dict[str, list] = {}
-        logger.info("MessageHandler initialized")
+        logger.info("MessageHandler initialised")
     
     def register_user(self, user_id: str, websocket: websockets.WebSocketServerProtocol):
         """Register a user connection"""
@@ -199,6 +203,15 @@ class MessageHandler:
             await self._handle_history_request(websocket, data)
             return
             
+        # Handle join/leave conversation
+        if data.get('type') == 'join_conversation':
+            await self._handle_join_conversation(data)
+            return
+            
+        if data.get('type') == 'leave_conversation':
+            await self._handle_leave_conversation(data)
+            return
+            
         try:
             msg_type = MessageType(data['type'])
             
@@ -206,6 +219,8 @@ class MessageHandler:
                 await self._handle_user_message(websocket, data)
             elif msg_type in [MessageType.SUPPORT_TO_USER, MessageType.USER_TO_SUPPORT]:
                 await self._handle_support_message(websocket, data)
+            elif msg_type == MessageType.CHAT:  # Add handler for chat message type
+                await self._handle_chat_message(data)
         except (KeyError, ValueError) as e:
             await websocket.send(json.dumps({
                 'type': 'error',

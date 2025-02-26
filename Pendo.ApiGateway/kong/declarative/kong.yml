@@ -10,11 +10,9 @@ services:
         protocols:
           - http
           - https
-          - ws
-          - wss
         paths:
           - /message/ws
-        strip_path: true
+        strip_path: false  # Changed to false - don't strip the path
         headers:
           Upgrade:
             - websocket
@@ -27,11 +25,14 @@ services:
         protocols:
           - http
           - https
-          - ws
-          - wss
         paths:
           - /ws
         strip_path: false
+        headers:
+          Upgrade:
+            - websocket
+          Connection:
+            - Upgrade
         methods:
           - GET
           - OPTIONS
@@ -53,6 +54,24 @@ services:
         strip_path: false
         methods:
           - POST
+      - name: message-test-client
+        protocols:
+          - http
+          - https
+        paths:
+          - /message/test-client
+        strip_path: true
+        methods:
+          - GET
+      - name: message-health
+        protocols:
+          - http
+          - https
+        paths:
+          - /message/health
+        strip_path: true
+        methods:
+          - GET
     plugins:
       - name: request-transformer
         config:

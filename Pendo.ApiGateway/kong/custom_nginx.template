@@ -1,0 +1,28 @@
+# Custom Nginx configuration for Kong with WebSocket support
+worker_processes auto;
+daemon off;
+
+pid pids/nginx.pid;
+error_log logs/error.log ${{LOG_LEVEL}};
+
+worker_rlimit_nofile ${{WORKER_RLIMIT}};
+
+events {
+    worker_connections ${{WORKER_CONNECTIONS}};
+    multi_accept on;
+}
+
+http {
+    include 'nginx-kong.conf';
+
+    # WebSocket configuration
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        ''      close;
+    }
+
+    # These are valid directives in the http context
+    proxy_read_timeout 3600s; 
+    proxy_send_timeout 3600s;
+    keepalive_timeout 65s;
+}
