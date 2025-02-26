@@ -34,7 +34,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
       ingress: {
         external: true
         targetPort: 5006
-        transport: 'auto'
+        transport: 'auto'  // This allows both HTTP and WebSocket traffic
         allowInsecure: false
         traffic: [
           {
@@ -42,6 +42,8 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
             weight: 100
           }
         ]
+        // Add explicit exposure of diagnostic endpoints
+        customDomains: []
       }
     }
     template: {
@@ -69,6 +71,14 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
             {
               name: 'CONTAINER_APP_ENV'
               value: containerAppEnvironmentName
+            }
+            {
+              name: 'DIAGNOSTICS_ENABLED'
+              value: 'true'
+            }
+            {
+              name: 'EXPOSE_DIAGNOSTICS'
+              value: 'true'
             }
           ]
           resources: {
