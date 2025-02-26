@@ -235,6 +235,29 @@ services:
         methods:
           - GET
 
+  - name: kong-admin
+    url: http://127.0.0.1:8001
+    routes:
+      - name: admin-api
+        protocols:
+          - http
+          - https
+        paths:
+          - /admin-api
+        strip_path: true
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - PATCH
+    plugins:
+      - name: ip-restriction
+        config:
+          allow:
+            - 127.0.0.1
+            - 172.16.0.0/12  # Container App environment internal IPs
+
 consumers:
   - username: anonymous-consumer
     acls:

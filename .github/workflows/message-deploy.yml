@@ -90,27 +90,23 @@ jobs:
       with:
         inlineScript: |
           MESSAGE_SERVICE_FQDN=$(az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
+          KONG_GATEWAY_FQDN=$(az containerapp show --name kong-gateway --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
           
-          # Create Kong configuration script to add the message service route
-          cat > update-kong.sh << 'EOF'
-          #!/bin/bash
-          MESSAGE_SERVICE_FQDN=$1
-          KONG_GATEWAY_FQDN=$2
+          echo "Updating Kong Gateway Configuration..."
+          
+          # We need to update the Kong configuration through the admin API proxy
+          # The admin API is available at the path /admin-api
           
           # Add message-service to Kong
-          curl -i -X POST https://$KONG_GATEWAY_FQDN:8001/services \
+          curl -i -X POST https://$KONG_GATEWAY_FQDN/admin-api/services \
             --data name=message-service \
-            --data url=http://$MESSAGE_SERVICE_FQDN:5006
+            --data url=https://$MESSAGE_SERVICE_FQDN
           
           # Add WebSocket route
-          curl -i -X POST https://$KONG_GATEWAY_FQDN:8001/services/message-service/routes \
+          curl -i -X POST https://$KONG_GATEWAY_FQDN/admin-api/services/message-service/routes \
             --data 'name=message-ws-route' \
-            --data 'paths[]=/messages' \
+            --data 'paths[]=/message/ws' \
             --data 'protocols[]=http' \
             --data 'protocols[]=https' \
             --data 'protocols[]=ws' \
             --data 'protocols[]=wss'
-          EOF
-          
-          chmod +x update-kong.sh
-          ./update-kong.sh $MESSAGE_SERVICE_FQDN ${{ steps.kong_fqdn.outputs.fqdn }}

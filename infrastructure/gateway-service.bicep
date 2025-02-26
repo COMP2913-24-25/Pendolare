@@ -41,14 +41,6 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
             weight: 100
           }
         ]
-        // Add additional ports for Kong admin
-        additionalPortMappings: [
-          {
-            targetPort: 8001
-            name: 'admin'
-            external: true
-          }
-        ]
       }
     }
     template: {
