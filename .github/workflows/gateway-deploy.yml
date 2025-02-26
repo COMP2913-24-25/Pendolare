@@ -6,7 +6,6 @@ on:
       - main
       - dev
       - project/api-gateway
-      - project/message-service
     paths:
       - 'Pendo.ApiGateway/**'
       - 'infrastructure/gateway-service.bicep'
@@ -44,7 +43,21 @@ jobs:
       run: |
         docker login ${{ env.ACR_NAME }}.azurecr.io -u $ACR_USERNAME -p $ACR_PASSWORD
         cd Pendo.ApiGateway
-        docker build . -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.KONG_IMAGE_NAME }}:${{ github.sha }}
+        
+        # Make build script executable and run it
+        chmod +x build.sh
+        ./build.sh
+        
+        # Verify directory structure
+        echo "Checking directory structure:"
+        ls -la
+        echo "Checking kong directory:"
+        ls -la kong
+        echo "Checking kong/declarative directory:"
+        ls -la kong/declarative
+        
+        # Tag and push the image
+        docker tag kong-gateway ${{ env.ACR_NAME }}.azurecr.io/${{ env.KONG_IMAGE_NAME }}:${{ github.sha }}
         docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.KONG_IMAGE_NAME }}:${{ github.sha }}
         docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.KONG_IMAGE_NAME }}:${{ github.sha }} ${{ env.ACR_NAME }}.azurecr.io/${{ env.KONG_IMAGE_NAME }}:latest
         docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.KONG_IMAGE_NAME }}:latest
