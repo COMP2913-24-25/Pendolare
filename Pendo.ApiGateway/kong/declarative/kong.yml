@@ -25,11 +25,14 @@ services:
         protocols:
           - http
           - https
-          - ws
-          - wss
         paths:
           - /ws
         strip_path: false
+        headers:
+          Upgrade:
+            - websocket
+          Connection:
+            - Upgrade
         methods:
           - GET
           - OPTIONS
