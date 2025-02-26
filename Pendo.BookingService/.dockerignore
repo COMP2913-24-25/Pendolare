@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+
+.venv-booking/
+.env
+
+.git
+.gitignore
+
+.dockerignore
+Dockerfile
