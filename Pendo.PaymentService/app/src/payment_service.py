@@ -5,7 +5,7 @@
 #
 
 from fastapi import FastAPI
-from src.PendoDatabase import Transaction
+from src.PendoDatabase import Transaction, UserBalance
 from pydantic import BaseModel
 
 
@@ -15,7 +15,7 @@ app = FastAPI()
 @app.post("/AuthenticatePaymentDetails")
 def AuthenticatePaymentDetails():
     """
-    Used to save and authorise the card details of a user to Stripe's Customer list for our Account
+    Used to save and authorise new card details of a user, to Stripe's Customer list
     """
 
     # TODO: Complete AuthenticatePaymentDetails Endpoint
@@ -64,7 +64,9 @@ def PendingBooking():
 
 @app.post("/ConfirmedBooking")
 def ConfirmedBooking():
-
+    """
+    Used when a booking status changes to confirmed, takes payment from user's saved card details and non-pending balance
+    """
     # TODO: Complete Confirm endpoint
 
     # input: bookingID
@@ -90,13 +92,7 @@ def ViewBalance():
 
     # TODO: Complete View endpoint
     
-    # input: userID
-
-    # Query non-pending balance
-
-    # Query pending balance
-
-    # return both
+    # pending, non-pending = queryBalance(userID)
 
     return {"status" : "success",
             "pending": "value",
@@ -125,6 +121,18 @@ def CreatePayout():
     # email admin with notice to payout / invoice to pay
 
     return {"status" : "success"}
+
+def queryBalance(userID):
+    non-pending = 0
+    pending = 0 
+    # input: userID
+
+    # Query non-pending balance
+
+    # Query pending balance
+
+    # return both
+    return pending, non-pending
 
 def some_testing_function(param):
     return param
