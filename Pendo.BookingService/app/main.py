@@ -3,14 +3,23 @@ import logging
 from fastapi import FastAPI, HTTPException, Depends
 from .db_provider import get_db, Session, text, configProvider, environment
 from .create_booking import CreateBookingCommand
-from .requests import CreateBookingRequest
+from .get_bookings import GetBookingsCommand
+from .requests import CreateBookingRequest, GetBookingsRequest
 from .email_sender import MailSender
+import sys
 
-logging.basicConfig(
-    level=logging.INFO if environment == "Production" else logging.DEBUG,
-    filename='Pendo.BookingService.log',
-    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s'
-)
+if environment == "Development":
+    logging.basicConfig(
+        level=logging.DEBUG,
+        filename='Pendo.BookingService.log',
+        format='%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+    )
+else:
+    logging.basicConfig(
+        level=logging.INFO,
+        stream=sys.stdout,
+        format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+    )
 
 logger = logging.getLogger(__name__)
 logger.info("Starting Pendo.BookingService.Api")
@@ -36,9 +45,9 @@ def test_db(db: Session = Depends(get_db)):
         raise HTTPException(500, detail="DB connection failed.")
 
 @app.post("/GetBookings", tags=["Get Bookings"])
-def get_bookings(db: Session = Depends(get_db)):
+def get_bookings(request: GetBookingsRequest, db: Session = Depends(get_db)):
     logger.debug("Getting bookings...")
-    return {}
+    return GetBookingsCommand(request, logging.getLogger("GetBookingsCommand")).Execute()
 
 @app.post("/CreateBooking", tags=["Create Bookings"])
 def create_booking(request: CreateBookingRequest, db: Session = Depends(get_db)):
