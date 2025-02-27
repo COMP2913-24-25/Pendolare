@@ -354,6 +354,16 @@ async def websocket_handler(websocket, path):
     finally:
         logger.info(f"WebSocket connection ended: {client_id}")
 
+async def process_request_wrapper(path, headers):
+    # Only allow WebSocket upgrade requests
+    if headers.get("Upgrade", "").lower() != "websocket":
+        return 426, {"Content-Type": "text/plain"}, b"Upgrade Required"
+    result = await health_handler(path, headers)
+    if result is not None:
+        return result
+    result = await debug_handler(path, headers)
+    return result
+
 async def main():
     # Log startup information
     logger.info(f"Starting Message Service...")
@@ -370,7 +380,7 @@ async def main():
         websocket_handler, 
         "0.0.0.0", 
         WS_PORT,
-        process_request=lambda path, headers: health_handler(path, headers) or debug_handler(path, headers),
+        process_request=process_request_wrapper,  # updated process_request callback
         ping_interval=20,       # Send ping every 20 seconds
         ping_timeout=60,        # Wait 60 seconds for pong (increased timeout)
         close_timeout=60,       # Wait 60 seconds for close to complete (increased timeout)
