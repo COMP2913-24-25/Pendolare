@@ -31,7 +31,7 @@ git clone [repository-url]
 cd [service-name]
 
 # Install dependencies
-npm install  # or equivalent command
+pip install -r requirements.txt
 ```
 
 ### Configuration
@@ -42,12 +42,26 @@ npm install  # or equivalent command
    - `OTHER_REQUIRED_VARS`
 
 ### Running the Service
-```bash
-# Development mode
-npm run dev  # or equivalent command
 
-# Production mode
-npm run start  # or equivalent command
+#### Development mode
+```bash
+# Run the Flask development server
+python run.py
+```
+
+#### Production mode with Gunicorn
+```bash
+# Run the Gunicorn server
+gunicorn -w 4 -b 0.0.0.0:5001 run:app
+```
+
+### Docker
+```bash
+# Build the Docker image
+docker build -t pendo-admin-dashboard .
+
+# Run the Docker container
+docker run -p 5000:5000 pendo-admin-dashboard
 ```
 
 ### Testing
@@ -76,7 +90,6 @@ npm run test:integration  # or equivalent command
 - Deployment process
 - Required environment variables
 - Infrastructure dependencies
-
 
 ## Contact
 - User responsible: [Leeds Username]
