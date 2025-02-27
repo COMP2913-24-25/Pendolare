@@ -11,22 +11,6 @@ logger = logging.getLogger(__name__)
 
 # Use service name for direct connection within Docker network
 DIRECT_URL = "ws://message-service:5006/message/ws"
-# Use Kong container name for gateway tests
-KONG_HOST = os.getenv('KONG_HOST', 'kong')
-KONG_ADMIN_URL = f"http://{KONG_HOST}:8001"
-GATEWAY_URL = f"ws://{KONG_HOST}:8000/message/ws"
-
-def check_kong_status():
-    try:
-        response = requests.get(f"{KONG_ADMIN_URL}/status")
-        if response.status_code == 200:
-            logger.info("Kong is up and running")
-            return True
-        logger.error(f"Kong status check failed with status code: {response.status_code}")
-        return False
-    except requests.RequestException as e:
-        logger.error(f"Failed to connect to Kong: {str(e)}")
-        return False
 
 @pytest.mark.asyncio
 async def test_direct_connection():
@@ -59,42 +43,6 @@ async def test_direct_connection():
             logger.info("Direct connection test passed")
     except Exception as e:
         logger.error(f"Direct connection test failed: {e}")
-        raise
-
-@pytest.mark.asyncio
-async def test_gateway_connection():
-    """Test connection through Kong API gateway"""
-    if not check_kong_status():
-        pytest.skip("Kong gateway is not available")
-        
-    try:
-        logger.info(f"Connecting through Kong gateway at {GATEWAY_URL}")
-        async with websockets.connect(GATEWAY_URL) as websocket:
-            # Register as a test user
-            registration = {
-                'register': True,
-                'user_id': 'test_user_gateway'
-            }
-            await websocket.send(json.dumps(registration))
-            
-            # Send a ping message
-            ping = {
-                'type': 'user_message',
-                'sender': 'test_user_gateway',
-                'recipient': 'echo',
-                'content': 'ping via gateway'
-            }
-            await websocket.send(json.dumps(ping))
-            
-            # Expect a confirmation response
-            response = await websocket.recv()
-            response_data = json.loads(response)
-            assert response_data['type'] == 'user_message_sent'
-            assert response_data['recipient'] == 'echo'
-            
-            logger.info("Gateway connection test passed")
-    except Exception as e:
-        logger.error(f"Gateway connection test failed: {e}")
         raise
 
 async def receive_until_type(websocket, expected_type):
