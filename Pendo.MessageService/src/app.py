@@ -205,6 +205,78 @@ async def health_handler(path, headers):
     port = HTTP_SERVER_PORT if HTTP_SERVER_PORT else HTTP_PORT
     return 307, {"Location": f"http://localhost:{port}/test-client"}, b"Redirecting to test client"
 
+# Add this function near your health_handler or other HTTP handlers
+async def debug_handler(path, headers):
+    """Special debug endpoint that runs internal connection tests"""
+    if path == "/debug" or path == "/debug/websocket":
+        # Import locally to avoid affecting normal operation
+        import json
+        import asyncio
+        import sys
+        import os
+        from datetime import datetime
+        
+        logger.info("Debug endpoint called - running internal websocket tests")
+        
+        # Define test function within handler scope
+        async def test_websocket(url):
+            results = {"url": url, "timestamp": datetime.now().isoformat(), "success": False}
+            
+            try:
+                logger.info(f"Testing connection to: {url}")
+                # Use the same websockets module that's already imported
+                async with websockets.connect(
+                    url, 
+                    open_timeout=5,
+                    ping_timeout=None,
+                    close_timeout=5
+                ) as ws:
+                    logger.info(f"Connection established to {url}")
+                    await ws.send(json.dumps({"type": "test", "message": "Hello from debug endpoint"}))
+                    
+                    try:
+                        response = await asyncio.wait_for(ws.recv(), timeout=5.0)
+                        logger.info(f"Received: {response}")
+                        results["received"] = response
+                        results["success"] = True
+                    except asyncio.TimeoutError:
+                        logger.error("Timeout waiting for response")
+                        results["error"] = "Timeout waiting for response"
+                    
+            except Exception as e:
+                error_msg = f"{e.__class__.__name__}: {str(e)}"
+                logger.error(f"Connection error: {error_msg}")
+                results["error"] = error_msg
+                
+            return results
+            
+        # Run tests
+        results = {
+            "timestamp": datetime.now().isoformat(),
+            "tests": []
+        }
+        
+        # Test local connection (loopback)
+        local_results = await test_websocket(f"ws://localhost:{WS_PORT}/ws")
+        results["tests"].append(local_results)
+        
+        # Test FQDN if available
+        hostname = socket.gethostname()
+        if hostname:
+            service_fqdn = f"{hostname}.greensand-8499b34e.uksouth.azurecontainerapps.io"
+            fqdn_results = await test_websocket(f"wss://{service_fqdn}/ws")
+            results["tests"].append(fqdn_results)
+        
+        # Get Kong Gateway URL from environment
+        if KONG_GATEWAY_URL:
+            kong_url = KONG_GATEWAY_URL.replace("http://", "ws://").replace("https://", "wss://")
+            kong_results = await test_websocket(f"{kong_url}/message/ws")
+            results["tests"].append(kong_results)
+            
+        return 200, {"Content-Type": "application/json"}, json.dumps(results, indent=2).encode()
+    
+    return None  # Let the next handler process it
+
 async def websocket_handler(websocket, path):
     client_id = id(websocket)
     try:
@@ -276,7 +348,7 @@ async def main():
         websocket_handler, 
         "0.0.0.0", 
         WS_PORT,
-        process_request=health_handler,
+        process_request=lambda path, headers: health_handler(path, headers) or debug_handler(path, headers),
         ping_interval=20,       # Send ping every 20 seconds
         ping_timeout=20,        # Wait 20 seconds for pong
         close_timeout=20,       # Wait 20 seconds for close to complete
