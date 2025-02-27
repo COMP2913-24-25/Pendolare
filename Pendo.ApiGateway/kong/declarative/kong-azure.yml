@@ -17,15 +17,9 @@ services:
         paths:
           - /message/ws
         strip_path: false
-        headers:
-          Upgrade:
-            - websocket
-          Connection:
-            - Upgrade
         methods:
           - GET
           - OPTIONS
-        # Removed request-transformer plugin to preserve handshake headers
       - name: message-websocket-direct
         protocols:
           - http
