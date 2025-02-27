@@ -1,4 +1,5 @@
 from .models import Booking, User, Journey
+from sqlalchemy.orm import joinedload
 from .db_provider import get_db
 
 class BookingRepository():
@@ -18,7 +19,7 @@ class BookingRepository():
         :param user_id: Id of the user.
         :return: List of bookings for the user.
         """
-        return self.db_session.query(Booking).filter(UserId=user_id)
+        return self.db_session.query(Booking).filter(Booking.UserId == user_id).options(joinedload(Booking.BookingStatus_)).all()
     
     def GetUser(self, user_id):
         """
@@ -51,7 +52,7 @@ class BookingRepository():
         :param journey_id: Id of the journey.
         :return: Booking object.
         """
-        return self.db_session.query(Booking).filter(UserId=user_id, JourneyId=journey_id).first()
+        return self.db_session.query(Booking).filter(Booking.UserId == user_id, Booking.JourneyId == journey_id).first()
     
     def CreateBooking(self, booking):
         """

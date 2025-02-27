@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-environment = os.getenv("ENVIRONMENT", "Production")
+environment = os.getenv("ENV", "Production")
 configPath = f"{Path(__file__).resolve().parent}/appsettings.{environment}.json"
 configProvider = ConfigurationProvider(configPath)
 
