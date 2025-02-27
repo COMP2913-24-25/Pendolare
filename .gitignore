@@ -3,3 +3,5 @@
 
 *.dacpac
 Pendo.MessageService/endpoints.md
+Pendo.MessageService/websocket-tester.html
+scripts/check-aca-logs.ps1

@@ -5,7 +5,7 @@ param registryName string = 'pendocontainerregistry'
 param registryUsername string
 @secure()
 param registryPassword string
-param kongGatewayFqdn string = 'kong-gateway.greensand-8499b34e.uksouth.azurecontainerapps.io'
+param kongGatewayFqdn string = ''
 
 // Reference existing environment
 resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' existing = {
@@ -33,9 +33,9 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
       ]
       ingress: {
         external: true
-        targetPort: 5006
-        transport: 'auto'  // Updated from 'http'
-        allowInsecure: true // Allow insecure connections for testing
+        targetPort: 5006  // Make sure this is correct for WebSockets
+        transport: 'auto'  // This ensures WebSocket support
+        allowInsecure: false
         traffic: [
           {
             latestRevision: true
@@ -48,68 +48,30 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
       containers: [
         {
           name: containerAppName
-          image: '${registryName}.azurecr.io/message-service:latest'
+          image: '${registryName}.azurecr.io/${containerAppName}:latest'
           env: [
             {
               name: 'PYTHONUNBUFFERED'
-              value: '1'
+              value: '1'  // Ensure Python logs are unbuffered
+            }
+            {
+              name: 'KONG_GATEWAY_URL'  
+              value: !empty(kongGatewayFqdn) ? 'https://${kongGatewayFqdn}' : ''
             }
             {
               name: 'LOG_LEVEL'
-              value: 'INFO'
-            }
-            {
-              name: 'KONG_GATEWAY_URL'
-              value: 'https://${kongGatewayFqdn}'
-            }
-            {
-              name: 'SERVICE_NAME'
-              value: containerAppName
-            }
-            {
-              name: 'BEHIND_TLS_PROXY'
-              value: 'true'
+              value: 'DEBUG'  // Set to DEBUG for more verbose logging
             }
           ]
           resources: {
             cpu: json('0.5')
             memory: '1.0Gi'
           }
-          probes: [
-            {
-              type: 'liveness'
-              httpGet: {
-                path: '/health'
-                port: 5006
-              }
-              initialDelaySeconds: 15
-              periodSeconds: 30
-            }
-            {
-              type: 'readiness'
-              httpGet: {
-                path: '/health'
-                port: 5006
-              }
-              initialDelaySeconds: 5
-              periodSeconds: 10
-            }
-          ]
         }
       ]
       scale: {
         minReplicas: 1
         maxReplicas: 3
-        rules: [
-          {
-            name: 'http-rule'
-            http: {
-              metadata: {
-                concurrentRequests: '50'
-              }
-            }
-          }
-        ]
       }
     }
   }
