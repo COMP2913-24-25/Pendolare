@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock
-from .create_booking import CreateBookingCommand
+from app.create_booking import CreateBookingCommand
 
 @pytest.fixture
 def mock_email_sender():

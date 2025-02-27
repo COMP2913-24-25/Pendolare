@@ -6,3 +6,5 @@ class CreateBookingRequest(BaseModel):
     UserId: UUID
     JourneyId: UUID
 
+class GetBookingsRequest(BaseModel):
+    UserId: UUID
