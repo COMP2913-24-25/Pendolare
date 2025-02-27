@@ -1,6 +1,7 @@
-from .models import Booking, User, Journey
+from .models import Booking, User, Journey, BookingAmmendment
 from sqlalchemy.orm import joinedload
 from .db_provider import get_db
+from datetime import datetime
 
 class BookingRepository():
     """
@@ -62,15 +63,38 @@ class BookingRepository():
         self.db_session.add(booking)
         self.db_session.commit()
 
-    def UpdateBooking(self, booking):
+    def UpdateBookingStatus(self, bookingId, bookingStatusId):
         """
         UpdateBooking method updates an existing booking in the database.
         :param booking: Booking object to be updated.
         """
-        existing_booking = self.GetBookingById(booking.id)
+        booking = self.GetBookingById(bookingId)
 
-        if existing_booking is None:
+        if booking is None:
             raise Exception("Booking not found")
-
-        self.db_session.add(booking)
+        
+        booking.BookingStatusId = bookingStatusId
+        booking.UpdateDate = datetime.now()
         self.db_session.commit()
+
+    def AddBookingAmmendment(self, booking_ammendment):
+        """
+        AddBookingAmmendment method adds a new booking ammendment in the database.
+        :param booking_ammendment: BookingAmmendment object to be added.
+        """
+        self.db_session.add(booking_ammendment)
+        self.db_session.commit()
+
+    def GetBookingAmmendment(self, booking_ammendment_id):
+        """
+        GetBookingAmmendment method returns the booking ammendment for the specified booking ammendment id.
+        :param booking_ammendment_id: Id of the booking ammendment.
+        :return BookingAmmendment object, Driver object, Passenger object, Journey object.
+        """
+        ammendment = self.db_session.query(BookingAmmendment).options(joinedload(BookingAmmendment.Booking_)).get(booking_ammendment_id)
+
+        passenger = self.GetUser(ammendment.Booking_.UserId)
+        journey = self.GetJourney(ammendment.Booking_.JourneyId)
+        driver = self.GetUser(journey.UserId)
+
+        return ammendment, driver, passenger, journey

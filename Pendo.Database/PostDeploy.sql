@@ -61,7 +61,8 @@ MERGE INTO [shared].[Configuration] AS target
 USING (VALUES
     ('Identity.OtpConfiguration', @OtpConfiguration),
     ('Identity.JwtConfiguration', @JwtConfiguration),
-    ('Booking.EmailConfiguration', @BookingEmailConfiguration)
+    ('Booking.EmailConfiguration', @BookingEmailConfiguration),
+    ('AdminFeeMargin', '0.05')
 ) AS source ([Key], [Value])
 ON target.[Key] = source.[Key]
 WHEN NOT MATCHED THEN
