@@ -1,244 +1,156 @@
 {
-  "openapi": "3.1.0",
+  "openapi": "3.0.1",
   "info": {
-    "title": "pendo.identityapi",
-    "description": "API for client authentication in the Identity Service.",
-    "version": "1.0.0"
+    "title": "Pendo.IdentityService.Api",
+    "version": "1.0"
   },
-  "servers": [
-    {
-      "url": "prod (tbc)"
-    },
-    {
-      "url": "dev (tbc)"
-    }
-  ],
   "paths": {
-    "/client/authenticate": {
+    "/api/auth/request-otp": {
       "post": {
-        "summary": "Authenticate a client using Client ID and Secret",
-        "operationId": "authenticateClient",
         "tags": [
-          "Client Authentication"
+          "Auth"
         ],
+        "operationId": "Request One-Time-Passcode Email",
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "client_id": {
-                    "type": "string",
-                    "description": "The unique identifier for the client."
-                  },
-                  "client_secret": {
-                    "type": "string",
-                    "description": "The secret key associated with the client ID."
-                  }
-                },
-                "required": [
-                  "client_id",
-                  "client_secret"
-                ]
+                "$ref": "#/components/schemas/OtpRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpRequest"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Successfully authenticated. Returns an access token.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "access_token": {
-                      "type": "string",
-                      "description": "The JWT access token."
-                    },
-                    "token_type": {
-                      "type": "string",
-                      "enum": [
-                        "Bearer"
-                      ],
-                      "description": "The type of token issued."
-                    },
-                    "expires_in": {
-                      "type": "integer",
-                      "description": "Expiry time of the token in seconds."
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request due to missing or invalid parameters."
-          },
-          "401": {
-            "description": "Unauthorised. Invalid Client ID or Secret."
-          },
-          "500": {
-            "description": "Internal server error."
+            "description": "OK"
           }
         }
       }
     },
-    "/users/auth/register": {
+    "/api/auth/verify-otp": {
       "post": {
-        "summary": "Registers a new user.",
         "tags": [
-          "User Operations - Authentication"
+          "Auth"
         ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
+        "operationId": "Verify One-Time-Passcode",
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "description": "The email of the user to be registered."
-                  },
-                  "first_name": {
-                    "type": "string"
-                  },
-                  "last_name": {
-                    "type": "string"
-                  }
+                "$ref": "#/components/schemas/VerifyOtpRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyOtpRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyOtpRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/ping": {
+      "get": {
+        "tags": [
+          "Ping"
+        ],
+        "operationId": "ping",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PingResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PingResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PingResponse"
                 }
               }
             }
           }
         }
-      }
-    },
-    "/users/auth/request-otp": {
-      "get": {
-        "summary": "Requests a One-Time-Passcode for the user to login with.",
-        "tags": [
-          "User Operations - Authentication"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/users/auth/verify-otp": {
-      "post": {
-        "summary": "Verifies the One-Time-Passcode is correct for the user.",
-        "tags": [
-          "User Operations - Authentication"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/users/auth/logout": {
-      "post": {
-        "summary": "Logs a user out.",
-        "tags": [
-          "User Operations - Authentication"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/users/auth/login-external": {
-      "post": {
-        "tags": [
-          "User Operations - Authentication"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/users/auth/callback-external": {
-      "post": {
-        "tags": [
-          "User Operations - Authentication"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/users/auth/refresh-token": {
-      "post": {
-        "tags": [
-          "User Operations - Authentication"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/users/getuser": {
-      "get": {
-        "tags": [
-          "User Operations"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/users/updateuser": {
-      "post": {
-        "tags": [
-          "User Operations"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/management/auth/register": {
-      "post": {
-        "summary": "Registers a new manager - not sure how this will work?",
-        "tags": [
-          "Management User Operations"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
       }
     }
   },
   "components": {
-    "securitySchemes": {
-      "BearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT"
+    "schemas": {
+      "OtpRequest": {
+        "required": [
+          "emailAddress"
+        ],
+        "type": "object",
+        "properties": {
+          "emailAddress": {
+            "type": "string",
+            "format": "email",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PingResponse": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timeSent": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "VerifyOtpRequest": {
+        "required": [
+          "email",
+          "otp"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "nullable": true
+          },
+          "otp": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
       }
     }
   }
