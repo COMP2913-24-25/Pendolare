@@ -52,7 +52,10 @@ class ApproveBookingAmmendmentCommand:
             self.logger.debug(f"Booking {ammendment.BookingId} cancelled successfully.")
             return
     
+        ## call payment service and charge passenger
+
         self.booking_repository.UpdateBookingStatus(ammendment.BookingId, 2)
+
         self.email_sender.SendBookingConfirmation(passenger.Email, email_data) #Should we send an email to the driver too?
         self.logger.debug(f"Booking {ammendment.BookingId} confirmed successfully.")
 
