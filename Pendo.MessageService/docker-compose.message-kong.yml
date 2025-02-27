@@ -1,10 +1,7 @@
-# Docker Compose for Message Service with Kong Gateway
-# No version field (newer Docker Compose doesn't require it)
+version: '3.8'
 services:
   kong:
-    build:
-      context: ./Pendo.ApiGateway
-      dockerfile: Dockerfile
+    image: kong:2.8.3
     container_name: kong-gateway
     environment:
       KONG_DATABASE: "off"
@@ -14,47 +11,58 @@ services:
       KONG_PROXY_ERROR_LOG: /dev/stderr
       KONG_ADMIN_ERROR_LOG: /dev/stderr
       KONG_ADMIN_LISTEN: 0.0.0.0:8001
-      KONG_LOG_LEVEL: debug
+      KONG_ADMIN_GUI_URL: http://localhost:8002
+      KONG_ADMIN_GUI_PATH: /
+      KONG_PROXY_LISTEN: 0.0.0.0:8000, 0.0.0.0:8443 ssl
+      # WebSocket configuration - use standard Nginx directives instead
+      KONG_NGINX_HTTP_PROXY_READ_TIMEOUT: 3600s
+      KONG_NGINX_HTTP_PROXY_SEND_TIMEOUT: 3600s
+      KONG_NGINX_HTTP_KEEPALIVE_TIMEOUT: 65s
     volumes:
-      - ./Pendo.ApiGateway/kong/declarative:/usr/local/kong/declarative
+      - ../Pendo.ApiGateway/kong/declarative:/usr/local/kong/declarative
     ports:
       - "8000:8000"
       - "8001:8001"
+      - "8002:8002"
       - "8443:8443"
     healthcheck:
       test: ["CMD", "kong", "health"]
       interval: 10s
       timeout: 10s
-      retries: 5
+      retries: 10
     networks:
-      - pendo-network
+      - kong-net
 
   message-service:
-    image: python:3.9-slim
-    container_name: message-service
-    volumes:
-      - ./Pendo.MessageService:/app
-    working_dir: /app
-    command: >
-      bash -c "pip install -r requirements.txt &&
-               python -m src.app"
-    environment:
-      - PYTHONUNBUFFERED=1
-      - LOG_LEVEL=DEBUG
-      - KONG_GATEWAY_URL=http://kong-gateway:8000
-      - SERVICE_NAME=message-service
-      - WS_PORT=5006
-      - HTTP_PORT=5007
-      # For local testing of Azure-like environment 
-      # - BEHIND_TLS_PROXY=true
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "5006:5006"
-      - "5007:5007"
-    depends_on:
-      - kong
     networks:
-      - pendo-network
+      - kong-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5006/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  message-test-client:
+    build: 
+      context: .
+      dockerfile: Dockerfile.test
+    ports:
+      - "5059:5007"  # Map host port 5059 to container port 5007 to avoid conflict
+    depends_on:
+      - message-service
+    networks:
+      - kong-net
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TEST_GATEWAY=true
+      - HOST_PORT=5059  # Update this to match the new external port
 
 networks:
-  pendo-network:
+  kong-net:
     driver: bridge

@@ -4,8 +4,17 @@ WORKDIR /app
 
 COPY requirements.txt .
 COPY test-requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt -r test-requirements.txt
+
+# Install dependencies - install requirements.txt first, then test-requirements.txt
+# This ensures that test dependencies don't override main dependencies
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir -r test-requirements.txt
 
 COPY . .
 
-CMD ["pytest", "tests/"]
+ENV PORT=5007
+ENV TEST_GATEWAY=false
+
+EXPOSE ${PORT}
+
+CMD ["python", "test_client.py"]
