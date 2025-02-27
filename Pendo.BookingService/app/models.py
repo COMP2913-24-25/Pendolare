@@ -1,6 +1,6 @@
 from typing import List
 
-from sqlalchemy import Boolean, Column, ForeignKeyConstraint, Identity, Index, Integer, PrimaryKeyConstraint, Unicode, Uuid, text
+from sqlalchemy import Boolean, CHAR, Column, DECIMAL, Float, ForeignKeyConstraint, Identity, Index, Integer, PrimaryKeyConstraint, Unicode, Uuid, text
 from sqlalchemy.dialects.mssql import DATETIME2
 from sqlalchemy.orm import Mapped, declarative_base, mapped_column, relationship
 from sqlalchemy.orm.base import Mapped
@@ -36,18 +36,6 @@ class UserType(Base):
     Description = mapped_column(Unicode(100, 'SQL_Latin1_General_CP1_CI_AS'))
 
     User: Mapped[List['User']] = relationship('User', uselist=True, back_populates='UserType_')
-
-
-class Journey(Base):
-    __tablename__ = 'Journey'
-    __table_args__ = (
-        PrimaryKeyConstraint('JourneyId', name='PK__Journey__4159B9EF42D75CA4'),
-        {'schema': 'journey'}
-    )
-
-    JourneyId = mapped_column(Uuid, server_default=text('(newsequentialid())'))
-
-    Booking: Mapped[List['Booking']] = relationship('Booking', uselist=True, back_populates='Journey_')
 
 
 class ApiClient(Base):
@@ -101,30 +89,9 @@ class User(Base):
     LastName = mapped_column(Unicode(255, 'SQL_Latin1_General_CP1_CI_AS'))
 
     UserType_: Mapped['UserType'] = relationship('UserType', back_populates='User')
-    Booking: Mapped[List['Booking']] = relationship('Booking', uselist=True, back_populates='User_')
     OtpLogin: Mapped[List['OtpLogin']] = relationship('OtpLogin', uselist=True, back_populates='User_')
-
-
-class Booking(Base):
-    __tablename__ = 'Booking'
-    __table_args__ = (
-        ForeignKeyConstraint(['BookingStatusId'], ['booking.BookingStatus.BookingStatusId'], name='FK_Booking_BookingStatus'),
-        ForeignKeyConstraint(['JourneyId'], ['journey.Journey.JourneyId'], name='FK_Booking_Journey'),
-        ForeignKeyConstraint(['UserId'], ['identity.User.UserId'], name='FK_Booking_User'),
-        PrimaryKeyConstraint('BookingId', name='PK__Booking__73951AED832C4429'),
-        {'schema': 'booking'}
-    )
-
-    BookingId = mapped_column(Uuid, server_default=text('(newsequentialid())'))
-    UserId = mapped_column(Uuid, nullable=False)
-    JourneyId = mapped_column(Uuid, nullable=False)
-    BookingStatusId = mapped_column(Integer, nullable=False)
-    CreateDate = mapped_column(DATETIME2, nullable=False, server_default=text('(getutcdate())'))
-    UpdateDate = mapped_column(DATETIME2, nullable=False, server_default=text('(getutcdate())'))
-
-    BookingStatus_: Mapped['BookingStatus'] = relationship('BookingStatus', back_populates='Booking')
-    Journey_: Mapped['Journey'] = relationship('Journey', back_populates='Booking')
-    User_: Mapped['User'] = relationship('User', back_populates='Booking')
+    Journey: Mapped[List['Journey']] = relationship('Journey', uselist=True, back_populates='User_')
+    Booking: Mapped[List['Booking']] = relationship('Booking', uselist=True, back_populates='User_')
 
 
 class OtpLogin(Base):
@@ -144,3 +111,90 @@ class OtpLogin(Base):
     IssueDate = mapped_column(DATETIME2)
 
     User_: Mapped['User'] = relationship('User', back_populates='OtpLogin')
+
+
+class Journey(Base):
+    __tablename__ = 'Journey'
+    __table_args__ = (
+        ForeignKeyConstraint(['UserId'], ['identity.User.UserId'], name='FK_Journeys_UserId'),
+        PrimaryKeyConstraint('JourneyId', name='PK__Journey__4159B9EF42D75CA4'),
+        {'schema': 'journey'}
+    )
+
+    JourneyId = mapped_column(Uuid, server_default=text('(newsequentialid())'))
+    UserId = mapped_column(Uuid, nullable=False)
+    AdvertisedPrice = mapped_column(DECIMAL(18, 8), nullable=False)
+    CurrencyCode = mapped_column(CHAR(3, 'SQL_Latin1_General_CP1_CI_AS'), nullable=False, server_default=text("('GBP')"))
+    StartName = mapped_column(Unicode(100, 'SQL_Latin1_General_CP1_CI_AS'), nullable=False)
+    StartLong = mapped_column(Float(53), nullable=False)
+    StartLat = mapped_column(Float(53), nullable=False)
+    EndName = mapped_column(Unicode(100, 'SQL_Latin1_General_CP1_CI_AS'), nullable=False)
+    EndLong = mapped_column(Float(53), nullable=False)
+    EndLat = mapped_column(Float(53), nullable=False)
+    JourneyType = mapped_column(Integer, nullable=False, server_default=text('((1))'))
+    StartDate = mapped_column(DATETIME2, nullable=False)
+    RepeatUntil = mapped_column(DATETIME2, nullable=False)
+    StartTime = mapped_column(DATETIME2, nullable=False)
+    JourneyStatusId = mapped_column(Integer, nullable=False, server_default=text('((1))'))
+    MaxPassengers = mapped_column(Integer, nullable=False)
+    RegPlate = mapped_column(Unicode(100, 'SQL_Latin1_General_CP1_CI_AS'), nullable=False)
+    CreateDate = mapped_column(DATETIME2, nullable=False, server_default=text('(getutcdate())'))
+    UpdateDate = mapped_column(DATETIME2, nullable=False, server_default=text('(getutcdate())'))
+    Recurrance = mapped_column(Unicode(100, 'SQL_Latin1_General_CP1_CI_AS'))
+    BootWidth = mapped_column(Float(53))
+    BootHeight = mapped_column(Float(53))
+    LockedUntil = mapped_column(DATETIME2)
+
+    User_: Mapped['User'] = relationship('User', back_populates='Journey')
+    Booking: Mapped[List['Booking']] = relationship('Booking', uselist=True, back_populates='Journey_')
+
+
+class Booking(Base):
+    __tablename__ = 'Booking'
+    __table_args__ = (
+        ForeignKeyConstraint(['BookingStatusId'], ['booking.BookingStatus.BookingStatusId'], name='FK_Booking_BookingStatus'),
+        ForeignKeyConstraint(['JourneyId'], ['journey.Journey.JourneyId'], name='FK_Booking_Journey'),
+        ForeignKeyConstraint(['UserId'], ['identity.User.UserId'], name='FK_Booking_User'),
+        PrimaryKeyConstraint('BookingId', name='PK__tmp_ms_x__73951AEDC08300A2'),
+        {'schema': 'booking'}
+    )
+
+    BookingId = mapped_column(Uuid, server_default=text('(newsequentialid())'))
+    UserId = mapped_column(Uuid, nullable=False)
+    JourneyId = mapped_column(Uuid, nullable=False)
+    BookingStatusId = mapped_column(Integer, nullable=False)
+    FeeMargin = mapped_column(DECIMAL(18, 8), nullable=False)
+    CreateDate = mapped_column(DATETIME2, nullable=False, server_default=text('(getutcdate())'))
+    UpdateDate = mapped_column(DATETIME2, nullable=False, server_default=text('(getutcdate())'))
+
+    BookingStatus_: Mapped['BookingStatus'] = relationship('BookingStatus', back_populates='Booking')
+    Journey_: Mapped['Journey'] = relationship('Journey', back_populates='Booking')
+    User_: Mapped['User'] = relationship('User', back_populates='Booking')
+    BookingAmmendment: Mapped[List['BookingAmmendment']] = relationship('BookingAmmendment', uselist=True, back_populates='Booking_')
+
+
+class BookingAmmendment(Base):
+    __tablename__ = 'BookingAmmendment'
+    __table_args__ = (
+        ForeignKeyConstraint(['BookingId'], ['booking.Booking.BookingId'], name='FK_BookingAmmendment_Booking'),
+        PrimaryKeyConstraint('BookingAmmendmentId', name='PK__tmp_ms_x__59DE3C6ADA729EE5'),
+        {'schema': 'booking'}
+    )
+
+    BookingAmmendmentId = mapped_column(Uuid, server_default=text('(newsequentialid())'))
+    BookingId = mapped_column(Uuid, nullable=False)
+    CancellationRequest = mapped_column(Boolean, nullable=False, server_default=text('((0))'))
+    DriverApproval = mapped_column(Boolean, nullable=False, server_default=text('((0))'))
+    PassengerApproval = mapped_column(Boolean, nullable=False, server_default=text('((0))'))
+    CreateDate = mapped_column(DATETIME2, nullable=False, server_default=text('(getutcdate())'))
+    UpdateDate = mapped_column(DATETIME2, nullable=False, server_default=text('(getutcdate())'))
+    ProposedPrice = mapped_column(DECIMAL(18, 8))
+    StartName = mapped_column(Unicode(collation='SQL_Latin1_General_CP1_CI_AS'))
+    StartLong = mapped_column(Float(53))
+    StartLat = mapped_column(Float(53))
+    EndName = mapped_column(Unicode(collation='SQL_Latin1_General_CP1_CI_AS'))
+    EndLong = mapped_column(Float(53))
+    EndLat = mapped_column(Float(53))
+    StartTime = mapped_column(DATETIME2)
+
+    Booking_: Mapped['Booking'] = relationship('Booking', back_populates='BookingAmmendment')

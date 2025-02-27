@@ -1,10 +1,11 @@
 import logging
 
+from uuid import UUID
 from fastapi import FastAPI, HTTPException, Depends
 from .db_provider import get_db, Session, text, configProvider, environment
 from .create_booking import CreateBookingCommand
 from .get_bookings import GetBookingsCommand
-from .requests import CreateBookingRequest, GetBookingsRequest
+from .requests import *
 from .email_sender import MailSender
 import sys
 
@@ -44,16 +45,28 @@ def test_db(db: Session = Depends(get_db)):
         logger.error(f"DB connection failed. Error: {str(e)}")
         raise HTTPException(500, detail="DB connection failed.")
 
-@app.post("/GetBookings", tags=["Get Bookings"])
-def get_bookings(request: GetBookingsRequest, db: Session = Depends(get_db)):
+@app.get("/GetBookings/{UserId}", tags=["Get Bookings"])
+def get_bookings(UserId: UUID, db: Session = Depends(get_db)):
     logger.debug("Getting bookings...")
-    return GetBookingsCommand(request, logging.getLogger("GetBookingsCommand")).Execute()
+    return GetBookingsCommand(UserId, logging.getLogger("GetBookingsCommand")).Execute()
 
 @app.post("/CreateBooking", tags=["Create Bookings"])
 def create_booking(request: CreateBookingRequest, db: Session = Depends(get_db)):
     logger.debug(f"Creating booking with request {request}.")
     return CreateBookingCommand(request, mailSender, logging.getLogger("CreateBookingCommand")).Execute()
 
-@app.post("/UpdateBooking", tags=["Update Bookings"])
-def update_booking(db: Session = Depends(get_db)):
+@app.put("/UpdateBookingStatus/{BookingId}", tags=["Update Booking"])
+def update_booking_status(BookingId: UUID, request : UpdateBookingStatusRequest, db: Session = Depends(get_db)):
+    return {}
+
+@app.post("/AddBookingAmmendment", tags=["Add Booking Ammendment"])
+def add_booking_ammendment(request : AddBookingAmmendmentRequest, db: Session = Depends(get_db)):
+    return {}
+
+@app.put("/ApproveBooking/{BookingAmmendmentId}", tags=["Approve Booking Ammendment"])
+def approve_booking_ammendment(BookingAmmendmentId: UUID, request: ApproveBookingAmmendmentRequest, db: Session = Depends(get_db)):
+    return {}
+
+@app.post("/ApproveBooking", tags=["Approve Booking Request"])
+def approve_booking_request(request: ApproveBookingRequest, db: Session = Depends(get_db)):
     return {}
