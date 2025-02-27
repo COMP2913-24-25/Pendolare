@@ -277,6 +277,7 @@ async def debug_handler(path, headers):
     
     return None  # Let the next handler process it
 
+# Update the websocket handler with better error handling
 async def websocket_handler(websocket, path):
     client_id = id(websocket)
     try:
@@ -296,34 +297,55 @@ async def websocket_handler(websocket, path):
     
     try:
         # Send welcome message with path information
-        await websocket.send(json.dumps({
+        await asyncio.wait_for(websocket.send(json.dumps({
             "type": "welcome",
             "message": f"Connected to Message Service via path: {path}",
             "timestamp": datetime.now().isoformat()
-        }))
+        })), timeout=5.0)  # Add timeout to avoid hanging
         
-        # Echo handler
-        async for message in websocket:
-            logger.info(f"Received from client {client_id}: {message}")
+        # Echo handler with a heartbeat to keep connection alive
+        last_heartbeat = time.time()
+        heartbeat_interval = 15  # seconds
+        
+        while True:
+            # Send periodic heartbeats to keep connection alive
+            current_time = time.time()
+            if current_time - last_heartbeat > heartbeat_interval:
+                await asyncio.wait_for(websocket.send(json.dumps({
+                    "type": "heartbeat",
+                    "timestamp": datetime.now().isoformat()
+                })), timeout=5.0)
+                last_heartbeat = current_time
+                logger.debug(f"Sent heartbeat to client {client_id}")
             
-            # Try parsing as JSON first
+            # Wait for a message with a timeout
             try:
-                msg_data = json.loads(message)
-                if isinstance(msg_data, dict) and msg_data.get("type") == "ping":
-                    await websocket.send(json.dumps({
-                        "type": "pong",
-                        "timestamp": datetime.now().isoformat()
-                    }))
-                    continue
-            except json.JSONDecodeError:
-                # Not JSON, treat as plain text
-                pass
+                message = await asyncio.wait_for(websocket.recv(), timeout=heartbeat_interval)
+                logger.info(f"Received from client {client_id}: {message}")
+                
+                # Try parsing as JSON first
+                try:
+                    msg_data = json.loads(message)
+                    if isinstance(msg_data, dict) and msg_data.get("type") == "ping":
+                        await asyncio.wait_for(websocket.send(json.dumps({
+                            "type": "pong",
+                            "timestamp": datetime.now().isoformat()
+                        })), timeout=5.0)
+                        continue
+                except json.JSONDecodeError:
+                    # Not JSON, treat as plain text
+                    pass
+                
+                # Echo the message back
+                response = f"ECHO: {message}"
+                await asyncio.wait_for(websocket.send(response), timeout=5.0)
+                logger.info(f"Sent to client {client_id}: {response}")
             
-            # Echo the message back
-            response = f"ECHO: {message}"
-            await websocket.send(response)
-            logger.info(f"Sent to client {client_id}: {response}")
-            
+            except asyncio.TimeoutError:
+                # This is expected when no message is received within the timeout
+                # Just continue and send heartbeat if needed
+                continue
+                
     except websockets.exceptions.ConnectionClosed as e:
         logger.info(f"WebSocket connection closed for client {client_id}: code={e.code}, reason='{e.reason}'")
     except Exception as e:
@@ -343,17 +365,20 @@ async def main():
     # Small delay to let the HTTP server start and discover its port
     await asyncio.sleep(1)
     
-    # Start WebSocket server
+    # Start WebSocket server with more resilient settings
     async with websockets.serve(
         websocket_handler, 
         "0.0.0.0", 
         WS_PORT,
         process_request=lambda path, headers: health_handler(path, headers) or debug_handler(path, headers),
         ping_interval=20,       # Send ping every 20 seconds
-        ping_timeout=20,        # Wait 20 seconds for pong
-        close_timeout=20,       # Wait 20 seconds for close to complete
+        ping_timeout=60,        # Wait 60 seconds for pong (increased timeout)
+        close_timeout=60,       # Wait 60 seconds for close to complete (increased timeout)
         max_size=10_485_760,    # 10MB max message size
-        max_queue=32            # Queue up to 32 messages
+        max_queue=64,           # Increased queue size
+        compression=None,       # Disable compression for better compatibility
+        extensions=[],          # Disable extensions for better compatibility
+        max_http_buffer_size=1024*1024*10  # Larger HTTP buffer for handshake
     ):
         http_port = HTTP_SERVER_PORT if HTTP_SERVER_PORT else HTTP_PORT
         logger.info(f"WebSocket server started on port {WS_PORT}")

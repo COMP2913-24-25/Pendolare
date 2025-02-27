@@ -8,6 +8,7 @@ services:
     connect_timeout: 60000
     read_timeout: 300000
     write_timeout: 300000
+    retries: 5  # Add retries for connection resilience
     routes:
       - name: message-ws-route
         protocols:
@@ -24,6 +25,14 @@ services:
         methods:
           - GET
           - OPTIONS
+        # Add specific WebSocket configuration
+        plugins:
+          - name: request-transformer
+            config:
+              add:
+                headers:
+                  - Host:${upstream_host}
+                  - X-Forwarded-Proto:${scheme}
       - name: message-websocket-direct
         protocols:
           - http
@@ -68,6 +77,7 @@ services:
             - Sec-WebSocket-Key
             - Sec-WebSocket-Version
             - Sec-WebSocket-Extensions
+            - Sec-WebSocket-Protocol
           exposed_headers:
             - Authorization
           credentials: true
@@ -118,6 +128,7 @@ plugins:
         - Sec-WebSocket-Key
         - Sec-WebSocket-Version
         - Sec-WebSocket-Extensions
+        - Sec-WebSocket-Protocol
       exposed_headers:
         - Authorization
       credentials: true
@@ -127,3 +138,13 @@ plugins:
     config:
       minute: 60
       policy: local
+  
+  # Add global plugin to fix WebSocket handshake
+  - name: pre-function
+    config:
+      access: |
+        local upgrade = kong.request.get_header("Upgrade")
+        if upgrade and string.lower(upgrade) == "websocket" then
+          kong.service.request.enable_buffering(false)
+          kong.log.debug("WebSocket connection detected, buffering disabled")
+        end
