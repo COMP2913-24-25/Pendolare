@@ -16,6 +16,7 @@ services:
       KONG_ADMIN_GUI_PATH: /
       KONG_PROXY_LISTEN: 0.0.0.0:8000, 0.0.0.0:8443 ssl
       KONG_NGINX_HTTP_TEMPLATE: /usr/local/kong/custom_nginx.template
+      KONG_NGINX_PROXY_SSL_VERIFY: "off"
     volumes:
       - ./kong/declarative:/usr/local/kong/declarative
       - ./kong/custom_nginx.template:/usr/local/kong/custom_nginx.template

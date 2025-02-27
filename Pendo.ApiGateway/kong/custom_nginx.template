@@ -46,4 +46,8 @@ http {
     
     # Fix for WebSocket connection issues
     proxy_ignore_client_abort on;
+    
+    # Enable SNI and disable SSL certificate verification
+    proxy_ssl_server_name on;
+    proxy_ssl_verify off;
 }
