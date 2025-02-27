@@ -5,6 +5,9 @@ services:
   - name: message-service
     url: https://message-service.greensand-8499b34e.uksouth.azurecontainerapps.io
     protocol: https
+    connect_timeout: 60000
+    read_timeout: 300000
+    write_timeout: 300000
     routes:
       - name: message-ws-route
         protocols:
@@ -36,7 +39,6 @@ services:
         methods:
           - GET
           - OPTIONS
-      # Keep the rest of your routes
       - name: message-health
         protocols:
           - http
@@ -63,6 +65,9 @@ services:
             - Content-Type
             - Upgrade
             - Connection
+            - Sec-WebSocket-Key
+            - Sec-WebSocket-Version
+            - Sec-WebSocket-Extensions
           exposed_headers:
             - Authorization
           credentials: true
@@ -110,6 +115,9 @@ plugins:
         - Content-Type
         - Upgrade
         - Connection
+        - Sec-WebSocket-Key
+        - Sec-WebSocket-Version
+        - Sec-WebSocket-Extensions
       exposed_headers:
         - Authorization
       credentials: true

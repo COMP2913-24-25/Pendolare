@@ -55,7 +55,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'KONG_DECLARATIVE_CONFIG'
-              value: '/usr/local/kong/declarative/kong.yml'
+              value: '/usr/local/kong/declarative/kong-azure.yml'  // Use the Azure-specific config
             }
             {
               name: 'KONG_PROXY_ACCESS_LOG'
@@ -78,12 +78,32 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
               value: '0.0.0.0:8001'
             }
             {
+              name: 'KONG_PROXY_LISTEN'
+              value: '0.0.0.0:8000, 0.0.0.0:8443 ssl'
+            }
+            {
+              name: 'KONG_NGINX_PROXY_WEBSOCKET_TIMEOUT'
+              value: '3600s'
+            }
+            {
               name: 'KONG_NGINX_PROXY_READ_TIMEOUT'
-              value: '3600'
+              value: '3600s'
             }
             {
               name: 'KONG_NGINX_PROXY_SEND_TIMEOUT'
-              value: '3600'
+              value: '3600s'
+            }
+            {
+              name: 'KONG_NGINX_PROXY_CONNECT_TIMEOUT'
+              value: '60s'
+            }
+            {
+              name: 'KONG_NGINX_UPSTREAM_KEEPALIVE_TIMEOUT'
+              value: '60s'
+            }
+            {
+              name: 'KONG_LOG_LEVEL'
+              value: 'debug'  // More verbose logging to troubleshoot
             }
           ]
           resources: {
