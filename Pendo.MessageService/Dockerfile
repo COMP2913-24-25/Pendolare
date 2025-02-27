@@ -29,5 +29,8 @@ RUN test -f ./azure_debug.py || (echo "ERROR: azure_debug.py is missing!" && exi
 EXPOSE 5006
 EXPOSE 5007
 
+# Set environment variable for TLS proxy
+ENV BEHIND_TLS_PROXY=true
+
 # Run with more verbose output
 CMD ["python", "-m", "src.run_servers"]

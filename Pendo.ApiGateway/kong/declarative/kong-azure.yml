@@ -25,14 +25,7 @@ services:
         methods:
           - GET
           - OPTIONS
-        # Add specific WebSocket configuration
-        plugins:
-          - name: request-transformer
-            config:
-              add:
-                headers:
-                  - Host:${upstream_host}
-                  - X-Forwarded-Proto:${scheme}
+        # Removed request-transformer plugin to preserve handshake headers
       - name: message-websocket-direct
         protocols:
           - http
