@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import sys
-from src import app, http_server
+from src import app
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -10,15 +10,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-async def main():
-    # Start HTTP server for test client in a separate thread
-    httpd, thread = http_server.run_server_in_thread(port=5007)
-    if not httpd:
-        logger.error("Failed to start HTTP server, exiting")
-        return
-    
-    logger.info("HTTP server is running in a background thread")
-    
+async def main():    
     # Start WebSocket server in the main thread
     await app.main()
 

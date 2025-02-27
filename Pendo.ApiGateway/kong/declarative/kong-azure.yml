@@ -17,9 +17,20 @@ services:
         paths:
           - /message/ws
         strip_path: false
+        headers:
+          Upgrade:
+            - websocket
+          Connection:
+            - Upgrade
         methods:
           - GET
           - OPTIONS
+        plugins:
+          - name: pre-function
+            config:
+              access: |
+                ngx.var.upstream_connection = "Upgrade"
+                kong.log.debug("Set upstream Connection header to 'Upgrade'")
       - name: message-websocket-direct
         protocols:
           - http
@@ -125,13 +136,3 @@ plugins:
     config:
       minute: 60
       policy: local
-  
-  # Add global plugin to fix WebSocket handshake
-  - name: pre-function
-    config:
-      access: |
-        local upgrade = kong.request.get_header("Upgrade")
-        if upgrade and string.lower(upgrade) == "websocket" then
-          kong.service.request.enable_buffering(false)
-          kong.log.debug("WebSocket connection detected, buffering disabled")
-        end

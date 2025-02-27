@@ -13,6 +13,11 @@ services:
         paths:
           - /message/ws
         strip_path: false
+        headers:
+          Upgrade:
+            - websocket
+          Connection:
+            - Upgrade
         methods:
           - GET
           - OPTIONS
