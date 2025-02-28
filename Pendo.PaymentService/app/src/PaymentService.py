@@ -25,7 +25,9 @@ else:
 logger = logging.getLogger(__name__)
 logger.info("Starting Pendo.PaymentService.Api")
 
-app = FastAPI()
+app = FastAPI(    title="Pendo.BookingService.Api", 
+    version="1.0.0",
+    root_path="/api")
 
 @app.get("/HealthCheck", tags=["HealthCheck"])
 def test_db(db: Session = Depends(get_db)):
