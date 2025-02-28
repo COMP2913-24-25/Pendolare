@@ -68,37 +68,18 @@ jobs:
       uses: azure/CLI@v1
       with:
         inlineScript: |
-          # Create a temporary JSON file to hold parameters securely
-          echo '{
-            "containerAppName": {
-              "value": "${{ env.CONTAINER_APP_NAME }}"
-            },
-            "containerAppEnvironmentName": {
-              "value": "pendo-env-dev"
-            },
-            "registryName": {
-              "value": "${{ env.ACR_NAME }}"
-            },
-            "registryUsername": {
-              "value": "${{ secrets.ACR_USERNAME }}"
-            },
-            "registryPassword": {
-              "value": "${{ secrets.ACR_PASSWORD }}"
-            },
-            "kongGatewayFqdn": {
-              "value": "${{ steps.kong_fqdn.outputs.fqdn }}"
-            },
-            "dbConnectionString": {
-              "value": "${{ secrets.AZURE_SQL_CONNECTION_STRING }}"
-            }
-          }' > parameters.json
-          
-          # Use the parameters file for deployment
+          # Deploy directly with individual parameters, avoiding JSON parsing issues
           az deployment group create \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --template-file infrastructure/identity-service.bicep \
-            --parameters @parameters.json
-    
+            --parameters containerAppName=${{ env.CONTAINER_APP_NAME }} \
+            --parameters containerAppEnvironmentName=pendo-env-dev \
+            --parameters registryName=${{ env.ACR_NAME }} \
+            --parameters registryUsername=${{ secrets.ACR_USERNAME }} \
+            --parameters registryPassword="${{ secrets.ACR_PASSWORD }}" \
+            --parameters kongGatewayFqdn="${{ steps.kong_fqdn.outputs.fqdn }}" \
+            --parameters dbConnectionString="${{ secrets.AZURE_SQL_CONNECTION_STRING }}"
+
     # Wait for identity service to be ready
     - name: Wait for service to be ready
       run: |
