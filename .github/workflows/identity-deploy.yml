@@ -108,7 +108,7 @@ jobs:
           echo "::set-output name=exists::false"
         fi
     
-    # Update Kong configuration if necessary
+    # Update Kong configuration if necessary - without creating a PR
     - name: Update Kong configuration with Identity Service FQDN
       if: env.KONG_EXISTS == 'true' && env.IDENTITY_EXISTS == 'true'
       run: |
@@ -117,36 +117,67 @@ jobs:
         sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
         sudo chmod +x /usr/local/bin/yq
         
-        # Create a new branch
-        git checkout -b update-identity-service-fqdn-${{ github.run_id }}
-        
-        # Update only the Identity Service URL
+        # Get the identity service FQDN
         IDENTITY_FQDN="${{ steps.identity_fqdn.outputs.fqdn }}"
-        KONG_CONFIG_PATH="Pendo.ApiGateway/kong/declarative/kong-azure.yml"
+        echo "Identity Service FQDN: $IDENTITY_FQDN"
         
-        echo "Updating Identity Service FQDN to: $IDENTITY_FQDN"
-        yq -i '.services[] |= select(.name == "identity-service").url = "https://'"$IDENTITY_FQDN"'"' $KONG_CONFIG_PATH
+        # Instead of creating a PR, print instructions for manual update
+        echo "::warning::Kong configuration needs to be updated"
+        echo "::warning::Please update the identity-service URL in kong-azure.yml to: https://$IDENTITY_FQDN"
         
-        # Only commit if there are changes
-        if git diff --quiet $KONG_CONFIG_PATH; then
-          echo "No changes needed to Kong configuration"
-          exit 0
+        # Get Kong Gateway FQDN to display for manual testing
+        KONG_FQDN="${{ steps.kong_fqdn.outputs.fqdn }}"
+        echo "::notice::Kong Gateway is at: https://$KONG_FQDN"
+        echo "::notice::After updating Kong, test with: curl -i https://$KONG_FQDN/api/ping"
+        
+        # Output a summary file that can be used in GitHub Actions summary
+        echo "# Kong Gateway Update Required" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "The Identity Service has been deployed successfully with FQDN: \`$IDENTITY_FQDN\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Please update the Kong Gateway configuration in \`Pendo.ApiGateway/kong/declarative/kong-azure.yml\` to use this FQDN." >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Required Change:" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`yaml" >> $GITHUB_STEP_SUMMARY
+        echo "services:" >> $GITHUB_STEP_SUMMARY
+        echo "  - name: identity-service" >> $GITHUB_STEP_SUMMARY
+        echo "    url: https://$IDENTITY_FQDN" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+    # Deploy a configuration update script for manual updates
+    - name: Save Kong update script
+      if: env.KONG_EXISTS == 'true' && env.IDENTITY_EXISTS == 'true'
+      run: |
+        # Create a helpful script for manually updating Kong configuration
+        cat > ./update-kong-config.sh << EOL
+        #!/bin/bash
+        
+        # This script updates Kong Gateway configuration with the latest Identity Service FQDN
+        
+        IDENTITY_FQDN="${{ steps.identity_fqdn.outputs.fqdn }}"
+        KONG_GATEWAY_FQDN="${{ steps.kong_fqdn.outputs.fqdn }}"
+        
+        # Install yq if not available
+        if ! [ -x "\$(command -v yq)" ]; then
+          echo "Installing yq..."
+          wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          chmod +x /usr/local/bin/yq
         fi
         
-        # Commit changes and create PR
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
-        git add $KONG_CONFIG_PATH
-        git commit -m "Update Identity Service FQDN to $IDENTITY_FQDN"
-        git push -u origin update-identity-service-fqdn-${{ github.run_id }}
+        # Update Kong config
+        echo "Updating Kong configuration with Identity Service FQDN: \$IDENTITY_FQDN"
+        yq -i '.services[] |= select(.name == "identity-service").url = "https://'\$IDENTITY_FQDN'"' Pendo.ApiGateway/kong/declarative/kong-azure.yml
         
-        # Create a pull request
-        PR_TITLE="Update Identity Service FQDN from CI/CD"
-        PR_BODY="This PR updates the Kong Gateway config with the latest Identity Service FQDN ($IDENTITY_FQDN)"
-        PR_DATA="{\"title\":\"$PR_TITLE\",\"body\":\"$PR_BODY\",\"head\":\"update-identity-service-fqdn-${{ github.run_id }}\",\"base\":\"infrastructure/kong-integration\"}"
+        echo "Configuration updated. Now rebuild and deploy Kong Gateway"
+        echo "After deploying, test with: curl -i https://\$KONG_GATEWAY_FQDN/api/ping"
+        EOL
         
-        curl -X POST \
-          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-          -H "Accept: application/vnd.github.v3+json" \
-          -d "$PR_DATA" \
-          https://api.github.com/repos/${{ github.repository }}/pulls
+        chmod +x ./update-kong-config.sh
+        
+        echo "::notice::Created update script: ./update-kong-config.sh"
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Automatic Update" >> $GITHUB_STEP_SUMMARY
+        echo "Run the generated script to automatically update your Kong configuration:" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+        echo "./update-kong-config.sh" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
