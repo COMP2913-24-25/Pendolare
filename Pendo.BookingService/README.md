@@ -7,7 +7,8 @@ The Booking Service is responsible for handling all booking-related operations. 
 Core responsibilities:
  - Create booking
  - Update booking
- - Communicate with payment service
+ - Cancel booking
+ - View bookings
 
 ## Service Flowchart
 
@@ -83,7 +84,7 @@ flowchart TD
 
 ## Tech Stack
 - Backend: Python (Flask)
-- Database: PostgreSQL
+- Database: SQLAlchemy
 - Testing Framework: Pytest
 
 ## Prerequisites
@@ -131,10 +132,11 @@ npm run test:integration  # or equivalent command
 ## API Documentation
 
 ### Endpoints
-- `GET /api/v1/resource` - Description
-- `POST /api/v1/resource` - Description
-- `PUT /api/v1/resource/:id` - Description
-- `DELETE /api/v1/resource/:id` - Description
+- `GET /bookings` - Retrieve a list of bookings.
+- `POST /bookings` - Create a new booking.
+- `PUT /bookings/{booking_id}` - Update an existing booking.
+- `DELETE /bookings/{booking_id}` - Cancel a booking.
+
 
 ## Monitoring and Logging
 - Metrics collection
