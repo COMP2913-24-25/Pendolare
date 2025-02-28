@@ -77,7 +77,8 @@ jobs:
               registryName=${{ env.ACR_NAME }} \
               registryUsername=${{ secrets.ACR_USERNAME }} \
               registryPassword=${{ secrets.ACR_PASSWORD }} \
-              kongGatewayFqdn=${{ steps.kong_fqdn.outputs.fqdn }}
+              kongGatewayFqdn=${{ steps.kong_fqdn.outputs.fqdn }} \
+              dbConnectionString="${{ secrets.AZURE_SQL_CONNECTION_STRING }}"
     
     # Wait for identity service to be ready
     - name: Wait for service to be ready

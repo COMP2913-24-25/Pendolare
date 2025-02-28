@@ -7,6 +7,10 @@ param registryUsername string
 param registryPassword string
 param kongGatewayFqdn string = ''
 
+// Add a parameter for the database connection string
+@secure()
+param dbConnectionString string = 'Server=172.17.0.2,1433;Database=Pendo.Database;User Id=sa;Password=YourPassword123;Trust Server Certificate=True;'
+
 // Reference existing environment
 resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' existing = {
   name: containerAppEnvironmentName
@@ -22,6 +26,10 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
         {
           name: 'registry-password'
           value: registryPassword
+        }
+        {
+          name: 'db-connection-string'
+          value: dbConnectionString
         }
       ]
       registries: [
