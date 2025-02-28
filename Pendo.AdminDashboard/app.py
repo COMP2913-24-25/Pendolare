@@ -29,8 +29,8 @@ def chat(username):
 @app.route('/update_booking_fee', methods=['POST'])
 def update_booking_fee():
     booking_fee = request.form['booking_fee']
-    # Process the booking fee (e.g., save to database)
-    # ...
+
+    # Update the booking fee the database through analytics service
     return redirect(url_for('dashboard'))
 
 if __name__ == '__main__':
