@@ -49,6 +49,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
           }
         ]
       }
+      activeRevisionsMode: 'Single'
     }
     template: {
       containers: [
@@ -73,11 +74,41 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
             cpu: json('0.25')
             memory: '0.5Gi'
           }
+          probes: [
+            {
+              type: 'Liveness'
+              httpGet: {
+                path: '/healthcheck'
+                port: 8080
+              }
+              initialDelaySeconds: 15
+              periodSeconds: 30
+            }
+            {
+              type: 'Readiness'
+              httpGet: {
+                path: '/healthcheck'
+                port: 8080
+              }
+              initialDelaySeconds: 5
+              periodSeconds: 10
+            }
+          ]
         }
       ]
       scale: {
         minReplicas: 1
         maxReplicas: 2
+        rules: [
+          {
+            name: 'http-scale-rule'
+            http: {
+              metadata: {
+                concurrentRequests: '10'
+              }
+            }
+          }
+        ]
       }
     }
   }

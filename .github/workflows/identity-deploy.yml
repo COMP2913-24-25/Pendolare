@@ -65,6 +65,23 @@ jobs:
         docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:${{ github.sha }} ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:latest
         docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:latest
 
+    # Validate the database connection string before deploying
+    - name: Validate Database Connection String
+      run: |
+        # Check if the connection string is set
+        if [ -z "${{ secrets.AZURE_SQL_CONNECTION_STRING }}" ]; then
+          echo "::error::AZURE_SQL_CONNECTION_STRING is not set. Please set it in GitHub Secrets."
+          exit 1
+        fi
+        
+        # Basic format check
+        if [[ "${{ secrets.AZURE_SQL_CONNECTION_STRING }}" != *"Server="* ]] || [[ "${{ secrets.AZURE_SQL_CONNECTION_STRING }}" != *";Database="* ]]; then
+          echo "::warning::Connection string may not be properly formatted. Make sure it contains Server= and Database= parameters."
+          echo "::warning::Example format: Server=myserver.database.windows.net;Database=mydatabase;User Id=myuser;Password=mypassword;Trust Server Certificate=True;"
+        fi
+        
+        echo "Database connection string validation passed."
+
     # Deploy the Identity Service with SQL service connection
     - name: Deploy Container App
       uses: azure/CLI@v1
