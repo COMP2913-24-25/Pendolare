@@ -1,9 +1,9 @@
 import json
 from pathlib import Path
-from scr.config import DbConfiguration, SendGridConfiguration
+from .config import DbConfiguration, SendGridConfiguration
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from src.PendoDatabase import Configuration  # Ensure this import matches your project structure
+from .PendoDatabase import Configuration  # Ensure this import matches your project structure
 
 class SendGridConfiguration(BaseModel):
     """
