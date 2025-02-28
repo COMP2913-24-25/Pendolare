@@ -26,30 +26,6 @@ def dashboard():
 def chat(username):
     return "Chat with {username}"
 
-@app.route('/bookings')
-def bookings():
-    return render_template('bookings.html')
-
-@app.route('/users')
-def users():
-    return render_template('users.html')
-
-@app.route('/journey')
-def journey():
-    return render_template('journey.html')
-
-@app.route('/reports')
-def reports():
-    return render_template('reports.html')
-
-@app.route('/admin')
-def admin():
-    return render_template('admin.html')
-
-@app.route('/dispute')
-def dispute():
-    return render_template('dispute.html')
-
 @app.route('/update_booking_fee', methods=['POST'])
 def update_booking_fee():
     booking_fee = request.form['booking_fee']
