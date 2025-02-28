@@ -68,31 +68,20 @@ jobs:
       uses: azure/CLI@v1
       with:
         inlineScript: |
-          # Write parameters to a temporary file with proper escaping
-          cat > params.json << EOF
-          {
-            "containerAppName": {
-              "value": "${{ env.CONTAINER_APP_NAME }}"
-            },
-            "containerAppEnvironmentName": {
-              "value": "pendo-env-dev"
-            },
-            "registryName": {
-              "value": "${{ env.ACR_NAME }}"
-            },
-            "registryUsername": {
-              "value": "${{ secrets.ACR_USERNAME }}"
-            },
-            "registryPassword": {
-              "value": "${{ secrets.ACR_PASSWORD }}"
-            },
-            "dbConnectionString": {
-              "value": "${{ secrets.AZURE_SQL_CONNECTION_STRING }}"
-            }
-          }
-          EOF
+          # Write parameters to a temporary file with no extra whitespace
+          cat > params.json <<EOF
+{
+  "containerAppName": {"value": "${{ env.CONTAINER_APP_NAME }}"},
+  "containerAppEnvironmentName": {"value": "pendo-env-dev"},
+  "registryName": {"value": "${{ env.ACR_NAME }}"},
+  "registryUsername": {"value": "${{ secrets.ACR_USERNAME }}"},
+  "registryPassword": {"value": "${{ secrets.ACR_PASSWORD }}"},
+  "dbConnectionString": {"value": "${{ secrets.AZURE_SQL_CONNECTION_STRING }}"},
+  "kongGatewayFqdn": {"value": "${{ steps.kong_fqdn.outputs.fqdn }}"}
+}
+EOF
           
-          # Debug: Show the parameters file (hiding sensitive values)
+          # For debugging (masking sensitive values)
           echo "Parameters file content (sanitized):"
           cat params.json | sed 's/\("value": "\)[^"]*\(".*password.*\)/\1*****\2/i' | sed 's/\("value": "\)[^"]*\(".*connection.*\)/\1*****\2/i'
           

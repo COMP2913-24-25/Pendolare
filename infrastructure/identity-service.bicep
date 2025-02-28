@@ -6,10 +6,8 @@ param registryUsername string
 @secure()
 param registryPassword string
 param kongGatewayFqdn string = ''
-
-// Add a parameter for the database connection string
 @secure()
-param dbConnectionString string = 'Server=172.17.0.2,1433;Database=Pendo.Database;User Id=sa;Password=YourPassword123;Trust Server Certificate=True;'
+param dbConnectionString string = ''  // Remove default value for secure parameter
 
 // Reference existing environment
 resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' existing = {
@@ -72,14 +70,15 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
           ]
           resources: {
-            cpu: json('0.5')
-            memory: '1.0Gi'
+            // Use free tier/student plan compatible values
+            cpu: json('0.25')  // Reduced from 0.5 to fit student plan
+            memory: '0.5Gi'    // Reduced from 1.0Gi to fit student plan
           }
         }
       ]
       scale: {
         minReplicas: 1
-        maxReplicas: 3
+        maxReplicas: 2  // Reduced from 3 to better fit student plan limits
       }
     }
   }
