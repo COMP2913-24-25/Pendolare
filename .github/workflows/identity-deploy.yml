@@ -70,7 +70,7 @@ jobs:
       uses: azure/CLI@v1
       with:
         inlineScript: |
-          # Deploy with each parameter separately and include SQL parameters
+          # Deploy with each parameter separately
           az deployment group create \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --template-file infrastructure/identity-service.bicep \
@@ -80,11 +80,8 @@ jobs:
             --parameters registryUsername=${{ secrets.ACR_USERNAME }} \
             --parameters registryPassword='${{ secrets.ACR_PASSWORD }}' \
             --parameters dbConnectionString='${{ secrets.AZURE_SQL_CONNECTION_STRING }}' \
-            --parameters kongGatewayFqdn='${{ steps.kong_fqdn.outputs.fqdn }}' \
-            --parameters sqlServerName='pendolare' \
-            --parameters sqlDatabaseName='Pendolare.Database' \
-            --parameters sqlServerResourceGroup='dev'
-    
+            --parameters kongGatewayFqdn='${{ steps.kong_fqdn.outputs.fqdn }}'
+
     # Wait for identity service to be ready
     - name: Wait for service to be ready
       run: |
