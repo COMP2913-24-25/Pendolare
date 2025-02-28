@@ -3,7 +3,7 @@ _transform: true
 
 services:
   - name: identity-service
-    url: https://pendo-identity-service.greensand-8499b34e.uksouth.azurecontainerapps.io
+    url: https://identity-service.greensand-8499b34e.uksouth.azurecontainerapps.io
     protocol: https
     routes:
       - name: auth-request-otp

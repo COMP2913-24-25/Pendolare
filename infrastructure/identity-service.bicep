@@ -1,5 +1,5 @@
 param location string = resourceGroup().location
-param containerAppName string = 'pendo-identity-service'
+param containerAppName string = 'identity-service'  // renamed from pendo-identity-service
 param containerAppEnvironmentName string = 'pendo-env-dev'
 param registryName string = 'pendocontainerregistry'
 param registryUsername string
@@ -7,11 +7,22 @@ param registryUsername string
 param registryPassword string
 param kongGatewayFqdn string = ''
 @secure()
-param dbConnectionString string = ''  // Remove default value for secure parameter
+param dbConnectionString string = ''
+
+// SQL Server parameters
+param sqlServerName string = 'pendolare'
+param sqlDatabaseName string = 'Pendolare.Database'
+param sqlServerResourceGroup string = 'dev'  // Adjust if different
 
 // Reference existing environment
 resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' existing = {
   name: containerAppEnvironmentName
+}
+
+// Reference the existing SQL Server
+resource sqlServer 'Microsoft.Sql/servers@2021-11-01' existing = {
+  name: sqlServerName
+  scope: resourceGroup(sqlServerResourceGroup)
 }
 
 resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
@@ -70,18 +81,34 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
           ]
           resources: {
-            // Use free tier/student plan compatible values
-            cpu: json('0.25')  // Reduced from 0.5 to fit student plan
-            memory: '0.5Gi'    // Reduced from 1.0Gi to fit student plan
+            cpu: json('0.25')
+            memory: '0.5Gi'
           }
         }
       ]
       scale: {
         minReplicas: 1
-        maxReplicas: 2  // Reduced from 3 to better fit student plan limits
+        maxReplicas: 2
       }
     }
   }
+}
+
+// Create a service connection to the SQL database
+resource sqlServiceConnection 'Microsoft.App/containerApps/connectedEnvironments/connections@2022-03-01' = {
+  name: '${containerAppName}/connectedEnv/sql-connection'
+  kind: 'Microsoft.Sql'
+  properties: {
+    target: sqlServer.id
+    authentication: {
+      type: 'secret'
+      name: 'db-connection-string'
+      value: dbConnectionString
+    }
+  }
+  dependsOn: [
+    containerApp
+  ]
 }
 
 output containerAppFQDN string = containerApp.properties.configuration.ingress.fqdn

@@ -13,9 +13,9 @@ on:
 
 env:
   ACR_NAME: pendocontainerregistry
-  IDENTITY_SERVICE_IMAGE_NAME: pendo-identity-service
+  IDENTITY_SERVICE_IMAGE_NAME: identity-service  # Updated from pendo-identity-service
   RESOURCE_GROUP: dev
-  CONTAINER_APP_NAME: pendo-identity-service
+  CONTAINER_APP_NAME: identity-service  # Updated from pendo-identity-service
 
 jobs:
   build-and-deploy:
@@ -65,15 +65,12 @@ jobs:
         docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:${{ github.sha }} ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:latest
         docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:latest
 
-    # Deploy the Identity Service - simplified approach using direct parameter passing
+    # Deploy the Identity Service with SQL service connection
     - name: Deploy Container App
       uses: azure/CLI@v1
       with:
         inlineScript: |
-          # Create basic parameters file
-          echo "{}" > params.json
-          
-          # Deploy with each parameter separately
+          # Deploy with each parameter separately and include SQL parameters
           az deployment group create \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --template-file infrastructure/identity-service.bicep \
@@ -83,7 +80,10 @@ jobs:
             --parameters registryUsername=${{ secrets.ACR_USERNAME }} \
             --parameters registryPassword='${{ secrets.ACR_PASSWORD }}' \
             --parameters dbConnectionString='${{ secrets.AZURE_SQL_CONNECTION_STRING }}' \
-            --parameters kongGatewayFqdn='${{ steps.kong_fqdn.outputs.fqdn }}'
+            --parameters kongGatewayFqdn='${{ steps.kong_fqdn.outputs.fqdn }}' \
+            --parameters sqlServerName='pendolare' \
+            --parameters sqlDatabaseName='Pendolare.Database' \
+            --parameters sqlServerResourceGroup='dev'
     
     # Wait for identity service to be ready
     - name: Wait for service to be ready
