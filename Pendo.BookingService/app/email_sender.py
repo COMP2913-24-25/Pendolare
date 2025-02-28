@@ -59,7 +59,7 @@ class MailSender:
         except Exception as e:
             return str(e)
         
-def generateEmailDataFromAmmendment(ammendment, driver, journey):
+def generateEmailDataFromAmmendment(ammendment, driver, journey, vehicle):
     return{
         "booking_id": f"{ammendment.BookingId}",
         "driver_name": driver.FirstName if driver.FirstName is not None else "(Name not set)",
@@ -67,10 +67,10 @@ def generateEmailDataFromAmmendment(ammendment, driver, journey):
         "pickup_time": ammendment.StartTime.time() if ammendment.StartTime is not None else journey.StartTime.time(),
         "pickup_date": journey.StartDate.date(),
         "dropoff_location": ammendment.EndName if ammendment.EndName is not None else journey.EndName,
-        "vehicle_info": "Mazda MX-5 Blue"
+        "vehicle_info": vehicle
     }
 
-def generateEmailDataFromBooking(booking, driver, journey):
+def generateEmailDataFromBooking(booking, driver, journey, vehicle):
     return{
         "booking_id": f"{booking.BookingId}",
         "driver_name": driver.FirstName if driver.FirstName is not None else "(Name not set)",
@@ -78,5 +78,5 @@ def generateEmailDataFromBooking(booking, driver, journey):
         "pickup_time": journey.StartTime.time(),
         "pickup_date": journey.StartDate.date(),
         "dropoff_location": journey.EndName,
-        "vehicle_info": "Mazda MX-5 Blue"
+        "vehicle_info": vehicle
     }

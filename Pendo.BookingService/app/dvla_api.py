@@ -17,17 +17,26 @@ class VehicleEnquiryClient:
         """
         GetVehicleDetails method sends a request to the DVLA vehicle enquiry API to get vehicle details.
         """
-        request = { "registrationNumber" : registration }
+        request = f"{{\n\t\"registrationNumber\": \"{registration}\"\n}}"
+
         self.logger.debug(f"Vehicle enquiry request: {request}")
 
-        #response = requests.post(self.path, headers=self.headers, json=request)
-        response = { "car": "red one"}
+        response = requests.post(self.path, headers=self.headers, json=request)
 
         self.logger.debug(f"Vehicle enquiry response: {response.text}")
+
+        if 'errors' in response:
+            self.logger.info(f"Vehicle '{registration}' not found")
+            return f"Unknown ({registration})"
+        
         return self._formatResponse(response)
 
     def _formatResponse(self, response):
         """
         _formatResponse method formats the response from the DVLA vehicle enquiry API.
         """
-        return response["car"]
+        reg = response['registrationNumber']
+        make = response['make'].capitalize()
+        colour = '' if 'colour' not in response else response['colour'].capitalize()
+
+        return f"{colour} {make} ({reg})"
