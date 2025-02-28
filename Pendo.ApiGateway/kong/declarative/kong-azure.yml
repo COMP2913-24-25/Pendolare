@@ -10,8 +10,6 @@ services:
         protocols:
           - http
           - https
-        hosts:
-          - kong-gateway.greensand-8499b34e.uksouth.azurecontainerapps.io
         paths:
           - /api/auth/request-otp
         strip_path: false
@@ -23,8 +21,6 @@ services:
         protocols:
           - http
           - https
-        hosts:
-          - kong-gateway.greensand-8499b34e.uksouth.azurecontainerapps.io
         paths:
           - /api/auth/verify-otp
         strip_path: false
@@ -36,8 +32,6 @@ services:
         protocols:
           - http
           - https
-        hosts:
-          - kong-gateway.greensand-8499b34e.uksouth.azurecontainerapps.io
         paths:
           - /api/ping
         strip_path: false
