@@ -38,15 +38,17 @@ jobs:
     # Get Kong Gateway FQDN for service integration - make it optional
     - name: Get Kong Gateway FQDN
       id: kong_fqdn
-      continue-on-error: true  # Continue even if this step fails
+      continue-on-error: true
       run: |
-        KONG_FQDN=$(az containerapp show --name kong-gateway --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv || echo "")
+        KONG_FQDN=$(az containerapp show --name kong-gateway --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv 2>/dev/null || echo "")
         if [ -n "$KONG_FQDN" ]; then
           echo "KONG_GATEWAY_FQDN=$KONG_FQDN" >> $GITHUB_ENV
+          echo "KONG_EXISTS=true" >> $GITHUB_ENV
           echo "::set-output name=fqdn::$KONG_FQDN"
           echo "::set-output name=exists::true"
         else
           echo "Kong Gateway does not exist yet or could not be accessed"
+          echo "KONG_EXISTS=false" >> $GITHUB_ENV
           echo "::set-output name=exists::false"
         fi
 
@@ -63,107 +65,86 @@ jobs:
         docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:${{ github.sha }} ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:latest
         docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:latest
 
-    # Deploy the Identity Service using a properly formatted parameters file
+    # Deploy the Identity Service - simplified approach using direct parameter passing
     - name: Deploy Container App
       uses: azure/CLI@v1
       with:
         inlineScript: |
-          # Write parameters to a temporary file with no extra whitespace
-          cat > params.json <<EOF
-{
-  "containerAppName": {"value": "${{ env.CONTAINER_APP_NAME }}"},
-  "containerAppEnvironmentName": {"value": "pendo-env-dev"},
-  "registryName": {"value": "${{ env.ACR_NAME }}"},
-  "registryUsername": {"value": "${{ secrets.ACR_USERNAME }}"},
-  "registryPassword": {"value": "${{ secrets.ACR_PASSWORD }}"},
-  "dbConnectionString": {"value": "${{ secrets.AZURE_SQL_CONNECTION_STRING }}"},
-  "kongGatewayFqdn": {"value": "${{ steps.kong_fqdn.outputs.fqdn }}"}
-}
-EOF
+          # Create basic parameters file
+          echo "{}" > params.json
           
-          # For debugging (masking sensitive values)
-          echo "Parameters file content (sanitized):"
-          cat params.json | sed 's/\("value": "\)[^"]*\(".*password.*\)/\1*****\2/i' | sed 's/\("value": "\)[^"]*\(".*connection.*\)/\1*****\2/i'
-          
-          # Deploy using the parameters file
+          # Deploy with each parameter separately
           az deployment group create \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --template-file infrastructure/identity-service.bicep \
-            --parameters @params.json
-
+            --parameters containerAppName=${{ env.CONTAINER_APP_NAME }} \
+            --parameters containerAppEnvironmentName=pendo-env-dev \
+            --parameters registryName=${{ env.ACR_NAME }} \
+            --parameters registryUsername=${{ secrets.ACR_USERNAME }} \
+            --parameters registryPassword='${{ secrets.ACR_PASSWORD }}' \
+            --parameters dbConnectionString='${{ secrets.AZURE_SQL_CONNECTION_STRING }}' \
+            --parameters kongGatewayFqdn='${{ steps.kong_fqdn.outputs.fqdn }}'
+    
     # Wait for identity service to be ready
     - name: Wait for service to be ready
       run: |
         echo "Waiting for identity-service to be ready..."
         sleep 30
 
-    # Get Identity Service FQDN - make it optional
+    # Get Identity Service FQDN
     - name: Get Identity Service FQDN
       id: identity_fqdn
-      continue-on-error: true  # Continue even if this step fails
+      continue-on-error: true
       run: |
-        # Give the deployment a little time to register
-        sleep 15
-        IDENTITY_FQDN=$(az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv || echo "")
+        IDENTITY_FQDN=$(az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv 2>/dev/null || echo "")
         if [ -n "$IDENTITY_FQDN" ]; then
           echo "IDENTITY_SERVICE_FQDN=$IDENTITY_FQDN" >> $GITHUB_ENV
+          echo "IDENTITY_EXISTS=true" >> $GITHUB_ENV
           echo "::set-output name=fqdn::$IDENTITY_FQDN"
           echo "::set-output name=exists::true"
         else
           echo "Identity Service does not exist yet or could not be accessed"
+          echo "IDENTITY_EXISTS=false" >> $GITHUB_ENV
           echo "::set-output name=exists::false"
         fi
     
-    # Update Kong configuration only if both services exist
+    # Update Kong configuration if necessary
     - name: Update Kong configuration with Identity Service FQDN
-      if: steps.kong_fqdn.outputs.exists == 'true' && steps.identity_fqdn.outputs.exists == 'true'
+      if: env.KONG_EXISTS == 'true' && env.IDENTITY_EXISTS == 'true'
       run: |
-        echo "Both Kong Gateway and Identity Service exist, updating configuration..."
-        # Get the latest Kong configuration
-        git fetch origin
+        echo "Both services exist - updating Kong configuration"
+        # Install yq
+        sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+        sudo chmod +x /usr/local/bin/yq
         
-        # Create a new branch for the config update
+        # Create a new branch
         git checkout -b update-identity-service-fqdn-${{ github.run_id }}
         
-        # Update only the Identity Service URL in the Kong configuration
+        # Update only the Identity Service URL
         IDENTITY_FQDN="${{ steps.identity_fqdn.outputs.fqdn }}"
         KONG_CONFIG_PATH="Pendo.ApiGateway/kong/declarative/kong-azure.yml"
         
         echo "Updating Identity Service FQDN to: $IDENTITY_FQDN"
-        
-        # Use yq to update only the identity-service URL (preserving everything else)
-        # Install yq if not available
-        if ! [ -x "$(command -v yq)" ]; then
-          echo "Installing yq..."
-          wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-          chmod +x /usr/local/bin/yq
-        fi
-        
-        # Use yq to only update the identity service URL field
         yq -i '.services[] |= select(.name == "identity-service").url = "https://'"$IDENTITY_FQDN"'"' $KONG_CONFIG_PATH
         
-        # Check if there are changes
+        # Only commit if there are changes
         if git diff --quiet $KONG_CONFIG_PATH; then
-          echo "No changes to Kong configuration needed"
+          echo "No changes needed to Kong configuration"
           exit 0
         fi
         
-        echo "Changes to Kong configuration detected, committing..."
-        
+        # Commit changes and create PR
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
         git add $KONG_CONFIG_PATH
         git commit -m "Update Identity Service FQDN to $IDENTITY_FQDN"
-        
-        # Create a PR instead of direct push
         git push -u origin update-identity-service-fqdn-${{ github.run_id }}
         
-        # Create a pull request using the GitHub API
+        # Create a pull request
         PR_TITLE="Update Identity Service FQDN from CI/CD"
-        PR_BODY="This PR updates the Kong Gateway configuration with the latest Identity Service FQDN ($IDENTITY_FQDN) deployed to Azure. This was automatically generated by the CI/CD pipeline."
+        PR_BODY="This PR updates the Kong Gateway config with the latest Identity Service FQDN ($IDENTITY_FQDN)"
         PR_DATA="{\"title\":\"$PR_TITLE\",\"body\":\"$PR_BODY\",\"head\":\"update-identity-service-fqdn-${{ github.run_id }}\",\"base\":\"infrastructure/kong-integration\"}"
         
-        echo "Creating Pull Request..."
         curl -X POST \
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           -H "Accept: application/vnd.github.v3+json" \
