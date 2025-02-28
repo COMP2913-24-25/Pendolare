@@ -31,6 +31,8 @@ class ApproveBookingAmmendmentCommand:
                 self.logger.debug(f"Booking ammendment {self.ammendment_id} fully approved. Updating booking...")
 
                 self._applyAmmendment(booking_ammendment, passenger, driver, journey)
+                if booking_ammendment.CancellationRequest:
+                    return self._success("Booking ammendment fully approved and booking cancelled.")
                 return self._success("Booking ammendment fully approved and applied to booking. Booking set to confirmed.")
 
             if booking_ammendment.DriverApproval:

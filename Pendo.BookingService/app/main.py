@@ -67,7 +67,7 @@ def create_booking(request: CreateBookingRequest, db: Session = Depends(get_db))
 def add_booking_ammendment(request : AddBookingAmmendmentRequest, db: Session = Depends(get_db)):
     return AddBookingAmmendmentCommand(request, logging.getLogger("AddBookingAmmendmentCommand")).Execute()
 
-@app.put("/ApproveBooking/{BookingAmmendmentId}", tags=["Approve Booking Ammendment"])
+@app.put("/ApproveBookingAmmendment/{BookingAmmendmentId}", tags=["Approve Booking Ammendment"])
 def approve_booking_ammendment(BookingAmmendmentId: UUID, request: ApproveBookingAmmendmentRequest, db: Session = Depends(get_db)):
     return ApproveBookingAmmendmentCommand(BookingAmmendmentId, request, logging.getLogger("ApproveBookingAmmendmentCommand"), mailSender, dvla_client).Execute()
 

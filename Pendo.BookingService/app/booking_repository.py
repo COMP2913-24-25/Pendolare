@@ -1,4 +1,4 @@
-from .models import Booking, User, Journey, BookingAmmendment
+from .models import Booking, User, Journey, BookingAmmendment, Configuration
 from sqlalchemy.orm import joinedload
 from .db_provider import get_db
 from datetime import datetime
@@ -60,6 +60,9 @@ class BookingRepository():
         CreateBooking method creates a new booking in the database.
         :param booking: Booking object to be created.
         """
+        journey = self.GetJourney(booking.JourneyId)
+        journey.JourneyStatusId = 2
+
         self.db_session.add(booking)
         self.db_session.commit()
 
@@ -111,10 +114,11 @@ class BookingRepository():
         :param booking_ammendment_id: Id of the booking ammendment.
         :return BookingAmmendment object, Driver object, Passenger object, Journey object.
         """
-        ammendment = self.db_session.query(BookingAmmendment).options(joinedload(BookingAmmendment.Booking_)).get(booking_ammendment_id)
+        ammendment = self.db_session.query(BookingAmmendment).get(booking_ammendment_id)
+        booking = self.GetBookingById(ammendment.BookingId)
 
-        passenger = self.GetUser(ammendment.Booking_.UserId)
-        journey = self.GetJourney(ammendment.Booking_.JourneyId)
+        passenger = self.GetUser(booking.UserId)
+        journey = self.GetJourney(booking.JourneyId)
         driver = self.GetUser(journey.UserId)
 
         return ammendment, driver, passenger, journey

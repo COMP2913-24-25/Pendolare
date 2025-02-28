@@ -27,7 +27,7 @@ class AddBookingAmmendmentCommand:
         if booking is None:
             raise Exception(f"Booking {self.request.BookingId} not found")
 
-    def _createBookingAmendment(self, booking):
+    def _createBookingAmendment(self):
         return BookingAmmendment(
             BookingId=self.request.BookingId,
             ProposedPrice=self.request.ProposedPrice,

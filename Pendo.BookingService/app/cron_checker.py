@@ -1,4 +1,5 @@
 from cronex import CronExpression
+from datetime import datetime
 
 def checkTimeValid(cron, time):
     """
@@ -9,6 +10,8 @@ def checkTimeValid(cron, time):
     """
     try:
         cron = CronExpression(cron)
-        return cron.check_trigger(time)
+        time = datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
+        time_tuple = (time.year, time.month, time.day, time.hour, time.minute)
+        return cron.check_trigger(time_tuple)
     except Exception as e:
         return str(e)

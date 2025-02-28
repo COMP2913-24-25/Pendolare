@@ -2,13 +2,14 @@ from .booking_repository import BookingRepository, Booking
 from .email_sender import generateEmailDataFromBooking
 from datetime import datetime
 from .cron_checker import checkTimeValid
+from sqlalchemy import DECIMAL, cast
 
 class CreateBookingCommand:
     """
     CreateBookingCommand class is responsible for creating a new booking.
     """
 
-    def __init__(self, request, email_sender, logger, dvla_client):
+    def __init__(self, request, email_sender, logger, dvla_client, configuration_provider):
         """
         Constructor for CreateBookingCommand class.
         :param request: Request object containing the booking details.
@@ -18,6 +19,7 @@ class CreateBookingCommand:
         self.request = request
         self.logger = logger
         self.dvla_client = dvla_client
+        self.configuration_provider = configuration_provider
 
     def Execute(self):
         """
@@ -33,17 +35,22 @@ class CreateBookingCommand:
             if journey is None:
                 raise Exception("Journey not found")
             
-            if not checkTimeValid(journey.CronExpression, self.request.BookingTime):
-                raise Exception("Booking time is not valid for the journey")
+            if journey.JourneyTypeId == 2 and not checkTimeValid(journey.Recurrance, self.request.BookingTime):
+                raise Exception("Booking time is not valid for the commuter journey")
             
             existing_booking = self.booking_repository.GetExistingBooking(user.UserId, journey.JourneyId, self.request.BookingTime)
             if existing_booking is not None:
                 raise Exception("Booking for this time and journey combination already exists")
             
+            current_booking_fee = self.configuration_provider.GetSingleValue("Booking.FeeMargin")
+            if current_booking_fee is None:
+                raise Exception("Booking fee margin not found.")
+            
             booking = Booking(
                 UserId=user.UserId,
                 JourneyId=journey.JourneyId,
                 BookingStatusId=1, #Pending - this should not change!
+                FeeMargin=cast(current_booking_fee, DECIMAL(18, 2)),
             )
 
             self.booking_repository.CreateBooking(booking)
