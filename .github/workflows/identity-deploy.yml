@@ -63,22 +63,41 @@ jobs:
         docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:${{ github.sha }} ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:latest
         docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:latest
 
-    # Deploy the Identity Service using the bicep template
+    # Deploy the Identity Service using the bicep template with properly escaped connection string
     - name: Deploy Container App
       uses: azure/CLI@v1
       with:
         inlineScript: |
+          # Create a temporary JSON file to hold parameters securely
+          echo '{
+            "containerAppName": {
+              "value": "${{ env.CONTAINER_APP_NAME }}"
+            },
+            "containerAppEnvironmentName": {
+              "value": "pendo-env-dev"
+            },
+            "registryName": {
+              "value": "${{ env.ACR_NAME }}"
+            },
+            "registryUsername": {
+              "value": "${{ secrets.ACR_USERNAME }}"
+            },
+            "registryPassword": {
+              "value": "${{ secrets.ACR_PASSWORD }}"
+            },
+            "kongGatewayFqdn": {
+              "value": "${{ steps.kong_fqdn.outputs.fqdn }}"
+            },
+            "dbConnectionString": {
+              "value": "${{ secrets.AZURE_SQL_CONNECTION_STRING }}"
+            }
+          }' > parameters.json
+          
+          # Use the parameters file for deployment
           az deployment group create \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --template-file infrastructure/identity-service.bicep \
-            --parameters \
-              containerAppName=${{ env.CONTAINER_APP_NAME }} \
-              containerAppEnvironmentName=pendo-env-dev \
-              registryName=${{ env.ACR_NAME }} \
-              registryUsername=${{ secrets.ACR_USERNAME }} \
-              registryPassword=${{ secrets.ACR_PASSWORD }} \
-              kongGatewayFqdn=${{ steps.kong_fqdn.outputs.fqdn }} \
-              dbConnectionString="${{ secrets.AZURE_SQL_CONNECTION_STRING }}"
+            --parameters @parameters.json
     
     # Wait for identity service to be ready
     - name: Wait for service to be ready
