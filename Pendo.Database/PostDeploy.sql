@@ -65,7 +65,7 @@ USING (VALUES
     ('Identity.JwtConfiguration', @JwtConfiguration),
     ('Booking.DvlaApiKey', @DvlaApiKey),
     ('Booking.EmailConfiguration', @BookingEmailConfiguration),
-    ('Booking.AdminFeeMargin', '0.05')
+    ('Booking.FeeMargin', '0.05')
 ) AS source ([Key], [Value])
 ON target.[Key] = source.[Key]
 WHEN NOT MATCHED THEN

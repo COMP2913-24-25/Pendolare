@@ -20,12 +20,22 @@ def mock_repository():
     return mock
 
 @pytest.fixture
-def create_booking_command(mock_repository, mock_email_sender, mock_logger):
+def mock_dvla_client():
+    return MagicMock()
+
+@pytest.fixture
+def mock_configuration_provider():
+    mock = MagicMock()
+    mock.GetSingleValue.return_value = "50.00"
+    return mock
+
+@pytest.fixture
+def create_booking_command(mock_repository, mock_email_sender, mock_logger, mock_dvla_client, mock_configuration_provider):
     class DummyRequest:
         UserId = 1
         JourneyId = 2
-
-    cmd = CreateBookingCommand(DummyRequest(), mock_email_sender, mock_logger)
+        BookingTime = "2023-01-01 12:00:00"
+    cmd = CreateBookingCommand(DummyRequest(), mock_email_sender, mock_logger, mock_dvla_client, mock_configuration_provider)
     cmd.booking_repository = mock_repository
     return cmd
 
@@ -52,4 +62,17 @@ def test_create_booking_already_exists(create_booking_command, mock_repository):
     mock_repository.GetExistingBooking.return_value = MagicMock(BookingId=10)
     result = create_booking_command.Execute()
     assert result["Status"] == "Failed"
-    assert "Booking already exists" in result["Error"]
+    assert "Booking for this time and journey combination already exists" in result["Error"]
+
+def test_create_booking_fee_margin_not_found(create_booking_command, mock_configuration_provider):
+    mock_configuration_provider.GetSingleValue.return_value = None
+    result = create_booking_command.Execute()
+    assert result["Status"] == "Failed"
+    assert "Booking fee margin not found" in result["Error"]
+
+def test_create_booking_invalid_commuter_time(create_booking_command, mock_repository, monkeypatch):
+    mock_repository.GetJourney.return_value = MagicMock(JourneyId=2, JourneyTypeId=2, Recurrance="weekly")
+    monkeypatch.setattr("app.create_booking.checkTimeValid", lambda r, t: False)
+    result = create_booking_command.Execute()
+    assert result["Status"] == "Failed"
+    assert "Booking time is not valid for the commuter journey" in result["Error"]
