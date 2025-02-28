@@ -36,24 +36,24 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true
 
-      # Get the Message Service FQDN
-      - name: Get Message Service FQDN
-        id: message_fqdn
-        run: |
-          MESSAGE_FQDN=$(az containerapp show --name message-service --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
-          echo "MESSAGE_SERVICE_FQDN=$MESSAGE_FQDN" >> $GITHUB_ENV
-          echo "::set-output name=fqdn::$MESSAGE_FQDN"
+      # # Get the Message Service FQDN
+      # - name: Get Message Service FQDN
+      #   id: message_fqdn
+      #   run: |
+      #     MESSAGE_FQDN=$(az containerapp show --name message-service --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
+      #     echo "MESSAGE_SERVICE_FQDN=$MESSAGE_FQDN" >> $GITHUB_ENV
+      #     echo "::set-output name=fqdn::$MESSAGE_FQDN"
       
-      # Update the kong-azure.yml configuration with the real FQDN
-      - name: Update Kong Azure Config
-        run: |
-          if [ -n "${{ steps.message_fqdn.outputs.fqdn }}" ]; then
-            # Replace the placeholder with the actual FQDN
-            sed -i "s|message-service.greensand-8499b34e.uksouth.azurecontainerapps.io|${{ steps.message_fqdn.outputs.fqdn }}|g" Pendo.ApiGateway/kong/declarative/kong-azure.yml
-            echo "Updated Kong config with Message Service FQDN: ${{ steps.message_fqdn.outputs.fqdn }}"
-          else
-            echo "Warning: Could not retrieve Message Service FQDN"
-          fi
+      # # Update the kong-azure.yml configuration with the real FQDN
+      # - name: Update Kong Azure Config
+      #   run: |
+      #     if [ -n "${{ steps.message_fqdn.outputs.fqdn }}" ]; then
+      #       # Replace the placeholder with the actual FQDN
+      #       sed -i "s|message-service.greensand-8499b34e.uksouth.azurecontainerapps.io|${{ steps.message_fqdn.outputs.fqdn }}|g" Pendo.ApiGateway/kong/declarative/kong-azure.yml
+      #       echo "Updated Kong config with Message Service FQDN: ${{ steps.message_fqdn.outputs.fqdn }}"
+      #     else
+      #       echo "Warning: Could not retrieve Message Service FQDN"
+      #     fi
 
       # Build and push with the updated configuration
       - name: Build and push image to ACR
