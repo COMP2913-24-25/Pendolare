@@ -9,7 +9,7 @@
 {% block body %}
     <div class="row mb-3">
         <div class="col-sm-6 mb-3 mb-sm-0">
-            <div class="card">
+            <div class="card mb-3">
                 <div class="card-body">
                     <h5 class="card-title">Configure booking fee</h5>
                     <p>The booking fee is calculated as percentage of total booking cost.</p>
@@ -22,22 +22,36 @@
                     </form>
                 </div>
             </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Graph of weekly income</h5>
+                    <canvas id="weeklyIncomeChart"></canvas>
+                </div>
+            </div>
         </div>
         <div class="col-sm-6">
-            <div class="card">
+            <div class="card mb-3">
                 <div class="card-body">
                     <h5 class="card-title">Weekly revenue</h5>
                     <p class="card-text"> £{{ weekly_revenue }} for week starting {{ revenue_date }}.</p>
                 </div>
             </div>
-        </div>
-    </div>
-    <div class="row mb-3">
-        <div class="col-sm-6">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Graph of weekly income</h5>
-                    <canvas id="weeklyIncomeChart"></canvas>
+                    <h5 class="card-title">Customer disputes</h5>
+                    <div class="card" style="width: 18rem;">
+                        <ul class="list-group list-group-flush">
+                            {% for dispute in customer_disputes %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ dispute.username }}</strong>
+                                    <p>{{ dispute.message }}</p>
+                                </div>
+                                <a href="{{ url_for('chat', username=dispute.username) }}" class="btn btn-primary">Chat</a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
