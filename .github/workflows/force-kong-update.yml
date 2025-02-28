@@ -1,0 +1,121 @@
+# This is a manual workflow to force update Kong configuration with all service FQDNs
+name: Force Update Kong Configuration
+
+on:
+  workflow_dispatch:
+    inputs:
+      resourceGroup:
+        description: 'Azure Resource Group'
+        required: true
+        default: 'dev'
+      redeploy:
+        description: 'Redeploy Kong after update'
+        required: true
+        default: 'true'
+        
+jobs:
+  update-kong-config:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: write
+      
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: '0a6d7ce5-4951-4af8-932a-94714dd9e70b'
+          tenant-id: '0adc3547-e686-4727-9a4c-0c5bb6699047'
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
+          
+      # Get all service FQDNs
+      - name: Get Service FQDNs
+        id: get_fqdns
+        run: |
+          echo "Getting all service FQDNs..."
+          
+          # Try to get Identity Service FQDN
+          IDENTITY_FQDN=$(az containerapp show --name pendo-identity-service --resource-group ${{ github.event.inputs.resourceGroup }} --query properties.configuration.ingress.fqdn -o tsv 2>/dev/null || echo "")
+          if [ -n "$IDENTITY_FQDN" ]; then
+            echo "Identity Service FQDN: $IDENTITY_FQDN"
+            echo "IDENTITY_FQDN=$IDENTITY_FQDN" >> $GITHUB_ENV
+            echo "::set-output name=identity_fqdn::$IDENTITY_FQDN"
+          else
+            echo "Identity Service does not exist yet or could not be accessed"
+          fi
+          
+          # Try to get Message Service FQDN
+          MESSAGE_FQDN=$(az containerapp show --name message-service --resource-group ${{ github.event.inputs.resourceGroup }} --query properties.configuration.ingress.fqdn -o tsv 2>/dev/null || echo "")
+          if [ -n "$MESSAGE_FQDN" ]; then
+            echo "Message Service FQDN: $MESSAGE_FQDN"
+            echo "MESSAGE_FQDN=$MESSAGE_FQDN" >> $GITHUB_ENV
+            echo "::set-output name=message_fqdn::$MESSAGE_FQDN"
+          else
+            echo "Message Service does not exist yet or could not be accessed"
+          fi
+          
+          # Add other services here as needed
+          # ...
+          
+      # Update Kong configuration with all service FQDNs
+      - name: Update Kong Configuration
+        run: |
+          # Install yq
+          wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          chmod +x /usr/local/bin/yq
+          
+          # Create a new branch
+          git checkout -b update-kong-config-${{ github.run_id }}
+          
+          KONG_CONFIG_PATH="Pendo.ApiGateway/kong/declarative/kong-azure.yml"
+          UPDATED=false
+          
+          # Update Identity Service URL if available
+          if [ -n "${{ steps.get_fqdns.outputs.identity_fqdn }}" ]; then
+            yq -i '.services[] |= select(.name == "identity-service").url = "https://'"${{ steps.get_fqdns.outputs.identity_fqdn }}"'"' $KONG_CONFIG_PATH
+            UPDATED=true
+          fi
+          
+          # Update Message Service URL if available
+          if [ -n "${{ steps.get_fqdns.outputs.message_fqdn }}" ]; then
+            yq -i '.services[] |= select(.name == "message-service").url = "https://'"${{ steps.get_fqdns.outputs.message_fqdn }}"'"' $KONG_CONFIG_PATH
+            UPDATED=true
+          fi
+          
+          # Add other services here as needed
+          # ...
+          
+          if [ "$UPDATED" = "true" ]; then
+            git config --global user.name "GitHub Actions"
+            git config --global user.email "actions@github.com"
+            git add $KONG_CONFIG_PATH
+            git commit -m "Update Kong configuration with latest service FQDNs"
+            git push -u origin update-kong-config-${{ github.run_id }}
+            
+            # Create a PR
+            PR_TITLE="Update Kong Configuration with Latest Service FQDNs"
+            PR_BODY="This PR updates the Kong Gateway configuration with the latest service FQDNs from Azure. This was triggered manually via the 'Force Update Kong Configuration' workflow."
+            PR_DATA="{\"title\":\"$PR_TITLE\",\"body\":\"$PR_BODY\",\"head\":\"update-kong-config-${{ github.run_id }}\",\"base\":\"infrastructure/kong-integration\"}"
+            
+            echo "Creating Pull Request..."
+            PR_RESPONSE=$(curl -X POST \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              -d "$PR_DATA" \
+              https://api.github.com/repos/${{ github.repository }}/pulls)
+            
+            echo "Pull Request created"
+          else
+            echo "No services were updated in Kong configuration"
+          fi
+          
+      # Optionally redeploy Kong
+      - name: Redeploy Kong Gateway
+        if: github.event.inputs.redeploy == 'true'
+        run: |
+          echo "Triggering Kong Gateway redeployment..."
+          az containerapp restart --name kong-gateway --resource-group ${{ github.event.inputs.resourceGroup }}

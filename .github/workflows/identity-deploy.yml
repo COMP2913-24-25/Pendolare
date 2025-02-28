@@ -35,13 +35,20 @@ jobs:
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         enable-AzPSSession: true
 
-    # Get Kong Gateway FQDN for service integration
+    # Get Kong Gateway FQDN for service integration - make it optional
     - name: Get Kong Gateway FQDN
       id: kong_fqdn
+      continue-on-error: true  # Continue even if this step fails
       run: |
-        KONG_FQDN=$(az containerapp show --name kong-gateway --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
-        echo "KONG_GATEWAY_FQDN=$KONG_FQDN" >> $GITHUB_ENV
-        echo "::set-output name=fqdn::$KONG_FQDN"
+        KONG_FQDN=$(az containerapp show --name kong-gateway --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv || echo "")
+        if [ -n "$KONG_FQDN" ]; then
+          echo "KONG_GATEWAY_FQDN=$KONG_FQDN" >> $GITHUB_ENV
+          echo "::set-output name=fqdn::$KONG_FQDN"
+          echo "::set-output name=exists::true"
+        else
+          echo "Kong Gateway does not exist yet or could not be accessed"
+          echo "::set-output name=exists::false"
+        fi
 
     # Build and push the Identity Service image
     - name: Build and push image to ACR
@@ -78,17 +85,28 @@ jobs:
         echo "Waiting for identity-service to be ready..."
         sleep 30
 
-    # Get Identity Service FQDN 
+    # Get Identity Service FQDN - make it optional
     - name: Get Identity Service FQDN
       id: identity_fqdn
+      continue-on-error: true  # Continue even if this step fails
       run: |
-        IDENTITY_FQDN=$(az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
-        echo "IDENTITY_SERVICE_FQDN=$IDENTITY_FQDN" >> $GITHUB_ENV
-        echo "::set-output name=fqdn::$IDENTITY_FQDN"
+        # Give the deployment a little time to register
+        sleep 15
+        IDENTITY_FQDN=$(az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv || echo "")
+        if [ -n "$IDENTITY_FQDN" ]; then
+          echo "IDENTITY_SERVICE_FQDN=$IDENTITY_FQDN" >> $GITHUB_ENV
+          echo "::set-output name=fqdn::$IDENTITY_FQDN"
+          echo "::set-output name=exists::true"
+        else
+          echo "Identity Service does not exist yet or could not be accessed"
+          echo "::set-output name=exists::false"
+        fi
     
-    # Update Kong Gateway configuration to use actual Identity Service FQDN
+    # Update Kong configuration only if both services exist
     - name: Update Kong configuration with Identity Service FQDN
+      if: steps.kong_fqdn.outputs.exists == 'true' && steps.identity_fqdn.outputs.exists == 'true'
       run: |
+        echo "Both Kong Gateway and Identity Service exist, updating configuration..."
         # Get the latest Kong configuration
         git fetch origin
         

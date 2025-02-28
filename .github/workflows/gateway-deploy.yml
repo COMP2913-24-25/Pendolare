@@ -36,24 +36,28 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true
 
-      # Get the Identity Service FQDN
+      # Get the Identity Service FQDN - make it optional
       - name: Get Identity Service FQDN
         id: identity_fqdn
+        continue-on-error: true  # Continue even if this step fails
         run: |
-          IDENTITY_FQDN=$(az containerapp show --name pendo-identity-service --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
-          echo "IDENTITY_SERVICE_FQDN=$IDENTITY_FQDN" >> $GITHUB_ENV
-          echo "::set-output name=fqdn::$IDENTITY_FQDN"
-      
-      # Update the kong-azure.yml configuration with the real FQDN
-      - name: Update Kong Azure Config
-        run: |
-          if [ -n "${{ steps.identity_fqdn.outputs.fqdn }}" ]; then
-            # Replace the placeholder with the actual FQDN
-            sed -i "s|pendo-identity-service.greensand-8499b34e.uksouth.azurecontainerapps.io|${{ steps.identity_fqdn.outputs.fqdn }}|g" Pendo.ApiGateway/kong/declarative/kong-azure.yml
-            echo "Updated Kong config with Identity Service FQDN: ${{ steps.identity_fqdn.outputs.fqdn }}"
+          IDENTITY_FQDN=$(az containerapp show --name pendo-identity-service --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv || echo "")
+          if [ -n "$IDENTITY_FQDN" ]; then
+            echo "IDENTITY_SERVICE_FQDN=$IDENTITY_FQDN" >> $GITHUB_ENV
+            echo "::set-output name=fqdn::$IDENTITY_FQDN"
+            echo "::set-output name=exists::true"
           else
-            echo "Warning: Could not retrieve Identity Service FQDN"
+            echo "Identity Service does not exist yet or could not be accessed"
+            echo "::set-output name=exists::false"
           fi
+      
+      # Update the kong-azure.yml configuration only if Identity Service exists
+      - name: Update Kong Azure Config
+        if: steps.identity_fqdn.outputs.exists == 'true'
+        run: |
+          # Replace the placeholder with the actual FQDN
+          sed -i "s|pendo-identity-service.greensand-8499b34e.uksouth.azurecontainerapps.io|${{ steps.identity_fqdn.outputs.fqdn }}|g" Pendo.ApiGateway/kong/declarative/kong-azure.yml
+          echo "Updated Kong config with Identity Service FQDN: ${{ steps.identity_fqdn.outputs.fqdn }}"
 
       # Build and push with the updated configuration
       - name: Build and push image to ACR
