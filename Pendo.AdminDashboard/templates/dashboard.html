@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Dashboard</title>
+{% endblock %}
+
+{% block body %}
+    <div class="row">
+        <div class="col-sm-6 mb-3 mb-sm-0">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total active users</h5>
+                    <p class="card-text">{{ total_active_users }} users currently active.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
