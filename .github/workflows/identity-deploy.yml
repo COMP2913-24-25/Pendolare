@@ -63,22 +63,44 @@ jobs:
         docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:${{ github.sha }} ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:latest
         docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:latest
 
-    # Deploy the Identity Service using the bicep template with properly escaped connection string
+    # Deploy the Identity Service using a properly formatted parameters file
     - name: Deploy Container App
       uses: azure/CLI@v1
       with:
         inlineScript: |
-          # Deploy directly with individual parameters, avoiding JSON parsing issues
+          # Write parameters to a temporary file with proper escaping
+          cat > params.json << EOF
+          {
+            "containerAppName": {
+              "value": "${{ env.CONTAINER_APP_NAME }}"
+            },
+            "containerAppEnvironmentName": {
+              "value": "pendo-env-dev"
+            },
+            "registryName": {
+              "value": "${{ env.ACR_NAME }}"
+            },
+            "registryUsername": {
+              "value": "${{ secrets.ACR_USERNAME }}"
+            },
+            "registryPassword": {
+              "value": "${{ secrets.ACR_PASSWORD }}"
+            },
+            "dbConnectionString": {
+              "value": "${{ secrets.AZURE_SQL_CONNECTION_STRING }}"
+            }
+          }
+          EOF
+          
+          # Debug: Show the parameters file (hiding sensitive values)
+          echo "Parameters file content (sanitized):"
+          cat params.json | sed 's/\("value": "\)[^"]*\(".*password.*\)/\1*****\2/i' | sed 's/\("value": "\)[^"]*\(".*connection.*\)/\1*****\2/i'
+          
+          # Deploy using the parameters file
           az deployment group create \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --template-file infrastructure/identity-service.bicep \
-            --parameters containerAppName=${{ env.CONTAINER_APP_NAME }} \
-            --parameters containerAppEnvironmentName=pendo-env-dev \
-            --parameters registryName=${{ env.ACR_NAME }} \
-            --parameters registryUsername=${{ secrets.ACR_USERNAME }} \
-            --parameters registryPassword="${{ secrets.ACR_PASSWORD }}" \
-            --parameters kongGatewayFqdn="${{ steps.kong_fqdn.outputs.fqdn }}" \
-            --parameters dbConnectionString="${{ secrets.AZURE_SQL_CONNECTION_STRING }}"
+            --parameters @params.json
 
     # Wait for identity service to be ready
     - name: Wait for service to be ready
