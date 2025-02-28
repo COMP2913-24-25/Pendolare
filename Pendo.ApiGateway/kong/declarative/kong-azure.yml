@@ -15,6 +15,7 @@ services:
         paths:
           - /api/auth/request-otp
         strip_path: false
+        preserve_host: false
         methods:
           - POST
           - OPTIONS
@@ -27,10 +28,11 @@ services:
         paths:
           - /api/auth/verify-otp
         strip_path: false
+        preserve_host: false
         methods:
           - POST
           - OPTIONS
-      - name: ping
+      - name: ping-endpoint
         protocols:
           - http
           - https
@@ -39,6 +41,7 @@ services:
         paths:
           - /api/ping
         strip_path: false
+        preserve_host: false
         methods:
           - GET
           - OPTIONS
@@ -95,12 +98,23 @@ plugins:
         - Accept
         - Authorization
         - Content-Type
+        - Origin
+        - X-Requested-With
         - Upgrade
         - Connection
       exposed_headers:
         - Authorization
       credentials: true
       max_age: 3600
+      preflight_continue: false
+
+  - name: response-transformer
+    config:
+      add:
+        headers:
+          - "Access-Control-Allow-Origin: *"
+          - "Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS"
+          - "Access-Control-Allow-Headers: Accept, Authorization, Content-Type, Origin, X-Requested-With"
 
   - name: rate-limiting
     config:
