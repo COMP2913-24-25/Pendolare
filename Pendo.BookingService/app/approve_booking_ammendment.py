@@ -5,11 +5,12 @@ from datetime import datetime
 
 class ApproveBookingAmmendmentCommand:
 
-    def __init__(self, ammendment_id, request : ApproveBookingAmmendmentRequest, logger, email_sender):
+    def __init__(self, ammendment_id, request : ApproveBookingAmmendmentRequest, logger, email_sender, dvla_client):
         self.ammendment_id = ammendment_id
         self.request = request
         self.logger = logger
         self.booking_repository = BookingRepository()
+        self.dvla_client = dvla_client
         self.email_sender = email_sender
 
     def Execute(self):
@@ -45,7 +46,7 @@ class ApproveBookingAmmendmentCommand:
             return {"Status": "Error", "Message": str(e)}
     
     def _applyAmmendment(self, ammendment, passenger, driver, journey):
-        email_data = generateEmailDataFromAmmendment(ammendment, driver, journey)
+        email_data = generateEmailDataFromAmmendment(ammendment, driver, journey, self.dvla_client.GetVehicleDetails(journey.VehicleRegistration))
 
         if ammendment.CancellationRequest:
             self.booking_repository.UpdateBookingStatus(ammendment.BookingId, 3)

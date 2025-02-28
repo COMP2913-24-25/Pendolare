@@ -11,7 +11,7 @@ Base = declarative_base()
 class BookingStatus(Base):
     __tablename__ = 'BookingStatus'
     __table_args__ = (
-        PrimaryKeyConstraint('BookingStatusId', name='PK__BookingS__54F9C05D08F365B1'),
+        PrimaryKeyConstraint('BookingStatusId', name='PK__BookingS__54F9C05D5AED57C9'),
         {'schema': 'booking'}
     )
 
@@ -26,7 +26,7 @@ class BookingStatus(Base):
 class UserType(Base):
     __tablename__ = 'UserType'
     __table_args__ = (
-        PrimaryKeyConstraint('UserTypeId', name='PK__UserType__40D2D816516A6BAF'),
+        PrimaryKeyConstraint('UserTypeId', name='PK__UserType__40D2D816DC318CB9'),
         {'schema': 'identity'}
     )
 
@@ -38,28 +38,11 @@ class UserType(Base):
     User: Mapped[List['User']] = relationship('User', uselist=True, back_populates='UserType_')
 
 
-class ApiClient(Base):
-    __tablename__ = 'ApiClient'
-    __table_args__ = (
-        PrimaryKeyConstraint('ApiClientId', name='PK__ApiClien__FDC5B7C888A9CD96'),
-        Index('UQ__ApiClien__E67E1A259C16CB29', 'ClientId', unique=True),
-        {'schema': 'shared'}
-    )
-
-    ApiClientId = mapped_column(Integer, Identity(start=1, increment=1))
-    ApiName = mapped_column(Unicode(255, 'SQL_Latin1_General_CP1_CI_AS'), nullable=False)
-    ClientId = mapped_column(Unicode(255, 'SQL_Latin1_General_CP1_CI_AS'), nullable=False)
-    ClientSecret = mapped_column(Unicode(255, 'SQL_Latin1_General_CP1_CI_AS'), nullable=False)
-    IsActive = mapped_column(Boolean, nullable=False, server_default=text('((1))'))
-    CreateDate = mapped_column(DATETIME2, server_default=text('(getutcdate())'))
-    UpdateDate = mapped_column(DATETIME2, server_default=text('(getutcdate())'))
-
-
 class Configuration(Base):
     __tablename__ = 'Configuration'
     __table_args__ = (
-        PrimaryKeyConstraint('ConfigurationId', name='PK__Configur__95AA53BB316B46EA'),
-        Index('UQ__Configur__C41E02892DD76308', 'Key', unique=True),
+        PrimaryKeyConstraint('ConfigurationId', name='PK__Configur__95AA53BB44F14E6B'),
+        Index('UQ__Configur__C41E02893748CD03', 'Key', unique=True),
         {'schema': 'shared'}
     )
 
@@ -74,9 +57,9 @@ class User(Base):
     __tablename__ = 'User'
     __table_args__ = (
         ForeignKeyConstraint(['UserTypeId'], ['identity.UserType.UserTypeId'], name='FK_User_UserType'),
-        PrimaryKeyConstraint('UserId', name='PK__User__1788CC4C56FE41B7'),
+        PrimaryKeyConstraint('UserId', name='PK__User__1788CC4C254F719F'),
         Index('IX_User_UserType', 'UserTypeId'),
-        Index('UQ__User__A9D1053444ACF208', 'Email', unique=True),
+        Index('UQ__User__A9D10534BC8F4156', 'Email', unique=True),
         {'schema': 'identity'}
     )
 
@@ -98,7 +81,7 @@ class OtpLogin(Base):
     __tablename__ = 'OtpLogin'
     __table_args__ = (
         ForeignKeyConstraint(['UserId'], ['identity.User.UserId'], name='FK_OtpLogin_User'),
-        PrimaryKeyConstraint('OtpLoginId', name='PK__OtpLogin__C597BB3125B8E061'),
+        PrimaryKeyConstraint('OtpLoginId', name='PK__OtpLogin__C597BB3157C3D593'),
         {'schema': 'identity'}
     )
 
@@ -117,7 +100,7 @@ class Journey(Base):
     __tablename__ = 'Journey'
     __table_args__ = (
         ForeignKeyConstraint(['UserId'], ['identity.User.UserId'], name='FK_Journeys_UserId'),
-        PrimaryKeyConstraint('JourneyId', name='PK__Journey__4159B9EF42D75CA4'),
+        PrimaryKeyConstraint('JourneyId', name='PK__Journey__4159B9EF2C8E4B59'),
         {'schema': 'journey'}
     )
 
@@ -155,7 +138,7 @@ class Booking(Base):
         ForeignKeyConstraint(['BookingStatusId'], ['booking.BookingStatus.BookingStatusId'], name='FK_Booking_BookingStatus'),
         ForeignKeyConstraint(['JourneyId'], ['journey.Journey.JourneyId'], name='FK_Booking_Journey'),
         ForeignKeyConstraint(['UserId'], ['identity.User.UserId'], name='FK_Booking_User'),
-        PrimaryKeyConstraint('BookingId', name='PK__tmp_ms_x__73951AEDC08300A2'),
+        PrimaryKeyConstraint('BookingId', name='PK__tmp_ms_x__73951AED87241D8D'),
         {'schema': 'booking'}
     )
 
@@ -164,6 +147,8 @@ class Booking(Base):
     JourneyId = mapped_column(Uuid, nullable=False)
     BookingStatusId = mapped_column(Integer, nullable=False)
     FeeMargin = mapped_column(DECIMAL(18, 8), nullable=False)
+    RideTime = mapped_column(DATETIME2, nullable=False)
+    DriverApproval = mapped_column(Boolean, nullable=False, server_default=text('((0))'))
     CreateDate = mapped_column(DATETIME2, nullable=False, server_default=text('(getutcdate())'))
     UpdateDate = mapped_column(DATETIME2, nullable=False, server_default=text('(getutcdate())'))
 
@@ -177,7 +162,7 @@ class BookingAmmendment(Base):
     __tablename__ = 'BookingAmmendment'
     __table_args__ = (
         ForeignKeyConstraint(['BookingId'], ['booking.Booking.BookingId'], name='FK_BookingAmmendment_Booking'),
-        PrimaryKeyConstraint('BookingAmmendmentId', name='PK__tmp_ms_x__59DE3C6ADA729EE5'),
+        PrimaryKeyConstraint('BookingAmmendmentId', name='PK__BookingA__59DE3C6A73306E24'),
         {'schema': 'booking'}
     )
 

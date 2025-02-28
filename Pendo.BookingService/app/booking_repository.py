@@ -46,14 +46,14 @@ class BookingRepository():
         """
         return self.db_session.query(Booking).get(booking_id)
     
-    def GetExistingBooking(self, user_id, journey_id):
+    def GetExistingBooking(self, user_id, journey_id, ride_time):
         """
         GetExistingBooking method returns the existing booking for the specified user and journey.
         :param user_id: Id of the user.
         :param journey_id: Id of the journey.
         :return: Booking object.
         """
-        return self.db_session.query(Booking).filter(Booking.UserId == user_id, Booking.JourneyId == journey_id).first()
+        return self.db_session.query(Booking).filter(Booking.UserId == user_id, Booking.JourneyId == journey_id, Booking.RideTime == ride_time).first()
     
     def CreateBooking(self, booking):
         """
@@ -62,6 +62,26 @@ class BookingRepository():
         """
         self.db_session.add(booking)
         self.db_session.commit()
+
+    def ApproveBooking(self, booking_id):
+        """
+        ApproveBooking method sets 'DriverApproval' to true on a booking request.
+        :param booking_id: Id of the booking.
+        """
+        booking = self.GetBookingById(booking_id)
+
+        if booking is None:
+            raise Exception(f"Booking {booking_id} not found")
+        
+        if booking.DriverApproval:
+            raise Exception(f"Booking {booking_id} already approved")
+        
+        booking.DriverApproval = True
+        booking.UpdatedDate = datetime.now()
+        self.db_session.commit()
+
+        return booking
+
 
     def UpdateBookingStatus(self, bookingId, bookingStatusId):
         """
