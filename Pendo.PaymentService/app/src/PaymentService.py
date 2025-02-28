@@ -4,13 +4,39 @@
 # Created: 12/02/2025
 #
 
-from fastapi import FastAPI
-from src.PendoDatabase import Transaction
-from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException, Depends
+import logging, sys
+from .PendoDatabaseProvider import get_db, Session, text, configProvider, environment
 
+if environment == "Development":
+    logging.basicConfig(
+        level=logging.DEBUG,
+        stream=sys.stdout,
+        #filename='Pendo.PaymentService.log',
+        format='%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+    )
+else:
+    logging.basicConfig(
+        level=logging.INFO,
+        stream=sys.stdout,
+        format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+    )
 
+logger = logging.getLogger(__name__)
+logger.info("Starting Pendo.PaymentService.Api")
 
 app = FastAPI()
+
+@app.get("/HealthCheck", tags=["HealthCheck"])
+def test_db(db: Session = Depends(get_db)):
+    logger.info("Testing DB connection...")
+    try:
+        db.execute(text("SELECT 1"))
+        logger.info("DB connection successful")
+        return {"db_connection": "successful"}
+    except Exception as e:
+        logger.error(f"DB connection failed. Error: {str(e)}")
+        raise HTTPException(500, detail="DB connection failed.")
 
 def queryBalance(userID):
     nonpending = 0
@@ -24,7 +50,7 @@ def queryBalance(userID):
     # return both
     return pending, non-pending
 
-@app.post("/AuthenticatePaymentDetails")
+@app.post("/AuthenticatePaymentDetails", tags=["Pre-booking"])
 def AuthenticatePaymentDetails():
     """
     Used to save and authorise new card details of a user, to Stripe's Customer list
@@ -40,7 +66,7 @@ def AuthenticatePaymentDetails():
     return {"status" : "success"}
 
 
-@app.get("/PaymentMethods")
+@app.get("/PaymentMethods", tags=["Pre-booking"])
 def PaymentMethods():
     """
     Used to query stripe for the customers saved payment methods, to display before adding another card or contiuning with a booking
@@ -57,7 +83,7 @@ def PaymentMethods():
             "PaymentMethods" : "List of stripe payment methods go here"}
 
 
-@app.post("/PendingBooking")
+@app.post("/PendingBooking", tags=["At Booking time"])
 def PendingBooking():
     """
     Used when a booking is created in the pending state
@@ -74,7 +100,7 @@ def PendingBooking():
 
     return {"status" : "success"}
 
-@app.post("/ConfirmedBooking")
+@app.post("/ConfirmedBooking", tags=["On booking confirmation"])
 def ConfirmedBooking():
     """
     Used when a booking status changes to confirmed, takes payment from user's saved card details and non-pending balance
@@ -99,7 +125,7 @@ def ConfirmedBooking():
 
     return {"status" : "success"}
 
-@app.get("/ViewBalance")
+@app.get("/ViewBalance", tags=["Anytime"])
 def ViewBalance():
 
     # TODO: Complete View endpoint
@@ -111,7 +137,7 @@ def ViewBalance():
             "non-pending": "value"}
 
 
-@app.post("/RefundPayment")
+@app.post("/RefundPayment", tags=["Anytime"])
 def refund():
 
     # TODO: Complete refund endpoint
@@ -122,7 +148,7 @@ def refund():
 
     return {"status" : "success"}
 
-@app.post("/CreatePayout")
+@app.post("/CreatePayout", tags=["Anytime"])
 def CreatePayout():
     
     # TODO: Complete Payout endpoint

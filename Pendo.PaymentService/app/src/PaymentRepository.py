@@ -1,6 +1,6 @@
-from src.PendoDatabase import User, Transaction
+from .PendoDatabase import User, Transaction
 from sqlalchemy.orm import joinedload
-from src.PendoDatabaseProvider import get_db
+from .PendoDatabaseProvider import get_db
 
 class PaymentRepository():
     """

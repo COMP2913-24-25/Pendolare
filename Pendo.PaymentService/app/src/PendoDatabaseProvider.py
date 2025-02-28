@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
-from src.configProvider import ConfigurationProvider, Path
+from .configProvider import ConfigurationProvider, Path
 from dotenv import load_dotenv
 import os
 
