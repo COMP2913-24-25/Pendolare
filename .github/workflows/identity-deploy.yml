@@ -65,22 +65,19 @@ jobs:
         docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:${{ github.sha }} ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:latest
         docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:latest
 
-    # Validate the database connection string before deploying
+    # Validate the database connection string before deploying - fixed version
     - name: Validate Database Connection String
       run: |
-        # Check if the connection string is set
-        if [ -z "${{ secrets.AZURE_SQL_CONNECTION_STRING }}" ]; then
+        # Check if the connection string secret is set (not its content)
+        if [ "${{ secrets.AZURE_SQL_CONNECTION_STRING != '' }}" != "true" ]; then
           echo "::error::AZURE_SQL_CONNECTION_STRING is not set. Please set it in GitHub Secrets."
           exit 1
         fi
         
-        # Basic format check
-        if [[ "${{ secrets.AZURE_SQL_CONNECTION_STRING }}" != *"Server="* ]] || [[ "${{ secrets.AZURE_SQL_CONNECTION_STRING }}" != *";Database="* ]]; then
-          echo "::warning::Connection string may not be properly formatted. Make sure it contains Server= and Database= parameters."
-          echo "::warning::Example format: Server=myserver.database.windows.net;Database=mydatabase;User Id=myuser;Password=mypassword;Trust Server Certificate=True;"
-        fi
-        
-        echo "Database connection string validation passed."
+        # We can't do further validation on the actual content since shell scripts and GitHub Actions
+        # don't handle complex strings with special characters well
+        echo "Database connection string secret exists."
+        echo "Make sure it contains 'Trust Server Certificate=True' for Azure Container Apps."
 
     # Deploy the Identity Service with SQL service connection
     - name: Deploy Container App
