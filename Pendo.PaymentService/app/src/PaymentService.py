@@ -5,12 +5,24 @@
 #
 
 from fastapi import FastAPI
-from src.PendoDatabase import Transaction, UserBalance
+from src.PendoDatabase import Transaction
 from pydantic import BaseModel
 
 
 
 app = FastAPI()
+
+def queryBalance(userID):
+    nonpending = 0
+    pending = 0 
+    # input: userID
+
+    # Query non-pending balance
+
+    # Query pending balance
+
+    # return both
+    return pending, non-pending
 
 @app.post("/AuthenticatePaymentDetails")
 def AuthenticatePaymentDetails():
@@ -121,18 +133,6 @@ def CreatePayout():
     # email admin with notice to payout / invoice to pay
 
     return {"status" : "success"}
-
-def queryBalance(userID):
-    non-pending = 0
-    pending = 0 
-    # input: userID
-
-    # Query non-pending balance
-
-    # Query pending balance
-
-    # return both
-    return pending, non-pending
 
 def some_testing_function(param):
     return param
