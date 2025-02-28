@@ -5,7 +5,7 @@ on:
     branches: 
       - main
       - dev
-      - project/message-service
+      - infrastructure/kong-integration
     paths:
       - 'Pendo.MessageService/**'
       - 'infrastructure/**'

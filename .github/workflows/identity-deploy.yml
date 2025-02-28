@@ -1,0 +1,141 @@
+name: Deploy Identity Service to Azure
+
+on:
+  pull_request:
+    branches: 
+      - main
+      - dev
+      - infrastructure/kong-integration
+    paths:
+      - 'Pendo.IdentityService/**'
+      - 'infrastructure/**'
+  workflow_dispatch:
+
+env:
+  ACR_NAME: pendocontainerregistry
+  IDENTITY_SERVICE_IMAGE_NAME: pendo-identity-service
+  RESOURCE_GROUP: dev
+  CONTAINER_APP_NAME: pendo-identity-service
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        client-id: '0a6d7ce5-4951-4af8-932a-94714dd9e70b'
+        tenant-id: '0adc3547-e686-4727-9a4c-0c5bb6699047'
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        enable-AzPSSession: true
+
+    # Get Kong Gateway FQDN for service integration
+    - name: Get Kong Gateway FQDN
+      id: kong_fqdn
+      run: |
+        KONG_FQDN=$(az containerapp show --name kong-gateway --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
+        echo "KONG_GATEWAY_FQDN=$KONG_FQDN" >> $GITHUB_ENV
+        echo "::set-output name=fqdn::$KONG_FQDN"
+
+    # Build and push the Identity Service image
+    - name: Build and push image to ACR
+      env:
+        ACR_USERNAME: ${{ secrets.ACR_USERNAME }}
+        ACR_PASSWORD: ${{ secrets.ACR_PASSWORD }}
+      run: |
+        docker login ${{ env.ACR_NAME }}.azurecr.io -u $ACR_USERNAME -p $ACR_PASSWORD
+        cd Pendo.IdentityService
+        docker build . -f ./Pendo.IdentityService.Api/Dockerfile -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:${{ github.sha }}
+        docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:${{ github.sha }}
+        docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:${{ github.sha }} ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:latest
+        docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:latest
+
+    # Deploy the Identity Service using the bicep template
+    - name: Deploy Container App
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          az deployment group create \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --template-file infrastructure/identity-service.bicep \
+            --parameters \
+              containerAppName=${{ env.CONTAINER_APP_NAME }} \
+              containerAppEnvironmentName=pendo-env-dev \
+              registryName=${{ env.ACR_NAME }} \
+              registryUsername=${{ secrets.ACR_USERNAME }} \
+              registryPassword=${{ secrets.ACR_PASSWORD }} \
+              kongGatewayFqdn=${{ steps.kong_fqdn.outputs.fqdn }}
+    
+    # Wait for identity service to be ready
+    - name: Wait for service to be ready
+      run: |
+        echo "Waiting for identity-service to be ready..."
+        sleep 30
+
+    # Get Identity Service FQDN 
+    - name: Get Identity Service FQDN
+      id: identity_fqdn
+      run: |
+        IDENTITY_FQDN=$(az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
+        echo "IDENTITY_SERVICE_FQDN=$IDENTITY_FQDN" >> $GITHUB_ENV
+        echo "::set-output name=fqdn::$IDENTITY_FQDN"
+    
+    # Update Kong Gateway configuration to use actual Identity Service FQDN
+    - name: Update Kong configuration with Identity Service FQDN
+      run: |
+        # Get the latest Kong configuration
+        git fetch origin
+        
+        # Create a new branch for the config update
+        git checkout -b update-identity-service-fqdn-${{ github.run_id }}
+        
+        # Update only the Identity Service URL in the Kong configuration
+        IDENTITY_FQDN="${{ steps.identity_fqdn.outputs.fqdn }}"
+        KONG_CONFIG_PATH="Pendo.ApiGateway/kong/declarative/kong-azure.yml"
+        
+        echo "Updating Identity Service FQDN to: $IDENTITY_FQDN"
+        
+        # Use yq to update only the identity-service URL (preserving everything else)
+        # Install yq if not available
+        if ! [ -x "$(command -v yq)" ]; then
+          echo "Installing yq..."
+          wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          chmod +x /usr/local/bin/yq
+        fi
+        
+        # Use yq to only update the identity service URL field
+        yq -i '.services[] |= select(.name == "identity-service").url = "https://'"$IDENTITY_FQDN"'"' $KONG_CONFIG_PATH
+        
+        # Check if there are changes
+        if git diff --quiet $KONG_CONFIG_PATH; then
+          echo "No changes to Kong configuration needed"
+          exit 0
+        fi
+        
+        echo "Changes to Kong configuration detected, committing..."
+        
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        git add $KONG_CONFIG_PATH
+        git commit -m "Update Identity Service FQDN to $IDENTITY_FQDN"
+        
+        # Create a PR instead of direct push
+        git push -u origin update-identity-service-fqdn-${{ github.run_id }}
+        
+        # Create a pull request using the GitHub API
+        PR_TITLE="Update Identity Service FQDN from CI/CD"
+        PR_BODY="This PR updates the Kong Gateway configuration with the latest Identity Service FQDN ($IDENTITY_FQDN) deployed to Azure. This was automatically generated by the CI/CD pipeline."
+        PR_DATA="{\"title\":\"$PR_TITLE\",\"body\":\"$PR_BODY\",\"head\":\"update-identity-service-fqdn-${{ github.run_id }}\",\"base\":\"infrastructure/kong-integration\"}"
+        
+        echo "Creating Pull Request..."
+        curl -X POST \
+          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          -d "$PR_DATA" \
+          https://api.github.com/repos/${{ github.repository }}/pulls

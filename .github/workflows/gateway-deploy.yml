@@ -6,7 +6,7 @@ on:
       - main
       - dev
       - project/api-gateway
-      - project/message-service
+      - infrastructure/kong-integration
     paths:
       - 'Pendo.ApiGateway/**'
       - 'infrastructure/**'
@@ -36,24 +36,24 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true
 
-      # # Get the Message Service FQDN
-      # - name: Get Message Service FQDN
-      #   id: message_fqdn
-      #   run: |
-      #     MESSAGE_FQDN=$(az containerapp show --name message-service --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
-      #     echo "MESSAGE_SERVICE_FQDN=$MESSAGE_FQDN" >> $GITHUB_ENV
-      #     echo "::set-output name=fqdn::$MESSAGE_FQDN"
+      # Get the Identity Service FQDN
+      - name: Get Identity Service FQDN
+        id: identity_fqdn
+        run: |
+          IDENTITY_FQDN=$(az containerapp show --name pendo-identity-service --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
+          echo "IDENTITY_SERVICE_FQDN=$IDENTITY_FQDN" >> $GITHUB_ENV
+          echo "::set-output name=fqdn::$IDENTITY_FQDN"
       
-      # # Update the kong-azure.yml configuration with the real FQDN
-      # - name: Update Kong Azure Config
-      #   run: |
-      #     if [ -n "${{ steps.message_fqdn.outputs.fqdn }}" ]; then
-      #       # Replace the placeholder with the actual FQDN
-      #       sed -i "s|message-service.greensand-8499b34e.uksouth.azurecontainerapps.io|${{ steps.message_fqdn.outputs.fqdn }}|g" Pendo.ApiGateway/kong/declarative/kong-azure.yml
-      #       echo "Updated Kong config with Message Service FQDN: ${{ steps.message_fqdn.outputs.fqdn }}"
-      #     else
-      #       echo "Warning: Could not retrieve Message Service FQDN"
-      #     fi
+      # Update the kong-azure.yml configuration with the real FQDN
+      - name: Update Kong Azure Config
+        run: |
+          if [ -n "${{ steps.identity_fqdn.outputs.fqdn }}" ]; then
+            # Replace the placeholder with the actual FQDN
+            sed -i "s|pendo-identity-service.greensand-8499b34e.uksouth.azurecontainerapps.io|${{ steps.identity_fqdn.outputs.fqdn }}|g" Pendo.ApiGateway/kong/declarative/kong-azure.yml
+            echo "Updated Kong config with Identity Service FQDN: ${{ steps.identity_fqdn.outputs.fqdn }}"
+          else
+            echo "Warning: Could not retrieve Identity Service FQDN"
+          fi
 
       # Build and push with the updated configuration
       - name: Build and push image to ACR
@@ -86,14 +86,17 @@ jobs:
                 registryPassword=${{ secrets.ACR_PASSWORD }}
       
       # After deploying, ensure the Kong configuration is properly set
-      - name: Verify Kong Configuration
+      - name: Test Kong API Gateway routes
         run: |
           # Get the Kong Gateway FQDN
           KONG_FQDN=$(az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
           
           echo "Kong Gateway is deployed at: $KONG_FQDN"
           echo "Waiting for Kong to become available..."
-          sleep 30
+          sleep 45
           
-          echo "Checking Kong Gateway admin API..."
-          curl -i https://$KONG_FQDN/admin-api
+          echo "Testing Kong Gateway ping endpoint..."
+          curl -i -X GET https://$KONG_FQDN/api/ping || echo "Ping endpoint not responding yet"
+          
+          echo "Testing Kong Gateway admin API..."
+          curl -i https://$KONG_FQDN/admin-api || echo "Admin API not responding yet"
