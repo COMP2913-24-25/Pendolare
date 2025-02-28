@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', filename='js/chart.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+    <div class="row mb-3">
+        <div class="col-sm-6 mb-3 mb-sm-0">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Configure booking fee</h5>
+                    <p>The booking fee is calculated as percentage of total booking cost.</p>
+                    <form method="POST" action="{{ url_for('update_booking_fee') }}">
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" name="booking_fee" aria-label="Booking fee as percentage of total booking cost" value="{{ booking_fee }}">
+                            <span class="input-group-text">%</span>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </form>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Graph of weekly income</h5>
+                    <canvas id="weeklyIncomeChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Weekly revenue</h5>
+                    <p class="card-text"> £{{ weekly_revenue }} for week starting {{ revenue_date }}.</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Customer disputes</h5>
+                    <div class="card" style="width: 18rem;">
+                        <ul class="list-group list-group-flush">
+                            {% for dispute in customer_disputes %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ dispute.username }}</strong>
+                                    <p>{{ dispute.message }}</p>
+                                </div>
+                                <a href="{{ url_for('chat', username=dispute.username) }}" class="btn btn-primary">Chat</a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
