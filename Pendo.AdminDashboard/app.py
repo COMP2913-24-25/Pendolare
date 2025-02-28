@@ -9,7 +9,8 @@ def home():
 @app.route('/dashboard')
 def dashboard():
     total_active_users = 100
-    return render_template('dashboard.html', total_active_users=total_active_users)
+    total_bookings = 50
+    return render_template('dashboard.html', total_active_users=total_active_users, total_bookings=total_bookings)
 
 @app.route('/bookings')
 def bookings():
