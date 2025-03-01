@@ -71,9 +71,6 @@ jobs:
           # Copy the Azure config in place of the regular config for the docker build
           cp Pendo.ApiGateway/kong/declarative/kong-azure.yml Pendo.ApiGateway/kong/declarative/kong.yml
           
-          # Copy the custom plugins config for Docker build
-          cp Pendo.ApiGateway/kong/declarative/custom-plugins.yml Pendo.ApiGateway/kong/declarative/
-          
           # Ensure the scripts directory exists in Docker build context
           mkdir -p Pendo.ApiGateway/kong/scripts/
           cp Pendo.ApiGateway/scripts/jwt_custom_claims.lua Pendo.ApiGateway/kong/scripts/
