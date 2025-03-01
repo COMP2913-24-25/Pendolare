@@ -126,7 +126,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
             {
               type: 'Startup'
               httpGet: {
-                path: '/status'
+                path: '/'     // Changed from '/status' to '/' which should exist
                 port: 8000
               }
               initialDelaySeconds: 30
@@ -136,7 +136,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
             {
               type: 'Liveness' 
               httpGet: {
-                path: '/status'
+                path: '/'     // Changed from '/status' to '/' which should exist
                 port: 8000
               }
               initialDelaySeconds: 60
