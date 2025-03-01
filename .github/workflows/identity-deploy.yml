@@ -96,7 +96,7 @@ jobs:
             --parameters dbConnectionString='${{ secrets.AZURE_SQL_CONNECTION_STRING }}' \
             --parameters kongGatewayFqdn='${{ steps.kong_fqdn.outputs.fqdn }}'
 
-    # Configure SQL Server firewall to allow Container App access
+    # Configure SQL Server firewall to allow Container App access - simplified version
     - name: Configure SQL Server Firewall
       uses: azure/CLI@v1
       with:
@@ -110,40 +110,29 @@ jobs:
             --server pendolare \
             --name "AllowAllWindowsAzureIps" \
             --start-ip-address 0.0.0.0 \
-            --end-ip-address 0.0.0.0
+            --end-ip-address 0.0.0.0 \
+            --output none
           
           # Get Container App Environment static outbound IP
           echo "Getting Container App outbound IP..."
           OUTBOUND_IP=$(az containerapp env show --name pendo-env-dev --resource-group ${{ env.RESOURCE_GROUP }} --query properties.staticIp -o tsv)
           
           if [ -n "$OUTBOUND_IP" ]; then
-            echo "Adding outbound IP $OUTBOUND_IP to SQL firewall rules..."
-            # Check if rule already exists
-            RULE_EXISTS=$(az sql server firewall-rule show --name "ContainerAppOutbound" --resource-group ${{ env.RESOURCE_GROUP }} --server pendolare 2>/dev/null)
+            echo "Outbound IP detected: $OUTBOUND_IP"
             
-            if [ -z "$RULE_EXISTS" ]; then
-              # Create the rule if it doesn't exist
-              az sql server firewall-rule create \
-                --resource-group ${{ env.RESOURCE_GROUP }} \
-                --server pendolare \
-                --name "ContainerAppOutbound" \
-                --start-ip-address $OUTBOUND_IP \
-                --end-ip-address $OUTBOUND_IP
-                
-              echo "Firewall rule created for outbound IP: $OUTBOUND_IP"
-            else
-              echo "Firewall rule already exists for Container App outbound IP"
-            fi
+            # Try to create the rule directly
+            echo "Adding outbound IP to SQL firewall rules..."
+            az sql server firewall-rule create \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --server pendolare \
+              --name "ContainerAppOutbound" \
+              --start-ip-address "$OUTBOUND_IP" \
+              --end-ip-address "$OUTBOUND_IP" \
+              --output none \
+              || echo "Failed to create firewall rule, but continuing as Azure Services rule should work"
           else
-            echo "Warning: Could not determine Container App outbound IP!"
+            echo "Warning: Could not determine Container App outbound IP! Continuing with 'Allow Azure Services' rule only."
           fi
-          
-          # Grant database permissions to system-assigned identity (requires SQL admin credentials)
-          echo "Note: Manual step required in SQL Database to grant permissions!"
-          echo "Run this SQL command in Pendolare.Database:"
-          echo "CREATE USER [identity-service] FROM EXTERNAL PROVIDER;"
-          echo "ALTER ROLE db_datareader ADD MEMBER [identity-service];"
-          echo "ALTER ROLE db_datawriter ADD MEMBER [identity-service];"
           
           echo "SQL Firewall rules configuration complete"
 
