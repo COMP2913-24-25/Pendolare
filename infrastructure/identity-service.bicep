@@ -76,39 +76,24 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
           }
           probes: [
             {
+              // Reduced frequency liveness probe
               type: 'Liveness'
               httpGet: {
-                path: '/healthcheck'
+                path: '/api/ping'
                 port: 8080
               }
-              initialDelaySeconds: 15
-              periodSeconds: 30
-            }
-            {
-              type: 'Readiness'
-              httpGet: {
-                path: '/healthcheck'
-                port: 8080
-              }
-              initialDelaySeconds: 5
-              periodSeconds: 10
+              initialDelaySeconds: 30  // Increased from 15
+              periodSeconds: 120       // Increased from 30
+              timeoutSeconds: 5
+              failureThreshold: 3
             }
           ]
         }
       ]
       scale: {
         minReplicas: 1
-        maxReplicas: 2
-        rules: [
-          {
-            name: 'http-scale-rule'
-            http: {
-              metadata: {
-                concurrentRequests: '10'
-              }
-            }
-          }
-        ]
+        maxReplicas: 1  // Reduced to 1 to ensure lower request volume
+        rules: []       // Remove auto-scaling rules to prevent unnecessary scale events
       }
     }
   }

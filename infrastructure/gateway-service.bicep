@@ -85,17 +85,44 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
               name: 'KONG_LOG_LEVEL'
               value: 'debug'  // More verbose logging to troubleshoot
             }
+            {
+              // Add keepalive interval configuration to reduce overhead
+              name: 'KONG_NGINX_HTTP_KEEPALIVE_TIMEOUT'
+              value: '300s' // Longer keepalive timeout (5 minutes)
+            }
+            {
+              name: 'KONG_NGINX_WORKER_PROCESSES'
+              value: '1'    // Reduce number of worker processes for student plan
+            }
+            {
+              name: 'KONG_NGINX_WORKER_CONNECTIONS'
+              value: '512'  // Reduce number of connections
+            }
           ]
           resources: {
             // Reduced resources for student plan
             cpu: json('0.25')  // Reduced from 0.5
             memory: '0.5Gi'    // Reduced from 1.0Gi
           }
+          probes: [
+            {
+              // Add reduced frequency health probes
+              type: 'Liveness'
+              httpGet: {
+                path: '/status'
+                port: 8000
+              }
+              initialDelaySeconds: 30
+              periodSeconds: 120
+              timeoutSeconds: 5
+              failureThreshold: 3
+            }
+          ]
         }
       ]
       scale: {
         minReplicas: 1
-        maxReplicas: 2  // Reduced from 3
+        maxReplicas: 1  // Limit to 1 replica
       }
     }
   }

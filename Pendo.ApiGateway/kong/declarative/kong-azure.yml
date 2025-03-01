@@ -110,7 +110,20 @@ plugins:
           - "Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS"
           - "Access-Control-Allow-Headers: Accept, Authorization, Content-Type, Origin, X-Requested-With"
 
+  # Add stricter rate-limiting to prevent hitting Azure rate limits
   - name: rate-limiting
     config:
-      minute: 60
+      second: 5      # 5 requests per second
+      minute: 30     # 30 requests per minute
+      hour: 500      # 500 requests per hour
       policy: local
+      hide_client_headers: false
+      redis_timeout: 2000
+      fault_tolerant: true
+      
+  # Add response timeout settings
+  - name: response-timeout
+    config:
+      connect_timeout: 60000
+      send_timeout: 60000
+      read_timeout: 60000
