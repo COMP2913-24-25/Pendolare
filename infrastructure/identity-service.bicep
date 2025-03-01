@@ -31,7 +31,8 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
         }
         {
           name: 'db-connection-string'
-          value: dbConnectionString
+          // Incredibly unconventional but trying to figure out wth is going on
+          value: !empty(dbConnectionString) ? dbConnectionString : 'Server=tcp:pendolare.database.windows.net,1433;Initial Catalog=Pendolare.Database;Persist Security Info=False;User ID=comp2913;Password=Securepassword123;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;ConnectRetryCount=5;ConnectRetryInterval=10;'
         }
       ]
       registries: [
@@ -67,6 +68,11 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
             {
               name: 'IdentityConfiguration__ConnectionString'
               secretRef: 'db-connection-string'
+            }
+            {
+              // Add a verification environment variable to help diagnose connection issues
+              name: 'DB_CONNECTION_CHECK'
+              value: 'true'
             }
             {
               name: 'KONG_GATEWAY_URL'
