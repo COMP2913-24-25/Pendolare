@@ -104,16 +104,16 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
               value: '512'  // Reduce number of connections
             }
             {
-              name: 'KONG_NGINX_PROXY_CONNECT_TIMEOUT'  // Reverted name with "ms" suffix
-              value: '60000ms'
+              name: 'KONG_NGINX_PROXY_CONNECT_TIMEOUT'  // Proper timeout format (no ms suffix)
+              value: '60'                               // Value in seconds
             }
             {
-              name: 'KONG_NGINX_PROXY_SEND_TIMEOUT'  // Reverted name with "ms" suffix
-              value: '60000ms'
+              name: 'KONG_NGINX_PROXY_SEND_TIMEOUT'     // Proper timeout format (no ms suffix)
+              value: '60'                               // Value in seconds
             }
             {
-              name: 'KONG_NGINX_PROXY_READ_TIMEOUT'  // Reverted name with "ms" suffix
-              value: '60000ms'
+              name: 'KONG_NGINX_PROXY_READ_TIMEOUT'     // Proper timeout format (no ms suffix)
+              value: '60'                               // Value in seconds
             }
           ]
           resources: {
