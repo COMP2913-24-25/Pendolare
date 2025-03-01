@@ -93,30 +93,30 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
           ]
           resources: {
             // Reduced resources for student plan
-            cpu: json('0.25')  // Reduced from 0.5
-            memory: '0.5Gi'    // Reduced from 1.0Gi
+            cpu: json('0.5')  // Reduced from 0.5
+            memory: '1.0Gi'    // Reduced from 1.0Gi
           }
-          // Extremely infrequent health checks to prevent rate limits
+          // Update health check probes to use Kong's health endpoint
           probes: [
             {
               type: 'Startup'
               httpGet: {
-                path: '/'     // Changed from '/status' to '/' which should exist
-                port: 8000
+                path: '/status'   // Use Kong's status endpoint instead of root
+                port: 8001        // Admin API port for status check
               }
-              initialDelaySeconds: 30
-              failureThreshold: 5
-              timeoutSeconds: 5
+              initialDelaySeconds: 60  // Increased delay to allow Kong time to initialize
+              failureThreshold: 10     // More retries before failure
+              timeoutSeconds: 10       // More time for the request to complete
             }
             {
               type: 'Liveness' 
               httpGet: {
-                path: '/'     // Changed from '/status' to '/' which should exist
-                port: 8000
+                path: '/status'   // Use Kong's status endpoint instead of root
+                port: 8001        // Admin API port for status check
               }
-              initialDelaySeconds: 60
-              periodSeconds: 240     // Changed from 300 to 240 (maximum allowed)
-              timeoutSeconds: 10
+              initialDelaySeconds: 90
+              periodSeconds: 240     
+              timeoutSeconds: 20
               failureThreshold: 5
             }
           ]
