@@ -119,7 +119,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
           resources: {
             // Reduced resources for student plan
             cpu: json('0.5')  // Reduced from 0.5
-            memory: '0.5Gi'    // Reduced from 1.0Gi
+            memory: '1.0Gi'    // Reduced from 1.0Gi
           }
         }
       ]
