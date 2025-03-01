@@ -141,7 +141,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
                 port: 8000
               }
               initialDelaySeconds: 60
-              periodSeconds: 300     // Check only once every 5 minutes
+              periodSeconds: 240     // Changed from 300 to 240 (maximum allowed)
               timeoutSeconds: 10
               failureThreshold: 5
             }
