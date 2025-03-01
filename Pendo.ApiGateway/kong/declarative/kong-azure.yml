@@ -120,10 +120,3 @@ plugins:
       hide_client_headers: false
       redis_timeout: 2000
       fault_tolerant: true
-      
-  # Add response timeout settings
-  - name: response-timeout
-    config:
-      connect_timeout: 60000
-      send_timeout: 60000
-      read_timeout: 60000

@@ -69,6 +69,18 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
               name: 'KONG_GATEWAY_URL'
               value: !empty(kongGatewayFqdn) ? 'https://${kongGatewayFqdn}' : ''
             }
+            {
+              name: 'SQL_SERVER_NAME'
+              value: 'pendolare'
+            }
+            {
+              name: 'SQL_DATABASE_NAME'
+              value: 'Pendolare.Database'
+            }
+            {
+              name: 'ENABLE_RETRY_POLICY'  // Enable retry policy for database connections
+              value: 'true'
+            }
           ]
           resources: {
             cpu: json('0.25')
@@ -78,11 +90,14 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
       ]
       scale: {
         minReplicas: 1
-        maxReplicas: 1  // Reduced to 1 to ensure lower request volume
-        rules: []       // Remove auto-scaling rules to prevent unnecessary scale events
+        maxReplicas: 1
       }
+    }
+    identity: {
+      type: 'SystemAssigned'  // Enable system-assigned managed identity for database access
     }
   }
 }
 
 output containerAppFQDN string = containerApp.properties.configuration.ingress.fqdn
+output principalId string = containerApp.identity.principalId  // Output the principal ID for role assignments

@@ -98,6 +98,24 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
               name: 'KONG_NGINX_WORKER_CONNECTIONS'
               value: '512'  // Reduce number of connections
             }
+            // Add timeout settings directly in Nginx config
+            {
+              name: 'KONG_NGINX_PROXY_CONNECT_TIMEOUT'
+              value: '60000ms'
+            }
+            {
+              name: 'KONG_NGINX_PROXY_SEND_TIMEOUT'
+              value: '60000ms'
+            }
+            {
+              name: 'KONG_NGINX_PROXY_READ_TIMEOUT'
+              value: '60000ms'
+            }
+            // Set necessary plugins
+            {
+              name: 'KONG_PLUGINS'
+              value: 'bundled,cors,rate-limiting,response-transformer'
+            }
           ]
           resources: {
             // Reduced resources for student plan
