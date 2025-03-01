@@ -90,31 +90,6 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
               name: 'KONG_PLUGINS'
               value: 'bundled,cors'  // Minimal plugins
             }
-            {
-              // Add keepalive interval configuration to reduce overhead
-              name: 'KONG_NGINX_HTTP_KEEPALIVE_TIMEOUT'
-              value: '300s' // Longer keepalive timeout (5 minutes)
-            }
-            {
-              name: 'KONG_NGINX_WORKER_PROCESSES'
-              value: '1'    // Reduce number of worker processes for student plan
-            }
-            {
-              name: 'KONG_NGINX_WORKER_CONNECTIONS'
-              value: '512'  // Reduce number of connections
-            }
-            {
-              name: 'KONG_NGINX_PROXY_CONNECT_TIMEOUT'  // Proper timeout format (no ms suffix)
-              value: '60'                               // Value in seconds
-            }
-            {
-              name: 'KONG_NGINX_PROXY_SEND_TIMEOUT'     // Proper timeout format (no ms suffix)
-              value: '60'                               // Value in seconds
-            }
-            {
-              name: 'KONG_NGINX_PROXY_READ_TIMEOUT'     // Proper timeout format (no ms suffix)
-              value: '60'                               // Value in seconds
-            }
           ]
           resources: {
             // Reduced resources for student plan
