@@ -17,7 +17,6 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
   properties: {
     managedEnvironmentId: containerAppEnvironment.id
     configuration: {
-      activeRevisionsMode: 'Single' // Only keep one active revision to reduce resource usage
       secrets: [
         {
           name: 'registry-password'
@@ -56,7 +55,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'KONG_DECLARATIVE_CONFIG'
-              value: '/usr/local/kong/declarative/kong.yml'  // Use standard config name
+              value: '/usr/local/kong/declarative/kong-azure.yml'  // Use the Azure-specific config
             }
             {
               name: 'KONG_PROXY_ACCESS_LOG'
@@ -80,51 +79,22 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'KONG_PROXY_LISTEN'
-              value: '0.0.0.0:8000'  // Simplified listen directive
+              value: '0.0.0.0:8000, 0.0.0.0:8443 ssl'
             }
             {
-              name: 'KONG_LOG_LEVEL'       // Less verbose logging to reduce API calls
-              value: 'error'               // Changed from info/debug to error
-            }
-            {
-              name: 'KONG_PLUGINS'
-              value: 'bundled,cors'  // Minimal plugins
+              name: 'KONG_LOG_LEVEL'
+              value: 'debug'  // More verbose logging to troubleshoot
             }
           ]
           resources: {
-            // Reduced resources for student plan
-            cpu: json('0.5')  // Reduced from 0.5
-            memory: '1.0Gi'    // Reduced from 1.0Gi
+            cpu: json('0.5')
+            memory: '1.0Gi'
           }
-          // Update health check probes to use Kong's health endpoint
-          probes: [
-            {
-              type: 'Startup'
-              httpGet: {
-                path: '/status'   // Use Kong's status endpoint instead of root
-                port: 8001        // Admin API port for status check
-              }
-              initialDelaySeconds: 60  // Increased delay to allow Kong time to initialize
-              failureThreshold: 10     // More retries before failure
-              timeoutSeconds: 10       // More time for the request to complete
-            }
-            {
-              type: 'Liveness' 
-              httpGet: {
-                path: '/status'   // Use Kong's status endpoint instead of root
-                port: 8001        // Admin API port for status check
-              }
-              initialDelaySeconds: 90
-              periodSeconds: 240     
-              timeoutSeconds: 20
-              failureThreshold: 5
-            }
-          ]
         }
       ]
       scale: {
         minReplicas: 1
-        maxReplicas: 1  // Limit to 1 replica
+        maxReplicas: 3
       }
     }
   }
