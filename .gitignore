@@ -6,3 +6,4 @@ Pendo.MessageService/endpoints.md
 Pendo.MessageService/websocket-tester.html
 scripts/check-aca-logs.ps1
 .DS_Store
+scripts/sql-setup.ps1
