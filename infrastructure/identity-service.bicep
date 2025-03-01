@@ -17,6 +17,9 @@ resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' 
 resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
   name: containerAppName
   location: location
+  identity: {
+    type: 'SystemAssigned'  // Enable system-assigned managed identity for database access
+  }
   properties: {
     managedEnvironmentId: containerAppEnvironment.id
     configuration: {
@@ -92,9 +95,6 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
         minReplicas: 1
         maxReplicas: 1
       }
-    }
-    identity: {
-      type: 'SystemAssigned'  // Enable system-assigned managed identity for database access
     }
   }
 }
