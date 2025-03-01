@@ -17,6 +17,7 @@ env:
   KONG_IMAGE_NAME: kong-gateway
   RESOURCE_GROUP: dev
   CONTAINER_APP_NAME: kong-gateway
+  JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
 
 jobs:
   build-and-deploy:
@@ -57,6 +58,8 @@ jobs:
         run: |
           # Replace the placeholder with the actual FQDN
           sed -i "s|pendo-identity-service.greensand-8499b34e.uksouth.azurecontainerapps.io|${{ steps.identity_fqdn.outputs.fqdn }}|g" Pendo.ApiGateway/kong/declarative/kong-azure.yml
+          # Replace the JWT secret placeholder with actual secret
+          sed -i "s|your-shared-secret-key-here|${{ env.JWT_SECRET_KEY }}|g" Pendo.ApiGateway/kong/declarative/kong-azure.yml
           echo "Updated Kong config with Identity Service FQDN: ${{ steps.identity_fqdn.outputs.fqdn }}"
 
       # Build and push with the updated configuration
@@ -67,6 +70,13 @@ jobs:
         run: |
           # Copy the Azure config in place of the regular config for the docker build
           cp Pendo.ApiGateway/kong/declarative/kong-azure.yml Pendo.ApiGateway/kong/declarative/kong.yml
+          
+          # Copy the custom plugins config for Docker build
+          cp Pendo.ApiGateway/kong/declarative/custom-plugins.yml Pendo.ApiGateway/kong/declarative/
+          
+          # Ensure the scripts directory exists in Docker build context
+          mkdir -p Pendo.ApiGateway/kong/scripts/
+          cp Pendo.ApiGateway/scripts/jwt_custom_claims.lua Pendo.ApiGateway/kong/scripts/
           
           docker login ${{ env.ACR_NAME }}.azurecr.io -u $ACR_USERNAME -p $ACR_PASSWORD
           cd Pendo.ApiGateway

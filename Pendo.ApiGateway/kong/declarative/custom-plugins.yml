@@ -1,0 +1,10 @@
+_format_version: "2.1"
+
+plugins:
+  - name: jwt-custom-claims
+    config:
+      script_path: /etc/kong/scripts/jwt_custom_claims.lua
+    enabled: true
+    protocols:
+      - http
+      - https
