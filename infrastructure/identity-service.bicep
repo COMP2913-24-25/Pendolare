@@ -74,20 +74,6 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
             cpu: json('0.25')
             memory: '0.5Gi'
           }
-          probes: [
-            {
-              // Reduced frequency liveness probe
-              type: 'Liveness'
-              httpGet: {
-                path: '/api/ping'
-                port: 8080
-              }
-              initialDelaySeconds: 30  // Increased from 15
-              periodSeconds: 120       // Increased from 30
-              timeoutSeconds: 5
-              failureThreshold: 3
-            }
-          ]
         }
       ]
       scale: {
