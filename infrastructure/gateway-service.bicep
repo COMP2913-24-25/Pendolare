@@ -55,7 +55,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'KONG_DECLARATIVE_CONFIG'
-              value: '/usr/local/kong/declarative/kong-azure.yml'  // Use the Azure-specific config
+              value: '/usr/local/kong/declarative/kong.yml'  // Use standard config name
             }
             {
               name: 'KONG_PROXY_ACCESS_LOG'
@@ -79,11 +79,15 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'KONG_PROXY_LISTEN'
-              value: '0.0.0.0:8000, 0.0.0.0:8443 ssl'
+              value: '0.0.0.0:8000'  // Simplified listen directive
             }
             {
               name: 'KONG_LOG_LEVEL'
-              value: 'debug'  // More verbose logging to troubleshoot
+              value: 'info'  // Less verbose logging for production
+            }
+            {
+              name: 'KONG_PLUGINS'
+              value: 'bundled,cors'  // Minimal plugins
             }
             {
               // Add keepalive interval configuration to reduce overhead
@@ -110,11 +114,6 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
             {
               name: 'KONG_NGINX_PROXY_READ_TIMEOUT'
               value: '60000ms'
-            }
-            // Set necessary plugins
-            {
-              name: 'KONG_PLUGINS'
-              value: 'bundled,cors,rate-limiting,response-transformer'
             }
           ]
           resources: {
