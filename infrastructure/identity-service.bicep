@@ -18,11 +18,12 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
   name: containerAppName
   location: location
   identity: {
-    type: 'SystemAssigned'  // Enable system-assigned managed identity for database access
+    type: 'SystemAssigned'
   }
   properties: {
     managedEnvironmentId: containerAppEnvironment.id
     configuration: {
+      activeRevisionsMode: 'Single' // Only keep one active revision to reduce resource usage
       secrets: [
         {
           name: 'registry-password'
@@ -52,7 +53,6 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
           }
         ]
       }
-      activeRevisionsMode: 'Single'
     }
     template: {
       containers: [
@@ -81,23 +81,64 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
               value: 'Pendolare.Database'
             }
             {
-              name: 'ENABLE_RETRY_POLICY'  // Enable retry policy for database connections
+              name: 'ENABLE_RETRY_POLICY'
               value: 'true'
+            }
+            {
+              name: 'ENABLE_CONNECTION_POOLING'  // Enable connection pooling to reduce DB connections
+              value: 'true'
+            }
+            {
+              name: 'CONNECTION_POOL_SIZE'       // Limit connection pool size
+              value: '5'
+            }
+            {
+              name: 'Logging__LogLevel__Default' // Reduce logging in production
+              value: 'Warning'
+            }
+            {
+              name: 'Logging__LogLevel__Microsoft' 
+              value: 'Warning'
             }
           ]
           resources: {
-            cpu: json('0.5')
-            memory: '1.0Gi'
+            cpu: json('0.25')  // Reduced from 0.5
+            memory: '0.5Gi'    // Reduced from 1.0Gi
           }
+          // Very infrequent health probes to reduce API calls
+          probes: [
+            {
+              type: 'Startup'
+              httpGet: {
+                path: '/api/ping'
+                port: 8080
+              }
+              initialDelaySeconds: 10
+              failureThreshold: 3
+              timeoutSeconds: 5
+              periodSeconds: 20
+            }
+            {
+              type: 'Liveness'
+              httpGet: {
+                path: '/api/ping'
+                port: 8080
+              }
+              initialDelaySeconds: 60
+              periodSeconds: 180     // Only check every 3 minutes
+              timeoutSeconds: 5
+              failureThreshold: 3
+            }
+          ]
         }
       ]
       scale: {
         minReplicas: 1
-        maxReplicas: 1
+        maxReplicas: 1  // Prevent auto-scaling that causes more API calls
       }
     }
   }
 }
 
 output containerAppFQDN string = containerApp.properties.configuration.ingress.fqdn
-output principalId string = containerApp.identity.principalId  // Output the principal ID for role assignments
+output principalId string = containerApp.identity.principalId

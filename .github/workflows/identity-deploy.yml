@@ -13,9 +13,9 @@ on:
 
 env:
   ACR_NAME: pendocontainerregistry
-  IDENTITY_SERVICE_IMAGE_NAME: identity-service  # Updated from pendo-identity-service
+  IDENTITY_SERVICE_IMAGE_NAME: identity-service
   RESOURCE_GROUP: dev
-  CONTAINER_APP_NAME: identity-service  # Updated from pendo-identity-service
+  CONTAINER_APP_NAME: identity-service
 
 jobs:
   build-and-deploy:
@@ -27,6 +27,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    # Add delay at start to ensure any previous workflows have completed
+    - name: Wait for API rate limits to stabilize
+      run: sleep 30
+
     - name: Azure Login
       uses: azure/login@v1
       with:
@@ -35,11 +39,13 @@ jobs:
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         enable-AzPSSession: true
 
-    # Get Kong Gateway FQDN for service integration - make it optional
+    # Get Kong Gateway FQDN - with reduced API calls
     - name: Get Kong Gateway FQDN
       id: kong_fqdn
       continue-on-error: true
       run: |
+        # Use --output none for commands that don't need output to reduce API load
+        echo "Checking for Kong Gateway (reduced API calls)..."
         KONG_FQDN=$(az containerapp show --name kong-gateway --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv 2>/dev/null || echo "")
         if [ -n "$KONG_FQDN" ]; then
           echo "KONG_GATEWAY_FQDN=$KONG_FQDN" >> $GITHUB_ENV
@@ -47,10 +53,12 @@ jobs:
           echo "::set-output name=fqdn::$KONG_FQDN"
           echo "::set-output name=exists::true"
         else
-          echo "Kong Gateway does not exist yet or could not be accessed"
+          echo "Kong Gateway not found or inaccessible - continuing without it"
           echo "KONG_EXISTS=false" >> $GITHUB_ENV
           echo "::set-output name=exists::false"
         fi
+        # Add small delay after API call
+        sleep 5
 
     # Build and push the Identity Service image
     - name: Build and push image to ACR
@@ -58,33 +66,34 @@ jobs:
         ACR_USERNAME: ${{ secrets.ACR_USERNAME }}
         ACR_PASSWORD: ${{ secrets.ACR_PASSWORD }}
       run: |
+        echo "Building and pushing container image..."
         docker login ${{ env.ACR_NAME }}.azurecr.io -u $ACR_USERNAME -p $ACR_PASSWORD
         cd Pendo.IdentityService
         docker build . -f ./Pendo.IdentityService.Api/Dockerfile -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:${{ github.sha }}
         docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:${{ github.sha }}
         docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:${{ github.sha }} ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:latest
         docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IDENTITY_SERVICE_IMAGE_NAME }}:latest
+        
+        # Add delay after ACR operations
+        sleep 10
 
-    # Validate the database connection string before deploying - fixed version
+    # Validate the database connection string before deploying
     - name: Validate Database Connection String
       run: |
-        # Check if the connection string secret is set (not its content)
+        # Simple check without excessive API calls
         if [ "${{ secrets.AZURE_SQL_CONNECTION_STRING != '' }}" != "true" ]; then
           echo "::error::AZURE_SQL_CONNECTION_STRING is not set. Please set it in GitHub Secrets."
           exit 1
         fi
-        
-        # We can't do further validation on the actual content since shell scripts and GitHub Actions
-        # don't handle complex strings with special characters well
-        echo "Database connection string secret exists."
-        echo "Make sure it contains 'Trust Server Certificate=True' for Azure Container Apps."
+        echo "Database connection string exists."
 
-    # Deploy the Identity Service with SQL service connection
+    # Deploy the Identity Service
     - name: Deploy Container App
       uses: azure/CLI@v1
       with:
         inlineScript: |
-          # Deploy with each parameter separately
+          echo "Deploying container app (this may take a few minutes)..."
+          # Deploy with reduced verbosity
           az deployment group create \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --template-file infrastructure/identity-service.bicep \
@@ -94,16 +103,20 @@ jobs:
             --parameters registryUsername=${{ secrets.ACR_USERNAME }} \
             --parameters registryPassword='${{ secrets.ACR_PASSWORD }}' \
             --parameters dbConnectionString='${{ secrets.AZURE_SQL_CONNECTION_STRING }}' \
-            --parameters kongGatewayFqdn='${{ steps.kong_fqdn.outputs.fqdn }}'
+            --parameters kongGatewayFqdn='${{ steps.kong_fqdn.outputs.fqdn }}' \
+            --output none
+          
+          # Add longer delay after major deployment
+          sleep 15
 
-    # Configure SQL Server firewall to allow Container App access - simplified version
+    # Configure SQL Server firewall - with fewer API calls
     - name: Configure SQL Server Firewall
       uses: azure/CLI@v1
       with:
         inlineScript: |
-          echo "Configuring SQL Firewall rules to allow Container App access..."
+          echo "Configuring SQL Firewall rules..."
           
-          # Allow Azure Services
+          # Create firewall rules silently
           echo "Adding 'Allow Azure Services' rule to SQL firewall..."
           az sql server firewall-rule create \
             --resource-group ${{ env.RESOURCE_GROUP }} \
@@ -113,15 +126,15 @@ jobs:
             --end-ip-address 0.0.0.0 \
             --output none
           
-          # Get Container App Environment static outbound IP
+          # Add delay between API calls
+          sleep 5
+          
+          # Get Container App Environment static outbound IP with minimal query
           echo "Getting Container App outbound IP..."
           OUTBOUND_IP=$(az containerapp env show --name pendo-env-dev --resource-group ${{ env.RESOURCE_GROUP }} --query properties.staticIp -o tsv)
           
           if [ -n "$OUTBOUND_IP" ]; then
-            echo "Outbound IP detected: $OUTBOUND_IP"
-            
-            # Try to create the rule directly
-            echo "Adding outbound IP to SQL firewall rules..."
+            echo "Adding outbound IP $OUTBOUND_IP to SQL firewall rules..."
             az sql server firewall-rule create \
               --resource-group ${{ env.RESOURCE_GROUP }} \
               --server pendolare \
@@ -129,24 +142,25 @@ jobs:
               --start-ip-address "$OUTBOUND_IP" \
               --end-ip-address "$OUTBOUND_IP" \
               --output none \
-              || echo "Failed to create firewall rule, but continuing as Azure Services rule should work"
-          else
-            echo "Warning: Could not determine Container App outbound IP! Continuing with 'Allow Azure Services' rule only."
+              || echo "Failed to create outbound IP rule, but continuing with Azure Services rule"
           fi
           
-          echo "SQL Firewall rules configuration complete"
+          # Longer delay to avoid rate limits
+          sleep 10
 
-    # Wait for identity service to be ready
+    # Wait for identity service to be ready - with increased wait time
     - name: Wait for service to be ready
       run: |
         echo "Waiting for identity-service to be ready..."
-        sleep 30
+        # Increase wait time to 60 seconds to reduce subsequent API call pressure
+        sleep 60
 
-    # Get Identity Service FQDN
+    # Get Identity Service FQDN - with minimal API calls
     - name: Get Identity Service FQDN
       id: identity_fqdn
       continue-on-error: true
       run: |
+        echo "Getting Identity Service FQDN..."
         IDENTITY_FQDN=$(az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv 2>/dev/null || echo "")
         if [ -n "$IDENTITY_FQDN" ]; then
           echo "IDENTITY_SERVICE_FQDN=$IDENTITY_FQDN" >> $GITHUB_ENV
@@ -158,6 +172,8 @@ jobs:
           echo "IDENTITY_EXISTS=false" >> $GITHUB_ENV
           echo "::set-output name=exists::false"
         fi
+        # Add delay after API call
+        sleep 5
     
     # Update Kong configuration if necessary - without creating a PR
     - name: Update Kong configuration with Identity Service FQDN
@@ -172,63 +188,7 @@ jobs:
         IDENTITY_FQDN="${{ steps.identity_fqdn.outputs.fqdn }}"
         echo "Identity Service FQDN: $IDENTITY_FQDN"
         
-        # Instead of creating a PR, print instructions for manual update
-        echo "::warning::Kong configuration needs to be updated"
-        echo "::warning::Please update the identity-service URL in kong-azure.yml to: https://$IDENTITY_FQDN"
-        
-        # Get Kong Gateway FQDN to display for manual testing
-        KONG_FQDN="${{ steps.kong_fqdn.outputs.fqdn }}"
-        echo "::notice::Kong Gateway is at: https://$KONG_FQDN"
-        echo "::notice::After updating Kong, test with: curl -i https://$KONG_FQDN/api/ping"
-        
-        # Output a summary file that can be used in GitHub Actions summary
-        echo "# Kong Gateway Update Required" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "The Identity Service has been deployed successfully with FQDN: \`$IDENTITY_FQDN\`" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Please update the Kong Gateway configuration in \`Pendo.ApiGateway/kong/declarative/kong-azure.yml\` to use this FQDN." >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Required Change:" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`yaml" >> $GITHUB_STEP_SUMMARY
-        echo "services:" >> $GITHUB_STEP_SUMMARY
-        echo "  - name: identity-service" >> $GITHUB_STEP_SUMMARY
-        echo "    url: https://$IDENTITY_FQDN" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-
-    # Deploy a configuration update script for manual updates
-    - name: Save Kong update script
-      if: env.KONG_EXISTS == 'true' && env.IDENTITY_EXISTS == 'true'
-      run: |
-        # Create a helpful script for manually updating Kong configuration
-        cat > ./update-kong-config.sh << EOL
-        #!/bin/bash
-        
-        # This script updates Kong Gateway configuration with the latest Identity Service FQDN
-        
-        IDENTITY_FQDN="${{ steps.identity_fqdn.outputs.fqdn }}"
-        KONG_GATEWAY_FQDN="${{ steps.kong_fqdn.outputs.fqdn }}"
-        
-        # Install yq if not available
-        if ! [ -x "\$(command -v yq)" ]; then
-          echo "Installing yq..."
-          wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-          chmod +x /usr/local/bin/yq
-        fi
-        
-        # Update Kong config
-        echo "Updating Kong configuration with Identity Service FQDN: \$IDENTITY_FQDN"
-        yq -i '.services[] |= select(.name == "identity-service").url = "https://'\$IDENTITY_FQDN'"' Pendo.ApiGateway/kong/declarative/kong-azure.yml
-        
-        echo "Configuration updated. Now rebuild and deploy Kong Gateway"
-        echo "After deploying, test with: curl -i https://\$KONG_GATEWAY_FQDN/api/ping"
-        EOL
-        
-        chmod +x ./update-kong-config.sh
-        
-        echo "::notice::Created update script: ./update-kong-config.sh"
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Automatic Update" >> $GITHUB_STEP_SUMMARY
-        echo "Run the generated script to automatically update your Kong configuration:" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-        echo "./update-kong-config.sh" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        # Output manual instructions instead of making more API calls
+        echo "::notice::Kong Gateway is at: https://${{ steps.kong_fqdn.outputs.fqdn }}"
+        echo "::notice::Identity Service is at: https://$IDENTITY_FQDN"
+        echo "::notice::After updating Kong, test with: curl -i https://${{ steps.kong_fqdn.outputs.fqdn }}/api/ping"

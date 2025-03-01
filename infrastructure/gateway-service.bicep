@@ -17,6 +17,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
   properties: {
     managedEnvironmentId: containerAppEnvironment.id
     configuration: {
+      activeRevisionsMode: 'Single' // Only keep one active revision to reduce resource usage
       secrets: [
         {
           name: 'registry-password'
@@ -82,8 +83,8 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
               value: '0.0.0.0:8000'  // Simplified listen directive
             }
             {
-              name: 'KONG_LOG_LEVEL'
-              value: 'info'  // Less verbose logging for production
+              name: 'KONG_LOG_LEVEL'       // Less verbose logging to reduce API calls
+              value: 'error'               // Changed from info/debug to error
             }
             {
               name: 'KONG_PLUGINS'
@@ -118,9 +119,33 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
           ]
           resources: {
             // Reduced resources for student plan
-            cpu: json('0.5')  // Reduced from 0.5
-            memory: '1.0Gi'    // Reduced from 1.0Gi
+            cpu: json('0.25')  // Reduced from 0.5
+            memory: '0.5Gi'    // Reduced from 1.0Gi
           }
+          // Extremely infrequent health checks to prevent rate limits
+          probes: [
+            {
+              type: 'Startup'
+              httpGet: {
+                path: '/status'
+                port: 8000
+              }
+              initialDelaySeconds: 30
+              failureThreshold: 5
+              timeoutSeconds: 5
+            }
+            {
+              type: 'Liveness' 
+              httpGet: {
+                path: '/status'
+                port: 8000
+              }
+              initialDelaySeconds: 60
+              periodSeconds: 300     // Check only once every 5 minutes
+              timeoutSeconds: 10
+              failureThreshold: 5
+            }
+          ]
         }
       ]
       scale: {
