@@ -126,6 +126,10 @@ async def setup_http_server():
     logger.info(f"HTTP server started on port {HTTP_PORT}")
     return runner
 
+async def invalid_request_handler(path, request_headers):
+    logger.warning(f"Invalid request on WebSocket path: {path} with headers {request_headers}")
+    return http.HTTPStatus.BAD_REQUEST, [], b"400 Bad Request - This endpoint only supports WebSocket connections"
+
 # Setup WebSocket server
 async def setup_ws_server():
     server = await websockets.serve(
@@ -134,7 +138,8 @@ async def setup_ws_server():
         WS_PORT,
         ping_interval=20,
         ping_timeout=60,
-        close_timeout=60
+        close_timeout=60,
+        process_request=invalid_request_handler
     )
     logger.info(f"WebSocket server started on port {WS_PORT}")
     return server
