@@ -6,15 +6,12 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the entrypoint script and make it executable
-COPY entrypoint.sh .
-RUN chmod +x /app/entrypoint.sh
-
-# Copy the rest of the application
+# Copy the application
 COPY . .
 
-# Set PYTHONPATH to include the app directory
+# Set environment variables
 ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
 
-# Use entrypoint script
-CMD ["/app/entrypoint.sh"]
+# Run directly with Python interpreter (not as a module)
+CMD ["python", "run_servers.py"]
