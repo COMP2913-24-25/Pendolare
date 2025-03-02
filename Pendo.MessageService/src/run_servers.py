@@ -11,21 +11,18 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Add parent directory to sys.path if needed
+# Add current directory to path to ensure app can be imported
 current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-if parent_dir not in sys.path:
-    sys.path.insert(0, parent_dir)
-
-# Import the app module
-try:
-    from src.app import main as app_main
-    logger.info("Successfully imported app module from src package")
-except ImportError:
-    # Try direct import as fallback
+if current_dir not in sys.path:
     sys.path.insert(0, current_dir)
+
+# Import the app module directly
+try:
     from app import main as app_main
-    logger.info("Successfully imported app module directly")
+    logger.info("Successfully imported app module")
+except ImportError as e:
+    logger.error(f"Failed to import app module: {e}")
+    raise
 
 async def main():    
     logger.info("Starting WebSocket server from run_servers.py")
