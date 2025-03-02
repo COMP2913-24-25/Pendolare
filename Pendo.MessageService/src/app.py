@@ -30,24 +30,55 @@ async def http_handler(request_path):
     return http.HTTPStatus.NOT_FOUND, [("Content-Type", "text/plain")], b"Not Found"
 
 async def process_request(path, request_headers):
-    # Log all headers for debugging
-    logger.debug(f"Received headers for path {path}: {dict(request_headers)}")
+    # Fix for TypeError: 'Request' object is not iterable
+    # In newer versions of websockets, request_headers is a Request object
+    try:
+        # Try to access headers as dictionary for newer websockets versions
+        headers_dict = dict(request_headers.raw_items()) if hasattr(request_headers, 'raw_items') else dict(request_headers)
+        logger.debug(f"Received headers for path {path}: {headers_dict}")
+    except (TypeError, AttributeError):
+        # Fallback if we can't convert to dictionary
+        logger.debug(f"Received request for path {path} (headers unavailable)")
     
     # Check if this is a health check request
     if not path.startswith("/ws"):
         return await http_handler(path)
         
-    # Handle WebSocket upgrade
-    connection = request_headers.get("Connection", "").lower()
-    upgrade = request_headers.get("Upgrade", "").lower()
+    # Handle WebSocket upgrade - accessing headers safely
+    connection = None
+    upgrade = None
     
-    if "upgrade" in connection and upgrade == "websocket":
+    try:
+        if hasattr(request_headers, 'get'):
+            # If headers object has get method
+            connection = request_headers.get("Connection", "").lower()
+            upgrade = request_headers.get("Upgrade", "").lower()
+        else:
+            # Try to access as dictionary
+            connection = headers_dict.get("Connection", "").lower()
+            upgrade = headers_dict.get("Upgrade", "").lower()
+    except Exception as e:
+        logger.error(f"Error accessing headers: {str(e)}")
+    
+    if connection and "upgrade" in connection and upgrade == "websocket":
         logger.info(f"Valid WebSocket upgrade request received for path: {path}")
-        # Check for proxy headers
-        forwarded_for = request_headers.get("X-Forwarded-For")
-        forwarded_proto = request_headers.get("X-Forwarded-Proto")
+        
+        # Check for proxy headers - safely
+        forwarded_for = None
+        forwarded_proto = None
+        try:
+            if hasattr(request_headers, 'get'):
+                forwarded_for = request_headers.get("X-Forwarded-For")
+                forwarded_proto = request_headers.get("X-Forwarded-Proto")
+            else:
+                forwarded_for = headers_dict.get("X-Forwarded-For")
+                forwarded_proto = headers_dict.get("X-Forwarded-Proto")
+        except Exception:
+            pass
+            
         if forwarded_for or forwarded_proto:
             logger.info(f"Request proxied from {forwarded_for}, protocol {forwarded_proto}")
+            
         return None  # Proceed with WebSocket handshake
     
     logger.warning(f"Invalid WebSocket request. Connection: {connection}, Upgrade: {upgrade}")

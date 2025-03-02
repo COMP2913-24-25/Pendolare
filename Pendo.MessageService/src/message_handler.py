@@ -243,15 +243,15 @@ class MessageHandler:
             self.message_store[conversation_id] = []
         self.message_store[conversation_id].append(message)
         
-        # Send to all users in this conversation
-        if conversation_id in self.conversations:
-            for user_id in self.conversations[conversation_id]:
-                if user_id in self.user_connections:
-                    try:
-                        await self.user_connections[user_id].send(json.dumps(message))
-                    except websockets.exceptions.ConnectionClosed:
-                        logger.info(f"Connection closed for user {user_id}")
-                        self.remove_user(user_id)
+        # Log message for debugging
+        logger.debug(f"Broadcasting message to conversation {conversation_id}: {message}")
+        
+        # Broadcast to ALL users in this conversation, including sender
+        # This ensures everyone gets the same message with the same timestamp
+        await self._broadcast_to_conversation(conversation_id, message)
+        
+        # The sender will receive their own message back, which can be useful
+        # for confirmation and consistent display across all clients
 
     async def _handle_typing_notification(self, message):
         """Handle typing notification"""
@@ -292,9 +292,48 @@ class MessageHandler:
         if conversation_id not in self.conversations:
             self.conversations[conversation_id] = set()
         
+        # Add user to conversation
         self.conversations[conversation_id].add(user_id)
         logger.info(f"User {user_id} joined conversation {conversation_id}")
         
+        # Send confirmation to the user
+        user_socket = self.user_connections.get(user_id)
+        if user_socket:
+            await user_socket.send(json.dumps({
+                'type': 'conversation_joined',
+                'conversation_id': conversation_id,
+                'timestamp': datetime.utcnow().isoformat(),
+                'message': f'Successfully joined conversation {conversation_id}'
+            }))
+        
+        # Notify other users in the conversation
+        join_notification = {
+            'type': 'user_joined',
+            'user_id': user_id,
+            'conversation_id': conversation_id,
+            'timestamp': datetime.utcnow().isoformat()
+        }
+        
+        # Broadcast to other users in the conversation
+        await self._broadcast_to_conversation(conversation_id, join_notification, exclude_user=user_id)
+
+    async def _broadcast_to_conversation(self, conversation_id, message, exclude_user=None):
+        """Broadcast a message to all users in a conversation, optionally excluding one user"""
+        if conversation_id not in self.conversations:
+            return
+            
+        for user_id in self.conversations[conversation_id]:
+            # Skip the excluded user if specified
+            if exclude_user and user_id == exclude_user:
+                continue
+                
+            if user_id in self.user_connections:
+                try:
+                    await self.user_connections[user_id].send(json.dumps(message))
+                except websockets.exceptions.ConnectionClosed:
+                    logger.info(f"Connection closed for user {user_id}")
+                    self.remove_user(user_id)
+
     async def _handle_leave_conversation(self, message):
         """Handle user leaving a conversation"""
         if not all(k in message for k in ['user_id', 'conversation_id']):
