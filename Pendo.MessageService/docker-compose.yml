@@ -6,9 +6,3 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5006:5006"
-    networks:
-      - kong-net
-
-networks:
-  kong-net:
-    external: true
