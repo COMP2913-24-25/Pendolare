@@ -1,23 +1,33 @@
 import { router } from "expo-router";
 import { useState, useEffect } from "react";
-import { Alert, ScrollView, View, TouchableOpacity } from "react-native";
+import {
+  Alert,
+  ScrollView,
+  View,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import { ReactNativeModal } from "react-native-modal";
 
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import { Text } from "@/components/ThemedText";
 import VerificationCodeInput from "@/components/VerificationCodeInput";
+import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import { requestOTP, verifyOTP } from "@/services/authService";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
   const [countdown, setCountdown] = useState(0);
+  const [loading, setLoading] = useState(false);
   const [verification, setVerification] = useState({
     state: "default",
     error: "",
     code: "",
   });
 
+  const { setIsLoggedIn } = useAuth();
   const { isDarkMode } = useTheme();
 
   useEffect(() => {
@@ -29,24 +39,75 @@ const SignIn = () => {
   }, [countdown]);
 
   const sendVerificationCode = async () => {
-    try {
-      setVerification({
-        ...verification,
-        state: "pending",
-      });
-      setCountdown(5); // Start 5 second countdown
-    } catch (err: any) {
-      console.log(JSON.stringify(err, null, 2));
-      Alert.alert("Error", "Failed to send verification code");
-    }
-  };
-
-  const onSignInPress = async () => {
     if (!email) {
       Alert.alert("Error", "Please enter your email");
       return;
     }
+
+    try {
+      setLoading(true);
+      const response = await requestOTP(email);
+
+      if (response.success) {
+        setVerification({
+          ...verification,
+          state: "pending",
+          error: "",
+        });
+        setCountdown(60); // 60 second countdown for resending code
+      } else {
+        Alert.alert(
+          "Error",
+          response.message || "Failed to send verification code",
+        );
+      }
+    } catch (err: any) {
+      console.error(JSON.stringify(err, null, 2));
+      Alert.alert(
+        "Error",
+        "Failed to send verification code. Please try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onSignInPress = async () => {
     await sendVerificationCode();
+  };
+
+  const handleVerifyOTP = async () => {
+    if (verification.code.length !== 6) {
+      setVerification({
+        ...verification,
+        error: "Please enter a valid 6-digit code",
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await verifyOTP(email, verification.code);
+
+      if (response.authenticated) {
+        // Login successful
+        setIsLoggedIn(true);
+        router.replace("/home/tabs/home");
+      } else {
+        setVerification({
+          ...verification,
+          error: response.error || "Invalid verification code",
+        });
+      }
+    } catch (err: any) {
+      console.error(JSON.stringify(err, null, 2));
+      setVerification({
+        ...verification,
+        error: "Verification failed. Please try again.",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleBypass = () => {
@@ -74,14 +135,15 @@ const SignIn = () => {
             labelStyle={isDarkMode ? "text-gray-300" : "text-gray-600"}
             containerStyle={
               isDarkMode
-                ? "bg-slate-700 bsorder-slate-600"
+                ? "bg-slate-700 border-slate-600"
                 : "bg-neutral-100 border-neutral-100"
             }
             inputStyle={isDarkMode ? "text-white" : "text-black"}
           />
           <CustomButton
-            title="Sign In"
+            title={loading ? "Please wait..." : "Sign In"}
             onPress={onSignInPress}
+            disabled={loading}
             className="mt-6"
           />
 
@@ -99,6 +161,13 @@ const SignIn = () => {
               TESTING: BYPASS
             </Text>
           </TouchableOpacity>
+
+          <View className="mt-6 flex-row justify-center">
+            <Text className="font-Jakarta">Don't have an account? </Text>
+            <TouchableOpacity onPress={() => router.replace("/auth/sign-up")}>
+              <Text className="text-blue-500 font-JakartaMedium">Sign Up</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <ReactNativeModal isVisible={verification.state === "pending"}>
@@ -116,7 +185,7 @@ const SignIn = () => {
             <VerificationCodeInput
               code={verification.code}
               onCodeChange={(code) =>
-                setVerification({ ...verification, code })
+                setVerification({ ...verification, code, error: "" })
               }
             />
             {verification.error && (
@@ -125,13 +194,16 @@ const SignIn = () => {
               </Text>
             )}
             <CustomButton
-              title="Verify & Sign In"
-              onPress={() => router.replace("/home/tabs/home")}
+              title={loading ? "Verifying..." : "Verify & Sign In"}
+              onPress={handleVerifyOTP}
+              disabled={loading}
               className="mt-5 bg-success-500"
             />
 
             <View className="mt-4 items-center">
-              {countdown > 0 ? (
+              {loading ? (
+                <ActivityIndicator color={isDarkMode ? "#fff" : "#000"} />
+              ) : countdown > 0 ? (
                 <Text
                   className={isDarkMode ? "text-gray-400" : "text-gray-500"}
                 >

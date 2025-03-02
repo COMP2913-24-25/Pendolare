@@ -1,5 +1,4 @@
 export const icons = {
-  // Replace image assets with FontAwesome icon names
   home: "home",
   search: "search",
   chat: "comment",
@@ -45,6 +44,14 @@ export const onboarding = [
 
 export const data = {
   onboarding,
+};
+
+// API Constants
+export const API_BASE_URL =
+  "https://kong-gateway.greensand-8499b34e.uksouth.azurecontainerapps.io/api";
+export const AUTH_ENDPOINTS = {
+  REQUEST_OTP: "/auth/request-otp",
+  VERIFY_OTP: "/auth/verify-otp",
 };
 
 // Dummy data generated utilising machine learning models
@@ -99,12 +106,12 @@ interface DemoChat {
   timestamp: number;
   unread: number;
   avatar: null;
-  messages: Array<{
+  messages: {
     id: number;
     sender: string;
     text: string;
     timestamp: number;
-  }>;
+  }[];
 }
 
 export const demoChats: DemoChat[] = [

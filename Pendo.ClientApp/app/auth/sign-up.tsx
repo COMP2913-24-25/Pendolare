@@ -1,21 +1,32 @@
 import { router } from "expo-router";
 import { useState, useEffect } from "react";
-import { Alert, ScrollView, View, TouchableOpacity } from "react-native";
+import {
+  Alert,
+  ScrollView,
+  View,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import { ReactNativeModal } from "react-native-modal";
 
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import { Text } from "@/components/ThemedText";
 import VerificationCodeInput from "@/components/VerificationCodeInput";
+import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import { requestOTP, verifyOTP } from "@/services/authService";
 
 const Signup = () => {
   const { isDarkMode } = useTheme();
+  const { setIsLoggedIn } = useAuth();
+
   const [form, setForm] = useState({
     name: "",
     email: "",
   });
 
+  const [loading, setLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [verification, setVerification] = useState({
     state: "default",
@@ -32,15 +43,36 @@ const Signup = () => {
   }, [countdown]);
 
   const sendVerificationCode = async () => {
+    if (!form.email) {
+      Alert.alert("Error", "Please enter your email");
+      return;
+    }
+
     try {
-      setVerification({
-        ...verification,
-        state: "pending",
-      });
-      setCountdown(5);
+      setLoading(true);
+      const response = await requestOTP(form.email);
+
+      if (response.success) {
+        setVerification({
+          ...verification,
+          state: "pending",
+          error: "",
+        });
+        setCountdown(60); // 60 second countdown for resending code
+      } else {
+        Alert.alert(
+          "Error",
+          response.message || "Failed to send verification code",
+        );
+      }
     } catch (err: any) {
-      console.log(JSON.stringify(err, null, 2));
-      Alert.alert("Error", "Failed to send verification code");
+      console.error(JSON.stringify(err, null, 2));
+      Alert.alert(
+        "Error",
+        "Failed to send verification code. Please try again.",
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -50,6 +82,40 @@ const Signup = () => {
       return;
     }
     await sendVerificationCode();
+  };
+
+  const handleVerifyOTP = async () => {
+    if (verification.code.length !== 6) {
+      setVerification({
+        ...verification,
+        error: "Please enter a valid 6-digit code",
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await verifyOTP(form.email, verification.code);
+
+      if (response.authenticated) {
+        // Registration/Login successful
+        setIsLoggedIn(true);
+        router.replace("/home/tabs/home");
+      } else {
+        setVerification({
+          ...verification,
+          error: response.error || "Invalid verification code",
+        });
+      }
+    } catch (err: any) {
+      console.error(JSON.stringify(err, null, 2));
+      setVerification({
+        ...verification,
+        error: "Verification failed. Please try again.",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -93,8 +159,9 @@ const Signup = () => {
             inputStyle={isDarkMode ? "text-white" : "text-black"}
           />
           <CustomButton
-            title="Sign Up"
+            title={loading ? "Please wait..." : "Sign Up"}
             onPress={onSignUpPress}
+            disabled={loading}
             className="mt-6"
           />
 
@@ -121,7 +188,7 @@ const Signup = () => {
             <VerificationCodeInput
               code={verification.code}
               onCodeChange={(code) =>
-                setVerification({ ...verification, code })
+                setVerification({ ...verification, code, error: "" })
               }
             />
             {verification.error && (
@@ -130,13 +197,16 @@ const Signup = () => {
               </Text>
             )}
             <CustomButton
-              title="Create Account"
-              onPress={() => router.replace("/home/tabs/home")}
+              title={loading ? "Verifying..." : "Create Account"}
+              onPress={handleVerifyOTP}
+              disabled={loading}
               className="mt-5 bg-success-500"
             />
 
             <View className="mt-4 items-center">
-              {countdown > 0 ? (
+              {loading ? (
+                <ActivityIndicator color={isDarkMode ? "#fff" : "#000"} />
+              ) : countdown > 0 ? (
                 <Text
                   className={isDarkMode ? "text-gray-400" : "text-gray-500"}
                 >
