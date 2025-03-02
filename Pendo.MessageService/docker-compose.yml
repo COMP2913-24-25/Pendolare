@@ -5,9 +5,15 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "5006:5006"
+      - "5006:5006"  # WebSocket port
+      - "5007:5007"  # HTTP port
     networks:
       - kong-net
+    environment:
+      - WS_PORT=5006
+      - HTTP_PORT=5007
+      - LOG_LEVEL=DEBUG
+      - PYTHONUNBUFFERED=1
 
 networks:
   kong-net:
