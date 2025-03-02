@@ -10,6 +10,7 @@ import time
 import http
 from datetime import datetime
 from src.message_handler import MessageHandler
+from aiohttp import web
 
 logging.basicConfig(
     level=os.environ.get("LOG_LEVEL", "DEBUG"),
@@ -19,19 +20,30 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 WS_PORT = int(os.environ.get("WS_PORT", "5006"))
+HTTP_PORT = int(os.environ.get("HTTP_PORT", "5007"))
 message_handler = MessageHandler()
 
-# Simple HTTP handler for health checks
-async def http_handler(request_path):
-    if request_path == "/health" or request_path == "/":
-        content = json.dumps({
-            "status": "healthy",
-            "timestamp": datetime.now().isoformat()
-        }).encode()
-        return (http.HTTPStatus.OK, [("Content-Type", "application/json")], content)
-    return (http.HTTPStatus.NOT_FOUND, [("Content-Type", "text/plain")], b"Not Found")
+# HTTP routes for health checks
+async def health_check(request):
+    """HTTP endpoint for health checks"""
+    return web.json_response({
+        "status": "healthy",
+        "timestamp": datetime.now().isoformat(),
+        "service": "message-service"
+    })
 
-# Update handler to match the new websockets library signature
+async def root_handler(request):
+    """Root HTTP endpoint"""
+    return web.json_response({
+        "service": "Pendo Message Service", 
+        "version": "1.0",
+        "endpoints": {
+            "health": "/health",
+            "websocket": f"ws://localhost:{WS_PORT}/ws"
+        }
+    })
+
+# WebSocket handler
 async def websocket_handler(websocket):
     # Extract path from websocket object
     path = getattr(websocket, 'path', '/ws')
@@ -101,20 +113,46 @@ async def websocket_handler(websocket):
                 break
         logger.info(f"WebSocket connection ended: {client_id}")
 
-async def main():
-    logger.info(f"Starting WebSocket server on port {WS_PORT}")
+# Setup HTTP server
+async def setup_http_server():
+    app = web.Application()
+    app.router.add_get('/health', health_check)
+    app.router.add_get('/', root_handler)
     
-    # Simplify the server setup by removing the process_request callback
-    async with websockets.serve(
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, '0.0.0.0', HTTP_PORT)
+    await site.start()
+    logger.info(f"HTTP server started on port {HTTP_PORT}")
+    return runner
+
+# Setup WebSocket server
+async def setup_ws_server():
+    server = await websockets.serve(
         websocket_handler,
         "0.0.0.0",
         WS_PORT,
         ping_interval=20,
         ping_timeout=60,
         close_timeout=60
-    ):
-        logger.info(f"WebSocket server started on port {WS_PORT}")
-        await asyncio.Future()  # run forever
+    )
+    logger.info(f"WebSocket server started on port {WS_PORT}")
+    return server
+
+async def main():
+    logger.info("Starting Message Service servers")
+    
+    try:
+        # Start both HTTP and WebSocket servers
+        http_runner = await setup_http_server()
+        ws_server = await setup_ws_server()
+        
+        # Keep the servers running
+        await asyncio.Future()
+    except Exception as e:
+        logger.error(f"Error starting servers: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise
 
 if __name__ == "__main__":
     asyncio.run(main())

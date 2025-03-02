@@ -47,6 +47,7 @@ async def main():
         logger.error(f"Unexpected error: {str(e)}")
         import traceback
         logger.error(traceback.format_exc())
+        sys.exit(1)
 
 if __name__ == "__main__":
     try:
