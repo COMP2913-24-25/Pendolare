@@ -1,5 +1,5 @@
 from .models import Booking, User, Journey, BookingAmmendment, Configuration
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, with_loader_criteria
 from .db_provider import get_db
 from datetime import datetime
 
@@ -18,9 +18,67 @@ class BookingRepository():
         """
         GetBookingsForUser method returns all the bookings for a specific user.
         :param user_id: Id of the user.
-        :return: List of bookings for the user.
+        :return: List of bookings for the user, along with journey (altered by any ammendments) and booking status.
         """
-        return self.db_session.query(Booking).filter(Booking.UserId == user_id).options(joinedload(Booking.BookingStatus_)).all()
+        return_dto = []
+        bookings = self.db_session.query(Booking)\
+            .filter(Booking.UserId == user_id)\
+            .options(
+                joinedload(Booking.BookingStatus_),
+                joinedload(Booking.Journey_),
+                joinedload(Booking.BookingAmmendment),
+                with_loader_criteria(BookingAmmendment, BookingAmmendment.DriverApproval and BookingAmmendment.PassengerApproval))\
+            .all()
+        
+        for booking in bookings:
+            startName, startLong, startLat, endName, endLong, endLat, rideTime, price = (None,) * 8
+
+            if booking.BookingAmmendment:
+                for amendment in sorted(booking.BookingAmmendment, key=lambda x: x.CreateDate):
+                    startName = self.setIfNotNull(amendment.StartName)
+                    startLong = self.setIfNotNull(amendment.StartLong)
+                    startLat = self.setIfNotNull(amendment.StartLat)
+                    endName = self.setIfNotNull(amendment.EndName)
+                    endLong = self.setIfNotNull(amendment.EndLong)
+                    endLat = self.setIfNotNull(amendment.EndLat)
+                    rideTime = self.setIfNotNull(amendment.StartTime)
+                    price = self.setIfNotNull(amendment.ProposedPrice)
+
+            return_dto.append({
+                "Booking": {
+                    "BookingId": booking.BookingId,
+                    "UserId": booking.UserId,
+                    "FeeMargin": booking.FeeMargin,
+                    "RideTime": self.setDefaultIfNotNull(rideTime, booking.RideTime)
+                },
+                "BookingStatus": {
+                    "StatusId": booking.BookingStatusId,
+                    "Status": booking.BookingStatus_.Status,
+                    "Description": booking.BookingStatus_.Description
+                },
+                "Journey": {
+                    "JourneyId": booking.JourneyId,
+                    "UserId": booking.Journey_.UserId,
+                    "StartName": self.setDefaultIfNotNull(startName, booking.Journey_.StartName),
+                    "StartLong": self.setDefaultIfNotNull(startLong, booking.Journey_.StartLong),
+                    "StartLat": self.setDefaultIfNotNull(startLat, booking.Journey_.StartLat),
+                    "EndName": self.setDefaultIfNotNull(endName, booking.Journey_.EndName),
+                    "EndLong": self.setDefaultIfNotNull(endLong, booking.Journey_.EndLong),
+                    "EndLat": self.setDefaultIfNotNull(endLat, booking.Journey_.EndLat),
+                    "Price": self.setDefaultIfNotNull(price, booking.Journey_.AdvertisedPrice),
+                    "JourneyStatusId": booking.Journey_.JourneyStatusId,
+                    "JourneyType": booking.Journey_.JourneyType
+                }
+            })
+
+        return return_dto
+
+    
+    def setDefaultIfNotNull(self, value, default):
+        return value if value is not None else default
+    
+    def setIfNotNull(self, value):
+        return value if value is not None else None
     
     def GetUser(self, user_id):
         """
