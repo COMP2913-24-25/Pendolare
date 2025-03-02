@@ -17,13 +17,16 @@ logger = logging.getLogger(__name__)
 
 WS_PORT = int(os.environ.get("WS_PORT", "5006"))
 
-# Simplified process_request function without Kong-specific checks
 async def process_request(path, request_headers):
     # Ensure the request is a websocket upgrade request.
     upgrade = request_headers.get("Upgrade", "").lower()
     if upgrade != "websocket":
         logger.warning("Non-websocket request received. Rejecting.")
         return 426, [("Content-Type", "text/plain")], b"Upgrade Required"
+    # Check for TLS termination indicators from Kong (e.g. X-Forwarded-Proto)
+    forwarded_proto = request_headers.get("X-Forwarded-Proto", "").lower()
+    if forwarded_proto == "https":
+        logger.info("TLS termination detected via Kong (X-Forwarded-Proto: https)")
     return None  # Proceed with handshake
 
 async def websocket_handler(websocket, path):
@@ -61,7 +64,6 @@ async def websocket_handler(websocket, path):
         logger.info(f"WebSocket connection ended: {client_id}")
 
 async def main():
-    logger.info(f"Starting without SSL (WS)")
     async with websockets.serve(
         websocket_handler,
         "0.0.0.0",

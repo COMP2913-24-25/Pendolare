@@ -1,6 +1,6 @@
 FROM python:3.9-slim
 
-WORKDIR /src
+WORKDIR /app
 
 COPY requirements.txt .
 COPY test-requirements.txt .

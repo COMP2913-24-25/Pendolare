@@ -55,10 +55,6 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
               value: '1'  // Ensure Python logs are unbuffered
             }
             {
-              name: 'KONG_GATEWAY_URL'  
-              value: !empty(kongGatewayFqdn) ? 'https://${kongGatewayFqdn}' : ''
-            }
-            {
               name: 'LOG_LEVEL'
               value: 'DEBUG'  // Set to DEBUG for more verbose logging
             }
@@ -71,7 +67,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
       ]
       scale: {
         minReplicas: 1
-        maxReplicas: 3
+        maxReplicas: 1
       }
     }
   }
