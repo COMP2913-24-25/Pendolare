@@ -14,4 +14,4 @@ RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
 COPY ./app /code/app
 
-CMD ["fastapi", "run", "app/src/journey_service.py", "--port", "5002"]
+CMD ["fastapi", "run", "app/journey_service.py", "--port", "5002"]
