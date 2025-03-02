@@ -20,73 +20,74 @@ logger = logging.getLogger(__name__)
 WS_PORT = int(os.environ.get("WS_PORT", "5006"))
 message_handler = MessageHandler()
 
-# Simple HTTP handler for health checks
+# Simple HTTP handler for health checks and other HTTP requests
 async def http_handler(request_path):
+    logger.info(f"HTTP request received: {request_path}")
+    
     if request_path == "/health" or request_path == "/":
         return http.HTTPStatus.OK, [("Content-Type", "application/json")], json.dumps({
             "status": "healthy",
             "timestamp": datetime.now().isoformat()
         }).encode()
-    return http.HTTPStatus.NOT_FOUND, [("Content-Type", "text/plain")], b"Not Found"
+    
+    # Handle WebSocket endpoint information for debugging
+    if request_path == "/ws-info":
+        return http.HTTPStatus.OK, [("Content-Type", "application/json")], json.dumps({
+            "status": "info",
+            "message": "This is a WebSocket server. Connect to /ws endpoint for WebSocket communication.",
+            "websocket_endpoint": "/ws",
+            "timestamp": datetime.now().isoformat()
+        }).encode()
+    
+    # For any other path, return 404
+    return http.HTTPStatus.NOT_FOUND, [("Content-Type", "text/plain")], b"Not Found - Use /ws for WebSocket connections or /health for health checks"
 
 async def process_request(path, request_headers):
-    # Fix for TypeError: 'Request' object is not iterable
-    # In newer versions of websockets, request_headers is a Request object
     try:
-        # Try to access headers as dictionary for newer websockets versions
-        headers_dict = dict(request_headers.raw_items()) if hasattr(request_headers, 'raw_items') else dict(request_headers)
-        logger.debug(f"Received headers for path {path}: {headers_dict}")
-    except (TypeError, AttributeError):
-        # Fallback if we can't convert to dictionary
-        logger.debug(f"Received request for path {path} (headers unavailable)")
-    
-    # Check if this is a health check request
-    if not path.startswith("/ws"):
-        return await http_handler(path)
+        logger.debug(f"Processing request for path: {path}")
         
-    # Handle WebSocket upgrade - accessing headers safely
-    connection = None
-    upgrade = None
-    
-    try:
-        if hasattr(request_headers, 'get'):
-            # If headers object has get method
-            connection = request_headers.get("Connection", "").lower()
-            upgrade = request_headers.get("Upgrade", "").lower()
-        else:
-            # Try to access as dictionary
+        # Convert headers to a dictionary for logging, handling various header formats
+        headers_dict = {}
+        try:
+            if hasattr(request_headers, 'raw_items'):
+                headers_dict = dict(request_headers.raw_items())
+            elif hasattr(request_headers, 'items'):
+                headers_dict = dict(request_headers.items())
+            else:
+                headers_dict = dict(request_headers)
+        except Exception as e:
+            logger.warning(f"Could not convert headers to dictionary: {str(e)}")
+        
+        # Log important headers for debugging
+        important_headers = ['Connection', 'Upgrade', 'Sec-WebSocket-Key', 
+                            'User-Agent', 'Host', 'X-Forwarded-For']
+        log_headers = {k: headers_dict.get(k) for k in important_headers if k in headers_dict}
+        logger.debug(f"Request headers for {path}: {log_headers}")
+        
+        # Only paths starting with /ws should be treated as WebSocket connections
+        if path.startswith("/ws"):
+            # Check for WebSocket upgrade
             connection = headers_dict.get("Connection", "").lower()
             upgrade = headers_dict.get("Upgrade", "").lower()
-    except Exception as e:
-        logger.error(f"Error accessing headers: {str(e)}")
-    
-    if connection and "upgrade" in connection and upgrade == "websocket":
-        logger.info(f"Valid WebSocket upgrade request received for path: {path}")
-        
-        # Check for proxy headers - safely
-        forwarded_for = None
-        forwarded_proto = None
-        try:
-            if hasattr(request_headers, 'get'):
-                forwarded_for = request_headers.get("X-Forwarded-For")
-                forwarded_proto = request_headers.get("X-Forwarded-Proto")
+            
+            if connection and "upgrade" in connection and upgrade == "websocket":
+                logger.info(f"Valid WebSocket upgrade request for {path}")
+                return None  # Proceed with WebSocket handshake
             else:
-                forwarded_for = headers_dict.get("X-Forwarded-For")
-                forwarded_proto = headers_dict.get("X-Forwarded-Proto")
-        except Exception:
-            pass
-            
-        if forwarded_for or forwarded_proto:
-            logger.info(f"Request proxied from {forwarded_for}, protocol {forwarded_proto}")
-            
-        return None  # Proceed with WebSocket handshake
-    
-    logger.warning(f"Invalid WebSocket request. Connection: {connection}, Upgrade: {upgrade}")
-    return http.HTTPStatus.UPGRADE_REQUIRED, [
-        ("Content-Type", "text/plain"),
-        ("Connection", "Upgrade"),
-        ("Upgrade", "websocket")
-    ], b"Upgrade to WebSocket required"
+                logger.warning(f"Invalid WebSocket request to {path}. Connection: {connection}, Upgrade: {upgrade}")
+                return http.HTTPStatus.UPGRADE_REQUIRED, [
+                    ("Content-Type", "text/plain"),
+                    ("Connection", "Upgrade"),
+                    ("Upgrade", "websocket")
+                ], b"Upgrade to WebSocket required"
+        
+        # For all other paths, handle as HTTP
+        return await http_handler(path)
+        
+    except Exception as e:
+        logger.error(f"Error in process_request: {str(e)}")
+        logger.error(traceback.format_exc())
+        return http.HTTPStatus.INTERNAL_SERVER_ERROR, [("Content-Type", "text/plain")], b"Internal Server Error"
 
 async def websocket_handler(websocket, path):
     client_id = id(websocket)
