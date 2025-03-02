@@ -5,6 +5,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 
 SplashScreen.preventAutoHideAsync();
@@ -35,15 +36,17 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <ClerkProvider publishableKey={publishableKey as string}>
-          <ClerkLoaded>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="index" />
-              <Stack.Screen name="auth" />
-              <Stack.Screen name="home" />
-            </Stack>
-          </ClerkLoaded>
-        </ClerkProvider>
+        <AuthProvider>
+          <ClerkProvider publishableKey={publishableKey as string}>
+            <ClerkLoaded>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="auth" />
+                <Stack.Screen name="home" />
+              </Stack>
+            </ClerkLoaded>
+          </ClerkProvider>
+        </AuthProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

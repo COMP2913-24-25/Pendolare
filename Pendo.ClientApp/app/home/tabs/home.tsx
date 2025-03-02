@@ -14,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Map from "@/components/Map/Map";
 import UpcomingRide from "@/components/RideView/UpcomingRide";
 import { icons, upcomingRides, pastRides } from "@/constants";
+import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 
 const Home = () => {
@@ -21,6 +22,7 @@ const Home = () => {
   const [showAllRides, setShowAllRides] = useState(false);
   const [showPastRides, setShowPastRides] = useState(false);
   const { isDarkMode } = useTheme();
+  const { logout } = useAuth();
 
   const nextRide = upcomingRides[0]; // Get the next upcoming ride
 
@@ -28,9 +30,9 @@ const Home = () => {
     setShowModal(true);
   };
 
-  const confirmSignOut = () => {
+  const confirmSignOut = async () => {
     setShowModal(false);
-    router.replace("/auth/sign-in");
+    await logout(); // This will clear JWT and redirect to sign-in page
   };
 
   return (
