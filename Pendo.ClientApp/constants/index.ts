@@ -54,6 +54,8 @@ export const AUTH_ENDPOINTS = {
   VERIFY_OTP: "/auth/verify-otp",
 };
 
+export const MESSAGE_API_BASE_URL = "wss://message-service.greensand-8499b34e.uksouth.azurecontainerapps.io";
+
 // Dummy data generated utilising machine learning models
 export const dummyRides = [
   {
