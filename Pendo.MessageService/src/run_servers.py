@@ -11,7 +11,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 async def main():    
-    # Start WebSocket server in the main thread
     await app.main()
 
 if __name__ == "__main__":
