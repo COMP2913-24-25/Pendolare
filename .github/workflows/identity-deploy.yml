@@ -104,6 +104,8 @@ jobs:
             --parameters registryPassword='${{ secrets.ACR_PASSWORD }}' \
             --parameters dbConnectionString='${{ secrets.AZURE_SQL_CONNECTION_STRING }}' \
             --parameters kongGatewayFqdn='${{ steps.kong_fqdn.outputs.fqdn }}' \
+            --parameters dataProtectionStorageAccountName='${{ secrets.DATA_PROTECTION_STORAGE_ACCOUNT_NAME }}' \
+            --parameters dataProtectionStorageAccountKey='${{ secrets.DATA_PROTECTION_STORAGE_ACCOUNT_KEY }}' \
             --output none
           
           # Add longer delay after major deployment

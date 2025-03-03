@@ -9,6 +9,11 @@ param kongGatewayFqdn string = ''
 @secure()
 param dbConnectionString string = ''
 
+// New parameters for Data Protection persistent storage
+param dataProtectionStorageAccountName string
+param dataProtectionStorageAccountKey string
+param dataProtectionFileShareName string = 'dataprotection-share'
+
 // Reference existing environment
 resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' existing = {
   name: containerAppEnvironmentName
@@ -56,6 +61,17 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
       }
     }
     template: {
+      // Add a volume to persist Data Protection keys
+      volumes: [
+        {
+          name: "dataprotection"
+          azureFile: {
+            shareName: dataProtectionFileShareName
+            storageAccountName: dataProtectionStorageAccountName
+            storageAccountKey: dataProtectionStorageAccountKey
+          }
+        }
+      ]
       containers: [
         {
           name: containerAppName
@@ -105,6 +121,17 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
             {
               name: 'Logging__LogLevel__Microsoft' 
               value: 'Warning'
+            }
+            {
+              name: 'ASPNETCORE_HTTPS_PORT'
+              value: '8080'
+            }
+          ]
+          // Mount the volume to persist keys
+          volumeMounts: [
+            {
+              name: 'dataprotection'
+              mountPath: '/home/app/.aspnet/DataProtection-Keys'
             }
           ]
           resources: {
