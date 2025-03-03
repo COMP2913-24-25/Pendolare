@@ -7,9 +7,10 @@
 from fastapi import FastAPI, HTTPException, Depends
 import logging, sys
 from uuid import UUID
+from .roots.ViewBalanceCmd import ViewBalanceCommand
 from .PendoDatabaseProvider import get_db, Session, text, configProvider, environment
 from .PaymentRequests import GetBalanceRequest
-from .ViewBalanceCmd import ViewBalanceCommand
+
 
 if environment == "Development":
     logging.basicConfig(
