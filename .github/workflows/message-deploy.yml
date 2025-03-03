@@ -138,7 +138,8 @@ jobs:
                   "stickySessions": {
                     "enabled": true,
                     "affinity": "cookie",
-                    "affinityKeyName": "MessageSession"
+                    "cookieName": "MessageSession",
+                    "ttl": 7200
                   }
                 }
               },
