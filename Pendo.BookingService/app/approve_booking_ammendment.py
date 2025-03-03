@@ -2,12 +2,14 @@ from .requests import ApproveBookingAmmendmentRequest
 from .booking_repository import BookingRepository
 from .email_sender import generateEmailDataFromAmmendment
 from datetime import datetime
+from fastapi import status
 
 class ApproveBookingAmmendmentCommand:
 
-    def __init__(self, ammendment_id, request : ApproveBookingAmmendmentRequest, logger, email_sender, dvla_client):
+    def __init__(self, ammendment_id, request : ApproveBookingAmmendmentRequest, response, logger, email_sender, dvla_client):
         self.ammendment_id = ammendment_id
         self.request = request
+        self.response = response
         self.logger = logger
         self.booking_repository = BookingRepository()
         self.dvla_client = dvla_client
@@ -23,6 +25,7 @@ class ApproveBookingAmmendmentCommand:
             booking_ammendment, driver, passenger, journey = self.booking_repository.GetBookingAmmendment(self.ammendment_id)
 
             if booking_ammendment is None:
+                self.response.status_code = status.HTTP_404_NOT_FOUND
                 raise Exception(f"Booking ammendment {self.ammendment_id} not found")
             
             self._setApprovals(booking_ammendment, driver, passenger)
@@ -73,6 +76,7 @@ class ApproveBookingAmmendmentCommand:
             self.booking_repository.UpdateBookingAmmendment(ammendment)
             self.logger.debug(f"Approved booking ammendment {self.ammendment_id} for passenger successfully.")
         else:
+            self.response.status_code = status.HTTP_401_UNAUTHORIZED
             raise Exception(f"User {self.request.UserId} not authorised to approve booking ammendment {self.ammendment_id}")
 
     def _success(self, message):

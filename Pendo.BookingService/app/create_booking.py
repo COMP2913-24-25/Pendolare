@@ -3,13 +3,14 @@ from .email_sender import generateEmailDataFromBooking
 from datetime import datetime
 from .cron_checker import checkTimeValid
 from sqlalchemy import DECIMAL, cast
+from fastapi import status
 
 class CreateBookingCommand:
     """
     CreateBookingCommand class is responsible for creating a new booking.
     """
 
-    def __init__(self, request, email_sender, logger, dvla_client, configuration_provider):
+    def __init__(self, request, response, email_sender, logger, dvla_client, configuration_provider):
         """
         Constructor for CreateBookingCommand class.
         :param request: Request object containing the booking details.
@@ -20,6 +21,7 @@ class CreateBookingCommand:
         self.logger = logger
         self.dvla_client = dvla_client
         self.configuration_provider = configuration_provider
+        self.response = response
 
     def Execute(self):
         """
@@ -63,4 +65,5 @@ class CreateBookingCommand:
             return {"Status": "Success", "createTime": datetime.now()}
         except Exception as e:
             self.logger.error(f"Error creating booking. Error: {str(e)}")
+            self.response.status_code = status.HTTP_400_BAD_REQUEST
             return {"Status": "Failed", "Error": str(e)}

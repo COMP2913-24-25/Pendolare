@@ -1,10 +1,12 @@
 from .requests import AddBookingAmmendmentRequest
 from .booking_repository import BookingRepository
 from .models import BookingAmmendment
+from fastapi import status
 
 class AddBookingAmmendmentCommand:
-    def __init__(self, request: AddBookingAmmendmentRequest, logger):
+    def __init__(self, request: AddBookingAmmendmentRequest, response, logger):
         self.request = request
+        self.response = response
         self.logger = logger
         self.booking_repository = BookingRepository()
 
@@ -25,6 +27,7 @@ class AddBookingAmmendmentCommand:
     def _assertBookingExists(self):
         booking = self.booking_repository.GetBookingById(self.request.BookingId)
         if booking is None:
+            self.response.status_code = status.HTTP_404_NOT_FOUND
             raise Exception(f"Booking {self.request.BookingId} not found")
 
     def _createBookingAmendment(self):

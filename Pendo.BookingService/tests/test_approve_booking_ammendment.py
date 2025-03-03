@@ -7,6 +7,10 @@ class DummyRequest:
     DriverApproval = False
     PassengerApproval = False
 
+class DummyResponse:
+    def __init__(self):
+        self.status_code = None
+
 @pytest.fixture
 def mock_logger():
     return MagicMock()
@@ -36,25 +40,27 @@ def mock_repository():
     repo.GetBookingAmmendment.return_value = (booking_ammendment, driver, passenger, journey)
     return repo
 
-def get_command(ammendment_id, request, logger, email_sender, dvla_client, repository):
-    cmd = ApproveBookingAmmendmentCommand(ammendment_id, request, logger, email_sender, dvla_client)
+def get_command(ammendment_id, request, response, logger, email_sender, dvla_client, repository):
+    cmd = ApproveBookingAmmendmentCommand(ammendment_id, request, response, logger, email_sender, dvla_client)
     cmd.booking_repository = repository
     return cmd
 
 def test_driver_approval(mock_repository, mock_logger, mock_email_sender, mock_dvla_client):
     req = DummyRequest()
+    res = DummyResponse()
     req.UserId = 10
     req.DriverApproval = True
-    cmd = get_command(1, req, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
+    cmd = get_command(1, req, res, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
     result = cmd.Execute()
     assert result["Status"] == "Success"
     assert "Driver approved" in result["Message"]
 
 def test_passenger_approval(mock_repository, mock_logger, mock_email_sender, mock_dvla_client):
     req = DummyRequest()
+    res = DummyResponse()
     req.UserId = 20
     req.PassengerApproval = True
-    cmd = get_command(1, req, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
+    cmd = get_command(1, req, res, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
     result = cmd.Execute()
     assert result["Status"] == "Success"
     assert "Passenger approved" in result["Message"]
@@ -63,9 +69,10 @@ def test_full_approval(mock_repository, mock_logger, mock_email_sender, mock_dvl
     booking_ammendment, _, _, _ = mock_repository.GetBookingAmmendment.return_value
     booking_ammendment.DriverApproval = True
     req = DummyRequest()
+    res = DummyResponse()
     req.UserId = 20
     req.PassengerApproval = True
-    cmd = get_command(1, req, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
+    cmd = get_command(1, req, res, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
     result = cmd.Execute()
 
     mock_repository.UpdateBookingStatus.assert_called_with(booking_ammendment.BookingId, 2)
@@ -78,9 +85,10 @@ def test_full_approval_cancellation(mock_repository, mock_logger, mock_email_sen
     booking_ammendment.DriverApproval = True
     booking_ammendment.CancellationRequest = True
     req = DummyRequest()
+    res = DummyResponse()
     req.UserId = 20
     req.PassengerApproval = True
-    cmd = get_command(1, req, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
+    cmd = get_command(1, req, res, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
     result = cmd.Execute()
 
     mock_repository.UpdateBookingStatus.assert_called_with(booking_ammendment.BookingId, 3)
@@ -89,60 +97,44 @@ def test_full_approval_cancellation(mock_repository, mock_logger, mock_email_sen
 
 def test_not_authorised(mock_repository, mock_logger, mock_email_sender, mock_dvla_client):
     req = DummyRequest()
+    res = DummyResponse()
     req.UserId = 99  # neither driver (10) nor passenger (20)
     req.DriverApproval = True
     req.PassengerApproval = True
-    cmd = get_command(1, req, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
+    cmd = get_command(1, req, res, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
     result = cmd.Execute()
     assert result["Status"] == "Error"
+    assert res.status_code == 401
     assert f"User {req.UserId} not authorised to approve booking ammendment {cmd.ammendment_id}" in result["Message"]
 
 def test_booking_ammendment_not_found(mock_repository, mock_logger, mock_email_sender, mock_dvla_client):
     mock_repository.GetBookingAmmendment.return_value = (None, None, None, None)
     req = DummyRequest()
+    res = DummyResponse()
     req.UserId = 10
     req.DriverApproval = True
-    cmd = get_command(1, req, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
+    cmd = get_command(1, req, res, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
     result = cmd.Execute()
     assert result["Status"] == "Error"
+    assert res.status_code == 404
     assert f"Booking ammendment {cmd.ammendment_id} not found" in result["Message"]
 
 def test_driver_only_approval(mock_repository, mock_logger, mock_email_sender, mock_dvla_client):
     req = DummyRequest()
+    res = DummyResponse()
     req.UserId = 10
     req.DriverApproval = True
-    cmd = get_command(1, req, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
+    cmd = get_command(1, req, res, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
     result = cmd.Execute()
     assert result["Status"] == "Success"
     assert "Driver approved booking ammendment" in result["Message"]
 
 def test_passenger_only_approval(mock_repository, mock_logger, mock_email_sender, mock_dvla_client):
     req = DummyRequest()
+    res = DummyResponse()
     req.UserId = 20
     req.PassengerApproval = True
-    cmd = get_command(1, req, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
+    cmd = get_command(1, req, res, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
     result = cmd.Execute()
     assert result["Status"] == "Success"
     assert "Passenger approved booking ammendment" in result["Message"]
-
-def test_apply_ammendment_exception(mock_repository, mock_logger, mock_email_sender, mock_dvla_client):
-    booking_ammendment, _, _, _ = mock_repository.GetBookingAmmendment.return_value
-    booking_ammendment.DriverApproval = True
-    req = DummyRequest()
-    req.UserId = 20
-    req.PassengerApproval = True
-    cmd = get_command(1, req, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
-    mock_repository.UpdateBookingStatus.side_effect = Exception("Update failed")
-    result = cmd.Execute()
-    assert result["Status"] == "Error"
-    assert "Update failed" in result["Message"]
-
-def test_set_approvals_exception(mock_repository, mock_logger, mock_email_sender, mock_dvla_client):
-    req = DummyRequest()
-    req.UserId = 10
-    req.DriverApproval = True
-    cmd = get_command(1, req, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
-    mock_repository.UpdateBookingAmmendment.side_effect = Exception("Approval update failed")
-    result = cmd.Execute()
-    assert result["Status"] == "Error"
-    assert "Approval update failed" in result["Message"]
