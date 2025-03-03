@@ -59,9 +59,8 @@ jobs:
               containerAppEnvironmentName=pendo-env-dev \
               registryName=${{ env.ACR_NAME }} \
               registryUsername=${{ secrets.ACR_USERNAME }} \
-              registryPassword=${{ secrets.ACR_PASSWORD }} \
-              kongGatewayFqdn=${{ steps.kong_fqdn.outputs.fqdn }}
-    
+              registryPassword=${{ secrets.ACR_PASSWORD }}
+                  
     # Wait for message service to be ready
     - name: Wait for service to be ready
       run: |
