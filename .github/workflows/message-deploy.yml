@@ -135,12 +135,7 @@ jobs:
                   "external": true,
                   "targetPort": 5006,
                   "transport": "auto",
-                  "stickySessions": {
-                    "enabled": true,
-                    "affinity": "cookie",
-                    "cookieName": "MessageSession",
-                    "ttl": 7200
-                  }
+                  "clientAffinityEnabled": true
                 }
               },
               "template": {
