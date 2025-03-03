@@ -11,6 +11,7 @@ param dbConnectionString string = ''
 
 // New parameters for Data Protection persistent storage
 param dataProtectionStorageAccountName string
+@secure()
 param dataProtectionStorageAccountKey string
 param dataProtectionFileShareName string = 'dataprotection-share'
 
@@ -36,8 +37,10 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
         }
         {
           name: 'db-connection-string'
-          // Incredibly unconventional but trying to figure out wth is going on
-          value: !empty(dbConnectionString) ? dbConnectionString : 'Server=tcp:pendolare.database.windows.net,1433;Initial Catalog=Pendolare.Database;Persist Security Info=False;User ID=interface;Password=Securepassword123;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;ConnectRetryCount=5;ConnectRetryInterval=10;'
+          // Use empty() to determine whether to use the provided connection string.
+          value: empty(dbConnectionString)
+            ? 'Server=tcp:pendolare.${environment().suffixes.sqlServer},1433;Initial Catalog=Pendolare.Database;Persist Security Info=False;User ID=interface;Password=Securepassword123;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;ConnectRetryCount=5;ConnectRetryInterval=10;'
+            : dbConnectionString
         }
       ]
       registries: [
