@@ -124,11 +124,10 @@ def ViewBalance(UserId: UUID, db: Session = Depends(get_db)):
     Used to query a users balance, both pending and non-pending
     """
     BalanceSheet = ViewBalanceCommand(logging.getLogger("ViewBalance"), UserId).Execute()
-    logger.info("status", "success", "non-pending", BalanceSheet.NonPending, "pending", BalanceSheet.Pending)
-
-    return {"status" : "success", 
-            "non-pending" : BalanceSheet.NonPending,
-            "pending" : BalanceSheet.Pending}
+    if BalanceSheet['Status'] != "success":
+        raise HTTPException(400, detail=BalanceSheet['Error'])
+    else:
+        return BalanceSheet
 
 
 @app.post("/RefundPayment", tags=["Anytime"])
