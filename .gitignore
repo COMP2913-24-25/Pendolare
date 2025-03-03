@@ -1,4 +1,5 @@
 */obj
 */bin/Debug/*
+/Pendo.JourneyService/temp/
 
 *.dacpac

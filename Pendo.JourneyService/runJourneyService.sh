@@ -12,8 +12,8 @@ printf "\033[1m============================= Removing Old Containers... ========
 docker stop Pendo.JourneyService
 docker rm -f Pendo.JourneyService
 
-docker stop Pendo.JourneyService.Tests
-docker rm -f Pendo.JourneyService.Tests
+#docker stop Pendo.JourneyService.Tests
+#docker rm -f Pendo.JourneyService.Tests
 
 printf "\e[32mCompleted\e[0m\n"
 
@@ -24,7 +24,7 @@ printf "\033[1m Completed Deploy image \033[1m\n"
 
 # build pytest image
 printf "\033[1m============================= Building Docker Test Image ==============================\033[1m\n"
-docker build -f Dockerfile.tests -t pendo.journeyservice.test.image .
+#docker build -f Dockerfile.tests -t pendo.journeyservice.test.image .
 printf "\033[1m Completed Tests image \033[1m\n"
 
 # run automated tests
