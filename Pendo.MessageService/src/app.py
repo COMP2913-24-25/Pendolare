@@ -11,6 +11,8 @@ import http
 from datetime import datetime
 from src.message_handler import MessageHandler
 from aiohttp import web
+from aiohttp.web import middleware
+from aiohttp_cors import setup as cors_setup, ResourceOptions
 
 logging.basicConfig(
     level=os.environ.get("LOG_LEVEL", "DEBUG"),
@@ -42,6 +44,13 @@ async def root_handler(request):
             "websocket": f"ws://localhost:{WS_PORT}/ws"
         }
     })
+
+# Origin handler for WebSockets
+def origin_check(origin, host):
+    """Check if the origin is allowed to connect"""
+    # Allow all origins in development, but you can implement restrictions here
+    logger.debug(f"Origin check: origin={origin}, host={host}")
+    return True
 
 # WebSocket handler
 async def websocket_handler(websocket):
@@ -113,11 +122,52 @@ async def websocket_handler(websocket):
                 break
         logger.info(f"WebSocket connection ended: {client_id}")
 
-# Setup HTTP server
+# Process headers for WebSocket connections
+async def process_request(path, headers):
+    logger.debug(f"WS connection request: path={path}, headers={headers}")
+    
+    origin = headers.get('Origin', None)
+    host = headers.get('Host', None)
+    
+    if origin and host:
+        if not origin_check(origin, host):
+            logger.warning(f"Rejected connection from origin: {origin}")
+            return http.HTTPStatus.FORBIDDEN, [], b"Forbidden origin"
+    
+    # Return None to proceed with the WebSocket handshake
+    return None
+
+# Setup HTTP server with CORS support
 async def setup_http_server():
-    app = web.Application()
+    @middleware
+    async def error_middleware(request, handler):
+        try:
+            return await handler(request)
+        except web.HTTPException as ex:
+            return web.json_response({"error": str(ex)}, status=ex.status)
+        except Exception as ex:
+            logger.exception("Unexpected error")
+            return web.json_response({"error": "Internal server error"}, status=500)
+
+    app = web.Application(middlewares=[error_middleware])
+    
+    # Setup CORS
+    cors = cors_setup(app, defaults={
+        "*": ResourceOptions(
+            allow_credentials=True,
+            expose_headers="*",
+            allow_headers="*",
+            allow_methods=["GET", "POST", "OPTIONS"]
+        )
+    })
+    
+    # Add routes
     app.router.add_get('/health', health_check)
     app.router.add_get('/', root_handler)
+    
+    # Configure CORS on all routes
+    for route in list(app.router.routes()):
+        cors.add(route)
     
     runner = web.AppRunner(app)
     await runner.setup()
@@ -126,9 +176,10 @@ async def setup_http_server():
     logger.info(f"HTTP server started on port {HTTP_PORT}")
     return runner
 
-
 # Setup WebSocket server
 async def setup_ws_server():
+    logger.info(f"Starting WebSocket server on port {WS_PORT} with improved handshake handling")
+    
     server = await websockets.serve(
         websocket_handler,
         "0.0.0.0",
@@ -136,6 +187,11 @@ async def setup_ws_server():
         ping_interval=20,
         ping_timeout=60,
         close_timeout=60,
+        process_request=process_request,
+        # Accept subprotocols if presented by client
+        subprotocols=["json"],
+        # Log connection errors
+        logger=logger
     )
     logger.info(f"WebSocket server started on port {WS_PORT}")
     return server
