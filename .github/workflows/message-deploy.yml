@@ -59,14 +59,29 @@ jobs:
           
           if [ -n "$EXISTS" ]; then
             echo "Container app exists, updating..."
-            # Update existing container app
+            
+            # Create registry credentials secret first (if needed)
+            echo "Setting up registry credentials..."
+            az containerapp registry set \
+              --name ${{ env.CONTAINER_APP_NAME }} \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --server ${{ env.ACR_NAME }}.azurecr.io \
+              --username ${{ secrets.ACR_USERNAME }} \
+              --password ${{ secrets.ACR_PASSWORD }}
+              
+            # Update the container image
+            echo "Updating container image..."
             az containerapp update \
               --name ${{ env.CONTAINER_APP_NAME }} \
               --resource-group ${{ env.RESOURCE_GROUP }} \
-              --image ${{ env.ACR_NAME }}.azurecr.io/${{ env.MESSAGE_SERVICE_IMAGE_NAME }}:latest \
-              --registry-username ${{ secrets.ACR_USERNAME }} \
-              --registry-password ${{ secrets.ACR_PASSWORD }} \
-              --env-vars "WS_PORT=5006" "HTTP_PORT=5007" "LOG_LEVEL=DEBUG" "PYTHONUNBUFFERED=1"
+              --image ${{ env.ACR_NAME }}.azurecr.io/${{ env.MESSAGE_SERVICE_IMAGE_NAME }}:latest
+              
+            # Update environment variables separately
+            echo "Setting environment variables..."
+            az containerapp update \
+              --name ${{ env.CONTAINER_APP_NAME }} \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --set-env-vars WS_PORT=5006 HTTP_PORT=5007 LOG_LEVEL=DEBUG PYTHONUNBUFFERED=1
           else
             echo "Creating new container app with Bicep template..."
             # Create new container app with Bicep
@@ -98,8 +113,15 @@ jobs:
             --sticky-sessions \
             --sticky-sessions-cookie-name MessageSession \
             --timeout 5400 \
-            --external true \
-            --exposed-port 5006
+            --external true
+
+          # Update scale settings to ensure we have a consistent number of replicas
+          echo "Setting scaling parameters..."
+          az containerapp update \
+            --name ${{ env.CONTAINER_APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --min-replicas 1 \
+            --max-replicas 1
           
           echo "WebSocket configuration updated for direct client access to ${{ env.CONTAINER_APP_NAME }}"
     
@@ -126,3 +148,22 @@ jobs:
         else
           echo "⚠️ HTTP endpoint check returned: $HTTP_STATUS - service may still be starting"
         fi
+
+    # Test the WebSocket connection directly
+    - name: Test WebSocket connection
+      run: |
+        echo "Testing WebSocket connectivity to wss://${{ steps.message_fqdn.outputs.fqdn }}/ws"
+        # Install wscat if available
+        if command -v npm &> /dev/null; then
+          npm install -g wscat
+          # Attempt a test connection
+          wscat -c "wss://${{ steps.message_fqdn.outputs.fqdn }}/ws" --no-check -t 5000 || echo "Could not connect directly - this may be expected if WebSockets require authentication"
+        else
+          echo "npm not available, skipping WebSocket test"
+        fi
+        
+        echo "==============================================================="
+        echo "Deployment complete!"
+        echo "WebSocket service URL: wss://${{ steps.message_fqdn.outputs.fqdn }}/ws"
+        echo "HTTP service URL: https://${{ steps.message_fqdn.outputs.fqdn }}"
+        echo "==============================================================="
