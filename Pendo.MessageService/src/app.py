@@ -299,7 +299,6 @@ async def setup_ws_server():
         logger=logger,
         # Extra options that should help with Azure
         open_timeout=30,
-        origin=None,  # Don't verify origin (handled in process_request)
     )
     logger.info(f"WebSocket server started on port {WS_PORT}")
     return server
