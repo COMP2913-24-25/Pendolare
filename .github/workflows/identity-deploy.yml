@@ -59,7 +59,6 @@ jobs:
         fi
         # Add small delay after API call
         sleep 5
-
     # Build and push the Identity Service image
     - name: Build and push image to ACR
       env:
@@ -76,7 +75,6 @@ jobs:
         
         # Add delay after ACR operations
         sleep 10
-
     # Validate the database connection string before deploying
     - name: Validate Database Connection String
       run: |
@@ -86,7 +84,6 @@ jobs:
           exit 1
         fi
         echo "Database connection string exists."
-
     # Deploy the Identity Service
     - name: Deploy Container App
       uses: azure/CLI@v1
@@ -104,13 +101,10 @@ jobs:
             --parameters registryPassword='${{ secrets.ACR_PASSWORD }}' \
             --parameters dbConnectionString='${{ secrets.AZURE_SQL_CONNECTION_STRING }}' \
             --parameters kongGatewayFqdn='${{ steps.kong_fqdn.outputs.fqdn }}' \
-            --parameters dataProtectionStorageAccountName='${{ secrets.DATA_PROTECTION_STORAGE_ACCOUNT_NAME }}' \
-            --parameters dataProtectionStorageAccountKey='${{ secrets.DATA_PROTECTION_STORAGE_ACCOUNT_KEY }}' \
             --output none
           
           # Add longer delay after major deployment
           sleep 15
-
     # Configure SQL Server firewall - with fewer API calls
     - name: Configure SQL Server Firewall
       uses: azure/CLI@v1
@@ -149,14 +143,12 @@ jobs:
           
           # Longer delay to avoid rate limits
           sleep 10
-
     # Wait for identity service to be ready - with increased wait time
     - name: Wait for service to be ready
       run: |
         echo "Waiting for identity-service to be ready..."
         # Increase wait time to 60 seconds to reduce subsequent API call pressure
         sleep 60
-
     # Get Identity Service FQDN - with minimal API calls
     - name: Get Identity Service FQDN
       id: identity_fqdn
