@@ -48,7 +48,7 @@ public class VerifyOtpRequestHandlerTests
     [Test]
     public async Task Handle_WhenUserDoesNotExist_ReturnsFalse()
     {
-        var request = new VerifyOtpRequest { Email = "mundrayj@gmail.com", Otp = "OTP_TOKEN" };
+        var request = new VerifyOtpRequest { EmailAddress = "mundrayj@gmail.com", Otp = "OTP_TOKEN" };
         _userRepo.Setup(x => x.Read(It.IsAny<Expression<Func<User, bool>>>()))
             .ReturnsAsync([]);
 
@@ -62,7 +62,7 @@ public class VerifyOtpRequestHandlerTests
     public async Task Handle_WhenMultipleUsersExist_ReturnsFalse()
     {
         List<User> users = [new User { Email = "mundrayj@gmail.com", UserId = Guid.NewGuid() }, new User { Email = "mundrayj@gmail.com", UserId = Guid.NewGuid() }];
-        var request = new VerifyOtpRequest { Email = "mundrayj@gmail.com", Otp = "OTP_TOKEN" };
+        var request = new VerifyOtpRequest { EmailAddress = "mundrayj@gmail.com", Otp = "OTP_TOKEN" };
         _userRepo.Setup(x => x.Read(It.IsAny<Expression<Func<User, bool>>>()))
             .ReturnsAsync(users);
 
@@ -76,7 +76,7 @@ public class VerifyOtpRequestHandlerTests
     public async Task Handle_WhenOtpLoginNotFound_ReturnsFalse()
     {
         var user = new User { Email = "mundrayj@gmail.com", UserId = Guid.NewGuid() };
-        var request = new VerifyOtpRequest { Email = "mundrayj@gmail.com", Otp = "OTP_TOKEN" };
+        var request = new VerifyOtpRequest { EmailAddress = "mundrayj@gmail.com", Otp = "OTP_TOKEN" };
         _userRepo.Setup(x => x.Read(It.IsAny<Expression<Func<User, bool>>>()))
             .ReturnsAsync([user]);
         _otpLoginRepo.Setup(x => x.Read(It.IsAny<Expression<Func<OtpLogin, bool>>>()))
@@ -101,7 +101,7 @@ public class VerifyOtpRequestHandlerTests
             ExpiryDate = _fixedTime.AddMinutes(-1)
         };
 
-        var request = new VerifyOtpRequest { Email = "mundrayj@gmail.com", Otp = "OTP_TOKEN" };
+        var request = new VerifyOtpRequest { EmailAddress = "mundrayj@gmail.com", Otp = "OTP_TOKEN" };
         _userRepo.Setup(x => x.Read(It.IsAny<Expression<Func<User, bool>>>()))
             .ReturnsAsync([user]);
         _otpLoginRepo.Setup(x => x.Read(It.IsAny<Expression<Func<OtpLogin, bool>>>()))
@@ -125,7 +125,7 @@ public class VerifyOtpRequestHandlerTests
             IssueDate = _fixedTime,
             ExpiryDate = _fixedTime.AddMinutes(5)
         };
-        var request = new VerifyOtpRequest { Email = "mundrayj@gmail.com", Otp = "OTP_TOKEN" };
+        var request = new VerifyOtpRequest { EmailAddress = "mundrayj@gmail.com", Otp = "OTP_TOKEN" };
         _userRepo.Setup(x => x.Read(It.IsAny<Expression<Func<User, bool>>>()))
             .ReturnsAsync([user]);
         _otpLoginRepo.Setup(x => x.Read(It.IsAny<Expression<Func<OtpLogin, bool>>>()))
@@ -148,7 +148,7 @@ public class VerifyOtpRequestHandlerTests
             IssueDate = _fixedTime,
             ExpiryDate = _fixedTime.AddMinutes(5)
         };
-        var request = new VerifyOtpRequest { Email = "mundrayj@gmail.com", Otp = "OTP_TOKEN" };
+        var request = new VerifyOtpRequest { EmailAddress = "mundrayj@gmail.com", Otp = "OTP_TOKEN" };
 
         _userRepo.Setup(x => x.Read(It.IsAny<Expression<Func<User, bool>>>()))
             .ReturnsAsync([user]);
