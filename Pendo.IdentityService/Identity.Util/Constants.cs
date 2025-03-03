@@ -5,13 +5,15 @@
 /// </summary>
 public static class Constants
 {
-    public static string TokenType => "Bearer";
+    public const string TokenType = "Bearer";
 
-    public static string UserTypeClaim => "UserType";
+    public const string UserTypeClaim = "UserType";
 
-    public static string User => "User";
+    public const string User = "User";
 
-    public static string Manager => "Manager";
+    public const string Manager = "Manager";
 
-    public static string ConfigPrefix => "Identity";
+    public const string ConfigPrefix = "Identity";
+
+    public const string AppJson = "application/json";
 }

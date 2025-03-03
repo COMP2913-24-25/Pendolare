@@ -34,10 +34,22 @@ DECLARE @JwtConfiguration NVARCHAR(MAX) = '
     "ExpiresInMinutes": 60
 }';
 
+DECLARE @ManagerWhitelist NVARCHAR(MAX) = '
+{
+    "Whitelist": 
+    [
+        "jameskinley24@gmail.com",
+        "sc23jk2@leeds.ac.uk",
+        "mundrayj@gmail.com",
+        "shayodonnell8@icloud.com"
+    ]
+}'
+
 MERGE INTO [shared].[Configuration] AS target
 USING (VALUES
     ('Identity.OtpConfiguration', @OtpConfiguration),
-    ('Identity.JwtConfiguration', @JwtConfiguration)
+    ('Identity.JwtConfiguration', @JwtConfiguration),
+    ('Identity.ManagerConfiguration', @ManagerWhitelist)
 ) AS source ([Key], [Value])
 ON target.[Key] = source.[Key]
 WHEN NOT MATCHED THEN
