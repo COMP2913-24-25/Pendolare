@@ -136,8 +136,9 @@ jobs:
                   "targetPort": 5006,
                   "transport": "auto",
                   "stickySessions": {
+                    "enabled": true,
                     "affinity": "cookie",
-                    "affinityKeyName": "MessageSession" 
+                    "affinityKeyName": "MessageSession"
                   }
                 }
               },
@@ -182,22 +183,3 @@ jobs:
         else
           echo "⚠️ HTTP endpoint check returned: $HTTP_STATUS - service may still be starting"
         fi
-
-    # Test the WebSocket connection directly
-    - name: Test WebSocket connection
-      run: |
-        echo "Testing WebSocket connectivity to wss://${{ steps.message_fqdn.outputs.fqdn }}/ws"
-        # Install wscat if available
-        if command -v npm &> /dev/null; then
-          npm install -g wscat
-          # Attempt a test connection
-          wscat -c "wss://${{ steps.message_fqdn.outputs.fqdn }}/ws" --no-check -t 5000 || echo "Could not connect directly - this may be expected if WebSockets require authentication"
-        else
-          echo "npm not available, skipping WebSocket test"
-        fi
-        
-        echo "==============================================================="
-        echo "Deployment complete!"
-        echo "WebSocket service URL: wss://${{ steps.message_fqdn.outputs.fqdn }}/ws"
-        echo "HTTP service URL: https://${{ steps.message_fqdn.outputs.fqdn }}"
-        echo "==============================================================="

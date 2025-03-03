@@ -5,7 +5,6 @@ param registryName string = 'pendocontainerregistry'
 param registryUsername string
 @secure()
 param registryPassword string
-param kongGatewayFqdn string = ''
 
 // Reference existing environment
 resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' existing = {
