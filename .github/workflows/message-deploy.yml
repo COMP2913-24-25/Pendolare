@@ -47,135 +47,31 @@ jobs:
         docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.MESSAGE_SERVICE_IMAGE_NAME }}:${{ github.sha }} ${{ env.ACR_NAME }}.azurecr.io/${{ env.MESSAGE_SERVICE_IMAGE_NAME }}:latest
         docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.MESSAGE_SERVICE_IMAGE_NAME }}:latest
 
-    # Create the Container App with optimal WebSocket configuration
-    - name: Deploy Container App with WebSocket configuration
+    - name: Deploy Container App
       uses: azure/CLI@v1
       with:
         inlineScript: |
-          echo "Deploying MessageService with WebSocket optimizations..."
-          
-          # Check if container app exists
-          EXISTS=$(az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query name -o tsv 2>/dev/null || echo "")
-          
-          if [ -n "$EXISTS" ]; then
-            echo "Container app exists, updating..."
-            
-            # Create registry credentials secret first (if needed)
-            echo "Setting up registry credentials..."
-            az containerapp registry set \
-              --name ${{ env.CONTAINER_APP_NAME }} \
-              --resource-group ${{ env.RESOURCE_GROUP }} \
-              --server ${{ env.ACR_NAME }}.azurecr.io \
-              --username ${{ secrets.ACR_USERNAME }} \
-              --password ${{ secrets.ACR_PASSWORD }}
-              
-            # Update the container image
-            echo "Updating container image..."
-            az containerapp update \
-              --name ${{ env.CONTAINER_APP_NAME }} \
-              --resource-group ${{ env.RESOURCE_GROUP }} \
-              --image ${{ env.ACR_NAME }}.azurecr.io/${{ env.MESSAGE_SERVICE_IMAGE_NAME }}:latest
-              
-            # Update environment variables separately
-            echo "Setting environment variables..."
-            az containerapp update \
-              --name ${{ env.CONTAINER_APP_NAME }} \
-              --resource-group ${{ env.RESOURCE_GROUP }} \
-              --set-env-vars WS_PORT=5006 HTTP_PORT=5007 LOG_LEVEL=DEBUG PYTHONUNBUFFERED=1
-          else
-            echo "Creating new container app with Bicep template..."
-            # Create new container app with Bicep
-            az deployment group create \
-              --resource-group ${{ env.RESOURCE_GROUP }} \
-              --template-file infrastructure/message-service.bicep \
-              --parameters \
-                containerAppName=${{ env.CONTAINER_APP_NAME }} \
-                containerAppEnvironmentName=pendo-env-dev \
-                registryName=${{ env.ACR_NAME }} \
-                registryUsername=${{ secrets.ACR_USERNAME }} \
-                registryPassword=${{ secrets.ACR_PASSWORD }}
-          fi
+          az deployment group create \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --template-file infrastructure/message-service.bicep \
+            --parameters \
+              containerAppName=${{ env.CONTAINER_APP_NAME }} \
+              containerAppEnvironmentName=pendo-env-dev \
+              registryName=${{ env.ACR_NAME }} \
+              registryUsername=${{ secrets.ACR_USERNAME }} \
+              registryPassword=${{ secrets.ACR_PASSWORD }} \
+              kongGatewayFqdn=${{ steps.kong_fqdn.outputs.fqdn }}
     
-    # Optimize the WebSocket configuration for direct client access
-    - name: Configure WebSocket settings for direct client access
-      uses: azure/CLI@v1
-      with:
-        inlineScript: |
-          echo "Optimizing WebSocket configuration for Container App with direct client access..."
-          
-          # Update ingress settings with supported parameters
-          echo "Updating ingress configuration..."
-          az containerapp ingress update \
-            --name ${{ env.CONTAINER_APP_NAME }} \
-            --resource-group ${{ env.RESOURCE_GROUP }} \
-            --target-port 5006 \
-            --transport auto
-            
-          # Update scale settings to ensure we have a consistent number of replicas
-          echo "Setting scaling parameters..."
-          az containerapp update \
-            --name ${{ env.CONTAINER_APP_NAME }} \
-            --resource-group ${{ env.RESOURCE_GROUP }} \
-            --min-replicas 1 \
-            --max-replicas 1
-          
-          echo "WebSocket configuration updated for direct client access to ${{ env.CONTAINER_APP_NAME }}"
-
-    # Configure advanced settings using JSON configuration
-    - name: Configure advanced Container App settings
-      uses: azure/CLI@v1
-      with:
-        inlineScript: |
-          echo "Applying advanced Container App configuration..."
-          cat << EOF > container-app-config.json
-          {
-            "properties": {
-              "configuration": {
-                "ingress": {
-                  "external": true,
-                  "targetPort": 5006,
-                  "transport": "auto",
-                  "clientAffinityEnabled": true
-                }
-              },
-              "template": {
-                "scale": {
-                  "minReplicas": 1,
-                  "maxReplicas": 1
-                }
-              }
-            }
-          }
-          EOF
-          
-          # Apply the configuration
-          az containerapp update \
-            --name ${{ env.CONTAINER_APP_NAME }} \
-            --resource-group ${{ env.RESOURCE_GROUP }} \
-            --yaml container-app-config.json
-          
-          echo "Advanced configuration applied"
-
     # Wait for message service to be ready
     - name: Wait for service to be ready
       run: |
         echo "Waiting for message-service to be ready..."
         sleep 30
 
-    # Get Message Service FQDN and verify deployment  
+    # Get Message Service FQDN 
     - name: Get Message Service FQDN
       id: message_fqdn
       run: |
         MESSAGE_FQDN=$(az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
         echo "MESSAGE_SERVICE_FQDN=$MESSAGE_FQDN" >> $GITHUB_ENV
         echo "::set-output name=fqdn::$MESSAGE_FQDN"
-        echo "Message Service deployed at: $MESSAGE_FQDN"
-        
-        # Check if the service is responding to HTTP requests
-        echo "Verifying HTTP endpoint..."
-        HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://$MESSAGE_FQDN/health || echo "failed")
-        if [ "$HTTP_STATUS" == "200" ]; then
-          echo "✅ HTTP endpoint is up and responding"
-        else
-          echo "⚠️ HTTP endpoint check returned: $HTTP_STATUS - service may still be starting"
-        fi
