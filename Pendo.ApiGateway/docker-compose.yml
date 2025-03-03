@@ -15,7 +15,6 @@ services:
       KONG_ADMIN_GUI_URL: http://localhost:8002
       KONG_ADMIN_GUI_PATH: /
       KONG_PROXY_LISTEN: 0.0.0.0:8000, 0.0.0.0:8443 ssl
-      KONG_NGINX_PROXY_SSL_VERIFY: "off"
     volumes:
       - ./kong/declarative:/usr/local/kong/declarative
     ports:
