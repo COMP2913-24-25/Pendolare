@@ -37,8 +37,8 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
         }
         {
           name: 'db-connection-string'
-          // Incredibly unconventional but trying to figure out wth is going on
-          value: !empty(dbConnectionString) ? dbConnectionString : 'Server=tcp:pendolare.database.windows.net,1433;Initial Catalog=Pendolare.Database;Persist Security Info=False;User ID=interface;Password=Securepassword123;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;ConnectRetryCount=5;ConnectRetryInterval=10;'
+          // Updated conditional expression for dbConnectionString
+          value: (dbConnectionString != '' ? dbConnectionString : 'Server=tcp:pendolare.database.windows.net,1433;Initial Catalog=Pendolare.Database;Persist Security Info=False;User ID=interface;Password=Securepassword123;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;ConnectRetryCount=5;ConnectRetryInterval=10;')
         }
       ]
       registries: [
@@ -93,7 +93,8 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'KONG_GATEWAY_URL'
-              value: !empty(kongGatewayFqdn) ? 'https://${kongGatewayFqdn}' : ''
+              // Updated conditional expression for kongGatewayFqdn
+              value: (kongGatewayFqdn != '' ? 'https://${kongGatewayFqdn}' : '')
             }
             {
               name: 'SQL_SERVER_NAME'
