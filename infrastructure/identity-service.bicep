@@ -34,7 +34,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
         {
           name: 'registry-password'
           value: registryPassword
-        },
+        }
         {
           name: 'db-connection-string'
           // Incredibly unconventional but trying to figure out wth is going on
@@ -65,7 +65,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
       // Add a volume to persist Data Protection keys
       volumes: [
         {
-          name: "dataprotection"
+          name: 'dataprotection'
           azureFile: {
             shareName: dataProtectionFileShareName
             storageAccountName: dataProtectionStorageAccountName
