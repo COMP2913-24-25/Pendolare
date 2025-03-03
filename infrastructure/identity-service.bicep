@@ -37,8 +37,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
         }
         {
           name: 'db-connection-string'
-          // Updated conditional expression for dbConnectionString
-          value: (dbConnectionString != '' ? dbConnectionString : 'Server=tcp:pendolare.database.windows.net,1433;Initial Catalog=Pendolare.Database;Persist Security Info=False;User ID=interface;Password=Securepassword123;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;ConnectRetryCount=5;ConnectRetryInterval=10;')
+          value: empty(dbConnectionString) ? 'Server=tcp:pendolare.database.windows.net,1433;Initial Catalog=Pendolare.Database;Persist Security Info=False;User ID=interface;Password=Securepassword123;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;ConnectRetryCount=5;ConnectRetryInterval=10;' : dbConnectionString
         }
       ]
       registries: [
@@ -93,8 +92,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'KONG_GATEWAY_URL'
-              // Updated conditional expression for kongGatewayFqdn
-              value: (kongGatewayFqdn != '' ? 'https://${kongGatewayFqdn}' : '')
+              value: empty(kongGatewayFqdn) ? '' : 'https://${kongGatewayFqdn}'
             }
             {
               name: 'SQL_SERVER_NAME'
@@ -144,6 +142,8 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
           probes: [
             {
               type: 'Startup'
+              httpGet: {
+                path: '/api/ping'
               httpGet: {
                 path: '/api/ping'
                 port: 8080
