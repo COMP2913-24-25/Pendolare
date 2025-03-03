@@ -4,7 +4,7 @@ import requests
 app = Flask(__name__)
 app.secret_key = 'reallyStrongPwd123'
 
-api_url = 'https://kong-gateway.greensand-8499b34e.uksouth.azurecontainerapps.io'
+api_url = 'http://localhost:8080'
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -24,9 +24,9 @@ def verify_otp():
     if request.method == 'POST':
         session.get('email')
         otp = request.form['otp']
-        response = requests.post(f'{api_url}/api/auth/verify-otp', json={'emailAddress': session['email'], 'otp': otp})
+        response = requests.post(f'{api_url}/api/auth/verify-otp', json={'email': session['email'], 'otp': otp})
         if response.status_code == 200:
-            session['loggen_in'] = True
+            session['logged_in'] = True
             return redirect(url_for('dashboard'))
         else:
             flash('Invalid OTP. Please try again.')
