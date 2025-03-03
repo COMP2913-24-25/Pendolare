@@ -1,22 +1,26 @@
-from .PendoDatabase import User, Journey
-from sqlalchemy.orm import joinedload
-from .db_provider import get_db
+from .PendoDatabase import Journey
+from datetime import datetime, timedelta
+from fastapi import status
 
-class JourneyRepository():
+class JourneyRepository:
 
-    def __init__(self):
+    def __init__(self, db):
+        self.db = db
 
-        self.db_session = next(get_db())
-
-    def GetUser(self, user_id):
-        return self.db_session.query(User).get(user_id)
+    def get_journeys(self, filter):
+        return self.db.query(Journey).filter_by(filter).all()
     
-    def CreateJourney(self, journey):
+    def lock_journey(self, JourneyId, response):
+        journey = self.db.query(Journey).filter_by(JourneyId=JourneyId).first()
 
-        self.db_session.add(journey)
-        self.db_session.commit()
-    
-    def GetAllJourneys(self):
-        return self.db_session.query(Journey).all()
+        if journey is None:
+            response.status_code = status.HTTP_404_NOT_FOUND
+            raise Exception("Cannot lock journey that does not exist.")
+        
+        if journey.LockedUntil is not None and journey.LockedUntil > datetime.now():
+            response.status_code = status.HTTP_401_UNAUTHORIZED
+            raise Exception(f"Journey {JourneyId} is already locked.")
 
-    
+        journey.LockedUntil = datetime.now() + timedelta(minutes=10)
+        self.db.commit()
+        return journey
