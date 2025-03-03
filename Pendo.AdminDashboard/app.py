@@ -1,13 +1,46 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+import requests
 
 app = Flask(__name__)
+app.secret_key = 'reallyStrongPwd123'
 
-@app.route('/')
-def home():
-    return render_template('home.html')
+api_url = 'https://kong-gateway.greensand-8499b34e.uksouth.azurecontainerapps.io'
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        identityRequest = {"emailAddress": email}
+        response = requests.post(f'{api_url}/api/auth/request-otp', json=identityRequest)
+        if response.status_code == 200:
+            session['email'] = email
+            return redirect(url_for('verify_otp'))
+        else:
+            flash('Failed to request OTP. Are you sure you have an account?')
+    return render_template('login.html')
+
+@app.route('/verify_otp', methods=['GET', 'POST'])
+def verify_otp():
+    if request.method == 'POST':
+        session.get('email')
+        otp = request.form['otp']
+        response = requests.post(f'{api_url}/api/auth/verify-otp', json={'emailAddress': session['email'], 'otp': otp})
+        if response.status_code == 200:
+            session['loggen_in'] = True
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Invalid OTP. Please try again.')
+    return render_template('verify_otp.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
 
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
     if request.method == 'POST':
         booking_fee = request.form['booking_fee']
         return redirect(url_for('dashboard'))
