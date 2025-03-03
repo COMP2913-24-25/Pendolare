@@ -5,6 +5,8 @@ using Identity.Util;
 
 namespace Pendo.IdentityService.Api.Commands;
 
+
+/// <inheritdoc/>
 public class VerifyOtpRequestHandler : ICommandHandler<VerifyOtpRequest, VerifyOtpResponse>
 {
     private readonly IJwtGenerator _jwtGenerator;
@@ -27,7 +29,6 @@ public class VerifyOtpRequestHandler : ICommandHandler<VerifyOtpRequest, VerifyO
         _logger = logger;
     }
 
-    // TODO: Refactor to return IActionResult with more meaningful error messages (If have time!)
     /// <summary>
     /// Handles <see cref="VerifyOtpRequest"/>.
     /// </summary>
@@ -37,16 +38,19 @@ public class VerifyOtpRequestHandler : ICommandHandler<VerifyOtpRequest, VerifyO
     {
         await using var userRepo = _repositoryFactory.Create<User>();
 
-        var userResult = await userRepo.Read(user => user.Email.ToLower() == request.Email.ToLower());
+        var userResult = await userRepo.Read(user => user.Email.ToLower() == request.EmailAddress.ToLower());
 
         if (userResult is null || userResult.Count() is > 1 or 0)
         {
-            _logger.LogWarning("User either does not exist or the unique constraint has been violated. Please check logs and database records.");
+            var msg = "User with the given email address either does not exist or the unique constraint has been violated. Please check logs and database records.";
+            _logger.LogWarning(msg);
 
             return new VerifyOtpResponse
             {
                 Jwt = "",
-                Authenticated = false
+                Authenticated = false,
+                Success = false,
+                Message = msg
             };
         }
 
@@ -67,21 +71,27 @@ public class VerifyOtpRequestHandler : ICommandHandler<VerifyOtpRequest, VerifyO
 
         if (codeResult.ExpiryDate < _dateTimeProvider.UtcNow())
         {
-            _logger.LogWarning("Cannot log user in. Otp has expired.");
+            var msg = "Cannot log user in. Otp has expired.";
+            _logger.LogWarning(msg);
             return new VerifyOtpResponse
             {
                 Jwt = "",
-                Authenticated = false
+                Authenticated = false,
+                Success = false,
+                Message = msg
             };
         }
 
         if (!_otpHasher.VerifyHash(request.Otp, codeResult.CodeHash, codeResult.HashSalt))
         {
-            _logger.LogWarning("Cannot log user in. Otp is invalid.");
+            var msg = "Cannot log user in. Otp is invalid.";
+            _logger.LogWarning(msg);
             return new VerifyOtpResponse
             {
                 Jwt = "",
-                Authenticated = false
+                Authenticated = false,
+                Success = false,
+                Message = msg
             };
         }
 
@@ -93,7 +103,7 @@ public class VerifyOtpRequestHandler : ICommandHandler<VerifyOtpRequest, VerifyO
 
         return new VerifyOtpResponse
         {
-            Jwt = _jwtGenerator.GenerateJwt(user.Email, user.UserTypeId == 2),
+            Jwt = _jwtGenerator.GenerateJwt(user.Email, user.UserTypeId is 2),
             IsNewUser = isNewUser,
             Authenticated = true
         };

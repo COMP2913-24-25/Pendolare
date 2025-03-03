@@ -1,11 +1,14 @@
 ﻿using Identity.Configuration;
 using Identity.DataAccess;
 using Identity.DataAccess.Models;
+using Identity.Schema;
+using Identity.Schema.User;
 using Identity.Schema.User.Auth;
 using Identity.Util;
 using Identity.Util.ConfigHelpers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Pendo.IdentityService.Api.Commands;
 using System.Text;
@@ -56,8 +59,9 @@ public static class StartupExtensions
     public static IServiceCollection AddHandlers(this IServiceCollection services)
         => services
         .AddTransient<ICommandDispatcher, CommandDispatcher>()
-        .AddTransient<ICommandHandler<OtpRequest, bool>, OtpRequestHandler>()
-        .AddTransient<ICommandHandler<VerifyOtpRequest, VerifyOtpResponse>, VerifyOtpRequestHandler>();
+        .AddTransient<ICommandHandler<OtpRequest, Response>, OtpRequestHandler>()
+        .AddTransient<ICommandHandler<VerifyOtpRequest, VerifyOtpResponse>, VerifyOtpRequestHandler>()
+        .AddTransient<ICommandHandler<UpdateUserRequest, Response>, UpdateUserRequestHandler>();
 
     public static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
         => services
@@ -72,9 +76,7 @@ public static class StartupExtensions
 
     public static IServiceCollection AddConfigurations(this IServiceCollection services, IConfigurationManager configuration)
         => services
-        .Configure<IdentityConfiguration>(configuration.GetSection(nameof(IdentityConfiguration)))
-        .Configure<OtpConfiguration>(configuration.GetSection(nameof(OtpConfiguration)))
-        .Configure<JwtConfiguration>(configuration.GetSection(nameof(JwtConfiguration)));
+        .Configure<IdentityConfiguration>(configuration.GetSection(nameof(IdentityConfiguration)));
 
     public static IConfigurationBuilder AddFileConfiguration(this WebApplicationBuilder builder)
     {
@@ -98,6 +100,11 @@ public static class StartupExtensions
         var dbConfigSource = scope.ServiceProvider.GetRequiredService<DbConfigSource>();
 
         builder.Configuration.Sources.Add(dbConfigSource);
+        builder.Services    
+            .Configure<OtpConfiguration>(builder.Configuration.GetRequiredSection(nameof(OtpConfiguration)))
+            .Configure<JwtConfiguration>(builder.Configuration.GetRequiredSection(nameof(JwtConfiguration)))
+            .Configure<ManagerConfiguration>(builder.Configuration.GetRequiredSection(nameof(ManagerConfiguration)));
+
         return builder.Configuration;
     }
 }

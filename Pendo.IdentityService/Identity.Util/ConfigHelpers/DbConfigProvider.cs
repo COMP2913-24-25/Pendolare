@@ -48,7 +48,12 @@ public class DbConfigProvider : ConfigurationProvider
             
             if (root.ValueKind is JsonValueKind.Array)
             {
-                data[key] = root.ToString();
+                int index = 0;
+                foreach (var item in root.EnumerateArray())
+                {
+                    data[$"{key}:{index}"] = item.ToString();
+                    index++;
+                }
                 return;
             }
 
