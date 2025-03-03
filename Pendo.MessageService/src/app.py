@@ -279,26 +279,19 @@ async def setup_http_server():
 async def setup_ws_server():
     logger.info(f"Starting WebSocket server on port {WS_PORT} with Azure compatibility")
     
-    # Create server with specific settings for Azure environment
     server = await websockets.serve(
         websocket_handler,
         "0.0.0.0",
         WS_PORT,
-        # Increase timeouts for Azure environment
         ping_interval=30,
         ping_timeout=120,
         close_timeout=60,
         max_size=10 * 1024 * 1024,  # 10MB message size limit
-        max_queue=64,  # Allow more messages in queue
+        max_queue=64,               # Allow more messages in queue
         process_request=process_request,
-        # Enable compression
         compression=None,
-        # Accept all subprotocols
         subprotocols=['json'],
-        # Set the logger for connection issues
-        logger=logger,
-        # Extra options that should help with Azure
-        open_timeout=30,
+        logger=logger
     )
     logger.info(f"WebSocket server started on port {WS_PORT}")
     return server
