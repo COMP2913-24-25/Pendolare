@@ -103,18 +103,26 @@ jobs:
         inlineScript: |
           echo "Optimizing WebSocket configuration for Container App with direct client access..."
           
-          # Update ingress settings for WebSocket support
+          # Update ingress settings with corrected syntax for Azure CLI 2.69.0
+          echo "Updating ingress configuration..."
           az containerapp ingress update \
             --name ${{ env.CONTAINER_APP_NAME }} \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --target-port 5006 \
             --transport auto \
             --allow-insecure false \
-            --sticky-sessions \
-            --sticky-sessions-cookie-name MessageSession \
-            --timeout 5400 \
             --external true
-
+          
+          # Configure additional settings separately using the containerapp update command
+          echo "Adding sticky sessions configuration..."
+          az containerapp update \
+            --name ${{ env.CONTAINER_APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --ingress-traffic-validation true \
+            --ingress-session-affinity true \
+            --ingress-session-affinity-cookie-name "MessageSession" \
+            --ingress-session-affinity-ttl 7200
+            
           # Update scale settings to ensure we have a consistent number of replicas
           echo "Setting scaling parameters..."
           az containerapp update \
