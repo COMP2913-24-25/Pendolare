@@ -103,24 +103,13 @@ jobs:
         inlineScript: |
           echo "Optimizing WebSocket configuration for Container App with direct client access..."
           
-          # Update ingress settings with corrected syntax for Azure CLI 2.69.0
+          # Update ingress settings with supported parameters
           echo "Updating ingress configuration..."
           az containerapp ingress update \
             --name ${{ env.CONTAINER_APP_NAME }} \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --target-port 5006 \
-            --transport auto \
-            --allow-insecure false
-          
-          # Configure additional settings separately using the containerapp update command
-          echo "Adding sticky sessions configuration..."
-          az containerapp update \
-            --name ${{ env.CONTAINER_APP_NAME }} \
-            --resource-group ${{ env.RESOURCE_GROUP }} \
-            --ingress-traffic-validation true \
-            --ingress-session-affinity true \
-            --ingress-session-affinity-cookie-name "MessageSession" \
-            --ingress-session-affinity-ttl 7200
+            --transport auto
             
           # Update scale settings to ensure we have a consistent number of replicas
           echo "Setting scaling parameters..."
@@ -131,14 +120,52 @@ jobs:
             --max-replicas 1
           
           echo "WebSocket configuration updated for direct client access to ${{ env.CONTAINER_APP_NAME }}"
-    
+
+    # Configure advanced settings using JSON configuration
+    - name: Configure advanced Container App settings
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          echo "Applying advanced Container App configuration..."
+          cat << EOF > container-app-config.json
+          {
+            "properties": {
+              "configuration": {
+                "ingress": {
+                  "external": true,
+                  "targetPort": 5006,
+                  "transport": "auto",
+                  "stickySessions": {
+                    "affinity": "cookie",
+                    "affinityKeyName": "MessageSession" 
+                  }
+                }
+              },
+              "template": {
+                "scale": {
+                  "minReplicas": 1,
+                  "maxReplicas": 1
+                }
+              }
+            }
+          }
+          EOF
+          
+          # Apply the configuration
+          az containerapp update \
+            --name ${{ env.CONTAINER_APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --yaml container-app-config.json
+          
+          echo "Advanced configuration applied"
+
     # Wait for message service to be ready
     - name: Wait for service to be ready
       run: |
         echo "Waiting for message-service to be ready..."
         sleep 30
 
-    # Get Message Service FQDN and verify deployment
+    # Get Message Service FQDN and verify deployment  
     - name: Get Message Service FQDN
       id: message_fqdn
       run: |
