@@ -1,7 +1,7 @@
 import logging
 
 from uuid import UUID
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Response, status
 from .db_provider import get_db, Session, text, configProvider, environment
 
 from .create_booking import CreateBookingCommand
@@ -42,7 +42,11 @@ logger.info("Mail Sender Service Initialised")
 
 dvla_client = VehicleEnquiryClient(configProvider.GetSingleValue(next(get_db()), "Booking.DvlaApiKey"), logger)
 
-@app.get("/HealthCheck", tags=["HealthCheck"])
+@app.get("/", tags=["Funny"], status_code=status.HTTP_418_IM_A_TEAPOT)
+def read_root():
+    return {"message": "Welcome to Pendo.BookingService.Api"}
+
+@app.get("/HealthCheck", tags=["HealthCheck"], status_code=status.HTTP_200_OK)
 def test_db(db: Session = Depends(get_db)):
     logger.info("Testing DB connection...")
     try:
@@ -53,24 +57,24 @@ def test_db(db: Session = Depends(get_db)):
         logger.error(f"DB connection failed. Error: {str(e)}")
         raise HTTPException(500, detail="DB connection failed.")
 
-@app.get("/GetBookings/{UserId}", tags=["Get Bookings"])
+@app.get("/GetBookings/{UserId}", tags=["Get Bookings"], status_code=status.HTTP_200_OK)
 def get_bookings(UserId: UUID, db: Session = Depends(get_db)):
     logger.debug("Getting bookings...")
     return GetBookingsCommand(UserId, logging.getLogger("GetBookingsCommand")).Execute()
 
-@app.post("/CreateBooking", tags=["Create Bookings"])
-def create_booking(request: CreateBookingRequest, db: Session = Depends(get_db)):
+@app.post("/CreateBooking", tags=["Create Bookings"], status_code=status.HTTP_200_OK)
+def create_booking(request: CreateBookingRequest, response : Response, db: Session = Depends(get_db)):
     logger.debug(f"Creating booking with request {request}.")
-    return CreateBookingCommand(request, mailSender, logging.getLogger("CreateBookingCommand")).Execute()
+    return CreateBookingCommand(request, response, mailSender, logging.getLogger("CreateBookingCommand")).Execute()
 
-@app.post("/AddBookingAmmendment", tags=["Add Booking Ammendment"])
-def add_booking_ammendment(request : AddBookingAmmendmentRequest, db: Session = Depends(get_db)):
-    return AddBookingAmmendmentCommand(request, logging.getLogger("AddBookingAmmendmentCommand")).Execute()
+@app.post("/AddBookingAmmendment", tags=["Add Booking Ammendment"], status_code=status.HTTP_200_OK)
+def add_booking_ammendment(request : AddBookingAmmendmentRequest, response : Response, db: Session = Depends(get_db)):
+    return AddBookingAmmendmentCommand(request, response, logging.getLogger("AddBookingAmmendmentCommand")).Execute()
 
-@app.put("/ApproveBookingAmmendment/{BookingAmmendmentId}", tags=["Approve Booking Ammendment"])
-def approve_booking_ammendment(BookingAmmendmentId: UUID, request: ApproveBookingAmmendmentRequest, db: Session = Depends(get_db)):
-    return ApproveBookingAmmendmentCommand(BookingAmmendmentId, request, logging.getLogger("ApproveBookingAmmendmentCommand"), mailSender, dvla_client).Execute()
+@app.put("/ApproveBookingAmmendment/{BookingAmmendmentId}", tags=["Approve Booking Ammendment"], status_code=status.HTTP_200_OK)
+def approve_booking_ammendment(BookingAmmendmentId: UUID, request: ApproveBookingAmmendmentRequest, response : Response, db: Session = Depends(get_db)):
+    return ApproveBookingAmmendmentCommand(BookingAmmendmentId, request, response, logging.getLogger("ApproveBookingAmmendmentCommand"), mailSender, dvla_client).Execute()
 
-@app.put("/ApproveBooking/{BookingId}", tags=["Approve Booking Request"])
-def approve_booking_request(BookingId: UUID, request: ApproveBookingRequest, db: Session = Depends(get_db)):
-    return ApproveBookingCommand(BookingId, request, logging.getLogger("ApproveBookingCommand"), mailSender, dvla_client).Execute()
+@app.put("/ApproveBooking/{BookingId}", tags=["Approve Booking Request"], status_code=status.HTTP_200_OK)
+def approve_booking_request(BookingId: UUID, request: ApproveBookingRequest, response : Response, db: Session = Depends(get_db)):
+    return ApproveBookingCommand(BookingId, request, response, logging.getLogger("ApproveBookingCommand"), mailSender, dvla_client).Execute()

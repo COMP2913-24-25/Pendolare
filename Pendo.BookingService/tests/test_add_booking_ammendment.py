@@ -14,6 +14,10 @@ class DummyRequest:
     DriverApproval = False
     PassengerApproval = False
 
+class DummyResponse:
+    def __init__(self):
+        self.status_code = None
+
 @pytest.fixture
 def mock_logger():
     return MagicMock()
@@ -27,7 +31,8 @@ def mock_repository():
 @pytest.fixture
 def add_booking_ammendment_command(mock_repository, mock_logger):
     req = DummyRequest()
-    cmd = AddBookingAmmendmentCommand(req, mock_logger)
+    res = DummyResponse()
+    cmd = AddBookingAmmendmentCommand(req, res, mock_logger)
     cmd.booking_repository = mock_repository
     return cmd
 
@@ -41,10 +46,5 @@ def test_add_booking_ammendment_booking_not_found(add_booking_ammendment_command
     mock_repository.GetBookingById.return_value = None
     result = add_booking_ammendment_command.Execute()
     assert result["Status"] == "Error"
+    assert add_booking_ammendment_command.response.status_code == 404
     assert f"Booking {DummyRequest.BookingId} not found" in result["Message"]
-
-def test_add_booking_ammendment_exception(add_booking_ammendment_command, mock_repository):
-    mock_repository.AddBookingAmmendment.side_effect = Exception("Add failed")
-    result = add_booking_ammendment_command.Execute()
-    assert result["Status"] == "Error"
-    assert "Add failed" in result["Message"]

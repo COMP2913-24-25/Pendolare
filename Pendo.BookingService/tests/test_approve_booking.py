@@ -4,6 +4,11 @@ from app.approve_booking import ApproveBookingCommand
 
 class DummyRequest:
     BookingId = 1
+    UserId = 2
+
+class DummyResponse:
+    def __init__(self):
+        self.status_code = None
 
 @pytest.fixture
 def mock_logger():
@@ -30,7 +35,7 @@ def mock_dvla_client():
 
 @pytest.fixture
 def approve_booking_command(mock_repository, mock_logger, mock_email_sender, mock_dvla_client):
-    cmd = ApproveBookingCommand(1, DummyRequest(), mock_logger, mock_email_sender, mock_dvla_client)
+    cmd = ApproveBookingCommand(1, DummyRequest(), DummyResponse(), mock_logger, mock_email_sender, mock_dvla_client)
     cmd.booking_repository = mock_repository
     return cmd
 
