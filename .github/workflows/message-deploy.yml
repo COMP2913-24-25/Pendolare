@@ -35,14 +35,6 @@ jobs:
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         enable-AzPSSession: true
 
-    # # Get Kong Gateway FQDN
-    # - name: Get Kong Gateway FQDN
-    #   id: kong_fqdn
-    #   run: |
-    #     KONG_FQDN=$(az containerapp show --name kong-gateway --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
-    #     echo "KONG_GATEWAY_FQDN=$KONG_FQDN" >> $GITHUB_ENV
-    #     echo "::set-output name=fqdn::$KONG_FQDN"
-
     - name: Build and push image to ACR
       env:
         ACR_USERNAME: ${{ secrets.ACR_USERNAME }}
@@ -55,20 +47,61 @@ jobs:
         docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.MESSAGE_SERVICE_IMAGE_NAME }}:${{ github.sha }} ${{ env.ACR_NAME }}.azurecr.io/${{ env.MESSAGE_SERVICE_IMAGE_NAME }}:latest
         docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.MESSAGE_SERVICE_IMAGE_NAME }}:latest
 
-    - name: Deploy Container App
+    # Create the Container App with optimal WebSocket configuration
+    - name: Deploy Container App with WebSocket configuration
       uses: azure/CLI@v1
       with:
         inlineScript: |
-          az deployment group create \
+          echo "Deploying MessageService with WebSocket optimizations..."
+          
+          # Check if container app exists
+          EXISTS=$(az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query name -o tsv 2>/dev/null || echo "")
+          
+          if [ -n "$EXISTS" ]; then
+            echo "Container app exists, updating..."
+            # Update existing container app
+            az containerapp update \
+              --name ${{ env.CONTAINER_APP_NAME }} \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --image ${{ env.ACR_NAME }}.azurecr.io/${{ env.MESSAGE_SERVICE_IMAGE_NAME }}:latest \
+              --registry-username ${{ secrets.ACR_USERNAME }} \
+              --registry-password ${{ secrets.ACR_PASSWORD }} \
+              --env-vars "WS_PORT=5006" "HTTP_PORT=5007" "LOG_LEVEL=DEBUG" "PYTHONUNBUFFERED=1"
+          else
+            echo "Creating new container app with Bicep template..."
+            # Create new container app with Bicep
+            az deployment group create \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --template-file infrastructure/message-service.bicep \
+              --parameters \
+                containerAppName=${{ env.CONTAINER_APP_NAME }} \
+                containerAppEnvironmentName=pendo-env-dev \
+                registryName=${{ env.ACR_NAME }} \
+                registryUsername=${{ secrets.ACR_USERNAME }} \
+                registryPassword=${{ secrets.ACR_PASSWORD }}
+          fi
+    
+    # Optimize the WebSocket configuration for direct client access
+    - name: Configure WebSocket settings for direct client access
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          echo "Optimizing WebSocket configuration for Container App with direct client access..."
+          
+          # Update ingress settings for WebSocket support
+          az containerapp ingress update \
+            --name ${{ env.CONTAINER_APP_NAME }} \
             --resource-group ${{ env.RESOURCE_GROUP }} \
-            --template-file infrastructure/message-service.bicep \
-            --parameters \
-              containerAppName=${{ env.CONTAINER_APP_NAME }} \
-              containerAppEnvironmentName=pendo-env-dev \
-              registryName=${{ env.ACR_NAME }} \
-              registryUsername=${{ secrets.ACR_USERNAME }} \
-              registryPassword=${{ secrets.ACR_PASSWORD }} \
-              kongGatewayFqdn=${{ steps.kong_fqdn.outputs.fqdn }}
+            --target-port 5006 \
+            --transport auto \
+            --allow-insecure false \
+            --sticky-sessions \
+            --sticky-sessions-cookie-name MessageSession \
+            --timeout 5400 \
+            --external true \
+            --exposed-port 5006
+          
+          echo "WebSocket configuration updated for direct client access to ${{ env.CONTAINER_APP_NAME }}"
     
     # Wait for message service to be ready
     - name: Wait for service to be ready
@@ -76,35 +109,20 @@ jobs:
         echo "Waiting for message-service to be ready..."
         sleep 30
 
-    # Get Message Service FQDN 
+    # Get Message Service FQDN and verify deployment
     - name: Get Message Service FQDN
       id: message_fqdn
       run: |
         MESSAGE_FQDN=$(az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
         echo "MESSAGE_SERVICE_FQDN=$MESSAGE_FQDN" >> $GITHUB_ENV
         echo "::set-output name=fqdn::$MESSAGE_FQDN"
-
-    # # Configure Kong Gateway to properly route to Message Service with correct FQDN
-    # - name: Configure Kong Gateway Routes
-    #   uses: azure/CLI@v1
-    #   with:
-    #     inlineScript: |
-    #       MESSAGE_SERVICE_FQDN="${{ steps.message_fqdn.outputs.fqdn }}"
-    #       KONG_GATEWAY_FQDN="${{ steps.kong_fqdn.outputs.fqdn }}"
-          
-    #       echo "Updating Kong Gateway Configuration..."
-    #       echo "Message Service FQDN: $MESSAGE_SERVICE_FQDN"
-    #       echo "Kong Gateway FQDN: $KONG_GATEWAY_FQDN"
-          
-    #       # Delete existing service if it exists (to ensure clean update)
-    #       curl -s -i -X DELETE https://$KONG_GATEWAY_FQDN/admin-api/services/message-service || true
-          
-    #       # Create message-service in Kong with correct HTTPS URL
-    #       curl -i -X POST https://$KONG_GATEWAY_FQDN/admin-api/services \
-    #         -H "Content-Type: application/json" \
-    #         -d "{\"name\":\"message-service\",\"url\":\"https://$MESSAGE_SERVICE_FQDN\"}"
-          
-    #       # Add WebSocket route with proper headers
-    #       curl -i -X POST https://$KONG_GATEWAY_FQDN/admin-api/services/message-service/routes \
-    #         -H "Content-Type: application/json" \
-    #         -d "{\"name\":\"message-ws-route\",\"paths\":[\"/message/ws\"],\"protocols\":[\"http\",\"https\"],\"headers\":{\"Upgrade\":[\"websocket\"],\"Connection\":[\"Upgrade\"]},\"strip_path\":false}"
+        echo "Message Service deployed at: $MESSAGE_FQDN"
+        
+        # Check if the service is responding to HTTP requests
+        echo "Verifying HTTP endpoint..."
+        HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://$MESSAGE_FQDN/health || echo "failed")
+        if [ "$HTTP_STATUS" == "200" ]; then
+          echo "✅ HTTP endpoint is up and responding"
+        else
+          echo "⚠️ HTTP endpoint check returned: $HTTP_STATUS - service may still be starting"
+        fi
