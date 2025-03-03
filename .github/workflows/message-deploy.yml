@@ -110,8 +110,7 @@ jobs:
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --target-port 5006 \
             --transport auto \
-            --allow-insecure false \
-            --external true
+            --allow-insecure false
           
           # Configure additional settings separately using the containerapp update command
           echo "Adding sticky sessions configuration..."
