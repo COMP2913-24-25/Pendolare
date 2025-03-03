@@ -1,4 +1,4 @@
-from .PaymentRepository import PaymentRepository
+from ..PaymentRepository import PaymentRepository
 
 class ViewBalanceCommand:
     """
