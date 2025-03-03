@@ -6,7 +6,10 @@
 
 from fastapi import FastAPI, HTTPException, Depends
 import logging, sys
+from uuid import UUID
 from .PendoDatabaseProvider import get_db, Session, text, configProvider, environment
+from .PaymentRequests import GetBalanceRequest
+from .ViewBalanceCmd import ViewBalanceCommand
 
 if environment == "Development":
     logging.basicConfig(
@@ -25,7 +28,7 @@ else:
 logger = logging.getLogger(__name__)
 logger.info("Starting Pendo.PaymentService.Api")
 
-app = FastAPI(    title="Pendo.BookingService.Api", 
+app = FastAPI(title="Pendo.PaymentService.Api", 
     version="1.0.0",
     root_path="/api")
 
@@ -39,18 +42,6 @@ def test_db(db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"DB connection failed. Error: {str(e)}")
         raise HTTPException(500, detail="DB connection failed.")
-
-def queryBalance(userID):
-    nonpending = 0
-    pending = 0 
-    # input: userID
-
-    # Query non-pending balance
-
-    # Query pending balance
-
-    # return both
-    return pending, non-pending
 
 @app.post("/AuthenticatePaymentDetails", tags=["Pre-booking"])
 def AuthenticatePaymentDetails():
@@ -127,16 +118,17 @@ def ConfirmedBooking():
 
     return {"status" : "success"}
 
-@app.get("/ViewBalance", tags=["Anytime"])
-def ViewBalance():
+@app.get("/ViewBalance/{UserId}", tags=["Anytime"])
+def ViewBalance(UserId: UUID, db: Session = Depends(get_db)):
+    """
+    Used to query a users balance, both pending and non-pending
+    """
+    BalanceSheet = ViewBalanceCommand(logging.getLogger("ViewBalance"), UserId).Execute()
+    logger.info("status", "success", "non-pending", BalanceSheet.NonPending, "pending", BalanceSheet.Pending)
 
-    # TODO: Complete View endpoint
-    
-    # pending, non-pending = queryBalance(userID)
-
-    return {"status" : "success",
-            "pending": "value",
-            "non-pending": "value"}
+    return {"status" : "success", 
+            "non-pending" : BalanceSheet.NonPending,
+            "pending" : BalanceSheet.Pending}
 
 
 @app.post("/RefundPayment", tags=["Anytime"])

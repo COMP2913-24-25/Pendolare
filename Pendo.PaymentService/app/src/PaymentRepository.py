@@ -1,4 +1,4 @@
-from .PendoDatabase import User, Transaction
+from .PendoDatabase import User, Transaction, UserBalance
 from sqlalchemy.orm import joinedload
 from .PendoDatabaseProvider import get_db
 
@@ -12,6 +12,14 @@ class PaymentRepository():
         Constructor for BookingRepository class.
         """
         self.db_session = next(get_db())
+
+    def GetUserBalance(self, user_id):
+        """
+        GetUserBalance method returns the balance of a user for the specified user id.
+        :param user_id: Id of the user.
+        :return UserBalance object."""
+        
+        return self.db_session.query(UserBalance).get(user_id)
     
     def GetUser(self, user_id):
         """
@@ -37,13 +45,13 @@ class PaymentRepository():
         """
         return self.db_session.query(Booking).get(booking_id)
     
-    # def CreateBooking(self, booking):
-    #     """
-    #     CreateBooking method creates a new booking in the database.
-    #     :param booking: Booking object to be created.
-    #     """
-    #     self.db_session.add(booking)
-    #     self.db_session.commit()
+    def CreateUserBalance(self, balance):
+        """
+        CreateUserBalance method creates a new user balance in the database.
+        :param booking: Booking object to be created.
+        """
+        self.db_session.add(balance)
+        self.db_session.commit()
 
     # def UpdateBooking(self, booking):
     #     """
