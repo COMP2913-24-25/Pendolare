@@ -144,8 +144,6 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
               type: 'Startup'
               httpGet: {
                 path: '/api/ping'
-              httpGet: {
-                path: '/api/ping'
                 port: 8080
               }
               initialDelaySeconds: 10
