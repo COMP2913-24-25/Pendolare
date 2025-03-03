@@ -154,7 +154,8 @@ def create_journey(journey_data: dict = Depends(create_journey_data), db: Sessio
 def get_journeys(request : GetJourneysRequest, db: Session = Depends(get_db)):
     logger.debug("Getting journey data")
 
-    filter = Journey.LockedUntil < datetime.datetime.now()
+    #filter = Journey.LockedUntil < datetime.datetime.now()
+    filters = [Journey.LockedUntil < datetime.datetime.now()]
 
     if request.BootHeight is not None:
         filter = filter and Journey.BootHeight > request.BootHeight
