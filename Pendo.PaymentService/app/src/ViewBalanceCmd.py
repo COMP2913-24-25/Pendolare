@@ -30,9 +30,14 @@ class ViewBalanceCommand:
             if userBalance is None:
                 raise Exception("Balance sheet not found")
             else:
-                self.logger.info("Got balance sheet", userBalance)
-                return userBalance
+                # self.logger.info("Got balance sheet", userBalance)
+                # self.logger.info("non-pending", userBalance.NonPending, "pending", userBalance.Pending)
+
+                return {"Status" : "success", 
+                        "NonPending" : userBalance.NonPending,
+                        "Pending" : userBalance.Pending}
 
         except Exception as e:
-            self.logger.error(f"Error creating booking. Error: {str(e)}")
-            return {"Status": "Failed", "Error": str(e)}
+            self.logger.error(f"Error fetching balance sheet. Error: {str(e)}")
+            return {"Status": "fail",
+                    "Error" : str(e)}
