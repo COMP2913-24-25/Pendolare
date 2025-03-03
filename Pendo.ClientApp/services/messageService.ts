@@ -255,6 +255,8 @@ class MessageService {
       timestamp: new Date().toISOString(),
     };
 
+    console.log(message);
+
     try {
       this.ws.send(JSON.stringify(message));
       console.log("Message sent:", content);
