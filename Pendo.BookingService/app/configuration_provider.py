@@ -49,3 +49,9 @@ class ConfigurationProvider:
             return self.emailConfiguration
 
         raise ValueError("Email configuration not found in the database.")
+    
+    def GetSingleValue(self, db_session: Session, key: str) -> str:
+        """
+        Get a single value from the configuration.
+        """
+        return db_session.query(Configuration).filter(Configuration.Key == key).first().Value
