@@ -57,11 +57,15 @@ DECLARE @BookingEmailConfiguration NVARCHAR(MAX) = '
     "cancelledTemplateId": "d-fd645e276ceb4cafa14dae1d678b5b93"
 }'
 
+DECLARE @DvlaApiKey NVARCHAR(MAX) = 'bfehQJlOAs6trMLuOaahb4ZAS1STeM5n5yk6XvM2'
+
 MERGE INTO [shared].[Configuration] AS target
 USING (VALUES
     ('Identity.OtpConfiguration', @OtpConfiguration),
     ('Identity.JwtConfiguration', @JwtConfiguration),
-    ('Booking.EmailConfiguration', @BookingEmailConfiguration)
+    ('Booking.DvlaApiKey', @DvlaApiKey),
+    ('Booking.EmailConfiguration', @BookingEmailConfiguration),
+    ('Booking.FeeMargin', '0.05')
 ) AS source ([Key], [Value])
 ON target.[Key] = source.[Key]
 WHEN NOT MATCHED THEN
