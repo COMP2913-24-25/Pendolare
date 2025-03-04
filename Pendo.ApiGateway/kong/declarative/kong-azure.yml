@@ -39,6 +39,17 @@ services:
         methods:
           - GET
           - OPTIONS
+    plugins:
+      - name: jwt
+        config:
+          anonymous: anonymous-consumer
+          run_on_preflight: false
+      - name: acl
+        config:
+          hide_groups_header: true
+          allow:
+            - anonymous
+            - authenticated
 
   - name: payment-service
     url: https://payment-service.greensand-8499b34e.uksouth.azurecontainerapps.io
@@ -168,6 +179,8 @@ plugins:
         - exp
       key_claim_name: iss
       secret_is_base64: false
+      anonymous: anonymous-consumer
+      run_on_preflight: false
     
   # Exclude auth endpoints from JWT verification
   - name: request-transformer
