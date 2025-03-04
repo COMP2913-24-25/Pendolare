@@ -2,9 +2,10 @@ _format_version: "2.1"
 
 plugins:
   - name: jwt-custom-claims
-    config:
-      script_path: /usr/local/kong/scripts/jwt_custom_claims.lua
     enabled: true
     protocols:
       - http
       - https
+    config:
+      require_admin_for_analytics: true
+      add_user_info_headers: true
