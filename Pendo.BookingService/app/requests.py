@@ -2,7 +2,9 @@ from pydantic import BaseModel, condecimal, confloat
 from typing import Optional
 from uuid import UUID
 from datetime import datetime
-from .models import Booking
+
+class GetBookingsRequest(BaseModel):
+    UserId: UUID
 
 class AddBookingAmmendmentRequest(BaseModel):
     UserId: UUID
@@ -14,13 +16,14 @@ class AddBookingAmmendmentRequest(BaseModel):
     EndName: Optional[str] = None
     EndLong: Optional[confloat()] = None
     EndLat: Optional[confloat()] = None
+    StartTime: Optional[datetime] = None
     CancellationRequest: bool = False
     DriverApproval: bool = False
     PassengerApproval: bool = False
 
 class ApproveBookingAmmendmentRequest(BaseModel):
     UserId: UUID
-    DriverApproval: bool = False,
+    DriverApproval: bool = False
     PassengerApproval: bool = False
 
 class ApproveBookingRequest(BaseModel):

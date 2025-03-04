@@ -52,31 +52,29 @@ class MailSender:
             to_emails=to)
         message.template_id = template_id
         message.dynamic_template_data = data
-        try:
-            client = SendGridAPIClient(self.config.apiKey)
-            response = client.send(message)
-            return response
-        except Exception as e:
-            return str(e)
-        
+
+        client = SendGridAPIClient(self.config.apiKey)
+        response = client.send(message)
+        return response
+    
 def generateEmailDataFromAmmendment(ammendment, driver, journey, vehicle):
-    return{
+    return {
         "booking_id": f"{ammendment.BookingId}",
         "driver_name": driver.FirstName if driver.FirstName is not None else "(Name not set)",
         "pickup_location": ammendment.StartName if ammendment.StartName is not None else journey.StartName,
-        "pickup_time": ammendment.StartTime.time() if ammendment.StartTime is not None else journey.StartTime.time(),
-        "pickup_date": journey.StartDate.date(),
+        "pickup_time": ammendment.StartTime.strftime('%H:%M') if ammendment.StartTime is not None else journey.StartTime.strftime('%H:%M'),
+        "pickup_date": journey.StartDate.strftime('%d/%m/%Y'),
         "dropoff_location": ammendment.EndName if ammendment.EndName is not None else journey.EndName,
         "vehicle_info": vehicle
     }
 
 def generateEmailDataFromBooking(booking, driver, journey, vehicle):
-    return{
+    return {
         "booking_id": f"{booking.BookingId}",
         "driver_name": driver.FirstName if driver.FirstName is not None else "(Name not set)",
         "pickup_location": journey.StartName,
-        "pickup_time": journey.StartTime.time(),
-        "pickup_date": journey.StartDate.date(),
+        "pickup_time": journey.StartTime.strftime('%H:%M'),
+        "pickup_date": journey.StartDate.strftime('%d/%m/%Y'),
         "dropoff_location": journey.EndName,
         "vehicle_info": vehicle
     }

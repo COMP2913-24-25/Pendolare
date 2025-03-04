@@ -42,30 +42,31 @@ logger.info("Mail Sender Service Initialised")
 
 dvla_client = VehicleEnquiryClient(configProvider.GetSingleValue(next(get_db()), "Booking.DvlaApiKey"), logger)
 
-@app.get("/", tags=["Funny"], status_code=status.HTTP_418_IM_A_TEAPOT)
-def read_root():
-    return {"message": "Welcome to Pendo.BookingService.Api"}
-
 @app.get("/HealthCheck", tags=["HealthCheck"], status_code=status.HTTP_200_OK)
 def test_db(db: Session = Depends(get_db)):
     logger.info("Testing DB connection...")
     try:
         db.execute(text("SELECT 1"))
         logger.info("DB connection successful")
-        return {"db_connection": "successful"}
+        return {"DbConnection": "Successful"}
     except Exception as e:
         logger.error(f"DB connection failed. Error: {str(e)}")
         raise HTTPException(500, detail="DB connection failed.")
 
-@app.get("/GetBookings/{UserId}", tags=["Get Bookings"], status_code=status.HTTP_200_OK)
-def get_bookings(UserId: UUID, db: Session = Depends(get_db)):
+@app.post("/GetBookings", tags=["Get Bookings"], status_code=status.HTTP_200_OK)
+def get_bookings(request: GetBookingsRequest, db: Session = Depends(get_db)):
     logger.debug("Getting bookings...")
-    return GetBookingsCommand(UserId, logging.getLogger("GetBookingsCommand")).Execute()
+    return GetBookingsCommand(request, logging.getLogger("GetBookingsCommand")).Execute()
 
 @app.post("/CreateBooking", tags=["Create Bookings"], status_code=status.HTTP_200_OK)
 def create_booking(request: CreateBookingRequest, response : Response, db: Session = Depends(get_db)):
     logger.debug(f"Creating booking with request {request}.")
-    return CreateBookingCommand(request, response, mailSender, logging.getLogger("CreateBookingCommand")).Execute()
+    return CreateBookingCommand(request, 
+                                response, 
+                                mailSender, 
+                                logging.getLogger("CreateBookingCommand"), 
+                                dvla_client, 
+                                configProvider).Execute()
 
 @app.post("/AddBookingAmmendment", tags=["Add Booking Ammendment"], status_code=status.HTTP_200_OK)
 def add_booking_ammendment(request : AddBookingAmmendmentRequest, response : Response, db: Session = Depends(get_db)):

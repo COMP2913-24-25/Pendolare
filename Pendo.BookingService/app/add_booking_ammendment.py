@@ -2,6 +2,7 @@ from .requests import AddBookingAmmendmentRequest
 from .booking_repository import BookingRepository
 from .models import BookingAmmendment
 from fastapi import status
+from datetime import datetime
 
 class AddBookingAmmendmentCommand:
     def __init__(self, request: AddBookingAmmendmentRequest, response, logger):
@@ -15,6 +16,10 @@ class AddBookingAmmendmentCommand:
             self.logger.debug(f"Adding booking amendment for booking {self.request.BookingId}: {self.request}")
             self._assertBookingExists()
 
+            if self.request.StartTime is not None and self.request.StartTime < datetime.now():
+                self.response.status_code = status.HTTP_400_BAD_REQUEST
+                raise Exception("Start time cannot be in the past")
+
             bookingAmendment = self._createBookingAmendment()
             self.booking_repository.AddBookingAmmendment(bookingAmendment)
             self.logger.debug(f"Added booking amendment for booking {self.request.BookingId} successfully.")
@@ -22,6 +27,8 @@ class AddBookingAmmendmentCommand:
             return {"Status": "Success", "BookingAmmendmentId": f"{bookingAmendment.BookingAmmendmentId}"}
         except Exception as e:
             self.logger.error(f"Error adding booking amendment for booking {self.request.BookingId}: {e}")
+            if self.response.status_code is None:
+                self.response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
             return {"Status": "Error", "Message": str(e)}
 
     def _assertBookingExists(self):
@@ -39,6 +46,7 @@ class AddBookingAmmendmentCommand:
             StartLat=self.request.StartLat,
             EndName=self.request.EndName,
             EndLat=self.request.EndLat,
+            StartTime=self.request.StartTime,
             CancellationRequest=self.request.CancellationRequest,
             DriverApproval=self.request.DriverApproval,
             PassengerApproval=self.request.PassengerApproval

@@ -28,6 +28,15 @@ class ApproveBookingAmmendmentCommand:
                 self.response.status_code = status.HTTP_404_NOT_FOUND
                 raise Exception(f"Booking ammendment {self.ammendment_id} not found")
             
+            booking = self.booking_repository.GetBookingById(booking_ammendment.BookingId)
+            if booking is None:
+                self.response.status_code = status.HTTP_404_NOT_FOUND
+                raise Exception(f"Booking {booking_ammendment.BookingId} not found")
+            
+            if booking.BookingStatusId != 1:
+                self.response.status_code = status.HTTP_400_BAD_REQUEST
+                raise Exception(f"Booking {booking_ammendment.BookingId} is not pending approval therefore cannot be ammended.")
+            
             self._setApprovals(booking_ammendment, driver, passenger)
 
             if booking_ammendment.DriverApproval and booking_ammendment.PassengerApproval:
@@ -48,12 +57,16 @@ class ApproveBookingAmmendmentCommand:
 
         except Exception as e:
             self.logger.error(f"Error approving booking ammendment {self.ammendment_id}: {e}")
+            if self.response.status_code is None:
+                self.response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
             return {"Status": "Error", "Message": str(e)}
     
     def _applyAmmendment(self, ammendment, passenger, driver, journey):
-        email_data = generateEmailDataFromAmmendment(ammendment, driver, journey, self.dvla_client.GetVehicleDetails(journey.VehicleRegistration))
+        email_data = generateEmailDataFromAmmendment(ammendment, driver, journey, self.dvla_client.GetVehicleDetails(journey.RegPlate))
 
         if ammendment.CancellationRequest:
+            res = self.email_sender.SendBookingCancelled(passenger.Email, email_data)
+            self.logger.debug(f"Email send result: {res}")
             self.booking_repository.UpdateBookingStatus(ammendment.BookingId, 3)
             self.logger.debug(f"Booking {ammendment.BookingId} cancelled successfully.")
             return
@@ -62,7 +75,8 @@ class ApproveBookingAmmendmentCommand:
 
         self.booking_repository.UpdateBookingStatus(ammendment.BookingId, 2)
 
-        self.email_sender.SendBookingConfirmation(passenger.Email, email_data) #Should we send an email to the driver too?
+        res = self.email_sender.SendBookingConfirmation(passenger.Email, email_data) #Should we send an email to the driver too?
+        self.logger.debug(f"Email send result: {res}")
         self.logger.debug(f"Booking {ammendment.BookingId} confirmed successfully.")
 
     def _setApprovals(self, ammendment, driver, passenger):

@@ -31,21 +31,31 @@ class CreateBookingCommand:
         try:
             user = self.booking_repository.GetUser(self.request.UserId)
             if user is None:
+                self.response.status_code = status.HTTP_404_NOT_FOUND
                 raise Exception("User not found")
             
             journey = self.booking_repository.GetJourney(self.request.JourneyId)
             if journey is None:
+                self.response.status_code = status.HTTP_404_NOT_FOUND
                 raise Exception("Journey not found")
             
+            #Check booking not in the past
+            if self.request.BookingTime < datetime.now():
+                self.response.status_code = status.HTTP_400_BAD_REQUEST
+                raise Exception("Booking time cannot be in the past")
+            
             if journey.JourneyTypeId == 2 and not checkTimeValid(journey.Recurrance, self.request.BookingTime):
+                self.response.status_code = status.HTTP_400_BAD_REQUEST
                 raise Exception("Booking time is not valid for the commuter journey")
             
             existing_booking = self.booking_repository.GetExistingBooking(user.UserId, journey.JourneyId, self.request.BookingTime)
             if existing_booking is not None:
+                self.response.status_code = status.HTTP_400_BAD_REQUEST
                 raise Exception("Booking for this time and journey combination already exists")
             
             current_booking_fee = self.configuration_provider.GetSingleValue("Booking.FeeMargin")
             if current_booking_fee is None:
+                self.response.status_code = status.HTTP_404_NOT_FOUND
                 raise Exception("Booking fee margin not found.")
             
             booking = Booking(
@@ -65,5 +75,6 @@ class CreateBookingCommand:
             return {"Status": "Success", "createTime": datetime.now()}
         except Exception as e:
             self.logger.error(f"Error creating booking. Error: {str(e)}")
-            self.response.status_code = status.HTTP_400_BAD_REQUEST
+            if self.response.status_code is None:
+                self.response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
             return {"Status": "Failed", "Error": str(e)}

@@ -180,3 +180,19 @@ class BookingRepository():
         driver = self.GetUser(journey.UserId)
 
         return ammendment, driver, passenger, journey
+    
+    def GetBookingAmmendments(self, booking_id):
+        """
+        GetBookingAmmendments method returns all the booking ammendments for a booking.
+        :param booking_id: Id of the booking.
+        :return: List of BookingAmmendment objects.
+        """
+        return self.db_session.query(BookingAmmendment).filter(BookingAmmendment.BookingId == booking_id).all()
+    
+    def UpdateBookingAmmendment(self, booking_ammendment):
+        """
+        UpdateBookingAmmendment method updates an existing booking ammendment in the database.
+        :param booking_ammendment: BookingAmmendment object to be updated.
+        """
+        booking_ammendment.UpdateDate = datetime.now()
+        self.db_session.commit()
