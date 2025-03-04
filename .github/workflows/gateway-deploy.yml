@@ -95,19 +95,3 @@ jobs:
                 registryName=${{ env.ACR_NAME }} \
                 registryUsername=${{ secrets.ACR_USERNAME }} \
                 registryPassword=${{ secrets.ACR_PASSWORD }}
-      
-      # # After deploying, ensure the Kong configuration is properly set
-      # - name: Test Kong API Gateway routes
-      #   run: |
-      #     # Get the Kong Gateway FQDN
-      #     KONG_FQDN=$(az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
-          
-      #     echo "Kong Gateway is deployed at: $KONG_FQDN"
-      #     echo "Waiting for Kong to become available..."
-      #     sleep 45
-          
-      #     echo "Testing Kong Gateway ping endpoint..."
-      #     curl -i -X GET https://$KONG_FQDN/api/ping || echo "Ping endpoint not responding yet"
-          
-      #     echo "Testing Kong Gateway admin API..."
-      #     curl -i https://$KONG_FQDN/admin-api || echo "Admin API not responding yet"
