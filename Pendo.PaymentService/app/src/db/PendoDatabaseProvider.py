@@ -1,12 +1,14 @@
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
-from .configProvider import ConfigurationProvider, Path
-from dotenv import load_dotenv
+from ..configuration.configProvider import ConfigurationProvider, Path
+from dotenv import load_dotenv, find_dotenv
 import os
 
-load_dotenv()
+env_path = find_dotenv('../configuration/.env')
+load_dotenv(env_path)
 environment = os.getenv("ENV", "Production")
-configPath = f"{Path(__file__).resolve().parent}/appsettings.{environment}.json"
+
+configPath = f"/code/configuration/appsettings.{environment}.json"
 configProvider = ConfigurationProvider(configPath)
 
 engine = create_engine(configProvider.database.getDbUrl())

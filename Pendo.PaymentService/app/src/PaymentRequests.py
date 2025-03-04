@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from .PendoDatabase import User
+from .db.PendoDatabase import User
 from uuid import UUID
 
 # class CreateTransaction(BaseModel):
