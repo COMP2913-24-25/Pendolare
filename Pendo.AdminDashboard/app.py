@@ -1,10 +1,28 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 import requests
+from datetime import timedelta, datetime
 
 app = Flask(__name__)
 app.secret_key = 'reallyStrongPwd123'
+app.permanent_session_lifetime = timedelta(minutes=30)
 
 api_url = 'http://localhost:8080'
+
+def check_inactivity():
+    now = datetime.utcnow().replace(tzinfo=None)
+    last_activity = session.get('last_activity')
+    if last_activity:
+        last_activity = last_activity.replace(tzinfo=None)
+    if last_activity and (now - last_activity).total_seconds() > app.permanent_session_lifetime.total_seconds():
+        session.clear()
+        flash('You have been logged out due to inactivity.')
+        return redirect(url_for('login'))
+    session['last_activity'] = now
+
+@app.before_request
+def before_request():
+    if 'logged_in' in session:
+        check_inactivity()
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -27,6 +45,7 @@ def verify_otp():
         response = requests.post(f'{api_url}/api/auth/verify-otp', json={'email': session['email'], 'otp': otp})
         if response.status_code == 200:
             session['logged_in'] = True
+            session['last_activity'] = datetime.utcnow().replace(tzinfo=None)
             return redirect(url_for('dashboard'))
         else:
             flash('Invalid OTP. Please try again.')
@@ -63,7 +82,7 @@ def chat(username):
 def update_booking_fee():
     booking_fee = request.form['booking_fee']
 
-    # Update the booking fee the database through analytics service
+    # update the booking fee the database through analytics service
     return redirect(url_for('dashboard'))
 
 if __name__ == '__main__':
