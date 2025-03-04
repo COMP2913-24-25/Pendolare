@@ -1,9 +1,9 @@
-import json
+import json, os
 from pathlib import Path
 from .config import DbConfiguration, SendGridConfiguration
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from .PendoDatabase import Configuration  # Ensure this import matches your project structure
+from ..db.PendoDatabase import Configuration  # Ensure this import matches your project structure
 
 class SendGridConfiguration(BaseModel):
     """
@@ -30,6 +30,7 @@ class ConfigurationProvider:
         """
         Load the configuration from the appsettings.json file.
         """
+        print("LS", os.listdir("/code/configuration"))
         if self.path.exists():
             with open(self.path, 'r') as file:
                 return json.load(file)
