@@ -15,8 +15,11 @@ services:
       KONG_ADMIN_GUI_URL: http://localhost:8002
       KONG_ADMIN_GUI_PATH: /
       KONG_PROXY_LISTEN: 0.0.0.0:8000, 0.0.0.0:8443 ssl
+      KONG_PLUGINS: "bundled,jwt-custom-claims"
+      KONG_LUA_PACKAGE_PATH: "/usr/local/share/lua/5.1/?.lua;/usr/local/share/lua/5.1/?/init.lua;/usr/local/kong/scripts/?.lua;;"
     volumes:
       - ./kong/declarative:/usr/local/kong/declarative
+      - ./Pendo.ApiGateway/kong/scripts:/usr/local/kong/scripts
     ports:
       - "8000:8000"
       - "8001:8001"
