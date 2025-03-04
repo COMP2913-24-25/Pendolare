@@ -9,7 +9,7 @@ import logging, sys
 from uuid import UUID
 from .roots.ViewBalanceCmd import ViewBalanceCommand
 from .db.PendoDatabaseProvider import get_db, Session, text, configProvider, environment
-from .PaymentRequests import GetBalanceRequest
+from .requests.PaymentRequests import GetBalanceRequest
 
 
 if environment == "Development":
