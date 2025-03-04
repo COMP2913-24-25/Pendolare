@@ -7,7 +7,7 @@
 from fastapi import FastAPI, HTTPException, Depends
 import logging, sys
 from uuid import UUID
-from .roots.ViewBalanceCmd import ViewBalanceCommand
+from .endpoints.ViewBalanceCmd import ViewBalanceCommand
 from .db.PendoDatabaseProvider import get_db, Session, text, configProvider, environment
 from .requests.PaymentRequests import GetBalanceRequest
 

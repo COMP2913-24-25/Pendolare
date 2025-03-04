@@ -16,7 +16,7 @@ class ViewBalanceCommand:
 
     def Execute(self):
         """
-        Execute method creates a new booking.
+        Execute method querys a user's balance.
         :return: both balances of the user.
         """
         try:
