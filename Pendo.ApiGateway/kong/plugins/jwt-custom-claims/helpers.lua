@@ -2,7 +2,7 @@
 local _M = {}
 
 function _M.extract_email(jwt_claims)
-  -- Extract email from standard claim names
+  -- Extract email from standard claim names [WIP]
   local email_claim_names = {
     "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
     "email",
