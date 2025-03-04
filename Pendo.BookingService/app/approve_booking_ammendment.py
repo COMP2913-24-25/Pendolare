@@ -37,6 +37,14 @@ class ApproveBookingAmmendmentCommand:
                 self.response.status_code = status.HTTP_400_BAD_REQUEST
                 raise Exception(f"Booking {booking_ammendment.BookingId} is not pending approval therefore cannot be ammended.")
             
+            if booking_ammendment.CancellationRequest:
+                if self.request.UserId != driver.UserId and self.request.UserId != passenger.UserId:
+                    self.response.status_code = status.HTTP_401_UNAUTHORIZED
+                    raise Exception(f"User {self.request.UserId} not authorised to cancel booking ammendment {self.ammendment_id}")
+                
+                self._applyAmmendment(booking_ammendment, passenger, driver, journey)
+                return self._success("Booking ammendment fully approved and booking cancelled.")
+            
             self._setApprovals(booking_ammendment, driver, passenger)
 
             if booking_ammendment.DriverApproval and booking_ammendment.PassengerApproval:
@@ -69,9 +77,11 @@ class ApproveBookingAmmendmentCommand:
             self.logger.debug(f"Email send result: {res}")
             self.booking_repository.UpdateBookingStatus(ammendment.BookingId, 3)
             self.logger.debug(f"Booking {ammendment.BookingId} cancelled successfully.")
+
+            # TODO ONCE PAYMENT SERVICE IS IMPLEMENTED: Call payment service and refund user making request
             return
     
-        ## call payment service and charge passenger
+        ## TODO ONCE PAYMENT SERVICE IS IMPLEMENTED: call payment service and charge passenger
 
         self.booking_repository.UpdateBookingStatus(ammendment.BookingId, 2)
 
