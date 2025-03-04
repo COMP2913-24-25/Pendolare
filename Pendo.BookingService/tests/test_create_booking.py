@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import MagicMock
 from app.create_booking import CreateBookingCommand
+from datetime import datetime, timedelta
 
 @pytest.fixture
 def mock_email_sender():
@@ -33,7 +34,7 @@ def create_booking_command(mock_repository, mock_email_sender, mock_logger, mock
     class DummyRequest:
         UserId = 1
         JourneyId = 2
-        BookingTime = "2023-01-01 12:00:00"
+        BookingTime = datetime.now() + timedelta(days=1)
     class DummyResponse:
         def __init__(self):
             self.status_code = None
@@ -43,6 +44,7 @@ def create_booking_command(mock_repository, mock_email_sender, mock_logger, mock
 
 def test_create_booking_success(create_booking_command, mock_repository, mock_email_sender, mock_logger):
     result = create_booking_command.Execute()
+
     assert result["Status"] == "Success"
     mock_repository.CreateBooking.assert_called_once()
     mock_email_sender.SendBookingPending.assert_called_once()
@@ -50,36 +52,46 @@ def test_create_booking_success(create_booking_command, mock_repository, mock_em
 
 def test_create_booking_user_not_found(create_booking_command, mock_repository):
     mock_repository.GetUser.return_value = None
+
     result = create_booking_command.Execute()
+
     assert result["Status"] == "Failed"
     assert "User not found" in result["Error"]
-    assert create_booking_command.response.status_code == 400
+    assert create_booking_command.response.status_code == 404
 
 def test_create_booking_journey_not_found(create_booking_command, mock_repository):
     mock_repository.GetJourney.return_value = None
+
     result = create_booking_command.Execute()
+
     assert result["Status"] == "Failed"
     assert "Journey not found" in result["Error"]
-    assert create_booking_command.response.status_code == 400
+    assert create_booking_command.response.status_code == 404
 
 def test_create_booking_already_exists(create_booking_command, mock_repository):
     mock_repository.GetExistingBooking.return_value = MagicMock(BookingId=10)
+
     result = create_booking_command.Execute()
+
     assert result["Status"] == "Failed"
     assert "Booking for this time and journey combination already exists" in result["Error"]
     assert create_booking_command.response.status_code == 400
 
 def test_create_booking_fee_margin_not_found(create_booking_command, mock_configuration_provider):
     mock_configuration_provider.GetSingleValue.return_value = None
+
     result = create_booking_command.Execute()
+
     assert result["Status"] == "Failed"
     assert "Booking fee margin not found" in result["Error"]
-    assert create_booking_command.response.status_code == 400
+    assert create_booking_command.response.status_code == 404
 
 def test_create_booking_invalid_commuter_time(create_booking_command, mock_repository, monkeypatch):
     mock_repository.GetJourney.return_value = MagicMock(JourneyId=2, JourneyTypeId=2, Recurrance="weekly")
     monkeypatch.setattr("app.create_booking.checkTimeValid", lambda r, t: False)
+
     result = create_booking_command.Execute()
+
     assert result["Status"] == "Failed"
     assert "Booking time is not valid for the commuter journey" in result["Error"]
     assert create_booking_command.response.status_code == 400

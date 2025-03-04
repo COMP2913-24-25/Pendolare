@@ -19,12 +19,17 @@ class ApproveBookingCommand:
         Execute method approves a booking request, provided no ammenments are present.
         """
         try:
+            booking = self.booking_repository.GetBookingById(self.booking_id)
+            if booking is None:
+                self.response.status_code = status.HTTP_404_NOT_FOUND
+                raise Exception(f"Booking {self.booking_id} not found.")
+
             ammendments = self.booking_repository.GetBookingAmmendments(self.booking_id)
             if len(ammendments) > 0:
                 self.logger.debug(f"Booking {self.booking_id} has ammendments pending approval.")
+                self.response.status_code = status.HTTP_401_UNAUTHORIZED
                 raise Exception(f"Booking {self.booking_id} has ammendments pending approval.")
             
-            booking = self.booking_repository.GetBooking(self.booking_id)
             passenger = self.booking_repository.GetUser(booking.UserId)
 
             journey = self.booking_repository.GetJourney(booking.JourneyId)
@@ -38,7 +43,7 @@ class ApproveBookingCommand:
             self.booking_repository.UpdateBookingStatus(self.booking_id, 2)
             self.logger.debug(f"Booking {self.booking_id} status updated to confirmed.")
 
-            email_data = generateEmailDataFromBooking(booking, driver, journey, self.dvla_client.GetVehicleDetails(journey.VehicleRegistration))
+            email_data = generateEmailDataFromBooking(booking, driver, journey, self.dvla_client.GetVehicleDetails(journey.RegPlate))
 
             self.email_sender.SendBookingConfirmation(passenger.Email, email_data)
             self.logger.debug(f"Booking confirmation email sent to {passenger.Email}.")
@@ -46,4 +51,6 @@ class ApproveBookingCommand:
         
         except Exception as e:
             self.logger.error(f"Error when attempting to approve booking {self.booking_id}: {e}")
+            if self.response.status_code is None:
+                self.response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
             return {"Status": "Error", "Message": str(e)}

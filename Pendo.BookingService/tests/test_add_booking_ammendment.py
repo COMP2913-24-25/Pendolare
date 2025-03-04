@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import MagicMock
 from app.add_booking_ammendment import AddBookingAmmendmentCommand
+from datetime import datetime, timedelta
 
 class DummyRequest:
     BookingId = 1
@@ -10,6 +11,7 @@ class DummyRequest:
     StartLat = 0.0
     EndName = "End"
     EndLat = 1.0
+    StartTime = datetime.now() + timedelta(hours=1)
     CancellationRequest = False
     DriverApproval = False
     PassengerApproval = False

@@ -36,8 +36,10 @@ def mock_repository():
     booking_ammendment.CancellationRequest = False
     driver = MagicMock(UserId=10)
     passenger = MagicMock(UserId=20, Email="passenger@test.com")
-    journey = MagicMock(VehicleRegistration="ABC123")
+    journey = MagicMock(JourneyId=200, VehicleRegistration="ABC123")
+    booking = MagicMock(BookingId=100, JourneyId=200, BookingStatusId=1)
     repo.GetBookingAmmendment.return_value = (booking_ammendment, driver, passenger, journey)
+    repo.GetBookingById.return_value = booking
     return repo
 
 def get_command(ammendment_id, request, response, logger, email_sender, dvla_client, repository):
@@ -51,7 +53,9 @@ def test_driver_approval(mock_repository, mock_logger, mock_email_sender, mock_d
     req.UserId = 10
     req.DriverApproval = True
     cmd = get_command(1, req, res, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
+
     result = cmd.Execute()
+
     assert result["Status"] == "Success"
     assert "Driver approved" in result["Message"]
 
@@ -61,7 +65,9 @@ def test_passenger_approval(mock_repository, mock_logger, mock_email_sender, moc
     req.UserId = 20
     req.PassengerApproval = True
     cmd = get_command(1, req, res, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
+
     result = cmd.Execute()
+
     assert result["Status"] == "Success"
     assert "Passenger approved" in result["Message"]
 
@@ -73,6 +79,7 @@ def test_full_approval(mock_repository, mock_logger, mock_email_sender, mock_dvl
     req.UserId = 20
     req.PassengerApproval = True
     cmd = get_command(1, req, res, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
+
     result = cmd.Execute()
 
     mock_repository.UpdateBookingStatus.assert_called_with(booking_ammendment.BookingId, 2)
@@ -89,6 +96,7 @@ def test_full_approval_cancellation(mock_repository, mock_logger, mock_email_sen
     req.UserId = 20
     req.PassengerApproval = True
     cmd = get_command(1, req, res, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
+
     result = cmd.Execute()
 
     mock_repository.UpdateBookingStatus.assert_called_with(booking_ammendment.BookingId, 3)
@@ -102,7 +110,9 @@ def test_not_authorised(mock_repository, mock_logger, mock_email_sender, mock_dv
     req.DriverApproval = True
     req.PassengerApproval = True
     cmd = get_command(1, req, res, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
+
     result = cmd.Execute()
+
     assert result["Status"] == "Error"
     assert res.status_code == 401
     assert f"User {req.UserId} not authorised to approve booking ammendment {cmd.ammendment_id}" in result["Message"]
@@ -114,7 +124,9 @@ def test_booking_ammendment_not_found(mock_repository, mock_logger, mock_email_s
     req.UserId = 10
     req.DriverApproval = True
     cmd = get_command(1, req, res, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
+
     result = cmd.Execute()
+
     assert result["Status"] == "Error"
     assert res.status_code == 404
     assert f"Booking ammendment {cmd.ammendment_id} not found" in result["Message"]
@@ -125,7 +137,9 @@ def test_driver_only_approval(mock_repository, mock_logger, mock_email_sender, m
     req.UserId = 10
     req.DriverApproval = True
     cmd = get_command(1, req, res, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
+
     result = cmd.Execute()
+
     assert result["Status"] == "Success"
     assert "Driver approved booking ammendment" in result["Message"]
 
@@ -135,6 +149,8 @@ def test_passenger_only_approval(mock_repository, mock_logger, mock_email_sender
     req.UserId = 20
     req.PassengerApproval = True
     cmd = get_command(1, req, res, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
+
     result = cmd.Execute()
+    
     assert result["Status"] == "Success"
     assert "Passenger approved booking ammendment" in result["Message"]
