@@ -12,6 +12,6 @@ COPY ./requirements.txt /code/requirements.txt
 
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
-COPY ./app/tests /code
+COPY ./app /code
 
 CMD ["pytest"]

@@ -12,9 +12,9 @@ COPY ./requirements.txt /code/requirements.txt
 
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
-COPY ./app/src /code
+COPY ./app /code
 
 # RUN sqlacodegen_v2 --schema identity,payment,shared  mssql+pymssql://SA:reallyStrongPwd123@172.17.0.3:1433/Pendo.Database > /code/app/src/PendoDatabase.py
 
-CMD ["fastapi", "run", "PaymentService.py", "--port", "5004"]
+CMD ["fastapi", "run", "/code/src/PaymentService.py", "--port", "5004"]
 #CMD ["ls"]
