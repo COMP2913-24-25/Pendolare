@@ -255,6 +255,9 @@
           },
           "authenticated": {
             "type": "boolean"
+          },
+          "isManager": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false

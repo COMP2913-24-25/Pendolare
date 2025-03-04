@@ -8,7 +8,6 @@ using Identity.Util;
 using Identity.Util.ConfigHelpers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Pendo.IdentityService.Api.Commands;
 using System.Text;
