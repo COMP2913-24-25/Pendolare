@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Identity.Schema.User.Auth;
+﻿namespace Identity.Schema.User.Auth;
 
 /// <summary>
 /// Contains the JWT issued to the user.
@@ -21,4 +19,9 @@ public class VerifyOtpResponse : Response
     /// Indicates whether the user was authenticated or not.
     /// </summary>
     public bool Authenticated { get; set; }
+
+    /// <summary>
+    /// Indicates whether the user is a manager.
+    /// </summary>
+    public bool IsManager { get; set; }
 }

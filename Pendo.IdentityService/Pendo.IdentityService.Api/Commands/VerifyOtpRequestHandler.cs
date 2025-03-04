@@ -105,7 +105,8 @@ public class VerifyOtpRequestHandler : ICommandHandler<VerifyOtpRequest, VerifyO
         {
             Jwt = _jwtGenerator.GenerateJwt(user.Email, user.UserTypeId is 2),
             IsNewUser = isNewUser,
-            Authenticated = true
+            Authenticated = true,
+            IsManager = user.UserTypeId == 2
         };
     }
 }
