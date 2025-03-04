@@ -8,19 +8,17 @@ local JwtCustomClaimsHandler = {
   VERSION = "1.0.0"
 }
 
--- List of paths that shouldn't require authentication
-local public_paths = {
-  ["/api/auth/request-otp"] = true,
-  ["/api/auth/verify-otp"] = true,
-  ["/api/ping"] = true
-}
+-- List of public paths using prefix matching
+local public_paths = { "/api/auth/request-otp", "/api/auth/verify-otp", "/api/ping" }
 
 function JwtCustomClaimsHandler:access(conf)
-  -- Check if the current path is a public path that doesn't need authentication
   local request_path = kong.request.get_path()
-  if public_paths[request_path] then
-    kong.log.debug("Skipping JWT claims verification for public path: ", request_path)
-    return
+  -- Check if the path starts with one of the public prefixes
+  for _, public_path in ipairs(public_paths) do
+    if request_path:find("^" .. public_path) then
+      kong.log.debug("Skipping JWT claims verification for public path: ", request_path)
+      return  -- bypass authentication
+    end
   end
 
   -- Get the JWT token from the request
