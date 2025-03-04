@@ -1,6 +1,6 @@
 from typing import List
 
-from sqlalchemy import Boolean, CHAR, Column, DECIMAL, ForeignKeyConstraint, Identity, Index, Integer, PrimaryKeyConstraint, Unicode, Uuid, text
+from sqlalchemy import Boolean, CHAR, Column, DECIMAL, Float, ForeignKeyConstraint, Identity, Index, Integer, PrimaryKeyConstraint, Unicode, Uuid, text
 from sqlalchemy.dialects.mssql import DATETIME2
 from sqlalchemy.orm import Mapped, declarative_base, mapped_column, relationship
 from sqlalchemy.orm.base import Mapped
@@ -11,7 +11,7 @@ Base = declarative_base()
 class UserType(Base):
     __tablename__ = 'UserType'
     __table_args__ = (
-        PrimaryKeyConstraint('UserTypeId', name='PK__UserType__40D2D816D009C4A7'),
+        PrimaryKeyConstraint('UserTypeId', name='PK__UserType__40D2D81688198308'),
         {'schema': 'identity'}
     )
 
@@ -26,8 +26,8 @@ class UserType(Base):
 class TransactionStatus(Base):
     __tablename__ = 'TransactionStatus'
     __table_args__ = (
-        PrimaryKeyConstraint('TransactionStatusId', name='PK__Transact__57B5E183DCC368E5'),
-        Index('UQ__Transact__3A15923FBECE6CBF', 'Status', unique=True),
+        PrimaryKeyConstraint('TransactionStatusId', name='PK__Transact__57B5E183E768F271'),
+        Index('UQ__Transact__3A15923FDAFD136F', 'Status', unique=True),
         {'schema': 'payment'}
     )
 
@@ -42,8 +42,8 @@ class TransactionStatus(Base):
 class TransactionType(Base):
     __tablename__ = 'TransactionType'
     __table_args__ = (
-        PrimaryKeyConstraint('TransactionTypeId', name='PK__Transact__20266D0B9D16F791'),
-        Index('UQ__Transact__F9B8A48B6250D402', 'Type', unique=True),
+        PrimaryKeyConstraint('TransactionTypeId', name='PK__Transact__20266D0B7A9DF9AF'),
+        Index('UQ__Transact__F9B8A48BAA4F2873', 'Type', unique=True),
         {'schema': 'payment'}
     )
 
@@ -58,8 +58,8 @@ class TransactionType(Base):
 class ApiClient(Base):
     __tablename__ = 'ApiClient'
     __table_args__ = (
-        PrimaryKeyConstraint('ApiClientId', name='PK__ApiClien__FDC5B7C8DA36775F'),
-        Index('UQ__ApiClien__E67E1A25B56BAFE0', 'ClientId', unique=True),
+        PrimaryKeyConstraint('ApiClientId', name='PK__ApiClien__FDC5B7C88CC0C63A'),
+        Index('UQ__ApiClien__E67E1A256E4AF289', 'ClientId', unique=True),
         {'schema': 'shared'}
     )
 
@@ -75,8 +75,8 @@ class ApiClient(Base):
 class Configuration(Base):
     __tablename__ = 'Configuration'
     __table_args__ = (
-        PrimaryKeyConstraint('ConfigurationId', name='PK__Configur__95AA53BBAA7BB5B3'),
-        Index('UQ__Configur__C41E0289B226C267', 'Key', unique=True),
+        PrimaryKeyConstraint('ConfigurationId', name='PK__Configur__95AA53BBF0A2BF33'),
+        Index('UQ__Configur__C41E0289B09E9D07', 'Key', unique=True),
         {'schema': 'shared'}
     )
 
@@ -91,9 +91,9 @@ class User(Base):
     __tablename__ = 'User'
     __table_args__ = (
         ForeignKeyConstraint(['UserTypeId'], ['identity.UserType.UserTypeId'], name='FK_User_UserType'),
-        PrimaryKeyConstraint('UserId', name='PK__User__1788CC4CA40151A2'),
+        PrimaryKeyConstraint('UserId', name='PK__User__1788CC4C3DDEDE83'),
         Index('IX_User_UserType', 'UserTypeId'),
-        Index('UQ__User__A9D105341FFF9E06', 'Email', unique=True),
+        Index('UQ__User__A9D1053483D9390A', 'Email', unique=True),
         {'schema': 'identity'}
     )
 
@@ -115,7 +115,7 @@ class Transaction(Base):
         ForeignKeyConstraint(['TransactionStatusId'], ['payment.TransactionStatus.TransactionStatusId'], name='FK_Transaction_TransactionStatus'),
         ForeignKeyConstraint(['TransactionTypeId'], ['payment.TransactionType.TransactionTypeId'], name='FK_Transaction_TransactionType'),
         ForeignKeyConstraint(['UserId'], ['identity.User.UserId'], name='FK_Transaction_UserId'),
-        PrimaryKeyConstraint('TransactionId', name='PK__Transact__55433A6BB16EAB9D'),
+        PrimaryKeyConstraint('TransactionId', name='PK__Transact__55433A6B8AF4ED30'),
         {'schema': 'payment'}
     )
 
@@ -131,3 +131,17 @@ class Transaction(Base):
     TransactionStatus_: Mapped['TransactionStatus'] = relationship('TransactionStatus', back_populates='Transaction')
     TransactionType_: Mapped['TransactionType'] = relationship('TransactionType', back_populates='Transaction')
     User_: Mapped['User'] = relationship('User', back_populates='Transaction')
+
+
+class UserBalance(User):
+    __tablename__ = 'UserBalance'
+    __table_args__ = (
+        ForeignKeyConstraint(['UserId'], ['identity.User.UserId'], name='FK_User_UserId'),
+        PrimaryKeyConstraint('UserId', name='PK__UserBala__1788CC4C83D4CE91'),
+        {'schema': 'payment'}
+    )
+
+    UserId = mapped_column(Uuid)
+    Pending = mapped_column(Float(53), nullable=False, server_default=text('((0))'))
+    NonPending = mapped_column(Float(53), nullable=False, server_default=text('((0))'))
+    UpdateDate = mapped_column(DATETIME2, nullable=False, server_default=text('(getutcdate())'))
