@@ -18,11 +18,11 @@ services:
       KONG_ADMIN_GUI_PATH: /
       KONG_PROXY_LISTEN: 0.0.0.0:8000, 0.0.0.0:8443 ssl
       KONG_PLUGINS: "bundled,jwt-custom-claims"
-      KONG_LUA_PACKAGE_PATH: "/usr/local/share/lua/5.1/?.lua;/usr/local/share/lua/5.1/?/init.lua;/etc/kong/plugins/?.lua;;"
+      KONG_LUA_PACKAGE_PATH: "/usr/local/share/lua/5.1/?.lua;/usr/local/share/lua/5.1/?/init.lua;/usr/local/kong/?.lua;/usr/local/kong/?/init.lua;/etc/kong/plugins/?.lua;/etc/kong/plugins/?/init.lua;;"
     volumes:
       - ./kong/declarative:/usr/local/kong/declarative
       - ./kong/scripts:/etc/kong/scripts
-      - ./kong/plugins:/etc/kong/plugins
+      - ./kong/plugins:/usr/local/kong/plugins
     ports:
       - "8000:8000"
       - "8001:8001"

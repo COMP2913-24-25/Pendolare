@@ -55,7 +55,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'KONG_DECLARATIVE_CONFIG'
-              value: '/usr/local/kong/declarative/kong-azure.yml'  // Use the Azure-specific config
+              value: '/usr/local/kong/declarative/kong.yml'  // Use the Azure-specific config
             }
             {
               name: 'KONG_PROXY_ACCESS_LOG'

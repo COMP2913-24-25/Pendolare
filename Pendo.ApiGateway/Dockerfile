@@ -1,25 +1,32 @@
-FROM kong:latest
+FROM kong:3.4.0-ubuntu
 
 USER root
 
+# Install dependencies needed for plugin development
+RUN apt-get update && \
+    apt-get install -y git unzip curl lua5.1 luarocks && \
+    apt-get clean
+
 # Create directories with proper permissions first
-RUN mkdir -p /usr/local/kong/declarative /usr/local/kong/templates /usr/local/kong/scripts /usr/local/kong/plugins/jwt-custom-claims
+RUN mkdir -p /usr/local/kong/declarative /usr/local/kong/templates /usr/local/kong/scripts /usr/local/kong/plugins/jwt-custom-claims /tmp/jwt-custom-claims
 
 # Copy the declarative configs and templates
-COPY ./kong/declarative/kong-azure.yml /usr/local/kong/declarative/
 COPY ./kong/declarative/kong.yml /usr/local/kong/declarative/
 COPY ./kong/declarative/custom-plugins.yml /usr/local/kong/declarative/
 
-# Copy custom Lua scripts
-COPY ./scripts/jwt_custom_claims.lua /usr/local/kong/scripts/
+# Copy custom plugins to the container
+COPY ./kong/plugins/jwt-custom-claims /usr/local/kong/plugins/jwt-custom-claims/
+COPY ./kong/plugins/jwt-custom-claims /tmp/jwt-custom-claims/
 
-# Copy plugin files to Kong's plugin directory
-COPY ./kong/plugins/jwt-custom-claims/handler.lua /usr/local/kong/plugins/jwt-custom-claims/
-COPY ./kong/plugins/jwt-custom-claims/schema.lua /usr/local/kong/plugins/jwt-custom-claims/
-COPY ./kong/plugins/jwt-custom-claims/init.lua /usr/local/kong/plugins/jwt-custom-claims/
+# Copy rockspec file for the plugin with the correct filename
+COPY ./kong/plugins/jwt-custom-claims-1.0.0-1.rockspec /tmp/
+
+# Install custom plugins
+RUN cd /tmp && luarocks make jwt-custom-claims-1.0.0-1.rockspec
 
 # Set proper permissions
-RUN chmod 644 /usr/local/kong/declarative/* /usr/local/kong/scripts/* /usr/local/kong/plugins/jwt-custom-claims/* \
+RUN chmod 644 /usr/local/kong/declarative/* /usr/local/kong/plugins/jwt-custom-claims/* \
+    && chown -R kong:kong /usr/local/kong/plugins \
     && chown -R kong:kong /usr/local/kong
 
 # Switch back to kong user for security
@@ -35,7 +42,7 @@ ENV KONG_ADMIN_ERROR_LOG=/dev/stderr
 ENV KONG_ADMIN_LISTEN=0.0.0.0:8001
 ENV KONG_LOG_LEVEL=debug
 ENV KONG_PLUGINS="bundled,jwt-custom-claims"
-ENV KONG_LUA_PACKAGE_PATH="/usr/local/share/lua/5.1/?.lua;/usr/local/share/lua/5.1/?/init.lua;/usr/local/kong/plugins/?.lua;;"
+ENV KONG_LUA_PACKAGE_PATH="/usr/local/share/lua/5.1/?.lua;/usr/local/share/lua/5.1/?/init.lua;/usr/local/kong/plugins/?.lua;/usr/local/kong/plugins/?/init.lua;;"
 
 # The port Kong listens on
 EXPOSE 8000 8001 8443 8444

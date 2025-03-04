@@ -2,6 +2,7 @@ _format_version: "2.1"
 
 plugins:
   - name: jwt-custom-claims
+    package: /etc/kong/plugins/jwt-custom-claims
     enabled: true
     protocols:
       - http

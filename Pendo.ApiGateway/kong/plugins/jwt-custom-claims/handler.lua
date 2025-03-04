@@ -22,26 +22,43 @@ function JwtCustomClaimsHandler:access(conf)
   end
 
   -- Get the JWT token from the request
-  local jwt_token = kong.ctx.shared.authenticated_jwt_token
-  if not jwt_token then
-    return
+  local token_header = kong.request.get_header("Authorization")
+  if not token_header then
+    kong.log.debug("No Authorization header found")
+    return -- Let the JWT plugin handle this case
   end
+  
+  -- Remove "Bearer " if present
+  local jwt_token_str = token_header:gsub("^[Bb]earer%s+", "")
+  
+  -- Parse the JWT token
+  local jwt_obj, err = jwt_decoder:new(jwt_token_str)
+  if err then
+    kong.log.err("Failed to parse JWT: ", err)
+    return -- Let the JWT plugin handle this case
+  end
+  
+  local jwt_claims = jwt_obj.claims
+  kong.log.debug("JWT claims: ", kong.tools.table_to_string(jwt_claims))
 
   -- For analytics service, verify the user is admin
   local service_name = kong.router.get_service() and kong.router.get_service().name
-  if service_name == "analytics-service" then
-    local user_type = jwt_token.claims["UserType"]
+  if service_name == "analytics-service" and conf.require_admin_for_analytics then
+    local user_type = jwt_claims["UserType"]
     if not user_type or user_type ~= "admin" then
       return kong.response.exit(403, { message = "Access forbidden: Admin privileges required" })
     end
   end
   
-  -- Add the username to headers for downstream services: https://www.w3schools.com/Xml/xml_soap.asp
-  if jwt_token.claims["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] then
-    kong.service.request.set_header("X-User-Email", jwt_token.claims["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"])
+  -- Add user info to headers for downstream services if configured
+  if conf.add_user_info_headers then
+    -- Add the username to headers for downstream services
+    if jwt_claims["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] then
+      kong.service.request.set_header("X-User-Email", jwt_claims["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"])
+    end
+    
+    kong.service.request.set_header("X-User-Type", jwt_claims["UserType"] or "")
   end
-  
-  kong.service.request.set_header("X-User-Type", jwt_token.claims["UserType"] or "")
 end
 
 return JwtCustomClaimsHandler

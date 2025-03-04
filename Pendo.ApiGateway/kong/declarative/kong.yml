@@ -2,88 +2,66 @@ _format_version: "2.1"
 _transform: true
 
 services:
-  - name: message-service
-    url: http://message-service:5006
-    protocol: http
+  - name: identity-service
+    url: https://identity-service.greensand-8499b34e.uksouth.azurecontainerapps.io
+    protocol: https
     routes:
-      - name: message-ws-route
+      - name: auth-request-otp
         protocols:
           - http
           - https
         paths:
-          - /message/ws
+          - /api/auth/request-otp
         strip_path: false
-        headers:
-          Upgrade:
-            - websocket
-          Connection:
-            - Upgrade
-        methods:
-          - GET
-          - OPTIONS
-      - name: message-websocket-direct
-        protocols:
-          - http
-          - https
-        paths:
-          - /ws
-        strip_path: false
-        headers:
-          Upgrade:
-            - websocket
-          Connection:
-            - Upgrade
-        methods:
-          - GET
-          - OPTIONS
-      - name: message-history
-        protocols:
-          - http
-          - https
-        paths:
-          - /message/history
-        strip_path: false
-        methods:
-          - GET
-      - name: message-open-conversation
-        protocols:
-          - http
-          - https
-        paths:
-          - /message/open-conversation
-        strip_path: false
+        preserve_host: false
         methods:
           - POST
-      - name: message-test-client
+          - OPTIONS
+        plugins:
+          - name: jwt
+            config:
+              anonymous: anonymous-consumer
+              run_on_preflight: false
+          - name: request-transformer
+            config:
+              remove:
+                headers:
+                  - Authorization
+      - name: auth-verify-otp
         protocols:
           - http
           - https
         paths:
-          - /message/test-client
-        strip_path: true
+          - /api/auth/verify-otp
+        strip_path: false
+        preserve_host: false
         methods:
-          - GET
-      - name: message-health
+          - POST
+          - OPTIONS
+        plugins:
+          - name: jwt
+            config:
+              anonymous: anonymous-consumer
+              run_on_preflight: false
+          - name: request-transformer
+            config:
+              remove:
+                headers:
+                  - Authorization
+      - name: ping-endpoint
         protocols:
           - http
           - https
         paths:
-          - /message/health
-        strip_path: true
+          - /api/ping
+        strip_path: false
+        preserve_host: false
         methods:
           - GET
+          - OPTIONS
     plugins:
-      - name: request-transformer
-        config:
-          add:
-            headers:
-              - x-skip-auth:${request.querystring.skipAuth}
       - name: jwt
         config:
-          secret_is_base64: false
-          key_claim_name: kid
-          claims_to_verify:
-            - exp
           anonymous: anonymous-consumer
           run_on_preflight: false
       - name: acl
@@ -93,171 +71,25 @@ services:
             - anonymous
             - authenticated
 
-  - name: identity-service
-    url: http://identity-service:5001
-    routes:
-      - name: auth-route
-        protocols:
-          - http
-          - https
-        paths:
-          - /api/auth
-        strip_path: true
-      - name: auth-request-otp
-        protocols:
-          - http
-          - https
-        paths:
-          - /auth/request-otp
-        strip_path: false
-        methods:
-          - POST
-      - name: auth-verify-otp
-        protocols:
-          - http
-          - https
-        paths:
-          - /auth/verify-otp
-        strip_path: false
-        methods:
-          - POST
-      - name: user-update
-        protocols:
-          - http
-          - https
-        paths:
-          - /user/update
-        strip_path: false
-        methods:
-          - POST
-      - name: user-get
-        protocols:
-          - http
-          - https
-        paths:
-          - /user/get
-        strip_path: false
-        methods:
-          - GET
-
   - name: payment-service
-    url: http://payment-service:5004
-    routes:
-      - name: payment-refund
-        protocols:
-          - http
-          - https
-        paths:
-          - /payment/refund
-        strip_path: false
-        methods:
-          - POST
-      - name: payment-view
-        protocols:
-          - http
-          - https
-        paths:
-          - /payment/view
-        strip_path: false
-        methods:
-          - GET
-      - name: payment-confirm
-        protocols:
-          - http
-          - https
-        paths:
-          - /payment/confirm
-        strip_path: false
-        methods:
-          - POST
-      - name: payment-take
-        protocols:
-          - http
-          - https
-        paths:
-          - /payment/take
-        strip_path: false
-        methods:
-          - POST
-      - name: payment-payout
-        protocols:
-          - http
-          - https
-        paths:
-          - /payment/payout
-        strip_path: false
-        methods:
-          - POST
-  - name: api-gateway-status
-    url: http://127.0.0.1:8001
-    routes:
-      - name: gateway-status
-        protocols:
-          - http
-          - https
-        paths:
-          - /status
-        strip_path: false
-        methods:
-          - GET
+    url: https://payment-service.greensand-8499b34e.uksouth.azurecontainerapps.io
+    protocol: https
+    # ...waiting for routes...
 
   - name: booking-service
-    url: http://booking-service:5003
-    routes:
-      - name: booking-create
-        protocols:
-          - http
-          - https
-        paths:
-          - /booking/create
-        strip_path: false
-        methods:
-          - POST
-      - name: booking-update
-        protocols:
-          - http
-          - https
-        paths:
-          - /booking/update
-        strip_path: false
-        methods:
-          - POST
-      - name: booking-get
-        protocols:
-          - http
-          - https
-        paths:
-          - /booking/get
-        strip_path: false
-        methods:
-          - GET
+    url: https://booking-service.greensand-8499b34e.uksouth.azurecontainerapps.io
+    protocol: https
+    # ...waiting routes...
 
   - name: journey-service
-    url: http://journey-service:5002
-    routes:
-      - name: journey-create
-        protocols:
-          - http
-          - https
-        paths:
-          - /journey/create
-        strip_path: false
-        methods:
-          - POST
-      - name: journey-view
-        protocols:
-          - http
-          - https
-        paths:
-          - /journey/view
-        strip_path: false
-        methods:
-          - GET
+    url: https://journey-service.greensand-8499b34e.uksouth.azurecontainerapps.io
+    protocol: https
+    # ...waiting routes...
 
-  - name: kong-admin
+  - name: admin-api
     url: http://127.0.0.1:8001
     routes:
-      - name: admin-api
+      - name: admin-api-route
         protocols:
           - http
           - https
@@ -270,17 +102,46 @@ services:
           - PUT
           - DELETE
           - PATCH
+
+  - name: analytics-service
+    url: https://analytics-service.greensand-8499b34e.uksouth.azurecontainerapps.io
+    protocol: https
+    routes:
+      - name: analytics-routes
+        protocols:
+          - http
+          - https
+        paths:
+          - /api/analytics
+        strip_path: false
+        preserve_host: false
+        methods:
+          - GET
+          - POST
+          - OPTIONS
     plugins:
-      - name: ip-restriction
+      - name: jwt
+        config:
+          claims_to_verify:
+            - exp
+          secret_is_base64: false
+      - name: acl
         config:
           allow:
-            - 127.0.0.1
-            - 172.16.0.0/12
+            - admin-group
 
 consumers:
   - username: anonymous-consumer
     acls:
       - group: anonymous
+
+  - username: admin-user
+    acls:
+      - group: admin-group
+    jwt_secrets:
+      - key: "Pendo.IdentityService"
+        algorithm: HS256
+        secret: "your-shared-secret-key-here" # Replace with actual secret used to sign JWTs
 
 plugins:
   - name: cors
@@ -297,14 +158,76 @@ plugins:
         - Accept
         - Authorization
         - Content-Type
+        - Origin
+        - X-Requested-With
         - Upgrade
         - Connection
       exposed_headers:
         - Authorization
       credentials: true
       max_age: 3600
+      preflight_continue: false
 
+  - name: response-transformer
+    config:
+      add:
+        headers:
+          - "Access-Control-Allow-Origin: *"
+          - "Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS"
+          - "Access-Control-Allow-Headers: Accept, Authorization, Content-Type, Origin, X-Requested-With"
+
+  # Much stricter rate limiting to avoid Azure container app rate limits
   - name: rate-limiting
     config:
-      minute: 60
+      second: 2
+      minute: 20
+      hour: 200
       policy: local
+      hide_client_headers: false
+      redis_timeout: 2000
+      fault_tolerant: true
+
+  # JWT authentication plugin
+  - name: jwt
+    config:
+      uri_param_names:
+        - jwt
+      cookie_names: []
+      header_names:
+        - Authorization
+      claims_to_verify:
+        - exp
+      key_claim_name: iss
+      secret_is_base64: false
+      anonymous: anonymous-consumer
+      run_on_preflight: false
+
+  # Exclude auth endpoints from JWT verification
+  - name: request-transformer
+    route: auth-request-otp
+    config:
+      remove:
+        headers:
+          - Authorization
+
+  - name: request-transformer
+    route: auth-verify-otp
+    config:
+      remove:
+        headers:
+          - Authorization
+
+  - name: request-transformer
+    route: ping-endpoint
+    config:
+      remove:
+        headers:
+          - Authorization
+
+  # Create an admin ACL check plugin
+  - name: acl
+    service: analytics-service
+    config:
+      hide_groups_header: true
+      allow:
+        - admin-group
