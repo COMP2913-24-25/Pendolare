@@ -22,6 +22,6 @@ printf "\e[32mContainer Created\e[0m\n"
 printf "\e[32mPendo.Database is running on localhost:1433\e[0m\n"
 printf "\e[32mPendo.Database Username: SA, Password: reallyStrongPwd123\e[0m\n"
 
-# update Pendo.Database.py with sqlacodegen to create sqlalchemy python file based off database schema
-#printf "\033[1m============================= Updating Pendo.Database.py =====================\033[1m\n"
-#sqlacodegen_v2 --schema identity,payment,shared  mssql+pymssql://SA:reallyStrongPwd123@localhost:1433/Pendo.Database > Pendo.Database.py
+# update PendoDatabase.py with sqlacodegen to create sqlalchemy python file based off database schema
+#printf "\033[1m============================= Updating PendoDatabase.py =====================\033[1m\n"
+#sqlacodegen_v2 --schema identity,payment,shared  mssql+pymssql://SA:reallyStrongPwd123@localhost:1433/Pendo.Database > PendoDatabase.py

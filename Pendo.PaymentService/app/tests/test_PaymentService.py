@@ -5,7 +5,7 @@
 #
 
 import pytest 
-from src.payment_service import some_testing_function
+from src.PaymentService import some_testing_function
 
 def test_testing_function():
     # Arrange
