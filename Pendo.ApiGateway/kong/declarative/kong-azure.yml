@@ -17,6 +17,16 @@ services:
         methods:
           - POST
           - OPTIONS
+        plugins:
+          - name: jwt
+            config:
+              anonymous: anonymous-consumer
+              run_on_preflight: false
+          - name: request-transformer
+            config:
+              remove:
+                headers:
+                  - Authorization
       - name: auth-verify-otp
         protocols:
           - http
@@ -28,6 +38,16 @@ services:
         methods:
           - POST
           - OPTIONS
+        plugins:
+          - name: jwt
+            config:
+              anonymous: anonymous-consumer
+              run_on_preflight: false
+          - name: request-transformer
+            config:
+              remove:
+                headers:
+                  - Authorization
       - name: ping-endpoint
         protocols:
           - http
@@ -181,6 +201,10 @@ plugins:
       secret_is_base64: false
       anonymous: anonymous-consumer
       run_on_preflight: false
+      no_auth_routes:
+        - /api/auth/request-otp
+        - /api/auth/verify-otp
+        - /api/ping
     
   # Exclude auth endpoints from JWT verification
   - name: request-transformer
