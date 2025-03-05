@@ -12,3 +12,4 @@ __pycache__
 Pendo.BookingService/app/.env
 Pendo.BookingService/pyvenv.cfg
 Pendo.BookingService.log
+Pendo.AdminDashboard/
