@@ -29,7 +29,7 @@ def login():
     if request.method == 'POST':
         email = request.form['email']
         identityRequest = {"emailAddress": email}
-        response = requests.post(f'{api_url}/api/auth/request-otp', json=identityRequest)
+        response = requests.post(f'{api_url}/api/Auth/RequestOtp', json=identityRequest)
         if response.status_code == 200:
             session['email'] = email
             return redirect(url_for('verify_otp'))
@@ -42,7 +42,7 @@ def verify_otp():
     if request.method == 'POST':
         session.get('email')
         otp = request.form['otp']
-        response = requests.post(f'{api_url}/api/auth/verify-otp', json={'email': session['email'], 'otp': otp})
+        response = requests.post(f'{api_url}/api/Auth/VerifyOtp', json={'emailAddress': session['email'], 'otp': otp})
         if response.status_code == 200:
             session['logged_in'] = True
             session['last_activity'] = datetime.utcnow().replace(tzinfo=None)
@@ -76,7 +76,7 @@ def dashboard():
 
 @app.route('/chat/<username>')
 def chat(username):
-    return "Chat with {username}"
+    return f"Chat with {username}"
 
 @app.route('/update_booking_fee', methods=['POST'])
 def update_booking_fee():
