@@ -22,7 +22,8 @@ MERGE INTO [booking].[BookingStatus] AS target
 USING (VALUES 
     ('Pending', 'The booking has been created but not finalised.'),
     ('Confirmed', 'The booking is confirmed.'),
-    ('Cancelled', 'The booking has been cancelled.')
+    ('Cancelled', 'The booking has been cancelled.'),
+    ('Completed', 'The booking has been fulfilled')
 ) AS source (Status, Description)
 ON target.Status = source.Status
 WHEN NOT MATCHED THEN

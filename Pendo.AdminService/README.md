@@ -1,4 +1,4 @@
-# Service Name
+# Pendo.AdminService
 
 Brief description of what this specific service does and its role in the Pendolare system.
 
@@ -24,39 +24,35 @@ Description of the service's main responsibilities and core functionalities.
 
 ### Installation
 ```bash
-# Clone the repository
-git clone [repository-url]
+# Switch to service directory
+cd Pendo.AdminService
 
-# Navigate to service directory
-cd [service-name]
+# Create a virtual environment
+python.exe -m venv .venv-admin
 
-# Install dependencies
-npm install  # or equivalent command
+# Activate the venv
+source .venv-admin/Scripts/activate #(or windows equivalent if not using bash)
+
+# Install dependencies (First time setup only)
+pip install -r requirements.txt
 ```
 
 ### Configuration
-1. Copy `.env.example` to `.env`
-2. Update environment variables:
-   - `DATABASE_URL`
-   - `SERVICE_PORT`
-   - `OTHER_REQUIRED_VARS`
+todo
 
 ### Running the Service
 ```bash
-# Development mode
-npm run dev  # or equivalent command
+# Debug Mode
+fastapi run --reload
 
-# Production mode
-npm run start  # or equivalent command
+# Production
+docker run <imgname/>
 ```
 
 ### Testing
 ```bash
-# Run unit tests
-npm run test  # or equivalent command
-
-# Run integration tests
-npm run test:integration  # or equivalent command
+# Run tests
+pytest
 ```
 
 ## API Documentation
