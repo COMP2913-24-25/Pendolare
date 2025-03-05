@@ -1,0 +1,52 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35707.178
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pendo.IdentityService.Api", "Pendo.IdentityService.Api\Pendo.IdentityService.Api.csproj", "{F5A815DA-0669-433A-BDA7-1ECFA9636C77}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.Schema", "Identity.Schema\Identity.Schema.csproj", "{69D494F9-58A1-446B-B9D2-6FE229545C83}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.Util", "Identity.Util\Identity.Util.csproj", "{B7C7E192-7C71-4F29-B3F1-970505E17DF7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.Configuration", "Identity.Configuration\Identity.Configuration.csproj", "{6D4FF436-9D08-470F-BF0A-0844D1E4121D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.Tests", "Identity.Tests\Identity.Tests.csproj", "{73493996-231F-4AE1-A2FE-BF1CE0546697}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.DataAccess", "Identity.DataAccess\Identity.DataAccess.csproj", "{8A875965-CAD4-4616-940F-00954D43386E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F5A815DA-0669-433A-BDA7-1ECFA9636C77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5A815DA-0669-433A-BDA7-1ECFA9636C77}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5A815DA-0669-433A-BDA7-1ECFA9636C77}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5A815DA-0669-433A-BDA7-1ECFA9636C77}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69D494F9-58A1-446B-B9D2-6FE229545C83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69D494F9-58A1-446B-B9D2-6FE229545C83}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69D494F9-58A1-446B-B9D2-6FE229545C83}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69D494F9-58A1-446B-B9D2-6FE229545C83}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7C7E192-7C71-4F29-B3F1-970505E17DF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7C7E192-7C71-4F29-B3F1-970505E17DF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7C7E192-7C71-4F29-B3F1-970505E17DF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7C7E192-7C71-4F29-B3F1-970505E17DF7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D4FF436-9D08-470F-BF0A-0844D1E4121D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D4FF436-9D08-470F-BF0A-0844D1E4121D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D4FF436-9D08-470F-BF0A-0844D1E4121D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D4FF436-9D08-470F-BF0A-0844D1E4121D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73493996-231F-4AE1-A2FE-BF1CE0546697}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73493996-231F-4AE1-A2FE-BF1CE0546697}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73493996-231F-4AE1-A2FE-BF1CE0546697}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73493996-231F-4AE1-A2FE-BF1CE0546697}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A875965-CAD4-4616-940F-00954D43386E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A875965-CAD4-4616-940F-00954D43386E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A875965-CAD4-4616-940F-00954D43386E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A875965-CAD4-4616-940F-00954D43386E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

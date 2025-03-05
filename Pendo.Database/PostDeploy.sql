@@ -45,8 +45,19 @@ DECLARE @JwtConfiguration NVARCHAR(MAX) = '
     "AppAudience": "Pendo.MobileApp",
     "ManagerAudience": "Pendo.ManagerDashboard",
     "SecretKey": "d8d5304c4624d4ee3461edde3a7df1d2a2a7aec0aaa689b7ef6ca563ae3a67bb",
-    "ExpiresInMinutes": 60,
+    "ExpiresInMinutes": 60
 }';
+
+DECLARE @ManagerWhitelist NVARCHAR(MAX) = '
+{
+    "Whitelist": 
+    [
+        "jameskinley24@gmail.com",
+        "sc23jk2@leeds.ac.uk",
+        "mundrayj@gmail.com",
+        "shayodonnell8@icloud.com"
+    ]
+}'
 
 DECLARE @BookingEmailConfiguration NVARCHAR(MAX) = '
 {
@@ -63,6 +74,7 @@ MERGE INTO [shared].[Configuration] AS target
 USING (VALUES
     ('Identity.OtpConfiguration', @OtpConfiguration),
     ('Identity.JwtConfiguration', @JwtConfiguration),
+    ('Identity.ManagerConfiguration', @ManagerWhitelist),
     ('Booking.DvlaApiKey', @DvlaApiKey),
     ('Booking.EmailConfiguration', @BookingEmailConfiguration),
     ('Booking.FeeMargin', '0.05')
