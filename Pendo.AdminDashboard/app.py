@@ -1,12 +1,16 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 import requests
 from datetime import timedelta, datetime
+import logging
 
 app = Flask(__name__)
 app.secret_key = 'reallyStrongPwd123'
 app.permanent_session_lifetime = timedelta(minutes=30)
 
 api_url = 'http://localhost:8080'
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
 def check_inactivity():
     now = datetime.utcnow().replace(tzinfo=None)
@@ -34,6 +38,7 @@ def login():
         email = request.form['email']
         identityRequest = {"emailAddress": email}
         response = requests.post(f'{api_url}/api/Auth/RequestOtp', json=identityRequest)
+        logging.info(f"Request OTP response: {response.json()}")
         if response.status_code == 200:
             session['email'] = email
             return redirect(url_for('verify_otp'))
@@ -47,9 +52,12 @@ def verify_otp():
         session.get('email')
         otp = request.form['otp']
         response = requests.post(f'{api_url}/api/Auth/VerifyOtp', json={'emailAddress': session['email'], 'otp': otp})
+        logging.info(f"Verify OTP response: {response.json()}")
         if response.status_code == 200:
             data = response.json()
-            if data.get('isManager'):
+            is_manager = data.get('isManager')
+            logging.info(f"isManager: {is_manager}")
+            if is_manager:
                 session['logged_in'] = True
                 session['last_activity'] = datetime.utcnow().replace(tzinfo=None)
                 return redirect(url_for('dashboard'))
@@ -90,20 +98,23 @@ def chat(username):
 @app.route('/update_booking_fee', methods=['POST'])
 def update_booking_fee():
     booking_fee = request.form['booking_fee']
-
-    # update the booking fee the database through analytics service
+    # Log the booking fee update request
+    logging.info(f"Update booking fee request: {booking_fee}")
+    # Update the booking fee in the database through analytics service
     return redirect(url_for('dashboard'))
 
 @app.route('/ping')
 def ping():
     try:
         response = requests.get(f'{api_url}/api/Ping')
+        logging.info(f"Ping response: {response.json()}")
         if response.status_code == 200:
             data = response.json()
             return f"API is reachable: {data['message']} at {data['timeSent']}"
         else:
             return f"Failed to reach API: {response.status_code}"
     except Exception as e:
+        logging.error(f"Ping error: {str(e)}")
         return f"Error: {str(e)}"
 
 if __name__ == '__main__':
