@@ -54,13 +54,6 @@ class PaymentRepository():
         self.db_session.add(balance)
         self.db_session.commit()
 
-    def GetAdminUser(self):
-        """
-        GetadminUser method returns the first admin member in the database.
-        :return: User Object of Admin
-        """
-        return self.db_session.(User).filter(UserTypeId=0).first()
-
     def UpdatePendingBalance(self, user_id, amount):
         """
         UpdatePendingBalance returns the status of a transaction where a user's pending balance is updated

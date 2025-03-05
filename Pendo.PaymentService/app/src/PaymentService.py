@@ -94,10 +94,6 @@ def CompletedBooking():
     # input: bookingID
 
     # get fee - from booking
-    # get adminID - from db
-    
-    # decrease admin pending balance by fee
-    # increase admin non-pending balance by fee
 
     # decrease booker non-pending by booking value
     
