@@ -1,24 +1,29 @@
-# Service Name
+# Pendo.IdentityService
 
-Brief description of what this specific service does and its role in the Pendolare system.
+The Identity Service serves to create, update and login users.
 
 ## Overview
 
-Description of the service's main responsibilities and core functionalities.
+The Identity Service creates and authenticates users via the `Auth/RequestOtp` and `Auth/VerifyOtp` endpoints. This is a passwordless model, whereby 'one-time-passcodes' are sent to users via email, and then verified. If no account is found with the provided email, one will be created.
+
+Manager accounts are created if, and only if, the given email is contained within the 'Identity.ManagerConfiguration.Whitelist' object (in the configuration table in DB!).
+
+Users can also be updated via this service, restricted to updating First and Last name only.
 
 ### Features
-- Key feature 1
-- Key feature 2
-- Key feature 3
+- Request OTP (and create account if necessary!).
+- Verify OTP (and provide JWT for continued auth).
+- Update user details.
 
 ## Tech Stack
-- Language/Framework: [e.g., Node.js, Java, Python]
-- Other significant technologies
+- C# (ASP.NET 8.0 Web API)
+- Entity Framework Core (ORM)
+- Docker
 
 ## Prerequisites
-- Required software/tools with versions
-- Environment dependencies
-- External service dependencies
+- Deployed database
+- Docker
+- .NET 8.0 runtime (running tests only)
 
 ## Getting Started
 
@@ -28,55 +33,45 @@ Description of the service's main responsibilities and core functionalities.
 git clone [repository-url]
 
 # Navigate to service directory
-cd [service-name]
+cd ./Pendo.IdentityService/
 
-# Install dependencies
-npm install  # or equivalent command
+# Ensure appsettings.json has relevant connection string
+
+# Build docker image
+docker build -f ./Pendo.IdentityService.Api/Dockerfile -t pendo.identityservice.deploy .
 ```
 
 ### Configuration
-1. Copy `.env.example` to `.env`
-2. Update environment variables:
-   - `DATABASE_URL`
-   - `SERVICE_PORT`
-   - `OTHER_REQUIRED_VARS`
+1. Ensure DB is deployed
+2. Ensure connection string in `appsettings.json` is set.
 
 ### Running the Service
 ```bash
-# Development mode
-npm run dev  # or equivalent command
+# Run container
+docker run pendo.identityservice.deploy -p {port}:8080
 
-# Production mode
-npm run start  # or equivalent command
+# Test by pinging
+curl http://localhost:{port}/api/Ping #(or navigate to in browser!)
 ```
 
 ### Testing
 ```bash
-# Run unit tests
-npm run test  # or equivalent command
-
-# Run integration tests
-npm run test:integration  # or equivalent command
+# Requires .NET 8.0 runtime + CLI
+dotnet test Pendo.IdentityService.sln
 ```
 
 ## API Documentation
 
 ### Endpoints
-- `GET /api/v1/resource` - Description
-- `POST /api/v1/resource` - Description
-- `PUT /api/v1/resource/:id` - Description
-- `DELETE /api/v1/resource/:id` - Description
+- to be populated from OpenAPI spec
 
 ## Monitoring and Logging
-- Metrics collection
-- Log locations
-- Monitoring tools used
+- Logs to file + console
 
 ## Deployment
-- Deployment process
-- Required environment variables
-- Infrastructure dependencies
+- Deploy via docker (push to ACR.)
+- Ensure `appsettings.json` (production one) has correct connection string.
 
 
 ## Contact
-- User responsible: [Leeds Username]
+- User responsible: sc23jk2

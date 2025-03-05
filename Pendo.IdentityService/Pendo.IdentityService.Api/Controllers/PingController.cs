@@ -5,7 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace Pendo.IdentityService.Api.Controllers;
 
 [ApiController]
-[Route("api/ping")]
+[Route("api/Ping")]
+[Consumes(Constants.AppJson)]
+[Produces(Constants.AppJson)]
 public class PingController : ControllerBase
 {
     private readonly string[] _quotes = ["hello!", "go away", "yes i am working!", "bonjour!"];
@@ -16,7 +18,7 @@ public class PingController : ControllerBase
         _dateTimeProvider = dateTimeProvider;
     }
 
-    [HttpGet(Name = "ping")]
+    [HttpGet(Name = "Ping")]
     public PingResponse Ping()
     {
         var rng = new Random();

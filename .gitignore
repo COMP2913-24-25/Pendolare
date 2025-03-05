@@ -8,3 +8,7 @@ efpt.config.json.user
 /Pendo.IdentityService/Identity.DataAccess/efpt.config.json
 .DS_Store
 __pycache__
+/Pendo.BookingService/.venv-booking
+Pendo.BookingService/app/.env
+Pendo.BookingService/pyvenv.cfg
+Pendo.BookingService.log
