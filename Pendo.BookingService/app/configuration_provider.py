@@ -3,7 +3,7 @@ from pathlib import Path
 from .configurations import DbConfiguration, SendGridConfiguration
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from .models import Configuration  # Ensure this import matches your project structure
+from .models import Configuration 
 
 class SendGridConfiguration(BaseModel):
     """
