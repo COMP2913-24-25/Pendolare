@@ -20,9 +20,7 @@ class PendingBookingCommand:
         :return: both balances of the user.
         """
         # TODO: Complete PendingBooking endpoint
-        # get adminID - from db
 
-        # increase admin pending balance by fee
         # increase advertiser pending balance by journey value (minus fee!)
         try:
             # get journey
@@ -31,15 +29,8 @@ class PendingBookingCommand:
                 raise Exception("Journey not found")
 
             self.logger.info("Got journey", user)
-            
-            # get admin
-            adminUser = self.PaymentRepository.GetAdminUser()
-            if adminUser is None:
-                raise Exception("No admin user found")
 
-            self.logger.info("Got admin user, ID:", adminUser.UserId)
-
-            # calculate fee
+            # get fee
 
             # 
 
