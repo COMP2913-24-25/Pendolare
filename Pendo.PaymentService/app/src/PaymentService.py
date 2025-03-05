@@ -82,22 +82,12 @@ def PendingBooking():
     """
     Used when a booking is created in the pending state
     """
-    # TODO: Complete PendingBooking endpoint
-
-    # input: journeyID
-
-    # get fee - from journey
-    # get adminID - from db
-
-    # increase admin pending balance by fee
-    # increase advertiser pending balance by journey value (minus fee!)
-
     return {"status" : "success"}
 
-@app.post("/ConfirmedBooking", tags=["On booking confirmation"])
-def ConfirmedBooking():
+@app.post("/CompletedBooking", tags=["On booking confirmation"])
+def CompletedBooking():
     """
-    Used when a booking status changes to confirmed, takes payment from user's saved card details and non-pending balance
+    Used when a booking status changes to complete, takes payment from user's saved card details and non-pending balance
     """
     # TODO: Complete Confirm endpoint
 
@@ -136,9 +126,20 @@ def refund():
 
     # TODO: Complete refund endpoint
 
-    # input: BookingID
+    # input: Booking Object, cancelled by 
 
-    # logic needs confirming, can booking be refunded after confirmed?
+    # > 15 mins before start?
+    fullRefund = False
+
+    # if driver cancelled
+        # reduce driver pending
+        # credit passenger non-pending
+
+    # if passenger cancelled
+
+
+    
+
 
     return {"status" : "success"}
 

@@ -17,8 +17,9 @@ class PaymentRepository():
         """
         GetUserBalance method returns the balance of a user for the specified user id.
         :param user_id: Id of the user.
-        :return UserBalance object."""
-        
+        :return UserBalance object.
+        """
+        # if user exists, and no balance table, make one
         return self.db_session.query(UserBalance).get(user_id)
     
     def GetUser(self, user_id):
@@ -52,6 +53,42 @@ class PaymentRepository():
         """
         self.db_session.add(balance)
         self.db_session.commit()
+
+    def GetAdminUser(self):
+        """
+        GetadminUser method returns the first admin member in the database.
+        :return: User Object of Admin
+        """
+        return self.db_session.(User).filter(UserTypeId=0).first()
+
+    def UpdatePendingBalance(self, user_id, amount):
+        """
+        UpdatePendingBalance returns the status of a transaction where a user's pending balance is updated
+        :param user_id: Id of the user
+        :param amount: Value to be increased of the pending balance
+        """
+        BalanceSheet = self.db_session.GetUserBalance(user_id)
+        
+        if BalanceSheet is None:
+            raise Exception("Balance Sheet not found for user")
+        
+        BalanceSheet.Pending += amount
+        self.db_session.commit()
+
+    def UpdateNonPendingBalance(self, user_id, amount):
+        """
+        UpdateNonPendingBalance returns the status of a transaction where a user's non-pending balance is updated
+        :param user_id: Id of the user
+        :param amount: Value to be increased of the non-pending balance
+        """
+        BalanceSheet = self.db_session.GetUserBalance(user_id)
+        
+        if BalanceSheet is None:
+            raise Exception("Balance Sheet not found for user")
+        
+        BalanceSheet.NonPending += amount
+        self.db_session.commit()
+
 
     # def UpdateBooking(self, booking):
     #     """
