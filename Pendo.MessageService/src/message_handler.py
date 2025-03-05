@@ -18,6 +18,8 @@ class MessageType(Enum):
     CHAT = "chat"
     JOIN_CONVERSATION = "join_conversation" 
     LEAVE_CONVERSATION = "leave_conversation"
+    TYPING_NOTIFICATION = "typing_notification"
+    READ_RECEIPT = "read_receipt"
 
 class MessageHandler:
     def __init__(self):
@@ -198,33 +200,54 @@ class MessageHandler:
                 }))
             return
             
-        # Check if this is a history request
-        if data.get('type') == 'history_request':
+        # Direct handling for specific message types without enum validation
+        message_type = data.get('type')
+        
+        if message_type == 'history_request':
             await self._handle_history_request(websocket, data)
             return
             
-        # Handle join/leave conversation
-        if data.get('type') == 'join_conversation':
+        if message_type == 'join_conversation':
             await self._handle_join_conversation(data)
             return
             
-        if data.get('type') == 'leave_conversation':
+        if message_type == 'leave_conversation':
             await self._handle_leave_conversation(data)
             return
             
-        try:
-            msg_type = MessageType(data['type'])
+        if message_type == 'typing_notification':
+            await self._handle_typing_notification(data)
+            return
             
-            if msg_type == MessageType.USER_TO_USER:
-                await self._handle_user_message(websocket, data)
-            elif msg_type in [MessageType.SUPPORT_TO_USER, MessageType.USER_TO_SUPPORT]:
-                await self._handle_support_message(websocket, data)
-            elif msg_type == MessageType.CHAT:  # Add handler for chat message type
-                await self._handle_chat_message(data)
-        except (KeyError, ValueError) as e:
+        if message_type == 'read_receipt':
+            await self._handle_read_receipt(data)
+            return
+            
+        if message_type == 'chat':
+            await self._handle_chat_message(data)
+            return
+
+        # For other message types, try using the enum approach
+        try:
+            try:
+                msg_type = MessageType(message_type)
+            
+                if msg_type == MessageType.USER_TO_USER:
+                    await self._handle_user_message(websocket, data)
+                elif msg_type in [MessageType.SUPPORT_TO_USER, MessageType.USER_TO_SUPPORT]:
+                    await self._handle_support_message(websocket, data)
+            except ValueError:
+                # Unrecognized message type, log and notify client
+                logger.warning(f"Unrecognized message type: {message_type}")
+                await websocket.send(json.dumps({
+                    'type': 'error',
+                    'message': f'Unrecognized message type: {message_type}'
+                }))
+        except (KeyError, Exception) as e:
+            logger.error(f"Error handling message: {str(e)}")
             await websocket.send(json.dumps({
                 'type': 'error',
-                'message': f'Invalid message format: {str(e)}'
+                'message': f'Error processing message: {str(e)}'
             }))
 
     async def _handle_chat_message(self, message):
@@ -256,30 +279,24 @@ class MessageHandler:
     async def _handle_typing_notification(self, message):
         """Handle typing notification"""
         if not all(k in message for k in ['from', 'conversation_id', 'is_typing']):
+            logger.warning(f"Incomplete typing notification: {message}")
             return
         
         conversation_id = message['conversation_id']
         if conversation_id in self.conversations:
-            for user_id in self.conversations[conversation_id]:
-                if user_id != message['from'] and user_id in self.user_connections:
-                    try:
-                        await self.user_connections[user_id].send(json.dumps(message))
-                    except websockets.exceptions.ConnectionClosed:
-                        self.remove_user(user_id)
+            logger.debug(f"Broadcasting typing notification in conversation {conversation_id}")
+            await self._broadcast_to_conversation(conversation_id, message, exclude_user=message['from'])
     
     async def _handle_read_receipt(self, message):
         """Handle read receipt"""
         if not all(k in message for k in ['from', 'conversation_id', 'message_id']):
+            logger.warning(f"Incomplete read receipt: {message}")
             return
             
         conversation_id = message['conversation_id']
         if conversation_id in self.conversations:
-            for user_id in self.conversations[conversation_id]:
-                if user_id != message['from'] and user_id in self.user_connections:
-                    try:
-                        await self.user_connections[user_id].send(json.dumps(message))
-                    except websockets.exceptions.ConnectionClosed:
-                        self.remove_user(user_id)
+            logger.debug(f"Broadcasting read receipt in conversation {conversation_id}")
+            await self._broadcast_to_conversation(conversation_id, message, exclude_user=message['from'])
     
     async def _handle_join_conversation(self, message):
         """Handle user joining a conversation"""

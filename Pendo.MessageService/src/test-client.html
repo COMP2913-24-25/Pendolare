@@ -65,6 +65,10 @@
                 <input type="text" id="messageContent" placeholder="Type your message..." />
             </div>
             <button id="sendBtn" disabled>Send Message</button>
+            <div style="margin-top: 10px;">
+                <input type="checkbox" id="typingIndicator" />
+                <label for="typingIndicator">Send typing indicators</label>
+            </div>
         </div>
         
         <div class="card">
@@ -89,6 +93,10 @@
         
         // WebSocket connection
         let socket = null;
+        let typingTimeout = null;
+        
+        // Get the typing indicator checkbox
+        const typingIndicator = document.getElementById('typingIndicator');
         
         // Add message to console
         function logToConsole(message, type) {
@@ -120,6 +128,21 @@
                     try {
                         const data = JSON.parse(event.data);
                         logToConsole(`Received: ${JSON.stringify(data, null, 2)}`, 'received');
+                        
+                        // Send read receipt for chat messages with message_id
+                        if (data.type === 'chat' && data.message_id && data.from !== userIdInput.value.trim()) {
+                            const readReceipt = {
+                                type: 'read_receipt',
+                                from: userIdInput.value.trim(),
+                                conversation_id: data.conversation_id,
+                                message_id: data.message_id,
+                                timestamp: new Date().toISOString()
+                            };
+                            setTimeout(() => {
+                                socket.send(JSON.stringify(readReceipt));
+                                logToConsole(`Sent read receipt for message: ${data.message_id}`, 'system');
+                            }, 1000);
+                        }
                     } catch (e) {
                         logToConsole(`Received: ${event.data}`, 'received');
                     }
@@ -203,23 +226,78 @@
             const userId = userIdInput.value.trim();
             const conversationId = conversationIdInput.value.trim();
             
+            // Generate a unique ID for this message
+            const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            
             const message = {
                 type: 'chat',
                 from: userId,
                 conversation_id: conversationId,
                 content: content,
+                message_id: messageId,
                 timestamp: new Date().toISOString()
             };
             
             socket.send(JSON.stringify(message));
             logToConsole(`Sent: ${content}`, 'sent');
             messageContentInput.value = '';
+            
+            // Clear any typing notification
+            if (typingTimeout) {
+                clearTimeout(typingTimeout);
+                
+                // Send stopped typing notification
+                const stoppedTypingMsg = {
+                    type: 'typing_notification',
+                    from: userId,
+                    conversation_id: conversationId,
+                    is_typing: false,
+                    timestamp: new Date().toISOString()
+                };
+                socket.send(JSON.stringify(stoppedTypingMsg));
+            }
         });
         
         // Allow sending message with Enter key
         messageContentInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !sendBtn.disabled) {
                 sendBtn.click();
+            }
+        });
+        
+        // Handle typing indicator
+        messageContentInput.addEventListener('input', () => {
+            if (!sendBtn.disabled && typingIndicator.checked) {
+                // Clear any existing timeout
+                if (typingTimeout) {
+                    clearTimeout(typingTimeout);
+                }
+                
+                const userId = userIdInput.value.trim();
+                const conversationId = conversationIdInput.value.trim();
+                
+                // Send typing notification
+                const typingMsg = {
+                    type: 'typing_notification',
+                    from: userId,
+                    conversation_id: conversationId,
+                    is_typing: true,
+                    timestamp: new Date().toISOString()
+                };
+                
+                socket.send(JSON.stringify(typingMsg));
+                
+                // Set timeout to send stopped typing after 2 seconds of inactivity
+                typingTimeout = setTimeout(() => {
+                    const stoppedTypingMsg = {
+                        type: 'typing_notification',
+                        from: userId,
+                        conversation_id: conversationId,
+                        is_typing: false,
+                        timestamp: new Date().toISOString()
+                    };
+                    socket.send(JSON.stringify(stoppedTypingMsg));
+                }, 2000);
             }
         });
         
