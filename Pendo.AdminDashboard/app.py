@@ -44,9 +44,14 @@ def verify_otp():
         otp = request.form['otp']
         response = requests.post(f'{api_url}/api/Auth/VerifyOtp', json={'emailAddress': session['email'], 'otp': otp})
         if response.status_code == 200:
-            session['logged_in'] = True
-            session['last_activity'] = datetime.utcnow().replace(tzinfo=None)
-            return redirect(url_for('dashboard'))
+            data = response.json()
+            if data.get('isManager'):
+                session['logged_in'] = True
+                session['last_activity'] = datetime.utcnow().replace(tzinfo=None)
+                return redirect(url_for('dashboard'))
+            else:
+                flash('Access denied. You must be a manager to log in to the admin dashboard.')
+                return redirect(url_for('login'))
         else:
             flash('Invalid OTP. Please try again.')
     return render_template('verify_otp.html')
