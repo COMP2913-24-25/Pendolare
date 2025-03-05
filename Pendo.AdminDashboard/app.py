@@ -24,6 +24,10 @@ def before_request():
     if 'logged_in' in session:
         check_inactivity()
 
+@app.route('/')
+def home():
+    return redirect(url_for('login'))
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -89,6 +93,18 @@ def update_booking_fee():
 
     # update the booking fee the database through analytics service
     return redirect(url_for('dashboard'))
+
+@app.route('/ping')
+def ping():
+    try:
+        response = requests.get(f'{api_url}/api/Ping')
+        if response.status_code == 200:
+            data = response.json()
+            return f"API is reachable: {data['message']} at {data['timeSent']}"
+        else:
+            return f"Failed to reach API: {response.status_code}"
+    except Exception as e:
+        return f"Error: {str(e)}"
 
 if __name__ == '__main__':
     app.run(debug=True)
