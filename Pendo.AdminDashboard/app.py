@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 import requests
 from datetime import timedelta, datetime
+from identity_client import IdentityClient
 
 app = Flask(__name__)
 app.secret_key = 'reallyStrongPwd123'
@@ -9,7 +10,7 @@ app.permanent_session_lifetime = timedelta(minutes=30)
 api_url = 'http://localhost:8080'
 
 def check_inactivity():
-    now = datetime.utcnow().replace(tzinfo=None)
+    now = datetime.now().replace(tzinfo=None)
     last_activity = session.get('last_activity')
     if last_activity:
         last_activity = last_activity.replace(tzinfo=None)
@@ -32,8 +33,8 @@ def home():
 def login():
     if request.method == 'POST':
         email = request.form['email']
-        identityRequest = {"emailAddress": email}
-        response = requests.post(f'{api_url}/api/Auth/RequestOtp', json=identityRequest)
+        response = IdentityClient(api_url, app.logger).RequestOtp(email)
+
         if response.status_code == 200:
             session['email'] = email
             return redirect(url_for('verify_otp'))
@@ -46,7 +47,9 @@ def verify_otp():
     if request.method == 'POST':
         session.get('email')
         otp = request.form['otp']
-        response = requests.post(f'{api_url}/api/Auth/VerifyOtp', json={'emailAddress': session['email'], 'otp': otp})
+
+        response = IdentityClient(api_url, app.logger).VerifyOtp(session['email'], otp)
+
         if response.status_code == 200:
             data = response.json()
             if data.get('isManager'):
@@ -97,7 +100,7 @@ def update_booking_fee():
 @app.route('/ping')
 def ping():
     try:
-        response = requests.get(f'{api_url}/api/Ping')
+        response = IdentityClient(api_url, app.logger).Ping()
         if response.status_code == 200:
             data = response.json()
             return f"API is reachable: {data['message']} at {data['timeSent']}"
