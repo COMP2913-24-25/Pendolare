@@ -4,9 +4,9 @@ import { apiRequest } from "./apiClient";
 
 import { API_BASE_URL, AUTH_ENDPOINTS } from "@/constants";
 
-const JWT_KEY = "pendolino_jwt";
-const USER_EMAIL_KEY = "pendolino_email";
-const IS_NEW_USER_KEY = "pendolino_is_new_user";
+const JWT_KEY = "pendolare";
+const USER_EMAIL_KEY = "pendolare_email";
+const IS_NEW_USER_KEY = "pendolare_is_new_user";
 
 interface OTPResponse {
   success: boolean;
