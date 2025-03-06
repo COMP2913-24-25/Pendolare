@@ -8,8 +8,10 @@ from fastapi import FastAPI, HTTPException, Depends
 import logging, sys
 from uuid import UUID
 from .endpoints.ViewBalanceCmd import ViewBalanceCommand
+from .db.PendoDatabase import UserBalance
 from .db.PendoDatabaseProvider import get_db, Session, text, configProvider, environment
 from .requests.PaymentRequests import GetBalanceRequest
+from .returns.PaymentReturns import ViewBalanceResponse
 
 
 if environment == "Development":
@@ -106,7 +108,7 @@ def CompletedBooking():
     return {"status" : "success"}
 
 @app.post("/ViewBalance", tags=["Anytime"])
-def ViewBalance(request: GetBalanceRequest, db: Session = Depends(get_db)):
+def ViewBalance(request: GetBalanceRequest, db: Session = Depends(get_db)) -> ViewBalanceResponse:
     """
     Used to query a users balance, both pending and non-pending
     """
