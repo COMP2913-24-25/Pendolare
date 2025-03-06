@@ -49,12 +49,20 @@ export const data = {
 // API Constants
 export const API_BASE_URL =
   "https://kong-gateway.greensand-8499b34e.uksouth.azurecontainerapps.io/api";
+
 export const AUTH_ENDPOINTS = {
-  REQUEST_OTP: "/auth/request-otp",
-  VERIFY_OTP: "/auth/verify-otp",
+  REQUEST_OTP: "/auth/RequestOtp",
+  VERIFY_OTP: "/auth/VerifyOtp",
 };
 
-export const MESSAGE_API_BASE_URL = "wss://message-service.greensand-8499b34e.uksouth.azurecontainerapps.io";
+// Booking endpoints
+export const BOOKING_ENDPOINTS = {
+  CREATE_BOOKING: "/api/booking/CreateBooking",
+  GET_BOOKINGS: "/api/booking/GetBookings",
+};
+
+export const MESSAGE_API_BASE_URL =
+  "wss://message-service.greensand-8499b34e.uksouth.azurecontainerapps.io";
 
 // Dummy data generated utilising machine learning models
 export const dummyRides = [

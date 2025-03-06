@@ -2,7 +2,7 @@ import { MESSAGE_API_BASE_URL } from "@/constants";
 
 const WS_URL = MESSAGE_API_BASE_URL;
 
-// For this demo, we're hardcoding these values
+{/* For this demo, we're hardcoding these values */}
 const DEFAULT_USER_ID = "12345";
 const DEFAULT_CONVERSATION_ID = "12345";
 
@@ -24,8 +24,8 @@ interface MessageServiceEvents {
   connected: () => void;
   disconnected: (reason?: string) => void;
   error: (error: any) => void;
-  typing: (data: { user_id: string; is_typing: boolean }) => void; // Typing notification event
-  historyLoaded: (messages: ChatMessage[]) => void; // New event for history loaded
+  typing: (data: { user_id: string; is_typing: boolean }) => void; {/* Typing notification event */}
+  historyLoaded: (messages: ChatMessage[]) => void; {/* New event for history loaded */}
 }
 
 class MessageService {
@@ -36,6 +36,11 @@ class MessageService {
   private listeners: Partial<MessageServiceEvents> = {};
   private typingTimeout: NodeJS.Timeout | null = null;
   private historyRequested: boolean = false;
+  disconnect: any;
+  sendMessage: any;
+  sendReadReceipt: any;
+  sendTypingNotification: any;
+  requestMessageHistory: any;
 
   constructor() {
     this.connect = this.connect.bind(this);
@@ -59,14 +64,17 @@ class MessageService {
         console.log("WebSocket connection established");
         this.isConnected = true;
 
-        // Join the conversation once connected
+        {/* Join the conversation once connected */}
         this.joinConversation();
 
         if (this.listeners.connected) {
+          console.log("connected liosteners");
           this.listeners.connected();
         }
 
-        // Reset history requested flag on new connection
+        console.log("haven't");
+
+        {/* Reset history requested flag on new connection */}
         this.historyRequested = false;
       };
 
@@ -85,7 +93,7 @@ class MessageService {
             message.isEcho = true;
           }
 
-          // Handle typing notifications separately
+          {/* Handle typing notifications separately */}
           if (message.type === "typing_notification") {
             if (this.listeners.typing) {
               this.listeners.typing({
@@ -96,22 +104,22 @@ class MessageService {
             return;
           }
 
-          // Handle history response
+          {/* Handle history response */}
           if (
             message.type === "history_response" &&
             Array.isArray(message.messages)
           ) {
             console.log("Received message history:", message.messages);
 
-            // Process and normalize history messages
+            {/* Process and normalize history messages */}
             const normalizedMessages = message.messages.map((msg: any) => {
               return {
                 ...msg,
-                // Set sender for UI display
+                {/* Set sender for UI display */}
                 sender: msg.from === this.userId ? "user" : "other",
-                // Set read status based on sender
+                {/* Set read status based on sender */}
                 read: msg.from === this.userId,
-                // Set message status
+                {/* Set message status */}
                 status: msg.from === this.userId ? "delivered" : undefined,
               };
             });
@@ -123,7 +131,7 @@ class MessageService {
           }
         } catch (error) {
           console.error("Error parsing JSON message, using fallback:", error);
-          // Fallback: wrap the raw data in a message object
+          {/* Fallback: wrap the raw data in a message object */}
           message = {
             type: "unknown",
             content: event.data,
@@ -133,7 +141,7 @@ class MessageService {
         }
         console.log("Received message:", message);
 
-        // Transform welcome messages to match chat message format
+        {/* Transform welcome messages to match chat message format */}
         if (message.type === "welcome" && message.message) {
           const formattedMessage: ChatMessage = {
             type: message.type,
@@ -166,7 +174,10 @@ class MessageService {
           this.listeners.disconnected(event.reason);
         }
       };
-    } catch (error) {
+    }joinConversation() {
+    throw new Error("Method not implemented.");
+  }
+ catch (error) {
       console.error("Error connecting to WebSocket:", error);
       if (this.listeners.error) {
         this.listeners.error(error);
@@ -190,8 +201,8 @@ class MessageService {
 
     const message = {
       type: "join_conversation",
-      user_id: this.userId,
-      conversation_id: this.conversationId,
+      user_id: "test",
+      conversation_id: "test-conversation",
     };
 
     console.log("Joining conversation:", message);
@@ -217,7 +228,7 @@ class MessageService {
       return false;
     }
 
-    // Don't request history if we've already done so in this session
+    {/* Don't request history if we've already done so in this session */}
     if (this.historyRequested) {
       console.log("Message history already requested for this session");
       return true;
@@ -250,7 +261,7 @@ class MessageService {
     const message = {
       type: "chat",
       from: this.userId,
-      conversation_id: this.conversationId,
+      conversation_id: "test-conversation",
       content: content,
       timestamp: new Date().toISOString(),
     };
@@ -343,14 +354,14 @@ class MessageService {
     delete this.listeners[event];
   }
 
-  // Method to update the conversation ID (useful when switching chats)
+  {/* Method to update the conversation ID (useful when switching chats) */}
   setConversationId(id: string) {
     this.conversationId = id;
-    // Reset history flag when changing conversations
+    {/* Reset history flag when changing conversations */}
     this.historyRequested = false;
   }
 
-  // Method to update the user ID if needed
+  {/* Method to update the user ID if needed */}
   setUserId(id: string) {
     this.userId = id;
   }

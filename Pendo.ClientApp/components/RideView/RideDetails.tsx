@@ -1,12 +1,19 @@
 import { FontAwesome5 } from "@expo/vector-icons";
-import React from "react";
-import { View, TouchableOpacity, Modal, ScrollView } from "react-native";
+import React, { useState } from "react";
+import {
+  View,
+  TouchableOpacity,
+  Modal,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
 
 import Map from "../Map/Map";
 
 import { Text } from "@/components/ThemedText";
 import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
+import { createBooking } from "@/services/bookingService";
 
 interface RideDetailsProps {
   ride: any;
@@ -16,6 +23,66 @@ interface RideDetailsProps {
 
 const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
   const { isDarkMode } = useTheme();
+  const [isBooking, setIsBooking] = useState(false);
+  const [bookingStatus, setBookingStatus] = useState<{
+    success: boolean;
+    message: string;
+    showMessage: boolean;
+  }>({
+    success: false,
+    message: "",
+    showMessage: false,
+  });
+
+  const handleBooking = async () => {
+    setIsBooking(true);
+
+    try {
+      // Extract departureTime from string or timestamp
+      const departureTime =
+        typeof ride.departureTime === "string"
+          ? new Date(ride.departureTime)
+          : new Date(ride.departureTime);
+
+      const result = await createBooking(ride.id, departureTime);
+
+      if (result.success) {
+        setBookingStatus({
+          success: true,
+          message: "Your ride has been successfully booked!",
+          showMessage: true,
+        });
+
+        // Close the details modal after a short delay
+        setTimeout(() => {
+          onClose();
+          setTimeout(
+            () => setBookingStatus((prev) => ({ ...prev, showMessage: false })),
+            500,
+          );
+        }, 2000);
+      } else {
+        setBookingStatus({
+          success: false,
+          message:
+            result.message || "Failed to book your ride. Please try again.",
+          showMessage: true,
+        });
+      }
+    } catch (error) {
+      setBookingStatus({
+        success: false,
+        message: "An error occurred while booking. Please try again later.",
+        showMessage: true,
+      });
+    } finally {
+      setIsBooking(false);
+    }
+  };
+
+  const dismissMessage = () => {
+    setBookingStatus((prev) => ({ ...prev, showMessage: false }));
+  };
 
   return (
     <Modal
@@ -159,17 +226,93 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
 
             <View className="flex-row justify-between space-x-4">
               <TouchableOpacity
-                className="flex-1 bg-blue-600 py-4 rounded-xl items-center justify-center"
-                onPress={onClose}
+                className={`flex-1 ${
+                  isBooking ? "bg-blue-400" : "bg-blue-600"
+                } py-4 rounded-xl items-center justify-center`}
+                onPress={handleBooking}
+                disabled={isBooking}
               >
-                <Text className="text-white text-center font-JakartaBold text-lg">
-                  Book Journey
-                </Text>
+                {isBooking ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text className="text-white text-center font-JakartaBold text-lg">
+                    Book Journey
+                  </Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
       </View>
+
+      {/* Booking Status Modal */}
+      <Modal
+        transparent={true}
+        visible={bookingStatus.showMessage}
+        animationType="fade"
+        onRequestClose={dismissMessage}
+      >
+        <TouchableOpacity
+          className="flex-1 bg-black/50 justify-center items-center"
+          activeOpacity={1}
+          onPress={dismissMessage}
+        >
+          <View
+            className={`w-5/6 p-5 rounded-xl ${
+              bookingStatus.success
+                ? isDarkMode
+                  ? "bg-green-900"
+                  : "bg-green-50"
+                : isDarkMode
+                  ? "bg-red-900"
+                  : "bg-red-50"
+            }`}
+          >
+            <View className="flex-row items-center mb-2">
+              <FontAwesome5
+                name={bookingStatus.success ? icons.check : icons.alert}
+                size={24}
+                color={
+                  bookingStatus.success
+                    ? isDarkMode
+                      ? "#4ADE80"
+                      : "#16A34A"
+                    : isDarkMode
+                      ? "#F87171"
+                      : "#DC2626"
+                }
+                style={{ marginRight: 10 }}
+              />
+              <Text
+                className={`font-JakartaBold text-lg ${
+                  bookingStatus.success
+                    ? isDarkMode
+                      ? "text-green-300"
+                      : "text-green-800"
+                    : isDarkMode
+                      ? "text-red-300"
+                      : "text-red-800"
+                }`}
+              >
+                {bookingStatus.success ? "Success" : "Error"}
+              </Text>
+            </View>
+            <Text
+              className={`${
+                bookingStatus.success
+                  ? isDarkMode
+                    ? "text-green-200"
+                    : "text-green-700"
+                  : isDarkMode
+                    ? "text-red-200"
+                    : "text-red-700"
+              }`}
+            >
+              {bookingStatus.message}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </Modal>
   );
 };

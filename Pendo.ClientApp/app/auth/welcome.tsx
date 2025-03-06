@@ -15,6 +15,7 @@ const Home = () => {
 
   return (
     <SafeAreaView className="flex-1 items-center justify-center bg-white">
+      {/* Skip Button */}
       <TouchableOpacity
         onPress={() => {
           router.replace("/auth/sign-up");
@@ -24,6 +25,7 @@ const Home = () => {
         <Text className="text-black text-md font-JakartaBold">Skip</Text>
       </TouchableOpacity>
 
+      {/* Onboarding Slider */}
       <Swiper
         ref={swiperRef}
         loop={false}
@@ -57,6 +59,7 @@ const Home = () => {
         ))}
       </Swiper>
 
+      {/* Navigation Button */}
       <CustomButton
         title={isLastSlide ? "Get Started" : "Next"}
         onPress={() =>

@@ -15,6 +15,7 @@ const Settings = () => {
       className={isDarkMode ? "flex-1 bg-slate-900" : "flex-1 bg-white"}
     >
       <View className="flex-1 px-5">
+        {/* Header Section */}
         <View className="flex-row items-center my-5">
           <TouchableOpacity onPress={() => router.back()} className="mr-4">
             <FontAwesome5
@@ -30,11 +31,13 @@ const Settings = () => {
           </Text>
         </View>
 
+        {/* Settings Options Section */}
         <View
           className={
             isDarkMode ? "bg-slate-700 rounded-xl" : "bg-gray-50 rounded-xl"
           }
         >
+          {/* Dark Mode Toggle */}
           <TouchableOpacity className="flex-row justify-between items-center p-4 border-b border-gray-200">
             <View className="flex-row items-center">
               <View className="w-8 h-8 bg-blue-100 rounded-full items-center justify-center mr-3">

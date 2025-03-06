@@ -16,6 +16,7 @@ const Profile = () => {
     <SafeAreaView
       className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-white"}`}
     >
+      {/* Header Section */}
       <View className="flex-row justify-between items-center px-5 my-5">
         <Text className="text-2xl font-JakartaBold">My profile</Text>
         <TouchableOpacity
@@ -34,6 +35,7 @@ const Profile = () => {
         className="px-5"
         contentContainerStyle={{ paddingBottom: 120 }}
       >
+        {/* Profile Image Section */}
         <View className="flex items-center justify-center my-5">
           <Image
             source={{
@@ -44,6 +46,7 @@ const Profile = () => {
           />
         </View>
 
+        {/* User Information Form Section */}
         <View
           className={`flex flex-col items-start justify-center bg-white rounded-lg shadow-sm shadow-neutral-300 px-5 py-3 ${
             isDarkMode ? "bg-slate-800 shadow-slate-800" : "bg-white"
