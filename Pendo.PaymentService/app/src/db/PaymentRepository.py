@@ -30,13 +30,13 @@ class PaymentRepository():
         """
         return self.db_session.query(User).get(user_id)
     
-    def GetJourney(self, journey_id):
-        """
-        GetJourney method returns the journey for the specified journey id.
-        :param journey_id: Id of the journey.
-        :return: Journey object.
-        """
-        return self.db_session.query(Journey).get(journey_id)
+    # def GetJourney(self, journey_id):
+    #     """
+    #     GetJourney method returns the journey for the specified journey id.
+    #     :param journey_id: Id of the journey.
+    #     :return: Journey object.
+    #     """
+    #     return self.db_session.query(Journey).get(journey_id)
     
     def GetBookingById(self, booking_id):
         """
@@ -44,7 +44,14 @@ class PaymentRepository():
         :param booking_id: Id of the booking.
         :return: Booking object.
         """
-        return self.db_session.query(Booking).get(booking_id)
+        return self.db_session.query(Booking)\
+                                    .filter(Booking.BookingId == booking_id)\
+                                    .options(
+                                        joinedload(Booking.BookingStatus_),
+                                        joinedload(Booking.Journey_),
+                                        joinedload(Booking.BookingAmmendment),
+                                        with_loader_criteria(BookingAmmendment, BookingAmmendment.DriverApproval and BookingAmmendment.PassengerApproval))\
+                                    .first()
     
     def CreateUserBalance(self, balance):
         """
