@@ -31,6 +31,38 @@ WHEN NOT MATCHED THEN
 
 GO
 
+-- Populate Transaction Statuses
+MERGE INTO [payment].[TransactionStatus] AS target
+USING (VALUES 
+    ('Pending', 'Transaction has been created, advertiser has recieved pending balance'),
+    ('Finalised', 'Transaction price has been finalised, booking has completed'),
+    ('Billed', 'Request has been sent to stripe'),
+    ('Failed', 'Stripe payment has failed'),
+    ('Paid', 'Complete, any balances set to non-pending')
+) AS source (Status, Description)
+ON target.Status = source.Status
+WHEN NOT MATCHED THEN
+    INSERT (Status, Description)
+    VALUES (source.Status, source.Description);
+
+GO
+
+-- Populate Transaction Types
+MERGE INTO [payment].[TransactionType] AS target
+USING (VALUES 
+    ('PendingAddition', 'Addition of Pending balance'),
+    ('PendingSubtraction', 'Deduction of Pending balance'),
+    ('NonPendingAddition', 'Addition of NonPending balance'),
+    ('NonPendingSubtraction', 'Deduction of NonPending balance'),
+    ('StripeSubtraction', 'A charge via stripe')
+) AS source (Status, Description)
+ON target.Status = source.Status
+WHEN NOT MATCHED THEN
+    INSERT (Status, Description)
+    VALUES (source.Status, source.Description);
+
+GO
+
 DECLARE @OtpConfiguration NVARCHAR(MAX) = '
 {
     "OtpLength": 6,

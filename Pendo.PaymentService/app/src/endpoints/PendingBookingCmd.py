@@ -1,4 +1,5 @@
 from ..db.PaymentRepository import PaymentRepository
+from ..PaymentService import AuthenticatePaymentDetails
 
 class PendingBookingCommand:
     """
@@ -30,8 +31,9 @@ class PendingBookingCommand:
             self.logger.info("Got Booking", pendingBooking)
 
             # ensure that booker has valid payment methods
-            # pendingBooking.UserId
-
+            if len(AuthenticatePaymentDetails()['Methods']) == 0:
+                raise Exception("No saved payment methods for booking user")
+            
             # get fee
             # increase advertiser pending balance by Booking value (minus fee!)
             # pendingBooking.FeeMargin 
