@@ -177,7 +177,7 @@ class UserBalance(User):
     UserId = mapped_column(Uuid)
     Pending = mapped_column(Float(53), nullable=False, server_default=text('((0))'))
     NonPending = mapped_column(Float(53), nullable=False, server_default=text('((0))'))
-    UpdateDate = mapped_column(DATETIME2, nullable=False, server_default=text('(getutcdate())'))
+    UpdatedDate = mapped_column(DATETIME2, nullable=False, server_default=text('(getutcdate())'))
 
 
 class Booking(Base):
