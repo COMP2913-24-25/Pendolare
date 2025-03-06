@@ -105,12 +105,12 @@ def CompletedBooking():
 
     return {"status" : "success"}
 
-@app.get("/ViewBalance/{UserId}", tags=["Anytime"])
-def ViewBalance(UserId: UUID, db: Session = Depends(get_db)):
+@app.post("/ViewBalance", tags=["Anytime"])
+def ViewBalance(request: GetBalanceRequest, db: Session = Depends(get_db)):
     """
     Used to query a users balance, both pending and non-pending
     """
-    BalanceSheet = ViewBalanceCommand(logging.getLogger("ViewBalance"), UserId).Execute()
+    BalanceSheet = ViewBalanceCommand(logging.getLogger("ViewBalance"), request.UserId).Execute()
     if BalanceSheet['Status'] != "success":
         raise HTTPException(400, detail=BalanceSheet['Error'])
     else:
