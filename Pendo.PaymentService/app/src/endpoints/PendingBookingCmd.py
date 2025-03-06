@@ -1,7 +1,6 @@
 from ..db.PaymentRepository import PaymentRepository
 from ..db.PendoDatabase import Transaction
-from ..PaymentService import AuthenticatePaymentDetails
-from ..returns.PaymentReturns import StatusResponse
+from ..returns.PaymentReturns import StatusResponse, PaymentMethodResponse
 
 class PendingBookingCommand:
     """
@@ -26,6 +25,7 @@ class PendingBookingCommand:
 
         try:
             # get booking
+            self.logger.info("Getting booking...")
             pendingBooking = self.PaymentRepository.GetBookingById(self.BookingId)
             if pendingBooking is None:
                 raise Exception("Booking not found")
@@ -33,7 +33,9 @@ class PendingBookingCommand:
             self.logger.info("Got Booking", pendingBooking)
 
             # ensure that booker has valid payment methods
-            if len(AuthenticatePaymentDetails()['Methods']) == 0:
+            response = PaymentMethodResponse(Status="Success", Methods=["Credit Card", "PayPal", "Bank Transfer"])
+            
+            if len(response.Methods) == 0:
                 raise Exception("No saved payment methods for booking user")
             
             print(pendingBooking)

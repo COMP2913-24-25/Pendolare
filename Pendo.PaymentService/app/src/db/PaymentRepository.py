@@ -1,5 +1,5 @@
-from .PendoDatabase import User, Transaction, UserBalance
-from sqlalchemy.orm import joinedload
+from .PendoDatabase import *
+from sqlalchemy.orm import joinedload, with_loader_criteria
 from .PendoDatabaseProvider import get_db
 
 class PaymentRepository():
@@ -51,7 +51,7 @@ class PaymentRepository():
                                         joinedload(Booking.Journey_),
                                         joinedload(Booking.BookingAmmendment),
                                         with_loader_criteria(BookingAmmendment, BookingAmmendment.DriverApproval and BookingAmmendment.PassengerApproval))\
-                                    .first()
+                                    .all()
     
     def CreateUserBalance(self, balance):
         """
