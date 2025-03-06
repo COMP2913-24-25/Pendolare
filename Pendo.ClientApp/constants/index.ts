@@ -26,7 +26,7 @@ export const onboarding = [
     id: 1,
     title: "Plan your perfect ride with ease",
     description:
-      "With Pendolino, you can schedule shared rides in advance, ensuring a smooth and stress-free journey.",
+      "With Pendolare, you can schedule shared rides in advance, ensuring a smooth and stress-free journey.",
   },
   {
     id: 2,
