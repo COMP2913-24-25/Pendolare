@@ -6,12 +6,11 @@
 
 from fastapi import FastAPI, HTTPException, Depends
 import logging, sys
-from uuid import UUID
 from .endpoints.ViewBalanceCmd import ViewBalanceCommand
 from .db.PendoDatabase import UserBalance
 from .db.PendoDatabaseProvider import get_db, Session, text, configProvider, environment
-from .requests.PaymentRequests import GetBalanceRequest
-from .returns.PaymentReturns import ViewBalanceResponse
+from .requests.PaymentRequests import GetwithUUID, MakePendingBooking
+from .returns.PaymentReturns import ViewBalanceResponse, StatusResponse, PaymentMethodResponse
 
 
 if environment == "Development":
@@ -33,7 +32,7 @@ logger.info("Starting Pendo.PaymentService.Api")
 
 app = FastAPI(title="Pendo.PaymentService.Api", 
     version="1.0.0",
-    root_path="/api")
+    root_path="/api/PaymentService")
 
 @app.get("/HealthCheck", tags=["HealthCheck"])
 def test_db(db: Session = Depends(get_db)):
@@ -63,7 +62,7 @@ def AuthenticatePaymentDetails():
 
 
 @app.get("/PaymentMethods", tags=["Pre-booking"])
-def PaymentMethods():
+def PaymentMethods(request: GetwithUUID, db: Session = Depends(get_db)) -> PaymentMethodResponse:
     """
     Used to query stripe for the customers saved payment methods, to display before adding another card or contiuning with a booking
     """
@@ -74,13 +73,13 @@ def PaymentMethods():
     # query stripe for payments method list for customer
 
     # return list to client
+    methods = PaymentMethodResponse("Success", ["Method1", "Method2"])
 
-    return {"status" : "success",
-            "PaymentMethods" : "List of stripe payment methods go here"}
+    return methods
 
 
 @app.post("/PendingBooking", tags=["At Booking time"])
-def PendingBooking():
+def PendingBooking(request: MakePendingBooking, db: Session = Depends(get_db)) -> StatusResponse:
     """
     Used when a booking is created in the pending state
     """
@@ -108,7 +107,7 @@ def CompletedBooking():
     return {"status" : "success"}
 
 @app.post("/ViewBalance", tags=["Anytime"])
-def ViewBalance(request: GetBalanceRequest, db: Session = Depends(get_db)) -> ViewBalanceResponse:
+def ViewBalance(request: GetwithUUID, db: Session = Depends(get_db)) -> ViewBalanceResponse:
     """
     Used to query a users balance, both pending and non-pending
     """

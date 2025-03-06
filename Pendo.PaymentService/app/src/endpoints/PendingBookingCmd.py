@@ -5,14 +5,14 @@ class PendingBookingCommand:
     PendingBookingCommand class is responsible for creating a transaction record when a booking becomes pending.
     """
 
-    def __init__(self, logger, JourneyId):
+    def __init__(self, logger, BookingId):
         """
         Constructor for PendingBookingCommand class.
         :param UserId
         """
         self.PaymentRepository = PaymentRepository()
         self.logger = logger
-        self.JourneyId = JourneyId
+        self.BookingId = BookingId
 
     def Execute(self):
         """
@@ -21,18 +21,20 @@ class PendingBookingCommand:
         """
         # TODO: Complete PendingBooking endpoint
 
-        # increase advertiser pending balance by journey value (minus fee!)
         try:
-            # get journey
-            pendingJourney = self.PaymentRepository.GetJourney(self.JourneyId)
-            if pendingJourney is None:
-                raise Exception("Journey not found")
+            # get booking
+            pendingBooking = self.PaymentRepository.GetBookingById(self.BookingId)
+            if pendingBooking is None:
+                raise Exception("Booking not found")
 
-            self.logger.info("Got journey", user)
+            self.logger.info("Got Booking", pendingBooking)
+
+            # ensure that booker has valid payment methods
+            # pendingBooking.UserId
 
             # get fee
-
-            # 
+            # increase advertiser pending balance by Booking value (minus fee!)
+            # pendingBooking.FeeMargin 
 
 
             return {"Status" : "success", 

@@ -6,5 +6,8 @@ from uuid import UUID
 #     UserId: UUID
 #     JourneyId: UUID
 
-class GetBalanceRequest(BaseModel):
+class GetwithUUID(BaseModel):
     UserId: UUID
+
+class MakePendingBooking(BaseModel):
+    BookingId: UUID
