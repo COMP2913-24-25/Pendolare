@@ -62,7 +62,7 @@ def AuthenticatePaymentDetails():
     return {"status" : "success"}
 
 
-@app.get("/PaymentMethods", tags=["Pre-booking"])
+@app.post("/PaymentMethods", tags=["Pre-booking"])
 def PaymentMethods(request: GetwithUUID, db: Session = Depends(get_db)) -> PaymentMethodResponse:
     """
     Used to query stripe for the customers saved payment methods, to display before adding another card or contiuning with a booking
@@ -85,8 +85,8 @@ def PendingBooking(request: MakePendingBooking, db: Session = Depends(get_db)) -
     Used when a booking is created in the pending state
     """
     response = PendingBookingCommand(logging.getLogger("PendingBooking"), request.BookingId).Execute()
-    if response['Status'] != "success":
-        raise HTTPException(400, detail=BalanceSheet['Error'])
+    if response.Status != "success":
+        raise HTTPException(400, detail=response['Error'])
     else:
         return response
 
