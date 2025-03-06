@@ -1,5 +1,7 @@
 from ..db.PaymentRepository import PaymentRepository
+from ..db.PendoDatabase import Transaction
 from ..PaymentService import AuthenticatePaymentDetails
+from ..returns.PaymentReturns import StatusResponse
 
 class PendingBookingCommand:
     """
@@ -34,14 +36,14 @@ class PendingBookingCommand:
             if len(AuthenticatePaymentDetails()['Methods']) == 0:
                 raise Exception("No saved payment methods for booking user")
             
+            print(pendingBooking)
             # get fee
             # increase advertiser pending balance by Booking value (minus fee!)
             # pendingBooking.FeeMargin 
+            # advertiserPendingUpdate = Transaction(UserId=)
 
 
-            return {"Status" : "success", 
-                    "NonPending" : userBalance.NonPending,
-                    "Pending" : userBalance.Pending}
+            return StatusResponse(Status="success")
 
         except Exception as e:
             self.logger.error(f"Error fetching balance sheet. Error: {str(e)}")

@@ -7,6 +7,7 @@
 from fastapi import FastAPI, HTTPException, Depends
 import logging, sys
 from .endpoints.ViewBalanceCmd import ViewBalanceCommand
+from .endpoints.PendingBookingCmd import PendingBookingCommand
 from .db.PendoDatabase import UserBalance
 from .db.PendoDatabaseProvider import get_db, Session, text, configProvider, environment
 from .requests.PaymentRequests import GetwithUUID, MakePendingBooking
@@ -83,7 +84,11 @@ def PendingBooking(request: MakePendingBooking, db: Session = Depends(get_db)) -
     """
     Used when a booking is created in the pending state
     """
-    return {"status" : "success"}
+    response = PendingBookingCommand(logging.getLogger("PendingBooking"), request.BookingId).Execute()
+    if response['Status'] != "success":
+        raise HTTPException(400, detail=BalanceSheet['Error'])
+    else:
+        return response
 
 @app.post("/CompletedBooking", tags=["On booking confirmation"])
 def CompletedBooking():
