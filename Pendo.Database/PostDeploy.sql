@@ -55,11 +55,11 @@ USING (VALUES
     ('NonPendingAddition', 'Addition of NonPending balance'),
     ('NonPendingSubtraction', 'Deduction of NonPending balance'),
     ('StripeSubtraction', 'A charge via stripe')
-) AS source (Status, Description)
-ON target.Status = source.Status
+) AS source (Type, Description)
+ON target.Type = source.Type
 WHEN NOT MATCHED THEN
-    INSERT (Status, Description)
-    VALUES (source.Status, source.Description);
+    INSERT (Type, Description)
+    VALUES (source.Type, source.Description);
 
 GO
 

@@ -41,7 +41,7 @@ printf "\e[32mPendo.PaymentService is running on localhost:5004\e[0m\n"
 printf "\033[1m============================= Testing Database connection ============================\033[1m\n"
 printf "Waiting for running process...\n"
 sleep 5
-RESPONSE=$(curl -s http://localhost:5004/api/HealthCheck)
+RESPONSE=$(curl -s http://localhost:5004/api/PaymentService/HealthCheck)
 if [ "$RESPONSE" == '{"db_connection":"successful"}' ]; then
     printf "\e[32mHealth check passed. DB connection is successful.\e[0m\n"
 else
