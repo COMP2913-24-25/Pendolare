@@ -1,5 +1,7 @@
 import * as SecureStore from "expo-secure-store";
 
+import { apiRequest } from "./apiClient";
+
 import { API_BASE_URL, AUTH_ENDPOINTS } from "@/constants";
 
 const JWT_KEY = "pendolino_jwt";
@@ -21,33 +23,25 @@ interface VerifyOTPResponse {
 export async function requestOTP(emailAddress: string): Promise<OTPResponse> {
   try {
     console.log(JSON.stringify({ emailAddress: emailAddress }));
-    const response = await fetch(
-      `${API_BASE_URL}${AUTH_ENDPOINTS.REQUEST_OTP}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ emailAddress: emailAddress }),
-      },
-    );
-    console.log(response);
+    const response = await apiRequest<OTPResponse>(AUTH_ENDPOINTS.REQUEST_OTP, {
+      method: "POST",
+      body: JSON.stringify({ emailAddress: emailAddress }),
+    });
 
-    if (response.status === 200) {
-      // Store email for later use
-      await SecureStore.setItemAsync(USER_EMAIL_KEY, emailAddress);
-      return { success: true };
-    }
+    await SecureStore.setItemAsync(USER_EMAIL_KEY, emailAddress);
 
     return {
-      success: false,
-      message: "Failed to send verification code",
+      ...response,
+      success: true,
     };
   } catch (error) {
     console.error("Request OTP error:", error);
     return {
       success: false,
-      message: "Network error. Please try again.",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Network error. Please try again.",
     };
   }
 }
@@ -57,21 +51,15 @@ export async function verifyOTP(
   otp: string,
 ): Promise<VerifyOTPResponse> {
   try {
-    const response = await fetch(
-      `${API_BASE_URL}${AUTH_ENDPOINTS.VERIFY_OTP}`,
+    const data = await apiRequest<VerifyOTPResponse>(
+      AUTH_ENDPOINTS.VERIFY_OTP,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({ email: email, otp: otp }),
       },
     );
 
-    const data = await response.json();
-
     if (data.authenticated) {
-      // Store JWT and user status
       await SecureStore.setItemAsync(JWT_KEY, data.jwt);
       await SecureStore.setItemAsync(IS_NEW_USER_KEY, String(data.isNewUser));
       return data;
@@ -87,7 +75,10 @@ export async function verifyOTP(
       jwt: "",
       isNewUser: false,
       authenticated: false,
-      error: "Network error. Please try again.",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Network error. Please try again.",
     };
   }
 }

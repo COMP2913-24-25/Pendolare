@@ -33,6 +33,7 @@ const Chat = () => {
       className={isDarkMode ? "flex-1 bg-slate-900" : "flex-1 bg-white"}
     >
       <View className="flex-1 px-5">
+        {/* Header Section */}
         <View className="flex-row justify-between items-center my-5">
           <Text className="text-2xl font-JakartaBold">Chat</Text>
           <TouchableOpacity
@@ -51,6 +52,7 @@ const Chat = () => {
           </TouchableOpacity>
         </View>
 
+        {/* Chat List or Empty State */}
         {demoChats.length > 0 ? (
           <ScrollView showsVerticalScrollIndicator={false}>
             {demoChats.map((chat) => {
@@ -84,6 +86,7 @@ const Chat = () => {
           </View>
         )}
 
+        {/* Support Modal */}
         <ContactSupport
           visible={showSupport}
           onClose={() => setShowSupport(false)}

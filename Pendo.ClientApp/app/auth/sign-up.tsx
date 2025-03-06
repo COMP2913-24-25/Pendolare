@@ -123,12 +123,14 @@ const Signup = () => {
       className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-white"}`}
     >
       <View className="flex-1">
+        {/* Header Section */}
         <View className="relative w-full h-[150px]">
           <Text className="text-2xl font-JakartaSemiBold absolute bottom-5 left-5">
             Create Account
           </Text>
         </View>
 
+        {/* Form Section */}
         <View className="p-5">
           <InputField
             label="Name"
@@ -158,6 +160,8 @@ const Signup = () => {
             }
             inputStyle={isDarkMode ? "text-white" : "text-black"}
           />
+
+          {/* Sign Up Button */}
           <CustomButton
             title={loading ? "Please wait..." : "Sign Up"}
             onPress={onSignUpPress}
@@ -165,6 +169,7 @@ const Signup = () => {
             className="mt-6"
           />
 
+          {/* Sign In Link */}
           <View className="mt-6 flex-row justify-center">
             <Text className="font-Jakarta">Already have an account? </Text>
             <TouchableOpacity onPress={() => router.replace("/auth/sign-in")}>
@@ -173,6 +178,7 @@ const Signup = () => {
           </View>
         </View>
 
+        {/* Verification Modal */}
         <ReactNativeModal isVisible={verification.state === "pending"}>
           <View
             className={`px-7 py-9 rounded-2xl min-h-[300px] ${

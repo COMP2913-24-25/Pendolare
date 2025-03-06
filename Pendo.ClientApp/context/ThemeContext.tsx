@@ -15,7 +15,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load saved theme preference when app starts
+  {/* Load saved theme preference when app starts */}
   useEffect(() => {
     loadThemePreference();
   }, []);
@@ -44,7 +44,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   };
 
   if (!isLoaded) {
-    return null; // Or return a loading spinner
+    return null; {/* Or return a loading spinner */}
   }
 
   return (

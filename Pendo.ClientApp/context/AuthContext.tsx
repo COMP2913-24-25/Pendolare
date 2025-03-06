@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const segments = useSegments();
   const navigationState = useRootNavigationState();
 
-  // Check authentication status on app load
+  {/* Check authentication status on app load */}
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
@@ -47,24 +47,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [navigationState?.key]);
 
-  // Handle routing based on auth state
+  {/* Handle routing based on auth state */}
   useEffect(() => {
     if (loading || !navigationState?.key) return;
 
     const inAuthGroup = segments[0] === "auth";
 
     if (!isLoggedIn && !inAuthGroup) {
-      // Redirect to sign-in if not logged in
+      {/* Redirect to sign-in if not logged in */}
       console.log("Redirecting to auth");
       router.replace("/auth/sign-in");
     } else if (isLoggedIn && inAuthGroup) {
-      // Redirect to home if already logged in
+      {/* Redirect to home if already logged in */}
       console.log("Redirecting to home");
       router.replace("/home/tabs/home");
     }
   }, [isLoggedIn, loading, segments, navigationState?.key]);
 
-  // Logout function
+  {/* Logout function */}
   const logout = async () => {
     await logoutService();
     setIsLoggedIn(false);

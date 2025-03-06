@@ -54,7 +54,7 @@ const SignIn = () => {
           state: "pending",
           error: "",
         });
-        setCountdown(60); // 60 second countdown for resending code
+        setCountdown(60);
       } else {
         Alert.alert(
           "Error",
@@ -90,7 +90,6 @@ const SignIn = () => {
       const response = await verifyOTP(email, verification.code);
 
       if (response.authenticated) {
-        // Login successful
         setIsLoggedIn(true);
         router.replace("/home/tabs/home");
       } else {
@@ -119,12 +118,14 @@ const SignIn = () => {
       className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-white"}`}
     >
       <View className="flex-1">
+        {/* Welcome Header Section */}
         <View className="relative w-full h-[150px]">
           <Text className="text-2xl font-JakartaSemiBold absolute bottom-5 left-5">
             Welcome Back
           </Text>
         </View>
 
+        {/* Login Form Section */}
         <View className="p-5">
           <InputField
             label="Email"
@@ -162,6 +163,7 @@ const SignIn = () => {
             </Text>
           </TouchableOpacity>
 
+          {/* Sign Up Link */}
           <View className="mt-6 flex-row justify-center">
             <Text className="font-Jakarta">Don't have an account? </Text>
             <TouchableOpacity onPress={() => router.replace("/auth/sign-up")}>
@@ -170,6 +172,7 @@ const SignIn = () => {
           </View>
         </View>
 
+        {/* OTP Verification Modal */}
         <ReactNativeModal isVisible={verification.state === "pending"}>
           <View
             className={`px-7 py-9 rounded-2xl min-h-[300px] ${
@@ -200,6 +203,7 @@ const SignIn = () => {
               className="mt-5 bg-success-500"
             />
 
+            {/* Resend Code Section */}
             <View className="mt-4 items-center">
               {loading ? (
                 <ActivityIndicator color={isDarkMode ? "#fff" : "#000"} />

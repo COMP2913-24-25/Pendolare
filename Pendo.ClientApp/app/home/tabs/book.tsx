@@ -29,12 +29,14 @@ const Book = () => {
         className="px-5"
         contentContainerStyle={{ paddingBottom: 120 }}
       >
+        {/* Header Section */}
         <Text
           className={`text-2xl font-JakartaBold my-5 ${isDarkMode ? "text-white" : "text-black"}`}
         >
           Book a Journey
         </Text>
 
+        {/* Booking Categories Section */}
         <View className="mb-5">
           <BookingCategory
             title="Search for Journey"
@@ -57,6 +59,7 @@ const Book = () => {
           />
         </View>
 
+        {/* Available Journeys or Commuter Section */}
         {showRides ? (
           <View>
             <Text
@@ -91,6 +94,7 @@ const Book = () => {
           )
         )}
 
+        {/* Create Ride Button */}
         <TouchableOpacity
           className="bg-blue-500 p-4 rounded-lg mt-5"
           onPress={() => setShowCreateRideModal(true)}
@@ -98,6 +102,7 @@ const Book = () => {
           <Text className="text-white text-center">Create a Ride</Text>
         </TouchableOpacity>
 
+        {/* Create Ride Modal */}
         <Modal
           visible={showCreateRideModal}
           animationType="slide"

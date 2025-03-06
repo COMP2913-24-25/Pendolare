@@ -24,15 +24,11 @@ const Home = () => {
   const { isDarkMode } = useTheme();
   const { logout } = useAuth();
 
-  const nextRide = upcomingRides[0]; // Get the next upcoming ride
-
-  const handleSignOut = () => {
-    setShowModal(true);
-  };
+  const nextRide = upcomingRides[0];
 
   const confirmSignOut = async () => {
     setShowModal(false);
-    await logout(); // This will clear JWT and redirect to sign-in page
+    await logout();
   };
 
   return (
@@ -42,27 +38,13 @@ const Home = () => {
       <ScrollView className="flex-1">
         <View className="px-4">
           {/* Header */}
-          <View className="flex-row items-center justify-between my-5">
-            <Text
-              className={`text-2xl font-JakartaExtraBold ${isDarkMode ? "text-white" : "text-black"}`}
-            >
-              Welcome {"John"}👋
-            </Text>
-            <TouchableOpacity
-              onPress={handleSignOut}
-              className={`justify-center items-center w-10 h-10 rounded-full ${
-                isDarkMode ? "bg-slate-800" : "bg-white"
-              }`}
-            >
-              <FontAwesome5
-                name={icons.out}
-                size={20}
-                color={isDarkMode ? "#FFF" : "#000"}
-              />
-            </TouchableOpacity>
-          </View>
+          <Text
+            className={`text-2xl font-JakartaExtraBold ${isDarkMode ? "text-white" : "text-black"}`}
+          >
+            Welcome {"John"}👋
+          </Text>
 
-          {/* Map Section - Reduced height */}
+          {/* Map Section */}
           <Text
             className={`text-xl font-JakartaBold mt-2 mb-3 ${isDarkMode ? "text-white" : "text-black"}`}
           >
@@ -78,7 +60,7 @@ const Home = () => {
             )}
           </View>
 
-          {/* Next Ride Section */}
+          {/* Next Journey Section */}
           <View className="mt-5">
             <Text
               className={`text-xl font-JakartaBold mb-3 ${isDarkMode ? "text-white" : "text-black"}`}
@@ -94,7 +76,7 @@ const Home = () => {
             )}
           </View>
 
-          {/* View All Rides Button */}
+          {/* View All Journeys Button */}
           {upcomingRides.length > 1 && (
             <TouchableOpacity
               onPress={() => setShowAllRides(true)}

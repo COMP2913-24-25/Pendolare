@@ -116,7 +116,10 @@ const ChatDetail = () => {
             (msg) => msg.status === "sending",
           );
           if (index !== -1) {
-            const updatedMsg = { ...prevMessages[index], status: "sent" };
+            const updatedMsg = {
+              ...prevMessages[index],
+              status: "sent" as const,
+            };
             return [
               ...prevMessages.slice(0, index),
               updatedMsg,
@@ -145,7 +148,7 @@ const ChatDetail = () => {
             id: message.id || generateUniqueId(),
             sender,
             read: sender === "user", // Mark user's messages as read by default
-            status: sender === "user" ? "delivered" : undefined,
+            status: sender === "user" ? ("delivered" as const) : undefined,
           },
         ]);
       } else if (message.type === "read_receipt") {
@@ -153,7 +156,7 @@ const ChatDetail = () => {
         setMessages((prevMessages) => {
           const updatedMessages = prevMessages.map((msg) => {
             if (msg.id === message.message_id && msg.sender === "user") {
-              return { ...msg, read: true, status: "read" };
+              return { ...msg, read: true, status: "read" as const };
             }
             return msg;
           });
