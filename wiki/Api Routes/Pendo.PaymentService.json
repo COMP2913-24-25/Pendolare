@@ -1,338 +1,382 @@
 {
-    "openapi": "3.1.0",
-    "info": {
-      "title": "Pendo.PaymentAPI",
-      "description": "API For managing transactions, balance, and payouts",
-      "version": "1.0.0"
-    },
-    "paths": {
-      "/payment/refund": {
-        "post": {
-          "operationId": "refundPayment",
-          "summary": "Allows a refund of a booking which did not happen",
-          "responses": {
-            "201": {
-              "description": "The request was successful, and a new resource was created.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "data": {
-                        "type": "object"
-                      }
-                    },
-                    "required": [
-                      "data"
-                    ]
-                  },
-                  "example": {
-                    "status": "success"
-                  }
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Pendo.PaymentService.Api",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api/PaymentService"
+    }
+  ],
+  "paths": {
+    "/HealthCheck": {
+      "get": {
+        "tags": [
+          "HealthCheck"
+        ],
+        "summary": "Test Db",
+        "operationId": "test_db_HealthCheck_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
                 }
               }
-            },
-            "400": {
-              "$ref": "#/components/responses/BadRequest"
-            },
-            "401": {
-              "description": "Authentication is required to access the requested resource. The client must include the appropriate credentials.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "message": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "message"
-                    ]
-                  }
-                }
-              }
-            },
-            "500": {
-              "$ref": "#/components/responses/InternalServerErrror"
             }
           }
-        }
-      },
-      "/payment/view": {
-        "get": {
-          "operationId": "viewBalance",
-          "summary": "Get a User's Pending and Non-Pending Balance",
-          "responses": {
-            "200": {
-              "description": "The request was successful, and the server has returned the requested resource in the response body.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "data": {
-                        "type": "object"
-                      }
-                    },
-                    "required": [
-                      "data"
-                    ]
-                  },
-                  "example": {
-                    "pending": 10,
-                    "non-pending": 34.99
-                  }
-                }
-              }
-            },
-            "400": {
-              "$ref": "#/components/responses/BadRequest"
-            },
-            "401": {
-              "description": "Authentication is required to access the requested resource. The client must include the appropriate credentials.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "message": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "message"
-                    ]
-                  }
-                }
-              }
-            },
-            "500": {
-              "$ref": "#/components/responses/InternalServerErrror"
-            }
-          },
-          "parameters": [],
-          "description": "Returns both the pending and non-pending balance of a user"
-        }
-      },
-      "/payment/confirm": {
-        "post": {
-          "operationId": "confirmBookingHappened",
-          "summary": "On confirmation of a journey - credits Advertiser",
-          "responses": {
-            "201": {
-              "description": "The request was successful, and a new resource was created.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "data": {
-                        "type": "object"
-                      }
-                    },
-                    "required": [
-                      "data"
-                    ],
-                    "example": {
-                      "status": "success"
-                    }
-                  }
-                }
-              }
-            },
-            "400": {
-              "$ref": "#/components/responses/BadRequest"
-            },
-            "401": {
-              "description": "Authentication is required to access the requested resource. The client must include the appropriate credentials.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "message": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "message"
-                    ]
-                  }
-                }
-              }
-            },
-            "500": {
-              "$ref": "#/components/responses/InternalServerErrror"
-            }
-          },
-          "parameters": [],
-          "description": "When both users confirm a booking happened, the balance held as pending for the Advertiser is released to non-pending"
-        }
-      },
-      "/payment/take": {
-        "post": {
-          "operationId": "takePayment",
-          "summary": "Takes payment from Booker via non-pending / Stripe",
-          "responses": {
-            "201": {
-              "description": "The request was successful, and a new resource was created.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "data": {
-                        "type": "object"
-                      }
-                    },
-                    "required": [
-                      "data"
-                    ],
-                    "example": {
-                      "status": "success"
-                    }
-                  }
-                }
-              }
-            },
-            "400": {
-              "$ref": "#/components/responses/BadRequest"
-            },
-            "401": {
-              "description": "Authentication is required to access the requested resource. The client must include the appropriate credentials.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "message": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "message"
-                    ]
-                  }
-                }
-              }
-            },
-            "500": {
-              "$ref": "#/components/responses/InternalServerErrror"
-            }
-          },
-          "parameters": [],
-          "description": "Debits the booking amount from the booker, either through booker's non-pending balance or Stripe. Credits the Advertiser's non-pending balance"
-        }
-      },
-      "/payment/payout": {
-        "post": {
-          "operationId": "creditAdvertisersBankViaStripe",
-          "summary": "Credit Advertiser's bank via Stripe",
-          "responses": {
-            "201": {
-              "description": "The request was successful, and a new resource was created.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "data": {
-                        "type": "object"
-                      }
-                    },
-                    "required": [
-                      "data"
-                    ],
-                    "example": {
-                      "status": "success"
-                    }
-                  }
-                }
-              }
-            },
-            "400": {
-              "$ref": "#/components/responses/BadRequest"
-            },
-            "401": {
-              "description": "Authentication is required to access the requested resource. The client must include the appropriate credentials.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "message": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "message"
-                    ]
-                  }
-                }
-              }
-            },
-            "500": {
-              "$ref": "#/components/responses/InternalServerErrror"
-            }
-          },
-          "parameters": [],
-          "description": "Uses stripe to credit an Advertiser's bank via a Card refund"
         }
       }
     },
-    "components": {
-      "responses": {
-        "BadRequest": {
-          "description": "The server could not understand the request due to invalid syntax. The client should modify the request and try again.",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "message": {
-                    "type": "string"
-                  },
-                  "errors": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "message": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "message"
-                      ]
-                    }
-                  }
-                },
-                "required": [
-                  "message"
-                ]
+    "/AuthenticatePaymentDetails": {
+      "post": {
+        "tags": [
+          "Pre-booking"
+        ],
+        "summary": "Authenticatepaymentdetails",
+        "description": "Used to save and authorise new card details of a user, to Stripe's Customer list",
+        "operationId": "AuthenticatePaymentDetails_AuthenticatePaymentDetails_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
               }
             }
           }
-        },
-        "InternalServerErrror": {
-          "description": "The server encountered an unexpected condition that prevented it from fulfilling the request. Report the issue to the support team if it persists.",
+        }
+      }
+    },
+    "/PaymentMethods": {
+      "post": {
+        "tags": [
+          "Pre-booking"
+        ],
+        "summary": "Paymentmethods",
+        "description": "Used to query stripe for the customers saved payment methods, to display before adding another card or contiuning with a booking",
+        "operationId": "PaymentMethods_PaymentMethods_post",
+        "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "message": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "message"
-                ]
+                "$ref": "#/components/schemas/GetwithUUID"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentMethodResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/PendingBooking": {
+      "post": {
+        "tags": [
+          "At Booking time"
+        ],
+        "summary": "Pendingbooking",
+        "description": "Used when a booking is created in the pending state",
+        "operationId": "PendingBooking_PendingBooking_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MakePendingBooking"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/CompletedBooking": {
+      "post": {
+        "tags": [
+          "On booking confirmation"
+        ],
+        "summary": "Completedbooking",
+        "description": "Used when a booking status changes to complete, takes payment from user's saved card details and non-pending balance",
+        "operationId": "CompletedBooking_CompletedBooking_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ViewBalance": {
+      "post": {
+        "tags": [
+          "Anytime"
+        ],
+        "summary": "Viewbalance",
+        "description": "Used to query a users balance, both pending and non-pending",
+        "operationId": "ViewBalance_ViewBalance_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetwithUUID"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ViewBalanceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/RefundPayment": {
+      "post": {
+        "tags": [
+          "Anytime"
+        ],
+        "summary": "Refund",
+        "operationId": "refund_RefundPayment_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/CreatePayout": {
+      "post": {
+        "tags": [
+          "Anytime"
+        ],
+        "summary": "Createpayout",
+        "operationId": "CreatePayout_CreatePayout_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
               }
             }
           }
         }
       }
     }
+  },
+  "components": {
+    "schemas": {
+      "GetwithUUID": {
+        "properties": {
+          "UserId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Userid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "UserId"
+        ],
+        "title": "GetwithUUID"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "MakePendingBooking": {
+        "properties": {
+          "BookingId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Bookingid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "BookingId"
+        ],
+        "title": "MakePendingBooking"
+      },
+      "PaymentMethodResponse": {
+        "properties": {
+          "Status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "Methods": {
+            "items": {
+
+            },
+            "type": "array",
+            "title": "Methods"
+          }
+        },
+        "type": "object",
+        "required": [
+          "Status",
+          "Methods"
+        ],
+        "title": "PaymentMethodResponse"
+      },
+      "StatusResponse": {
+        "properties": {
+          "Status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "Status"
+        ],
+        "title": "StatusResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "ViewBalanceResponse": {
+        "properties": {
+          "Status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "NonPending": {
+            "type": "number",
+            "title": "Nonpending"
+          },
+          "Pending": {
+            "type": "number",
+            "title": "Pending"
+          }
+        },
+        "type": "object",
+        "required": [
+          "Status",
+          "NonPending",
+          "Pending"
+        ],
+        "title": "ViewBalanceResponse"
+      }
+    }
   }
+}

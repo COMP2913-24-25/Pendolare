@@ -4,14 +4,14 @@
 # Created: 12/02/2025
 #
 
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 import logging, sys
 from .endpoints.ViewBalanceCmd import ViewBalanceCommand
 from .endpoints.PendingBookingCmd import PendingBookingCommand
 from .db.PendoDatabase import UserBalance
 from .db.PendoDatabaseProvider import get_db, Session, text, configProvider, environment
-from .requests.PaymentRequests import GetwithUUID, MakePendingBooking
-from .returns.PaymentReturns import ViewBalanceResponse, StatusResponse, PaymentMethodResponse
+from .requests.PaymentRequests import GetwithUUID, MakePendingBooking, PaymentSheetRequest
+from .returns.PaymentReturns import ViewBalanceResponse, StatusResponse, PaymentMethodResponse, PaymentSheetResponse
 
 
 if environment == "Development":
@@ -46,20 +46,12 @@ def test_db(db: Session = Depends(get_db)):
         logger.error(f"DB connection failed. Error: {str(e)}")
         raise HTTPException(500, detail="DB connection failed.")
 
-@app.post("/AuthenticatePaymentDetails", tags=["Pre-booking"])
-def AuthenticatePaymentDetails():
-    """
-    Used to save and authorise new card details of a user, to Stripe's Customer list
-    """
-
-    # TODO: Complete AuthenticatePaymentDetails Endpoint
-
-    # query stripe to see if customer already exists
-        # if not, create customer
-
-    # create stripe.SetupIntent with card from body
-
-    return {"status" : "success"}
+@app.post("/PaymentSheet", tags=["Stripe"])
+def PaymentSheet(request: PaymentSheetRequest, db: Session = Depends(get_db)) -> PaymentSheetResponse:
+    configProvider.LoadStripeConfiguration(db)
+    
+    response = PaymentSheetResponse(Status="success", PaymentIntent="paymentIntent.client_secret", EphemeralKey="ephemeralKey.secret", CustomerId=request.UserId, PublishableKey=configProvider.StripeConfiguration.publishable)
+    return response
 
 
 @app.post("/PaymentMethods", tags=["Pre-booking"])
@@ -74,9 +66,15 @@ def PaymentMethods(request: GetwithUUID, db: Session = Depends(get_db)) -> Payme
     # query stripe for payments method list for customer
 
     # return list to client
-    methods = PaymentMethodResponse("Success", ["Method1", "Method2"])
 
-    return methods
+    return PaymentMethodResponse(Status="Success", Methods=["Method1", "Method2"])
+
+@app.post("/StripeWebhook", tags=["Stripe"])
+def StripeWebhook(request: Request) -> StatusResponse:
+
+    # update user balance
+
+    return StatusResponse(Status="success")
 
 
 @app.post("/PendingBooking", tags=["At Booking time"])
@@ -139,11 +137,7 @@ def refund():
 
     # if passenger cancelled
 
-
-    
-
-
-    return {"status" : "success"}
+    return StatusResponse(Status="success")
 
 @app.post("/CreatePayout", tags=["Anytime"])
 def CreatePayout():
@@ -155,7 +149,7 @@ def CreatePayout():
     # email user with payout amount (non-pending)
     # email admin with notice to payout / invoice to pay
 
-    return {"status" : "success"}
+    return StatusResponse(Status="success")
 
 def some_testing_function(param):
     return param
