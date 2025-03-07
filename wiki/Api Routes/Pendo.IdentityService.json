@@ -5,7 +5,7 @@
     "version": "1.0"
   },
   "paths": {
-    "/api/Auth/RequestOtp": {
+    "/api/Identity/RequestOtp": {
       "post": {
         "tags": [
           "Auth"
@@ -44,7 +44,7 @@
         }
       }
     },
-    "/api/Auth/VerifyOtp": {
+    "/api/Identity/VerifyOtp": {
       "post": {
         "tags": [
           "Auth"
@@ -83,7 +83,7 @@
         }
       }
     },
-    "/api/Ping": {
+    "/api/Identity/Ping": {
       "get": {
         "tags": [
           "Ping"
@@ -103,7 +103,7 @@
         }
       }
     },
-    "/api/UpdateUser": {
+    "/api/Identity/UpdateUser": {
       "patch": {
         "tags": [
           "UpdateUser"
