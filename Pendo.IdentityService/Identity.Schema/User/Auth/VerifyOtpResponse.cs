@@ -3,7 +3,7 @@
 /// <summary>
 /// Contains the JWT issued to the user.
 /// </summary>
-public class VerifyOtpResponse
+public class VerifyOtpResponse : Response
 {
     /// <summary>
     /// The JWT issued to the user.
@@ -19,4 +19,9 @@ public class VerifyOtpResponse
     /// Indicates whether the user was authenticated or not.
     /// </summary>
     public bool Authenticated { get; set; }
+
+    /// <summary>
+    /// Indicates whether the user is a manager.
+    /// </summary>
+    public bool IsManager { get; set; }
 }

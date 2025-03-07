@@ -1,0 +1,76 @@
+name: Deploy Booking Service to Azure
+
+on:
+  pull_request:
+    branches: 
+      - main
+      - dev
+      - infrastructure/kong-integration
+    paths:
+      - 'Pendo.BookingService/**'
+      - 'infrastructure/**'
+  workflow_dispatch:
+
+env:
+  ACR_NAME: pendocontainerregistry
+  BOOKING_SERVICE_IMAGE_NAME: booking-service
+  RESOURCE_GROUP: dev
+  CONTAINER_APP_NAME: booking-service
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        client-id: '0a6d7ce5-4951-4af8-932a-94714dd9e70b'
+        tenant-id: '0adc3547-e686-4727-9a4c-0c5bb6699047'
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        enable-AzPSSession: true
+
+    - name: Build and push image to ACR
+      env:
+        ACR_USERNAME: ${{ secrets.ACR_USERNAME }}
+        ACR_PASSWORD: ${{ secrets.ACR_PASSWORD }}
+      run: |
+        docker login ${{ env.ACR_NAME }}.azurecr.io -u $ACR_USERNAME -p $ACR_PASSWORD
+        cd Pendo.BookingService
+        docker build . -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.BOOKING_SERVICE_IMAGE_NAME }}:${{ github.sha }}
+        docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.BOOKING_SERVICE_IMAGE_NAME }}:${{ github.sha }}
+        docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.BOOKING_SERVICE_IMAGE_NAME }}:${{ github.sha }} ${{ env.ACR_NAME }}.azurecr.io/${{ env.BOOKING_SERVICE_IMAGE_NAME }}:latest
+        docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.BOOKING_SERVICE_IMAGE_NAME }}:latest
+
+    - name: Deploy Container App
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          az deployment group create \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --template-file infrastructure/booking-service.bicep \
+            --parameters \
+              containerAppName=${{ env.CONTAINER_APP_NAME }} \
+              containerAppEnvironmentName=pendo-env-dev \
+              registryName=${{ env.ACR_NAME }} \
+              registryUsername=${{ secrets.ACR_USERNAME }} \
+              registryPassword=${{ secrets.ACR_PASSWORD }}
+                  
+    # Wait for booking service to be ready
+    - name: Wait for service to be ready
+      run: |
+        echo "Waiting for booking-service to be ready..."
+        sleep 30
+
+    # Get Booking Service FQDN 
+    - name: Get Booking Service FQDN
+      id: booking_fqdn
+      run: |
+        BOOKING_FQDN=$(az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
+        echo "BOOKING_SERVICE_FQDN=$BOOKING_FQDN" >> $GITHUB_ENV
+        echo "::set-output name=fqdn::$BOOKING_FQDN"

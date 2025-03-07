@@ -6,12 +6,12 @@ services:
     url: https://identity-service.greensand-8499b34e.uksouth.azurecontainerapps.io
     protocol: https
     routes:
-      - name: auth-request-otp
+      - name: identity-request-otp
         protocols:
           - http
           - https
         paths:
-          - /api/auth/request-otp
+          - /api/Identity/RequestOtp
         strip_path: false
         preserve_host: false
         methods:
@@ -27,12 +27,12 @@ services:
               remove:
                 headers:
                   - Authorization
-      - name: auth-verify-otp
+      - name: identity-verify-otp
         protocols:
           - http
           - https
         paths:
-          - /api/auth/verify-otp
+          - /api/Identity/VerifyOtp
         strip_path: false
         preserve_host: false
         methods:
@@ -48,16 +48,27 @@ services:
               remove:
                 headers:
                   - Authorization
-      - name: ping-endpoint
+      - name: identity-ping
         protocols:
           - http
           - https
         paths:
-          - /api/ping
+          - /api/Identity/Ping
         strip_path: false
         preserve_host: false
         methods:
           - GET
+          - OPTIONS
+      - name: identity-update-user
+        protocols:
+          - http
+          - https
+        paths:
+          - /api/Identity/UpdateUser
+        strip_path: false
+        preserve_host: false
+        methods:
+          - PATCH
           - OPTIONS
     plugins:
       - name: jwt
@@ -79,7 +90,111 @@ services:
   - name: booking-service
     url: https://booking-service.greensand-8499b34e.uksouth.azurecontainerapps.io
     protocol: https
-    # ...waiting routes...
+    routes:
+      - name: booking-health-check
+        protocols:
+          - http
+          - https
+        paths:
+          - /api/booking/HealthCheck
+        strip_path: false
+        preserve_host: false
+        methods:
+          - GET
+          - OPTIONS
+      - name: booking-get-bookings
+        protocols:
+          - http
+          - https
+        paths:
+          - /api/booking/GetBookings
+        strip_path: false
+        preserve_host: false
+        methods:
+          - POST
+          - OPTIONS
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+      - name: booking-create-booking
+        protocols:
+          - http
+          - https
+        paths:
+          - /api/booking/CreateBooking
+        strip_path: false
+        preserve_host: false
+        methods:
+          - POST
+          - OPTIONS
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+      - name: booking-add-amendment
+        protocols:
+          - http
+          - https
+        paths:
+          - /api/booking/AddBookingAmmendment
+        strip_path: false
+        preserve_host: false
+        methods:
+          - POST
+          - OPTIONS
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+      - name: booking-approve-amendment
+        protocols:
+          - http
+          - https
+        paths:
+          - /api/booking/ApproveBookingAmmendment
+          - /api/booking/ApproveBookingAmmendment/.*
+        strip_path: false
+        preserve_host: false
+        methods:
+          - PUT
+          - OPTIONS
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+      - name: booking-approve-booking
+        protocols:
+          - http
+          - https
+        paths:
+          - /api/booking/ApproveBooking
+          - /api/booking/ApproveBooking/.*
+        strip_path: false
+        preserve_host: false
+        methods:
+          - PUT
+          - OPTIONS
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+    plugins:
+      - name: jwt
+        config:
+          anonymous: anonymous-consumer
+          run_on_preflight: false
+      - name: acl
+        config:
+          hide_groups_header: true
+          allow:
+            - anonymous
+            - authenticated
 
   - name: journey-service
     url: https://journey-service.greensand-8499b34e.uksouth.azurecontainerapps.io
@@ -141,7 +256,7 @@ consumers:
     jwt_secrets:
       - key: "Pendo.IdentityService"
         algorithm: HS256
-        secret: "your-shared-secret-key-here" # Replace with actual secret used to sign JWTs
+        secret: "your-shared-secret-key-here"
 
 plugins:
   - name: cors
