@@ -7,8 +7,10 @@ class JourneyRepository:
     def __init__(self, db):
         self.db = db
 
-    def get_journeys(self, filter):
-        return self.db.query(Journey).filter_by(filter).all()
+    def get_journeys(self, filters):
+        #return self.db.query(Journey).filter_by(filter).all()
+        #return self.db.query(Journey).filter(*filters).all()
+        return self.db.query(Journey).filter(*filters)
     
     def lock_journey(self, JourneyId, response):
         journey = self.db.query(Journey).filter_by(JourneyId=JourneyId).first()
