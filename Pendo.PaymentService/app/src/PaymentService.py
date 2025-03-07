@@ -142,7 +142,7 @@ def refund(request: GetwithUUID, db: Session = Depends(get_db)) -> StatusRespons
     return StatusResponse(Status="success")
 
 @app.post("/CreatePayout", tags=["Anytime"])
-def CreatePayout(request: GetwithUUID, db: Session = Depends(get_db)) -> StatusResponse:
+def CreatePayout(request: MakePendingBooking, db: Session = Depends(get_db)) -> StatusResponse:
     """
     Used to retrieve the non-pending value of a user. Will send an email to Admin with value to process payment
     """

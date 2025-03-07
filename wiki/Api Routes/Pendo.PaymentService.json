@@ -315,7 +315,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GetwithUUID"
+                "$ref": "#/components/schemas/MakePendingBooking"
               }
             }
           },
