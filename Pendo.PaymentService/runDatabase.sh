@@ -24,4 +24,4 @@ printf "\e[32mPendo.Database Username: SA, Password: reallyStrongPwd123\e[0m\n"
 
 # update PendoDatabase.py with sqlacodegen to create sqlalchemy python file based off database schema
 #printf "\033[1m============================= Updating PendoDatabase.py =====================\033[1m\n"
-#sqlacodegen_v2 --schema identity,payment,shared  mssql+pymssql://SA:reallyStrongPwd123@localhost:1433/Pendo.Database > PendoDatabase.py
+#sqlacodegen_v2 --schema identity,payment,shared,booking,journey  mssql+pymssql://SA:reallyStrongPwd123@localhost:1433/Pendo.Database > PendoDatabase.py

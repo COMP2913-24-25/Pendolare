@@ -25,3 +25,10 @@ class SendGridConfiguration(BaseModel):
     pendingTemplateId : str
     confirmedTemplateId : str
     cancelledTemplateId : str
+
+class StripeConfiguration(BaseModel):
+    """
+    StripeConfiguration class is used for the Stripe API keys, wrapped in an object.
+    """
+    secret: str
+    publishable: str 
