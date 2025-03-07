@@ -1,5 +1,6 @@
 local jwt_decoder = require "kong.plugins.jwt.jwt_parser"
 local helpers = require "kong.plugins.jwt-custom-claims.helpers"
+local cjson = require "cjson.safe"
 local kong = kong
 
 -- Define the plugin
@@ -58,6 +59,44 @@ function JwtCustomClaimsHandler:access(conf)
     end
     
     kong.service.request.set_header("X-User-Type", jwt_claims["UserType"] or "")
+  end
+  
+  -- Extract user ID from jti claim and append to request body
+  local user_id = jwt_claims["jti"]
+  if user_id then
+    -- Read the request body
+    local body, err = kong.request.get_body()
+    local content_type = kong.request.get_header("content-type")
+    local is_json = content_type and content_type:find("application/json", 1, true)
+    
+    if not body then
+      body = {}
+    end
+    
+    if is_json or type(body) == "table" then
+      -- Add UserId to the body
+      body["UserId"] = user_id
+      
+      -- Set the modified body back to the request
+      local new_body, err = cjson.encode(body)
+      if err then
+        kong.log.err("Failed to encode modified body: ", err)
+      else
+        kong.service.request.set_body(new_body)
+        
+        -- Update content-length header
+        kong.service.request.set_header("Content-Length", #new_body)
+        
+        -- Ensure content-type is set to application/json
+        if not is_json then
+          kong.service.request.set_header("Content-Type", "application/json")
+        end
+      end
+    else
+      kong.log.debug("Cannot modify non-JSON body to add UserId")
+    end
+  else
+    kong.log.debug("No jti claim found in JWT token")
   end
 end
 
