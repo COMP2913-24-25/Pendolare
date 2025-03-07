@@ -34,7 +34,7 @@ logger.info("Starting Pendo.BookingService.Api")
 app = FastAPI(
     title="Pendo.BookingService.Api", 
     version="1.0.0",
-    root_path="/api")
+    root_path="/api/Booking")
 
 logger.info("Initialising Mail Sender Service...")
 mailSender = MailSender(configProvider.LoadEmailConfiguration(next(get_db())))
