@@ -319,21 +319,21 @@ plugins:
 
   # Exclude auth endpoints from JWT verification
   - name: request-transformer
-    route: auth-request-otp
+    route: identity-request-otp
     config:
       remove:
         headers:
           - Authorization
 
   - name: request-transformer
-    route: auth-verify-otp
+    route: identity-verify-otp
     config:
       remove:
         headers:
           - Authorization
 
   - name: request-transformer
-    route: ping-endpoint
+    route: identity-ping
     config:
       remove:
         headers:
