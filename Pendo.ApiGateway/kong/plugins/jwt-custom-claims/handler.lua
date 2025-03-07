@@ -10,7 +10,7 @@ local JwtCustomClaimsHandler = {
 }
 
 -- List of public paths using prefix matching
-local public_paths = { "/api/auth/request-otp", "/api/auth/verify-otp", "/api/ping" }
+local public_paths = { "/api/Identity/RequestOtp", "/api/Identity/VerifyOtp", "/api/Identity/ping" }
 
 function JwtCustomClaimsHandler:access(conf)
   local request_path = kong.request.get_path()
