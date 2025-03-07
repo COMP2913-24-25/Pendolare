@@ -4,12 +4,14 @@
 # Created: 12/02/2025
 #
 
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 import logging, sys
-from uuid import UUID
 from .endpoints.ViewBalanceCmd import ViewBalanceCommand
+from .endpoints.PendingBookingCmd import PendingBookingCommand
+from .db.PendoDatabase import UserBalance
 from .db.PendoDatabaseProvider import get_db, Session, text, configProvider, environment
-from .requests.PaymentRequests import GetBalanceRequest
+from .requests.PaymentRequests import GetwithUUID, MakePendingBooking, PaymentSheetRequest
+from .returns.PaymentReturns import ViewBalanceResponse, StatusResponse, PaymentMethodResponse, PaymentSheetResponse
 
 
 if environment == "Development":
@@ -31,7 +33,7 @@ logger.info("Starting Pendo.PaymentService.Api")
 
 app = FastAPI(title="Pendo.PaymentService.Api", 
     version="1.0.0",
-    root_path="/api")
+    root_path="/api/PaymentService")
 
 @app.get("/HealthCheck", tags=["HealthCheck"])
 def test_db(db: Session = Depends(get_db)):
@@ -44,24 +46,16 @@ def test_db(db: Session = Depends(get_db)):
         logger.error(f"DB connection failed. Error: {str(e)}")
         raise HTTPException(500, detail="DB connection failed.")
 
-@app.post("/AuthenticatePaymentDetails", tags=["Pre-booking"])
-def AuthenticatePaymentDetails():
-    """
-    Used to save and authorise new card details of a user, to Stripe's Customer list
-    """
-
-    # TODO: Complete AuthenticatePaymentDetails Endpoint
-
-    # query stripe to see if customer already exists
-        # if not, create customer
-
-    # create stripe.SetupIntent with card from body
-
-    return {"status" : "success"}
+@app.post("/PaymentSheet", tags=["Stripe"])
+def PaymentSheet(request: PaymentSheetRequest, db: Session = Depends(get_db)) -> PaymentSheetResponse:
+    configProvider.LoadStripeConfiguration(db)
+    
+    response = PaymentSheetResponse(Status="success", PaymentIntent="paymentIntent.client_secret", EphemeralKey="ephemeralKey.secret", CustomerId=request.UserId, PublishableKey=configProvider.StripeConfiguration.publishable)
+    return response
 
 
-@app.get("/PaymentMethods", tags=["Pre-booking"])
-def PaymentMethods():
+@app.post("/PaymentMethods", tags=["Pre-booking"])
+def PaymentMethods(request: GetwithUUID, db: Session = Depends(get_db)) -> PaymentMethodResponse:
     """
     Used to query stripe for the customers saved payment methods, to display before adding another card or contiuning with a booking
     """
@@ -73,41 +67,37 @@ def PaymentMethods():
 
     # return list to client
 
-    return {"status" : "success",
-            "PaymentMethods" : "List of stripe payment methods go here"}
+    return PaymentMethodResponse(Status="Success", Methods=["Method1", "Method2"])
+
+@app.post("/StripeWebhook", tags=["Stripe"])
+def StripeWebhook(request: Request) -> StatusResponse:
+
+    # update user balance
+
+    return StatusResponse(Status="success")
 
 
 @app.post("/PendingBooking", tags=["At Booking time"])
-def PendingBooking():
+def PendingBooking(request: MakePendingBooking, db: Session = Depends(get_db)) -> StatusResponse:
     """
     Used when a booking is created in the pending state
     """
-    # TODO: Complete PendingBooking endpoint
+    response = PendingBookingCommand(logging.getLogger("PendingBooking"), request.BookingId).Execute()
+    if response.Status != "success":
+        raise HTTPException(400, detail=response['Error'])
+    else:
+        return response
 
-    # input: journeyID
-
-    # get fee - from journey
-    # get adminID - from db
-
-    # increase admin pending balance by fee
-    # increase advertiser pending balance by journey value (minus fee!)
-
-    return {"status" : "success"}
-
-@app.post("/ConfirmedBooking", tags=["On booking confirmation"])
-def ConfirmedBooking():
+@app.post("/CompletedBooking", tags=["On booking confirmation"])
+def CompletedBooking(request: MakePendingBooking, db: Session = Depends(get_db)) -> StatusResponse:
     """
-    Used when a booking status changes to confirmed, takes payment from user's saved card details and non-pending balance
+    Used when a booking status changes to complete, takes payment from user's saved card details and non-pending balance
     """
     # TODO: Complete Confirm endpoint
 
     # input: bookingID
 
     # get fee - from booking
-    # get adminID - from db
-    
-    # decrease admin pending balance by fee
-    # increase admin non-pending balance by fee
 
     # decrease booker non-pending by booking value
     
@@ -117,14 +107,14 @@ def ConfirmedBooking():
     # decrease pending balance by journey value (minus fee!)
     # increase non-pending balance by journey value (minus fee!)
 
-    return {"status" : "success"}
+    return StatusResponse(Status="success")
 
-@app.get("/ViewBalance/{UserId}", tags=["Anytime"])
-def ViewBalance(UserId: UUID, db: Session = Depends(get_db)):
+@app.post("/ViewBalance", tags=["Anytime"])
+def ViewBalance(request: GetwithUUID, db: Session = Depends(get_db)) -> ViewBalanceResponse:
     """
     Used to query a users balance, both pending and non-pending
     """
-    BalanceSheet = ViewBalanceCommand(logging.getLogger("ViewBalance"), UserId).Execute()
+    BalanceSheet = ViewBalanceCommand(logging.getLogger("ViewBalance"), request.UserId).Execute()
     if BalanceSheet['Status'] != "success":
         raise HTTPException(400, detail=BalanceSheet['Error'])
     else:
@@ -132,19 +122,30 @@ def ViewBalance(UserId: UUID, db: Session = Depends(get_db)):
 
 
 @app.post("/RefundPayment", tags=["Anytime"])
-def refund():
-
+def refund(request: GetwithUUID, db: Session = Depends(get_db)) -> StatusResponse:
+    """
+    Used to refund a payment on a cancelled journey, revert any pending balance.
+    """
     # TODO: Complete refund endpoint
 
-    # input: BookingID
+    # input: Booking Object, cancelled by 
 
-    # logic needs confirming, can booking be refunded after confirmed?
+    # > 15 mins before start?
+    fullRefund = False
 
-    return {"status" : "success"}
+    # if driver cancelled
+        # reduce driver pending
+        # credit passenger non-pending
+
+    # if passenger cancelled
+
+    return StatusResponse(Status="success")
 
 @app.post("/CreatePayout", tags=["Anytime"])
-def CreatePayout():
-    
+def CreatePayout(request: MakePendingBooking, db: Session = Depends(get_db)) -> StatusResponse:
+    """
+    Used to retrieve the non-pending value of a user. Will send an email to Admin with value to process payment
+    """
     # TODO: Complete Payout endpoint
 
     # call get balance
@@ -152,7 +153,7 @@ def CreatePayout():
     # email user with payout amount (non-pending)
     # email admin with notice to payout / invoice to pay
 
-    return {"status" : "success"}
+    return StatusResponse(Status="success")
 
 def some_testing_function(param):
     return param
