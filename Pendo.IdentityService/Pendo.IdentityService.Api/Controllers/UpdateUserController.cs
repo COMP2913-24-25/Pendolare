@@ -8,7 +8,7 @@ using Swashbuckle.AspNetCore.Annotations;
 
 namespace Pendo.IdentityService.Api.Controllers;
 
-[Route("api/UpdateUser")]
+[Route("api/Identity/UpdateUser")]
 [ApiController]
 [Consumes(Constants.AppJson)]
 [Produces(Constants.AppJson)]
