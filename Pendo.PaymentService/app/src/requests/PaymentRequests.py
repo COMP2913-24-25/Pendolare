@@ -11,3 +11,7 @@ class GetwithUUID(BaseModel):
 
 class MakePendingBooking(BaseModel):
     BookingId: UUID
+
+class PaymentSheetRequest(BaseModel):
+    UserId: UUID
+    Amount: float

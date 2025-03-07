@@ -13,3 +13,10 @@ class StatusResponse(BaseModel):
 class PaymentMethodResponse(BaseModel):
     Status: str
     Methods: list
+
+class PaymentSheetResponse(BaseModel):
+    Status: str
+    PaymentIntent: str
+    EphemeralKey: str
+    CustomerId: UUID
+    PublishableKey: str

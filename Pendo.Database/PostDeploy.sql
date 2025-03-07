@@ -100,6 +100,12 @@ DECLARE @BookingEmailConfiguration NVARCHAR(MAX) = '
     "cancelledTemplateId": "d-fd645e276ceb4cafa14dae1d678b5b93"
 }'
 
+DECLARE @StripeConfiguration NVARCHAR(MAX) = '
+{
+    "secret": "sk_test_51R01XVJJfevYXm7DQZlpUnTFEirQaRSDQfy6TJZ3kBdf2oVXnjl3hV1TSzfUiiSdmuXuZoOP6tBlKsn9hJbkdha900jFkB9ZZ8",
+    "publishable": "pk_test_51R01XVJJfevYXm7Da0LZSLPl85sFVvKX4ef9g0JnePgfzcdbbErjnaDs0E6CzZqUdMvpCLTkMOhYRoggxrS4WBFB00GndBkKYb"
+}'
+
 DECLARE @DvlaApiKey NVARCHAR(MAX) = 'bfehQJlOAs6trMLuOaahb4ZAS1STeM5n5yk6XvM2'
 
 MERGE INTO [shared].[Configuration] AS target
@@ -109,7 +115,8 @@ USING (VALUES
     ('Identity.ManagerConfiguration', @ManagerWhitelist),
     ('Booking.DvlaApiKey', @DvlaApiKey),
     ('Booking.EmailConfiguration', @BookingEmailConfiguration),
-    ('Booking.FeeMargin', '0.05')
+    ('Booking.FeeMargin', '0.05'),
+    ('Payment.StripeConfiguration', @StripeConfiguration)
 ) AS source ([Key], [Value])
 ON target.[Key] = source.[Key]
 WHEN NOT MATCHED THEN
