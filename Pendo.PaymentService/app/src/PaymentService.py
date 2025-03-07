@@ -89,7 +89,7 @@ def PendingBooking(request: MakePendingBooking, db: Session = Depends(get_db)) -
         return response
 
 @app.post("/CompletedBooking", tags=["On booking confirmation"])
-def CompletedBooking():
+def CompletedBooking(request: MakePendingBooking, db: Session = Depends(get_db)) -> StatusResponse:
     """
     Used when a booking status changes to complete, takes payment from user's saved card details and non-pending balance
     """
@@ -107,7 +107,7 @@ def CompletedBooking():
     # decrease pending balance by journey value (minus fee!)
     # increase non-pending balance by journey value (minus fee!)
 
-    return {"status" : "success"}
+    return StatusResponse(Status="success")
 
 @app.post("/ViewBalance", tags=["Anytime"])
 def ViewBalance(request: GetwithUUID, db: Session = Depends(get_db)) -> ViewBalanceResponse:
@@ -122,8 +122,10 @@ def ViewBalance(request: GetwithUUID, db: Session = Depends(get_db)) -> ViewBala
 
 
 @app.post("/RefundPayment", tags=["Anytime"])
-def refund():
-
+def refund(request: GetwithUUID, db: Session = Depends(get_db)) -> StatusResponse:
+    """
+    Used to refund a payment on a cancelled journey, revert any pending balance.
+    """
     # TODO: Complete refund endpoint
 
     # input: Booking Object, cancelled by 
@@ -140,8 +142,10 @@ def refund():
     return StatusResponse(Status="success")
 
 @app.post("/CreatePayout", tags=["Anytime"])
-def CreatePayout():
-    
+def CreatePayout(request: GetwithUUID, db: Session = Depends(get_db)) -> StatusResponse:
+    """
+    Used to retrieve the non-pending value of a user. Will send an email to Admin with value to process payment
+    """
     # TODO: Complete Payout endpoint
 
     # call get balance

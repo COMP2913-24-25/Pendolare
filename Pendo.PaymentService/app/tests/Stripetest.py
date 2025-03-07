@@ -3,7 +3,7 @@ import stripe
 # Set your secret API key
 stripe.api_key = "sk_test_51R01XVJJfevYXm7DQZlpUnTFEirQaRSDQfy6TJZ3kBdf2oVXnjl3hV1TSzfUiiSdmuXuZoOP6tBlKsn9hJbkdha900jFkB9ZZ8"
 
-id = "11856ed2-e4b2-41a3-aae7-de4966800e98"
+id = "11856ed2-e4b2-41a3-aae7-de4966800e39"
 josh = stripe.Customer.create(
     id = id,
     name = "Joshy Mundray",
@@ -19,7 +19,20 @@ josh2 = stripe.Customer.retrieve(id)
 setup_intent = stripe.SetupIntent.create(
     customer=id,
     payment_method="pm_card_visa_debit",
-    confirm=True
+    confirm=True,
+    automatic_payment_methods={
+        "enabled": True,
+        "allow_redirects": "never"
+    }
+)
+setup_intent = stripe.SetupIntent.create(
+    customer=id,
+    payment_method="pm_card_visa_credit",
+    confirm=True,
+    automatic_payment_methods={
+        "enabled": True,
+        "allow_redirects": "never"
+    }
 )
 
 # Fetch saved payment methods (e.g., cards)
