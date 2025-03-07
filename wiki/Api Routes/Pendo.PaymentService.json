@@ -31,21 +31,40 @@
         }
       }
     },
-    "/AuthenticatePaymentDetails": {
+    "/PaymentSheet": {
       "post": {
         "tags": [
-          "Pre-booking"
+          "Stripe"
         ],
-        "summary": "Authenticatepaymentdetails",
-        "description": "Used to save and authorise new card details of a user, to Stripe's Customer list",
-        "operationId": "AuthenticatePaymentDetails_AuthenticatePaymentDetails_post",
+        "summary": "Paymentsheet",
+        "operationId": "PaymentSheet_PaymentSheet_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentSheetRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-
+                  "$ref": "#/components/schemas/PaymentSheetResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -88,6 +107,27 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/StripeWebhook": {
+      "post": {
+        "tags": [
+          "Stripe"
+        ],
+        "summary": "Stripewebhook",
+        "operationId": "StripeWebhook_StripeWebhook_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusResponse"
                 }
               }
             }
@@ -145,13 +185,33 @@
         "summary": "Completedbooking",
         "description": "Used when a booking status changes to complete, takes payment from user's saved card details and non-pending balance",
         "operationId": "CompletedBooking_CompletedBooking_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MakePendingBooking"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-
+                  "$ref": "#/components/schemas/StatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -207,14 +267,35 @@
           "Anytime"
         ],
         "summary": "Refund",
+        "description": "Used to refund a payment on a cancelled journey, revert any pending balance.",
         "operationId": "refund_RefundPayment_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetwithUUID"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-
+                  "$ref": "#/components/schemas/StatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -228,14 +309,35 @@
           "Anytime"
         ],
         "summary": "Createpayout",
+        "description": "Used to retrieve the non-pending value of a user. Will send an email to Admin with value to process payment",
         "operationId": "CreatePayout_CreatePayout_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetwithUUID"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-
+                  "$ref": "#/components/schemas/StatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -295,7 +397,7 @@
           },
           "Methods": {
             "items": {
-
+              "$ref": "#/components/schemas/SingularPaymentMethod"
             },
             "type": "array",
             "title": "Methods"
@@ -307,6 +409,102 @@
           "Methods"
         ],
         "title": "PaymentMethodResponse"
+      },
+      "PaymentSheetRequest": {
+        "properties": {
+          "UserId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Userid"
+          },
+          "Amount": {
+            "type": "number",
+            "title": "Amount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "UserId",
+          "Amount"
+        ],
+        "title": "PaymentSheetRequest"
+      },
+      "PaymentSheetResponse": {
+        "properties": {
+          "Status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "PaymentIntent": {
+            "type": "string",
+            "title": "Paymentintent"
+          },
+          "EphemeralKey": {
+            "type": "string",
+            "title": "Ephemeralkey"
+          },
+          "CustomerId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Customerid"
+          },
+          "PublishableKey": {
+            "type": "string",
+            "title": "Publishablekey"
+          }
+        },
+        "type": "object",
+        "required": [
+          "Status",
+          "PaymentIntent",
+          "EphemeralKey",
+          "CustomerId",
+          "PublishableKey"
+        ],
+        "title": "PaymentSheetResponse"
+      },
+      "SingularPaymentMethod": {
+        "properties": {
+          "Brand": {
+            "type": "string",
+            "title": "Brand"
+          },
+          "Funding": {
+            "type": "string",
+            "title": "Funding"
+          },
+          "Last4": {
+            "type": "string",
+            "title": "Last4"
+          },
+          "Preferred": {
+            "type": "string",
+            "title": "Preferred"
+          },
+          "Exp_month": {
+            "type": "integer",
+            "title": "Exp Month"
+          },
+          "Exp_year": {
+            "type": "integer",
+            "title": "Exp Year"
+          },
+          "PaymentType": {
+            "type": "string",
+            "title": "Paymenttype"
+          }
+        },
+        "type": "object",
+        "required": [
+          "Brand",
+          "Funding",
+          "Last4",
+          "Preferred",
+          "Exp_month",
+          "Exp_year",
+          "PaymentType"
+        ],
+        "title": "SingularPaymentMethod"
       },
       "StatusResponse": {
         "properties": {
