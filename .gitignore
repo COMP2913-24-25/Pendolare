@@ -21,4 +21,4 @@ __pycache__
 Pendo.BookingService/app/.env
 Pendo.BookingService/pyvenv.cfg
 Pendo.BookingService.log
-Pendo.ClientService/node_modules/
+Pendo.ClientApp/node_modules/

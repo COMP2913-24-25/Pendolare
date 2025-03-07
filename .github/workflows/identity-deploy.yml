@@ -185,4 +185,4 @@ jobs:
         # Output manual instructions instead of making more API calls
         echo "::notice::Kong Gateway is at: https://${{ steps.kong_fqdn.outputs.fqdn }}"
         echo "::notice::Identity Service is at: https://$IDENTITY_FQDN"
-        echo "::notice::After updating Kong, test with: curl -i https://${{ steps.kong_fqdn.outputs.fqdn }}/api/ping"
+        echo "::notice::After updating Kong, test with: curl -i https://${{ steps.kong_fqdn.outputs.fqdn }}/api/Identity/Ping"
