@@ -105,44 +105,45 @@ jobs:
           
           # Add longer delay after major deployment
           sleep 15
-    # Configure SQL Server firewall - with fewer API calls
-    - name: Configure SQL Server Firewall
-      uses: azure/CLI@v1
-      with:
-        inlineScript: |
-          echo "Configuring SQL Firewall rules..."
+        
+    # # Configure SQL Server firewall - with fewer API calls
+    # - name: Configure SQL Server Firewall
+    #   uses: azure/CLI@v1
+    #   with:
+    #     inlineScript: |
+    #       echo "Configuring SQL Firewall rules..."
           
-          # Create firewall rules silently
-          echo "Adding 'Allow Azure Services' rule to SQL firewall..."
-          az sql server firewall-rule create \
-            --resource-group ${{ env.RESOURCE_GROUP }} \
-            --server pendolare \
-            --name "AllowAllWindowsAzureIps" \
-            --start-ip-address 0.0.0.0 \
-            --end-ip-address 0.0.0.0 \
-            --output none
+    #       # Create firewall rules silently
+    #       echo "Adding 'Allow Azure Services' rule to SQL firewall..."
+    #       az sql server firewall-rule create \
+    #         --resource-group ${{ env.RESOURCE_GROUP }} \
+    #         --server pendolare \
+    #         --name "AllowAllWindowsAzureIps" \
+    #         --start-ip-address 0.0.0.0 \
+    #         --end-ip-address 0.0.0.0 \
+    #         --output none
           
-          # Add delay between API calls
-          sleep 5
+    #       # Add delay between API calls
+    #       sleep 5
           
-          # Get Container App Environment static outbound IP with minimal query
-          echo "Getting Container App outbound IP..."
-          OUTBOUND_IP=$(az containerapp env show --name pendo-env-dev --resource-group ${{ env.RESOURCE_GROUP }} --query properties.staticIp -o tsv)
+    #       # Get Container App Environment static outbound IP with minimal query
+    #       echo "Getting Container App outbound IP..."
+    #       OUTBOUND_IP=$(az containerapp env show --name pendo-env-dev --resource-group ${{ env.RESOURCE_GROUP }} --query properties.staticIp -o tsv)
           
-          if [ -n "$OUTBOUND_IP" ]; then
-            echo "Adding outbound IP $OUTBOUND_IP to SQL firewall rules..."
-            az sql server firewall-rule create \
-              --resource-group ${{ env.RESOURCE_GROUP }} \
-              --server pendolare \
-              --name "ContainerAppOutbound" \
-              --start-ip-address "$OUTBOUND_IP" \
-              --end-ip-address "$OUTBOUND_IP" \
-              --output none \
-              || echo "Failed to create outbound IP rule, but continuing with Azure Services rule"
-          fi
+    #       if [ -n "$OUTBOUND_IP" ]; then
+    #         echo "Adding outbound IP $OUTBOUND_IP to SQL firewall rules..."
+    #         az sql server firewall-rule create \
+    #           --resource-group ${{ env.RESOURCE_GROUP }} \
+    #           --server pendolare \
+    #           --name "ContainerAppOutbound" \
+    #           --start-ip-address "$OUTBOUND_IP" \
+    #           --end-ip-address "$OUTBOUND_IP" \
+    #           --output none \
+    #           || echo "Failed to create outbound IP rule, but continuing with Azure Services rule"
+    #       fi
           
-          # Longer delay to avoid rate limits
-          sleep 10
+    #       # Longer delay to avoid rate limits
+    #       sleep 10
     # Wait for identity service to be ready - with increased wait time
     - name: Wait for service to be ready
       run: |
