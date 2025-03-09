@@ -8,8 +8,6 @@ class JourneyRepository:
         self.db = db
 
     def get_journeys(self, filters):
-        #return self.db.query(Journey).filter_by(filter).all()
-        #return self.db.query(Journey).filter(*filters).all()
         return self.db.query(Journey).filter(*filters)
     
     def lock_journey(self, JourneyId, response):
@@ -25,4 +23,12 @@ class JourneyRepository:
 
         journey.LockedUntil = datetime.now() + timedelta(minutes=10)
         self.db.commit()
+        return journey
+    
+    def create_journey(self, journey_data):
+        journey_dict = journey_data.dict()  # Convert CreateJourneyRequest to dictionary
+        journey = Journey(**journey_dict)
+        self.db.add(journey)
+        self.db.commit()
+        self.db.refresh(journey)
         return journey
