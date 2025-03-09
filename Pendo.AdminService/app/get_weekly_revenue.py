@@ -1,6 +1,7 @@
 from booking_repository import BookingRepository
 from response_lib import GetWeeklyRevenueResponse
 from fastapi import status
+import datetime
 
 class GetWeeklyRevenueCommand:
 
@@ -16,9 +17,10 @@ class GetWeeklyRevenueCommand:
         Get the weekly revenue from the database.
         """
         try:
-            booking_fee = self.configuration_provider.GetSingleValue(self.db_session, "Booking.FeeMargin")
+            booking_fee_margin = float(self.configuration_provider.GetSingleValue(self.db_session, "Booking.FeeMargin"))
 
             bookings = self.booking_repo.GetBookingsInWindow(self.request.StartDate, self.request.EndDate)
+            weekly_revenue_data = self.calculate_weekly_revenue(bookings, booking_fee_margin)
 
             labels = 'Week 1', 'Week 2', 'Week 3', 'Week 4' #work out dynamically from the start and end date
             data = [0, 0, 0, 0] # work out dynamically from the bookings (sum of booking fees)
