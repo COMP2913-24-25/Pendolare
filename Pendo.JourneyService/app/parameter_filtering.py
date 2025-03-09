@@ -32,26 +32,8 @@ class FilterJourneys:
             filters.append(Journey.MaxPassengers >= self.request.NumPassengers)
 
         if self.request.StartDate is not None:
-            #if self.request.JourneyTime is not None:
-                #JourneyStartTime = self.request.JourneyTime.time()
-            #else:
-                #JourneyStartTime = "00:00:00"
-            
-            #JourneyStartDate = self.request.StartDate.date()
-            #JourneyStartDateTime = datetime.combine(JourneyStartDate, JourneyStartTime)
-            #filters.append(Journey.StartDate >= JourneyStartDateTime)
             filters.append(Journey.StartDate >= self.request.StartDate)
 
-        '''
-        if self.request.StartLat is not None and self.request.StartLong is not None and self.request.DistanceRadius is not None:
-            journeys = self.db.query(Journey).all()
-            journey_ids_within_radius = []
-            for journey in journeys:
-                distance = geodesic((self.request.StartLat, self.request.StartLong), (journey.StartLat, journey.StartLong)).kilometers
-                if distance <= self.request.DistanceRadius:
-                    journey_ids_within_radius.append(journey.JourneyId)
-            filters.append(Journey.JourneyId.in_(journey_ids_within_radius))
-        '''
 
         if self.request.StartLat and self.request.StartLong:
             filters.append(
@@ -69,7 +51,5 @@ class FilterJourneys:
                 )
             )
 
-        #logger.debug("Applied filters: %s", filters)
 
-        #return and_(*filters)
         return filters
