@@ -1,4 +1,5 @@
 -- Test Data Setup Script
+-- This one works
 
 -- Clean up existing data
 DELETE FROM [identity].[User]
