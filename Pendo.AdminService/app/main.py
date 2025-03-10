@@ -47,3 +47,4 @@ def journey_analytics(response: Response, db_session: Session = Depends(get_db))
 @app.get("/FrequentUsers", tags=["User Analytics"], status_code=status.HTTP_200_OK)
 def frequent_users(response: Response, db_session: Session = Depends(get_db)):
     return FrequentUsersCommand(db_session, response).execute()
+
