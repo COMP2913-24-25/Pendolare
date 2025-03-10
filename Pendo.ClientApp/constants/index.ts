@@ -47,18 +47,17 @@ export const data = {
 };
 
 // API Constants
-export const API_BASE_URL =
-  "https://kong-gateway.greensand-8499b34e.uksouth.azurecontainerapps.io/api";
+export const API_BASE_URL = "https://pendo-gateway.clsolutions.dev/api";
 
 export const AUTH_ENDPOINTS = {
-  REQUEST_OTP: "/auth/RequestOtp",
-  VERIFY_OTP: "/auth/VerifyOtp",
+  REQUEST_OTP: "/Identity/RequestOtp",
+  VERIFY_OTP: "/Identity/VerifyOtp",
 };
 
 // Booking endpoints
 export const BOOKING_ENDPOINTS = {
-  CREATE_BOOKING: "/api/booking/CreateBooking",
-  GET_BOOKINGS: "/api/booking/GetBookings",
+  CREATE_BOOKING: "/Booking/CreateBooking",
+  GET_BOOKINGS: "/Booking/GetBookings",
 };
 
 export const MESSAGE_API_BASE_URL =
@@ -89,7 +88,7 @@ export const dummyRides = [
     id: 2,
     driverName: "Sarah Wilson",
     availableSeats: 2,
-    departureTime: "09:30 AM",
+    departureTime: Date.now() + 60 * 60 * 1000, // updated: 1 hour from now
     destination: "Hyde Park",
     price: "£25",
     rating: 4.9,
