@@ -29,6 +29,9 @@ class ApproveBookingAmmendmentRequest(BaseModel):
 class ApproveBookingRequest(BaseModel):
     UserId: UUID
 
+class ConfirmAtPickupRequest(BaseModel):
+    UserId: UUID
+
 class CreateBookingRequest(BaseModel):
     UserId: UUID
     JourneyId: UUID
