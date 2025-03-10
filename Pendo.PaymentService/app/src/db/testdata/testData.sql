@@ -92,7 +92,7 @@ INSERT INTO [booking].[Booking]
        (UserId, JourneyId, BookingStatusId, FeeMargin, RideTime, DriverApproval)
 OUTPUT INSERTED.BookingId INTO @NewBooking1
 VALUES
-       (@PassengerId, @OneTimeId, 1, 10.00, GETDATE(), 0);
+       (@PassengerId, @OneTimeId, 1, 0.05, GETDATE(), 0);
 
 SELECT @BookingId1 = BookingId FROM @NewBooking1;
 
@@ -115,7 +115,7 @@ INSERT INTO [booking].[Booking]
        (UserId, JourneyId, BookingStatusId, FeeMargin, RideTime, DriverApproval)
 OUTPUT INSERTED.BookingId INTO @NewBooking2
 VALUES
-       (@PassengerId, @CommuterId, 2, 8.75, GETDATE(), 0);
+       (@PassengerId, @CommuterId, 2, 0.025, GETDATE(), 0);
 
 SELECT @BookingId2 = BookingId FROM @NewBooking2;
 
@@ -138,7 +138,7 @@ INSERT INTO [booking].[Booking]
        (UserId, JourneyId, BookingStatusId, FeeMargin, RideTime, DriverApproval)
 OUTPUT INSERTED.BookingId INTO @NewBooking3
 VALUES
-       (@DriverId, @OneTimeId, 3, 11.25, GETDATE(), 1);
+       (@DriverId, @OneTimeId, 3, 0.115, GETDATE(), 1);
 
 SELECT @BookingId3 = BookingId FROM @NewBooking3;
 
