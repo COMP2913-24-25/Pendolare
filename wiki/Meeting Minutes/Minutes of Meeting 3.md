@@ -24,7 +24,7 @@ People who attended:
 | -- | -- | -- |
 | Retrospective, what went well?     |         |   Discussed what went well, what didn't go well, and what to do next sprint. Highlights: Good progress on many services, make sure tickets and branches are being used correctly; focusing on a working protype demo |
 | Review Last sprint tickets |         | Any unclosed tickets discussed, either marked complete if finished or passed to next sprint backlog |
-| Realocate tasks |          | 
+| Realocate tasks |          | Josh to work on Client App integration, Catherine to work on Client App Journeys in second week; Lara to continue working on the Admin Service.
 
 ## Action Items
 | Done? | Item                                | Responsible | Due Date   |

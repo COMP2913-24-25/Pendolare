@@ -67,12 +67,13 @@ class PaymentRepository():
         :param user_id: Id of the user
         :param amount: Value to be increased of the pending balance
         """
-        BalanceSheet = self.db_session.GetUserBalance(user_id)
+        BalanceSheet = self.GetUserBalance(user_id)
         
         if BalanceSheet is None:
             raise Exception("Balance Sheet not found for user")
-        
+
         BalanceSheet.Pending += amount
+
         self.db_session.commit()
 
     def UpdateNonPendingBalance(self, user_id, amount):
