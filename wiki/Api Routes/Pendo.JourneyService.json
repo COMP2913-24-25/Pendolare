@@ -39,7 +39,7 @@
         "description": "Retrieve journeys with optional filters for date, time, start location, and end location.",
         "parameters": [
           {
-            "name": "date",
+            "name": "Date",
             "in": "query",
             "description": "Date of the journey (YYYY-MM-DD)",
             "schema": {
@@ -49,7 +49,7 @@
             }
           },
           {
-            "name": "time",
+            "name": "Time",
             "in": "query",
             "description": "Time of the journey (HH:MM)",
             "schema": {
@@ -58,7 +58,7 @@
             }
           },
           {
-            "name": "startLocation",
+            "name": "StartLocation",
             "in": "query",
             "description": "Starting location of the journey",
             "schema": {
@@ -67,7 +67,7 @@
             }
           },
           {
-            "name": "endLocation",
+            "name": "EndLocation",
             "in": "query",
             "description": "Destination of the journey",
             "schema": {
@@ -108,43 +108,53 @@
       "Journey": {
         "type": "object",
         "required": [
-          "cost",
-          "numPassengers",
-          "date",
-          "time",
-          "startLocation",
-          "endLocation"
+          "UserId",
+          "Cost",
+          "NumPassengers",
+          "Date",
+          "Time",
+          "StartLocation",
+          "EndLocation",
+          "JourneyType"
         ],
         "properties": {
-          "id": {
+          "UserId": {
             "type": "integer",
             "example": 1
           },
-          "date": {
+          "Date": {
             "type": "string",
             "format": "date",
             "example": "2024-02-10"
           },
-          "time": {
+          "Time": {
             "type": "string",
             "example": "14:30"
           },
-          "startLocation": {
+          "StartLocation": {
             "type": "string",
             "example": "New York"
           },
-          "endLocation": {
+          "EndLocation": {
             "type": "string",
             "example": "Los Angeles"
           },
-          "cost": {
+          "Cost": {
             "type": "number",
             "format": "float",
             "example": 250.5
           },
-          "numPassengers": {
+          "NumPassengers": {
             "type": "integer",
             "example": 3
+          },
+          "JourneyType": {
+            "type": "string",
+            "example": "OneWay"
+          },
+          "RepeatFrequency": {
+            "type": "string",
+            "example": "weekly"
           }
         }
       }
