@@ -55,7 +55,7 @@ export async function verifyOTP(
       AUTH_ENDPOINTS.VERIFY_OTP,
       {
         method: "POST",
-        body: JSON.stringify({ email: email, otp: otp }),
+        body: JSON.stringify({ emailAddress: email, otp: otp }),
       },
     );
 
