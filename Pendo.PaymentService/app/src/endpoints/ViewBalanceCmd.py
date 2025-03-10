@@ -1,5 +1,5 @@
 from ..db.PaymentRepository import PaymentRepository
-from ..returns.PaymentReturns import ViewBalanceResponse
+from ..returns.PaymentReturns import ViewBalanceResponse, StatusResponse
 
 class ViewBalanceCommand:
     """
@@ -30,13 +30,11 @@ class ViewBalanceCommand:
             userBalance = self.PaymentRepository.GetUserBalance(self.UserId)
             if userBalance is None:
                 raise Exception("Balance sheet not found")
-            else:
                 # self.logger.info("Got balance sheet", userBalance)
                 # self.logger.info("non-pending", userBalance.NonPending, "pending", userBalance.Pending)
 
-                return ViewBalanceResponse("success", userBalance.NonPending, userBalance.Pending)
+            return ViewBalanceResponse(Status="success", NonPending=userBalance.NonPending, Pending=userBalance.Pending)
 
         except Exception as e:
             self.logger.error(f"Error fetching balance sheet. Error: {str(e)}")
-            return {"Status": "fail",
-                    "Error" : str(e)}
+            return StatusResponse(Status="fail", Error=str(e))

@@ -45,13 +45,13 @@ class PaymentRepository():
         :return: Booking object.
         """
         return self.db_session.query(Booking)\
-                                    .filter(Booking.BookingId == booking_id)\
-                                    .options(
-                                        joinedload(Booking.BookingStatus_),
-                                        joinedload(Booking.Journey_),
-                                        joinedload(Booking.BookingAmmendment),
-                                        with_loader_criteria(BookingAmmendment, BookingAmmendment.DriverApproval and BookingAmmendment.PassengerApproval))\
-                                    .all()
+                .filter(Booking.BookingId == booking_id)\
+                .options(
+                    joinedload(Booking.BookingStatus_),
+                    joinedload(Booking.Journey_),
+                    joinedload(Booking.BookingAmmendment),
+                    with_loader_criteria(BookingAmmendment, BookingAmmendment.DriverApproval and BookingAmmendment.PassengerApproval))\
+                .first()
     
     def CreateUserBalance(self, balance):
         """
@@ -89,6 +89,12 @@ class PaymentRepository():
         BalanceSheet.NonPending += amount
         self.db_session.commit()
 
+    def CreateTransaction(self, transaction):
+        """
+        CreateTransaction adds a pre-specified transaction to the database
+        """
+        self.db_session.add(transaction)
+        self.db_session.commit()
 
     # def UpdateBooking(self, booking):
     #     """
