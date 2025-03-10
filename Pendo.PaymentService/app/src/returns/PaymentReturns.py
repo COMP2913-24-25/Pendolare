@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from ..db.PendoDatabase import User, UserBalance
 from uuid import UUID
+from typing import Optional
 
 class ViewBalanceResponse(BaseModel):
     Status : str
@@ -9,6 +10,7 @@ class ViewBalanceResponse(BaseModel):
 
 class StatusResponse(BaseModel):
     Status: str
+    Error: Optional[str] = None
 
 class SingularPaymentMethod(BaseModel):
     Brand: str

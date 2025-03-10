@@ -23,6 +23,17 @@ VALUES
 ( @PassengerId, 'jameskinley24+passenger@gmail.com', 'James', 'Test', 1),
 ( @DriverId, 'jameskinley24+driver@gmail.com', 'Senor', 'Test', 1)
 
+
+INSERT INTO [payment].[UserBalance]
+(
+    UserId,
+    Pending,
+    NonPending
+)
+VALUES
+( @PassengerId, 24.99, 51.25),
+( @DriverId, 12.34, 56.78)
+
 DECLARE @OnetimeId UNIQUEIDENTIFIER = '1025c943-62f2-4692-885c-4e064f7f486b'
 DECLARE @CommuterId UNIQUEIDENTIFIER = '094d53f9-5f3b-4de8-af7d-89972d31e2af'
 
@@ -91,7 +102,7 @@ INSERT INTO [booking].[BookingAmmendment]
         EndName, EndLong, EndLat, StartTime, CancellationRequest, DriverApproval, PassengerApproval)
 VALUES
        (@BookingId1, 12.50, @AltStartName, @AltStartLong, @AltStartLat,
-        @AltEndName, @AltEndLong, @AltEndLat, GETDATE(), 0, 0, 1);
+        @AltEndName, @AltEndLong, @AltEndLat, GETDATE(), 0, 1, 1);
 
 -------------------------------
 -- Booking 2 - Commuter journey for Passenger
@@ -144,3 +155,4 @@ SELECT * FROM [identity].[User]
 SELECT * FROM [journey].[Journey]
 SELECT * FROM [booking].[Booking]
 SELECT * FROM [booking].[BookingAmmendment]
+SELECT * FROM [payment].[UserBalance]
