@@ -83,8 +83,9 @@ def PendingBooking(request: MakePendingBooking, db: Session = Depends(get_db)) -
     Used when a booking is created in the pending state
     """
     response = PendingBookingCommand(logging.getLogger("PendingBooking"), request.BookingId).Execute()
+    print(response)
     if response.Status != "success":
-        raise HTTPException(400, detail=response['Error'])
+        raise HTTPException(400, detail=response.Error)
     else:
         return response
 
@@ -115,8 +116,8 @@ def ViewBalance(request: GetwithUUID, db: Session = Depends(get_db)) -> ViewBala
     Used to query a users balance, both pending and non-pending
     """
     BalanceSheet = ViewBalanceCommand(logging.getLogger("ViewBalance"), request.UserId).Execute()
-    if BalanceSheet['Status'] != "success":
-        raise HTTPException(400, detail=BalanceSheet['Error'])
+    if BalanceSheet.Status != "success":
+        raise HTTPException(400, detail=BalanceSheet.Error)
     else:
         return BalanceSheet
 
