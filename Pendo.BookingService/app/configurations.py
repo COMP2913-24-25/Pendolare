@@ -25,3 +25,4 @@ class SendGridConfiguration(BaseModel):
     pendingTemplateId : str
     confirmedTemplateId : str
     cancelledTemplateId : str
+    arrivalTemplateId : str
