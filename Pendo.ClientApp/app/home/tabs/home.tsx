@@ -38,11 +38,23 @@ const Home = () => {
       <ScrollView className="flex-1">
         <View className="px-4">
           {/* Header */}
-          <Text
-            className={`text-2xl font-JakartaExtraBold ${isDarkMode ? "text-white" : "text-black"}`}
-          >
-            Welcome {"John"}👋
-          </Text>
+          <View className="flex-row justify-between items-center mb-2">
+            <Text
+              className={`text-2xl font-JakartaExtraBold ${isDarkMode ? "text-white" : "text-black"}`}
+            >
+              Welcome {"John"}👋
+            </Text>
+            <TouchableOpacity 
+              onPress={() => setShowModal(true)}
+              className="p-2"
+            >
+              <FontAwesome5
+                name={icons.out}
+                size={24}
+                color={isDarkMode ? "#FFF" : "#000"}
+              />
+            </TouchableOpacity>
+          </View>
 
           {/* Map Section */}
           <Text

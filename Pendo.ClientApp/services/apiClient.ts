@@ -14,6 +14,8 @@ export async function apiRequest<T>(
     ...(options.headers || {}),
   };
 
+  console.log("headers", headers);
+
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
