@@ -175,8 +175,8 @@ class UserBalance(User):
     )
 
     UserId = mapped_column(Uuid)
-    Pending = mapped_column(Float(53), nullable=False, server_default=text('((0))'))
-    NonPending = mapped_column(Float(53), nullable=False, server_default=text('((0))'))
+    Pending = mapped_column(DECIMAL(18, 8), nullable=False, server_default=text('((0))'))
+    NonPending = mapped_column(DECIMAL(18, 8), nullable=False, server_default=text('((0))'))
     UpdatedDate = mapped_column(DATETIME2, nullable=False, server_default=text('(getutcdate())'))
 
 

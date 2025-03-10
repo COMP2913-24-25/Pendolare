@@ -54,7 +54,7 @@ USING (VALUES
     ('PendingSubtraction', 'Deduction of Pending balance'),
     ('NonPendingAddition', 'Addition of NonPending balance'),
     ('NonPendingSubtraction', 'Deduction of NonPending balance'),
-    ('StripeSubtraction', 'A charge via stripe')
+    ('StripeAddition', 'A charge via stripe')
 ) AS source (Type, Description)
 ON target.Type = source.Type
 WHEN NOT MATCHED THEN
