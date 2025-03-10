@@ -9,6 +9,7 @@ from .get_bookings import GetBookingsCommand
 from .add_booking_ammendment import AddBookingAmmendmentCommand
 from .approve_booking_ammendment import ApproveBookingAmmendmentCommand
 from .approve_booking import ApproveBookingCommand
+from .confirm_at_pickup import ConfirmAtPickupCommand
 
 from .requests import *
 from .email_sender import MailSender
@@ -34,7 +35,7 @@ logger.info("Starting Pendo.BookingService.Api")
 app = FastAPI(
     title="Pendo.BookingService.Api", 
     version="1.0.0",
-    root_path="/api")
+    root_path="/api/Booking")
 
 logger.info("Initialising Mail Sender Service...")
 mailSender = MailSender(configProvider.LoadEmailConfiguration(next(get_db())))
@@ -79,3 +80,7 @@ def approve_booking_ammendment(BookingAmmendmentId: UUID, request: ApproveBookin
 @app.put("/ApproveBooking/{BookingId}", tags=["Approve Booking Request"], status_code=status.HTTP_200_OK)
 def approve_booking_request(BookingId: UUID, request: ApproveBookingRequest, response : Response, db: Session = Depends(get_db)):
     return ApproveBookingCommand(BookingId, request, response, logging.getLogger("ApproveBookingCommand"), mailSender, dvla_client).Execute()
+
+@app.put("/ConfirmAtPickup/{BookingId}", tags=["Confirm At Pickup"], status_code=status.HTTP_200_OK)
+def confirm_at_pickup(BookingId: UUID, request : ConfirmAtPickupRequest, response : Response, db: Session = Depends(get_db)):
+    return ConfirmAtPickupCommand(BookingId, request, response, configProvider, mailSender, logging.getLogger("ConfirmAtPickupCommand"), dvla_client).Execute()

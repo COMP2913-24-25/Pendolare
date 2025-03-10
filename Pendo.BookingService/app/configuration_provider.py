@@ -1,20 +1,8 @@
 import json
 from pathlib import Path
 from .configurations import DbConfiguration, SendGridConfiguration
-from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from .models import Configuration  # Ensure this import matches your project structure
-
-class SendGridConfiguration(BaseModel):
-    """
-    SendGridConfiguration class is a configuration object for SendGrid.
-    """
-    apiKey: str
-    fromEmail: str
-    pendingTemplateId: str
-    confirmedTemplateId: str
-    cancelledTemplateId: str
-
 class ConfigurationProvider:
     """
     ConfigurationProvider class is responsible for loading the application configuration.
