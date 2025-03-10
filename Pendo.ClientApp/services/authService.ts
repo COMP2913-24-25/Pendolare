@@ -2,7 +2,7 @@ import * as SecureStore from "expo-secure-store";
 
 import { apiRequest } from "./apiClient";
 
-import { API_BASE_URL, AUTH_ENDPOINTS } from "@/constants";
+import { AUTH_ENDPOINTS } from "@/constants";
 
 const JWT_KEY = "pendolare";
 const USER_EMAIL_KEY = "pendolare_email";

@@ -40,6 +40,8 @@ export async function createBooking(
     // Convert journey ID to string if it's a number (for dummy data)
     const stringJourneyId = journeyId.toString();
 
+    console.log("reached");
+
     // Ensure we have a proper date string
     const dateString =
       typeof journeyTime === "number"
