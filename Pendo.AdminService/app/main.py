@@ -3,6 +3,7 @@ from fastapi import FastAPI, HTTPException, Depends, Response, status, Query
 from configuration_provider import ConfigurationProvider
 from db_provider import get_db
 from sqlalchemy.orm import Session
+from frequent_users import FrequentUsersCommand
 
 
 from request_lib import *
@@ -42,3 +43,7 @@ def get_booking_revenue(filter_query : Annotated[GetWeeklyRevenueQuery, Query()]
 @app.get("/JourneyAnalytics", tags=["Journey Analytics"], status_code=status.HTTP_200_OK)
 def journey_analytics(response: Response, db_session: Session = Depends(get_db)):
     return JourneyAnalyticsCommand(db_session, response).execute()
+
+@app.get("/FrequentUsers", tags=["User Analytics"], status_code=status.HTTP_200_OK)
+def frequent_users(response: Response, db_session: Session = Depends(get_db)):
+    return FrequentUsersCommand(db_session, response).execute()

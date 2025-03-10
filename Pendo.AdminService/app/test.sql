@@ -1,5 +1,7 @@
 -- Test Data Setup Script
 
+USE [Pendo.Database];
+
 DELETE FROM [booking].[BookingAmmendment]
 DELETE FROM [booking].[Booking]
 DELETE FROM [journey].[Journey]
