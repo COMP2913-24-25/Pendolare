@@ -2,6 +2,7 @@ from .models import Booking, User, Journey, BookingAmmendment, Configuration
 from sqlalchemy.orm import joinedload, with_loader_criteria
 from .db_provider import get_db
 from datetime import datetime
+from .statuses.booking_statii import BookingStatus
 
 class BookingRepository():
     """
@@ -22,7 +23,7 @@ class BookingRepository():
         """
         return_dto = []
         bookings = self.db_session.query(Booking)\
-            .filter(Booking.UserId == user_id)\
+            .filter(Booking.UserId == user_id, Booking.BookingStatusId != BookingStatus.PrePending)\
             .options(
                 joinedload(Booking.BookingStatus_),
                 joinedload(Booking.Journey_),

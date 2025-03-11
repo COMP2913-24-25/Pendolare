@@ -3,10 +3,18 @@ from .booking_repository import BookingRepository
 from .email_sender import generateEmailDataFromAmmendment
 from datetime import datetime
 from fastapi import status
+from .statuses.booking_statii import BookingStatus
 
 class ApproveBookingAmmendmentCommand:
 
-    def __init__(self, ammendment_id, request : ApproveBookingAmmendmentRequest, response, logger, email_sender, dvla_client):
+    def __init__(self, 
+                 ammendment_id, 
+                 request : ApproveBookingAmmendmentRequest, 
+                 response, 
+                 logger, 
+                 email_sender, 
+                 dvla_client,
+                 payment_service_client):
         self.ammendment_id = ammendment_id
         self.request = request
         self.response = response
@@ -14,6 +22,7 @@ class ApproveBookingAmmendmentCommand:
         self.booking_repository = BookingRepository()
         self.dvla_client = dvla_client
         self.email_sender = email_sender
+        self.payment_service_client = payment_service_client
 
     def Execute(self):
         """
@@ -75,30 +84,34 @@ class ApproveBookingAmmendmentCommand:
         if ammendment.CancellationRequest:
             res = self.email_sender.SendBookingCancelled(passenger.Email, email_data)
             self.logger.debug(f"Email send result: {res}")
-            self.booking_repository.UpdateBookingStatus(ammendment.BookingId, 3)
-            self.logger.debug(f"Booking {ammendment.BookingId} cancelled successfully.")
+            self.booking_repository.UpdateBookingStatus(ammendment.BookingId, BookingStatus.Cancelled)
+            self.logger.info(f"Booking {ammendment.BookingId} cancelled successfully.")
 
-            # TODO ONCE PAYMENT SERVICE IS IMPLEMENTED: Call payment service and refund user making request
+            # TODO: Check this with alex - surely we need to supply the bookingId???
+            if not self.payment_service_client.RefundRequest(passenger.UserId):
+                msg = "Error refunding user"
+                self.logger.error(msg)
+                raise Exception(msg)
+            
+            self.logger.info(f"User {passenger.UserId} refunded successfully.")
             return
-    
-        ## TODO ONCE PAYMENT SERVICE IS IMPLEMENTED: call payment service and charge passenger
 
-        self.booking_repository.UpdateBookingStatus(ammendment.BookingId, 2)
+        self.booking_repository.UpdateBookingStatus(ammendment.BookingId, BookingStatus.Confirmed)
 
-        res = self.email_sender.SendBookingConfirmation(passenger.Email, email_data) #Should we send an email to the driver too?
+        res = self.email_sender.SendBookingConfirmation(passenger.Email, email_data)
         self.logger.debug(f"Email send result: {res}")
-        self.logger.debug(f"Booking {ammendment.BookingId} confirmed successfully.")
+        self.logger.info(f"Booking {ammendment.BookingId} confirmed successfully.")
 
     def _setApprovals(self, ammendment, driver, passenger):
         if self.request.UserId == driver.UserId and self.request.DriverApproval:
             ammendment.DriverApproval = True
             self.booking_repository.UpdateBookingAmmendment(ammendment)
-            self.logger.debug(f"Approved booking ammendment {self.ammendment_id} for driver successfully.")
+            self.logger.info(f"Approved booking ammendment {self.ammendment_id} for driver successfully.")
 
         elif self.request.UserId == passenger.UserId and self.request.PassengerApproval:
             ammendment.PassengerApproval = True
             self.booking_repository.UpdateBookingAmmendment(ammendment)
-            self.logger.debug(f"Approved booking ammendment {self.ammendment_id} for passenger successfully.")
+            self.logger.info(f"Approved booking ammendment {self.ammendment_id} for passenger successfully.")
         else:
             self.response.status_code = status.HTTP_401_UNAUTHORIZED
             raise Exception(f"User {self.request.UserId} not authorised to approve booking ammendment {self.ammendment_id}")
