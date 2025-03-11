@@ -88,6 +88,13 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
     setBookingStatus((prev) => ({ ...prev, showMessage: false }));
   };
 
+  /* 
+    Note: Styling and class names are derived from Tailwind CSS docs
+    https://tailwindcss.com/docs/
+    Additional design elements have been generated using Figma -> React Native (Tailwind)
+    https://www.figma.com/community/plugin/821138713091291738/figma-react-native
+    https://www.figma.com/community/plugin/1283055580669946018/tailwind-react-code-generator-by-pagesloft
+  */
   return (
     <Modal
       animationType="slide"

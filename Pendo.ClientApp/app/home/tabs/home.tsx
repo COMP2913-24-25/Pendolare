@@ -31,6 +31,13 @@ const Home = () => {
     await logout();
   };
 
+  /* 
+    Note: Styling and class names are derived from Tailwind CSS docs
+    https://tailwindcss.com/docs/
+    Additional design elements have been generated using Figma -> React Native (Tailwind)
+    https://www.figma.com/community/plugin/821138713091291738/figma-react-native
+    https://www.figma.com/community/plugin/1283055580669946018/tailwind-react-code-generator-by-pagesloft
+  */
   return (
     <SafeAreaView
       className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-general-500"}`}
@@ -183,7 +190,7 @@ const Home = () => {
                   <View key={ride.id} className={index > 0 ? "mt-4" : ""}>
                     <UpcomingRide ride={ride} />
                   </View>
-                )
+                ),
               )}
               {(showPastRides ? pastRides : upcomingRides).length === 0 && (
                 <View className="bg-white rounded-lg p-4 shadow-md">

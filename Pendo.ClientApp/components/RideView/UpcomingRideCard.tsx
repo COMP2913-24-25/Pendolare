@@ -21,6 +21,13 @@ interface UpcomingRideCardProps {
 const UpcomingRideCard = ({ ride, onPress }: UpcomingRideCardProps) => {
   const { isDarkMode } = useTheme();
 
+  /* 
+    Note: Styling and class names are derived from Tailwind CSS docs
+    https://tailwindcss.com/docs/
+    Additional design elements have been generated using Figma -> React Native (Tailwind)
+    https://www.figma.com/community/plugin/821138713091291738/figma-react-native
+    https://www.figma.com/community/plugin/1283055580669946018/tailwind-react-code-generator-by-pagesloft
+  */
   return (
     <TouchableOpacity
       className={`bg-white p-4 rounded-lg shadow-sm ${isDarkMode ? "bg-slate-800" : "bg-white"}`}
