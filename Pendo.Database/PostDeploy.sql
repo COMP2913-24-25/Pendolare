@@ -33,6 +33,38 @@ WHEN NOT MATCHED THEN
 
 GO
 
+-- Populate Transaction Statuses
+MERGE INTO [payment].[TransactionStatus] AS target
+USING (VALUES 
+    ('Pending', 'Transaction has been created, advertiser has recieved pending balance'),
+    ('Finalised', 'Transaction price has been finalised, booking has completed'),
+    ('Billed', 'Request has been sent to stripe'),
+    ('Failed', 'Stripe payment has failed'),
+    ('Paid', 'Complete, any balances set to non-pending')
+) AS source (Status, Description)
+ON target.Status = source.Status
+WHEN NOT MATCHED THEN
+    INSERT (Status, Description)
+    VALUES (source.Status, source.Description);
+
+GO
+
+-- Populate Transaction Types
+MERGE INTO [payment].[TransactionType] AS target
+USING (VALUES 
+    ('PendingAddition', 'Addition of Pending balance'),
+    ('PendingSubtraction', 'Deduction of Pending balance'),
+    ('NonPendingAddition', 'Addition of NonPending balance'),
+    ('NonPendingSubtraction', 'Deduction of NonPending balance'),
+    ('StripeAddition', 'A charge via stripe')
+) AS source (Type, Description)
+ON target.Type = source.Type
+WHEN NOT MATCHED THEN
+    INSERT (Type, Description)
+    VALUES (source.Type, source.Description);
+
+GO
+
 DECLARE @OtpConfiguration NVARCHAR(MAX) = '
 {
     "OtpLength": 6,
@@ -47,8 +79,19 @@ DECLARE @JwtConfiguration NVARCHAR(MAX) = '
     "AppAudience": "Pendo.MobileApp",
     "ManagerAudience": "Pendo.ManagerDashboard",
     "SecretKey": "d8d5304c4624d4ee3461edde3a7df1d2a2a7aec0aaa689b7ef6ca563ae3a67bb",
-    "ExpiresInMinutes": 60,
+    "ExpiresInMinutes": 60
 }';
+
+DECLARE @ManagerWhitelist NVARCHAR(MAX) = '
+{
+    "Whitelist": 
+    [
+        "jameskinley24@gmail.com",
+        "sc23jk2@leeds.ac.uk",
+        "mundrayj@gmail.com",
+        "shayodonnell8@icloud.com"
+    ]
+}'
 
 DECLARE @BookingEmailConfiguration NVARCHAR(MAX) = '
 {
@@ -60,15 +103,23 @@ DECLARE @BookingEmailConfiguration NVARCHAR(MAX) = '
     "arrivalTemplateId": "d-d22b4b959aa0490ba8864716d45de8f5"
 }'
 
+DECLARE @StripeConfiguration NVARCHAR(MAX) = '
+{
+    "secret": "sk_test_51R01XVJJfevYXm7DQZlpUnTFEirQaRSDQfy6TJZ3kBdf2oVXnjl3hV1TSzfUiiSdmuXuZoOP6tBlKsn9hJbkdha900jFkB9ZZ8",
+    "publishable": "pk_test_51R01XVJJfevYXm7Da0LZSLPl85sFVvKX4ef9g0JnePgfzcdbbErjnaDs0E6CzZqUdMvpCLTkMOhYRoggxrS4WBFB00GndBkKYb"
+}'
+
 DECLARE @DvlaApiKey NVARCHAR(MAX) = 'bfehQJlOAs6trMLuOaahb4ZAS1STeM5n5yk6XvM2'
 
 MERGE INTO [shared].[Configuration] AS target
 USING (VALUES
     ('Identity.OtpConfiguration', @OtpConfiguration),
     ('Identity.JwtConfiguration', @JwtConfiguration),
+    ('Identity.ManagerConfiguration', @ManagerWhitelist),
     ('Booking.DvlaApiKey', @DvlaApiKey),
     ('Booking.EmailConfiguration', @BookingEmailConfiguration),
-    ('Booking.FeeMargin', '0.05')
+    ('Booking.FeeMargin', '0.05'),
+    ('Payment.StripeConfiguration', @StripeConfiguration)
 ) AS source ([Key], [Value])
 ON target.[Key] = source.[Key]
 WHEN NOT MATCHED THEN
