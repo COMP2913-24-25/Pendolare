@@ -37,8 +37,11 @@ cd Pendo.ApiGateway
 # Create Kong network if it doesn't exist
 docker network create kong-net
 
-# Create docker container
-docker-compose up -d
+# Build docker container
+docker build -t pendo-gateway .
+
+# Run docker container
+docker run -d --name pendo-gateway --add-host=host.docker.internal:host-gateway -p 9000:9000 -p 9001:9001 -p 8443:8443 -p 8444:8444 pendo-gateway
 ```
 
 ### Configuration
@@ -47,21 +50,11 @@ docker-compose up -d
 3. Kong Admin API is accessible at http://localhost:8001 and Admin GUI at http://localhost:8002.
 4. API Gateway proxies requests through http://localhost:8000 (HTTP) and https://localhost:8443 (HTTPS).
 
-## API Endpoints
-The gateway exposes the following base endpoints:
-- `http://localhost:8000` - API Gateway HTTP proxy
-- `https://localhost:8443` - API Gateway HTTPS proxy
-- `http://localhost:8001` - Kong Admin API
-- `http://localhost:8002` - Kong Admin GUI
-
 ## Monitoring and Logging
 - Kong logs are streamed to stdout/stderr and can be viewed using `docker logs kong`
 - Health checks are configured to run every 10 seconds
 - Kong Admin API provides detailed metrics at `/status` and `/metrics` endpoints
 - Integration with Prometheus and Grafana is possible for advanced monitoring
-
-## Deployment
-- Environment variables can be modified in docker-compose.yml or through a .env file
 
 ## Troubleshooting
 - If the container fails to start, check for port conflicts
