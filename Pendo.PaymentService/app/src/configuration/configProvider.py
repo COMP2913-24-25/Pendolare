@@ -55,4 +55,4 @@ class ConfigurationProvider:
             self.StripeConfiguration = StripeConfiguration(**stripe_config_data)
             return self.StripeConfiguration
 
-        raise ValueError("Email configuration not found in the database.")
+        raise ValueError("Stripe configuration not found in the database.")

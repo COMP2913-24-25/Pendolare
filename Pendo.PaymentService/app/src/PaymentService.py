@@ -5,9 +5,10 @@
 #
 
 from fastapi import FastAPI, HTTPException, Depends, Request
-import logging, sys
+import logging, sys, stripe
 from .endpoints.ViewBalanceCmd import ViewBalanceCommand
 from .endpoints.PendingBookingCmd import PendingBookingCommand
+from .endpoints.PaymentMethodsCmd import PaymentMethodsCommand
 from .db.PendoDatabase import UserBalance
 from .db.PendoDatabaseProvider import get_db, Session, text, configProvider, environment
 from .requests.PaymentRequests import GetwithUUID, MakePendingBooking, PaymentSheetRequest
@@ -49,8 +50,15 @@ def test_db(db: Session = Depends(get_db)):
 @app.post("/PaymentSheet", tags=["Stripe"])
 def PaymentSheet(request: PaymentSheetRequest, db: Session = Depends(get_db)) -> PaymentSheetResponse:
     configProvider.LoadStripeConfiguration(db)
+
+    print(configProvider.StripeConfiguration.publishable)
+    print(configProvider.StripeConfiguration.secret)
+
+    payment_methods = stripe.Customer.list_payment_methods(id)
+    print("Methods: ", payment_methods)
     
-    response = PaymentSheetResponse(Status="success", PaymentIntent="paymentIntent.client_secret", EphemeralKey="ephemeralKey.secret", CustomerId=request.UserId, PublishableKey=configProvider.StripeConfiguration.publishable)
+    #response = PaymentSheetResponse(Status="success", PaymentIntent="paymentIntent.client_secret", EphemeralKey="ephemeralKey.secret", CustomerId=request.UserId, PublishableKey=configProvider.StripeConfiguration.publishable)
+    
     return response
 
 
@@ -59,15 +67,12 @@ def PaymentMethods(request: GetwithUUID, db: Session = Depends(get_db)) -> Payme
     """
     Used to query stripe for the customers saved payment methods, to display before adding another card or contiuning with a booking
     """
-    # TODO: Complete PaymentMethods endpoint
-    
-    # input: userID
-
-    # query stripe for payments method list for customer
-
-    # return list to client
-
-    return PaymentMethodResponse(Status="Success", Methods=["Method1", "Method2"])
+    response = PaymentMethodsCommand(logging.getLogger("PaymentMethods"), request.UserId, db).Execute()
+    print(response)
+    if response.Status != "success":
+        raise HTTPException(400, detail=response.Error)
+    else:
+        return response
 
 @app.post("/StripeWebhook", tags=["Stripe"])
 def StripeWebhook(request: Request) -> StatusResponse:
