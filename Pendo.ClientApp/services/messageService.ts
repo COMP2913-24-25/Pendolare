@@ -2,7 +2,7 @@
 
 import { MESSAGE_API_BASE_URL } from "@/constants";
 
-const WS_URL = MESSAGE_API_BASE_URL; // For this demo, we're hardcoding these values.
+const WS_URL = MESSAGE_API_BASE_URL;
 const DEFAULT_USER_ID = "12345";
 const DEFAULT_CONVERSATION_ID = "12345";
 
@@ -12,11 +12,11 @@ export interface ChatMessage {
   from?: string;
   conversation_id?: string;
   content?: string;
-  message?: string; // Added for welcome message format
+  message?: string;
   timestamp: string;
-  sender?: string; // 'user' or 'other' for UI display
-  read?: boolean; // Indicates if the message has been read
-  status?: "sending" | "sent" | "delivered" | "read"; // Delivery status
+  sender?: string;
+  read?: boolean;
+  status?: "sending" | "sent" | "delivered" | "read";
 }
 
 interface MessageServiceEvents {
@@ -24,7 +24,7 @@ interface MessageServiceEvents {
   connected: () => void;
   disconnected: (reason?: string) => void;
   error: (error: any) => void;
-  historyLoaded: (messages: ChatMessage[]) => void; // History loaded event
+  historyLoaded: (messages: ChatMessage[]) => void;
 }
 
 class MessageService {
@@ -56,13 +56,13 @@ class MessageService {
         console.log("WebSocket connection established");
         this.isConnected = true;
 
-        // NEW: Send registration message to register client with userId
+        // Send registration message to register client with userId
         const registration = {
           type: "register",
           register: true,
           user_id: this.userId,
         };
-        this.ws!.send(JSON.stringify(registration)); // Non-null assertion added
+        this.ws!.send(JSON.stringify(registration));
 
         // Join the conversation once registered
         this.joinConversation();
@@ -90,6 +90,7 @@ class MessageService {
           if (isEcho) {
             message.isEcho = true;
           }
+
           // Handle history response
           if (
             message.type === "history_response" &&
@@ -107,7 +108,7 @@ class MessageService {
             }
             return;
           }
-          // NEW: if message.id is missing but message.message_id exists, assign it
+
           if (!message.id && message.message_id) {
             message.id = message.message_id;
           }
@@ -121,6 +122,7 @@ class MessageService {
           };
         }
         console.log("Received message:", message);
+
         // Transform welcome messages for display consistency
         if (message.type === "welcome" && message.message) {
           const formattedMessage: ChatMessage = {
