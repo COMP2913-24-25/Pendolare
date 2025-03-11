@@ -88,7 +88,7 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
 
   const handleRate = async () => {
     try {
-      // Here you would implement the actual rating API call
+      // Replace with actual API call
       await Promise.resolve();
       setShowRatingModal(false);
       setShowDetails(false);
