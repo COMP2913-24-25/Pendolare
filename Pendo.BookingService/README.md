@@ -83,60 +83,47 @@ flowchart TD
 - **Notifications:** Sends booking confirmation
 
 ## Tech Stack
-- Backend: Python (Flask)
+- Backend: Python (FastAPI)
 - Database: SQLAlchemy
 - Testing Framework: Pytest
 
 ## Prerequisites
-- to be updated
+- Deployed database
 
 ## Getting Started
 
 ### Installation
 ```bash
-# Clone the repository
-git clone [repository-url]
-
 # Navigate to service directory
-cd [service-name]
+cd Pendo.BookingService
 
 # Install dependencies
-npm install  # or equivalent command
+pip install -r requirements.txt
 ```
 
 ### Configuration
-1. Copy `.env.example` to `.env`
-2. Update environment variables:
-   - `DATABASE_URL`
-   - `SERVICE_PORT`
-   - `OTHER_REQUIRED_VARS`
+1. Set DB connection values in `appsettings.{environment}.json`
+2. Ensure DB configuration is correct (`[shared].[Configuration]` table!)
 
 ### Running the Service
 ```bash
 # Development mode
-npm run dev  # or equivalent command
+fastapi run --reload  # or equivalent command
 
 # Production mode
-npm run start  # or equivalent command
+fastapi run  # or equivalent command
 ```
 
 ### Testing
 ```bash
-# Run unit tests
-npm run test  # or equivalent command
-
-# Run integration tests
-npm run test:integration  # or equivalent command
+# Run tests
+pytest
 ```
 
 ## API Documentation
 
 ### Endpoints
-- `GET /bookings` - Retrieve a list of bookings.
-- `POST /bookings` - Create a new booking.
-- `PUT /bookings/{booking_id}` - Update an existing booking.
-- `DELETE /bookings/{booking_id}` - Cancel a booking.
-
+Will be automatically populated.
 
 ## Monitoring and Logging
 - Metrics collection
