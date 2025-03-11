@@ -10,6 +10,11 @@ interface RatingStarsProps {
   size?: number;
 }
 
+/*
+  RatingStars
+  Renders 5 star icons for rating
+  Calls setRating callback with the selected rating
+*/
 const RatingStars = ({ rating, setRating, size = 24 }: RatingStarsProps) => {
   return (
     <View className="flex-row justify-center">

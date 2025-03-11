@@ -19,6 +19,10 @@ interface ContactSupportProps {
   onSelectCategory: (category: string) => void;
 }
 
+/*
+  ContactSupport
+  Modal component for selecting a support category
+*/
 const ContactSupport = ({
   visible,
   onClose,

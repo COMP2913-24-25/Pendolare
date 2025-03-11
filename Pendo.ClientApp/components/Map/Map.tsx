@@ -18,6 +18,10 @@ interface MapProps {
   dropoff: Location | null;
 }
 
+/*
+  Map
+  Component for rendering a map with pickup and dropoff locations
+*/
 const Map = ({ pickup, dropoff }: MapProps) => {
   const [isMapReady, setIsMapReady] = useState(false);
   const [userLocation, setUserLocation] =
@@ -82,6 +86,9 @@ const Map = ({ pickup, dropoff }: MapProps) => {
   const onMapReady = () => {
     setIsMapReady(true);
   };
+
+  // Map view with markers for pickup and dropoff locations
+  // Utilising: https://github.com/react-native-maps/react-native-maps
 
   return (
     <View style={{ flex: 1 }}>

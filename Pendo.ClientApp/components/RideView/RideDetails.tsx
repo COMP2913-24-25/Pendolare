@@ -21,6 +21,10 @@ interface RideDetailsProps {
   onClose: () => void;
 }
 
+/*
+  RideDetails
+  Modal component for displaying ride details and booking
+*/
 const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
   const { isDarkMode } = useTheme();
   const [isBooking, setIsBooking] = useState(false);

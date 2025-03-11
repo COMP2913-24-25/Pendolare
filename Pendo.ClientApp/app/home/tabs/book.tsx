@@ -35,10 +35,10 @@ const Book = () => {
             title="Search for Journey"
             description="Find available journeys to your destination"
             onPress={() => {
-              setSelectedCategory("search");
+              setSelectedCategory("normal");
               setShowRides(true);
             }}
-            isSelected={selectedCategory === "search"}
+            isSelected={selectedCategory === "normal"}
           />
 
           <BookingCategory
@@ -80,7 +80,7 @@ const Book = () => {
                 <Text
                   className={isDarkMode ? "text-gray-200" : "text-gray-600"}
                 >
-                  Commuter booking form will be implemented here
+                  Commuter booking form
                 </Text>
               </View>
             </View>

@@ -11,6 +11,10 @@ interface BookingCategoryProps {
   isSelected: boolean;
 }
 
+/*
+  BookingCategory
+  Category item for booking screen
+*/
 const BookingCategory = ({
   title,
   description,

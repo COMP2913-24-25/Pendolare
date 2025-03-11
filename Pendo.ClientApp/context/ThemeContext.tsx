@@ -11,15 +11,25 @@ const ThemeContext = createContext<ThemeContextType>({
   toggleTheme: () => {},
 });
 
+/*
+  ThemeProvider
+  Provides the theme context to the app
+  Loads the theme preference from AsyncStorage on app load
+  Saves the theme preference to AsyncStorage when toggled
+*/
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  {/* Load saved theme preference when app starts */}
+  // Load theme preference on app load
   useEffect(() => {
     loadThemePreference();
   }, []);
 
+  /*
+    Load the theme preference from AsyncStorage
+    Set isDarkMode to the saved value
+  */
   const loadThemePreference = async () => {
     try {
       const savedTheme = await AsyncStorage.getItem("isDarkMode");
@@ -33,6 +43,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  /*
+    Toggle the theme preference
+    Save the new value to AsyncStorage
+  */
   const toggleTheme = async () => {
     try {
       const newValue = !isDarkMode;
@@ -44,7 +58,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   };
 
   if (!isLoaded) {
-    return null; {/* Or return a loading spinner */}
+    return null; // Show loading spinner or splash screen
   }
 
   return (

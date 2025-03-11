@@ -10,7 +10,7 @@ import { Text } from "@/components/ThemedText";
 import { icons, demoChats } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 
-// Add type validation helper
+// Type validation helper
 const isChatType = (type: string): type is "support" | "driver" => {
   return type === "support" || type === "driver";
 };
@@ -19,6 +19,7 @@ const Chat = () => {
   const { isDarkMode } = useTheme();
   const [showSupport, setShowSupport] = useState(false);
 
+  // Handle support category selection
   const handleSupportCategory = (category: string) => {
     console.log("Creating support chat for category:", category);
     setShowSupport(false);

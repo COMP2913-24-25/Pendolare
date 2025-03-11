@@ -24,6 +24,9 @@ interface CreateRideProps {
   onClose: () => void;
 }
 
+{
+  /* Ride Creation Page */
+}
 const CreateRide = ({ onClose }: CreateRideProps) => {
   const { isDarkMode } = useTheme();
   const [step, setStep] = useState(1);
@@ -45,11 +48,14 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
 
+  // Search for locations using OpenRouteService API
+  // https://openrouteservice.org/dev/#/api-docs/geocode/search/get
   const searchLocation = async (query: string, type: "pickup" | "dropoff") => {
     if (query.length < 3) return;
     setSearching(type);
 
     try {
+      // Make a GET request to the OpenRouteService API with boundary coordinates
       const response = await axios.get(
         `https://api.openrouteservice.org/geocode/search`,
         {
@@ -60,12 +66,14 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
             "boundary.rect.max_lat": "61.061",
             "boundary.rect.min_lon": "-8.178",
             "boundary.rect.max_lon": "1.987",
+            // Limit search results to UK only
             sources: "openstreetmap",
           },
         },
       );
 
       if (response.data.features) {
+        // Map the response data to a simplified location object
         setSearchResults(
           response.data.features.map((feature: any) => ({
             name: feature.properties.label,
@@ -79,6 +87,7 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
     }
   };
 
+  // Handle location selection from search results
   const handleLocationSelect = (location: Location) => {
     if (searching === "pickup") {
       setPickup(location);
@@ -91,6 +100,7 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
     setSearching("");
   };
 
+  // Handle navigation between steps
   const handleNext = () => {
     if (step < 4) setStep(step + 1);
     else handleCreateRide();
@@ -101,6 +111,7 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
     else onClose();
   };
 
+  // Create a new ride object
   const handleCreateRide = () => {
     const newRide = {
       id: Date.now(),
@@ -144,6 +155,7 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
           <StepIndicator currentStep={step} />
         </View>
 
+        {/* Ride Creation Steps */}
         <ScrollView
           className="flex-1 px-5"
           showsVerticalScrollIndicator={false}
@@ -202,6 +214,7 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
           )}
         </ScrollView>
 
+        {/* Next Button */}
         <View className="px-5 py-4">
           <TouchableOpacity
             className="bg-blue-600 p-4 rounded-xl"

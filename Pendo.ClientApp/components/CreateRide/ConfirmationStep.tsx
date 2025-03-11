@@ -22,6 +22,9 @@ interface ConfirmationStepProps {
   date: Date;
 }
 
+{
+  /* Confirmation Step Page */
+}
 const ConfirmationStep = ({
   isDarkMode,
   pickup,
@@ -40,6 +43,7 @@ const ConfirmationStep = ({
         <Map pickup={pickup} dropoff={dropoff} />
       </View>
 
+      {/* Confirmation Details */}
       <View
         className={`p-5 rounded-xl shadow-sm ${isDarkMode ? "bg-slate-800" : "bg-white"}`}
       >

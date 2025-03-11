@@ -81,15 +81,6 @@ const Profile = () => {
               labelStyle={isDarkMode ? "text-gray-300" : "text-gray-600"}
               editable={false}
             />
-
-            <InputField
-              label="Phone"
-              placeholder={user?.primaryPhoneNumber?.phoneNumber || "Not Found"}
-              containerStyle="w-full"
-              inputStyle={`p-3.5 ${isDarkMode ? "text-white" : "text-black"}`}
-              labelStyle={isDarkMode ? "text-gray-300" : "text-gray-600"}
-              editable={false}
-            />
           </View>
         </View>
       </ScrollView>
