@@ -16,7 +16,6 @@ class SingularPaymentMethod(BaseModel):
     Brand: str
     Funding: str
     Last4: str
-    Preferred: str
     Exp_month: int
     Exp_year: int
     PaymentType: str
