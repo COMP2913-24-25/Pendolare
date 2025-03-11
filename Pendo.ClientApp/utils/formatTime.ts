@@ -1,3 +1,6 @@
+/* 
+  Utility function to format a timestamp into a human-readable string
+*/
 export const formatTimestamp = (timestamp: number): string => {
   const date = new Date(timestamp);
   const now = new Date();

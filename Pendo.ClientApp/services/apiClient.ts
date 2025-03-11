@@ -2,6 +2,10 @@ import { getJWT } from "./authService";
 
 import { API_BASE_URL } from "@/constants";
 
+/*
+  Make an API request to the gateway
+  Returns the response data
+*/
 export async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {},

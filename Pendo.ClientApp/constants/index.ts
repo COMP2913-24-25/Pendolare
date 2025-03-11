@@ -60,8 +60,7 @@ export const BOOKING_ENDPOINTS = {
   GET_BOOKINGS: "/Booking/GetBookings",
 };
 
-export const MESSAGE_API_BASE_URL =
-  "wss://message-service.greensand-8499b34e.uksouth.azurecontainerapps.io";
+export const MESSAGE_API_BASE_URL = "wss://pendo-message.clsolutions.dev/ws";
 
 // Dummy data generated utilising machine learning models
 export const dummyRides = [

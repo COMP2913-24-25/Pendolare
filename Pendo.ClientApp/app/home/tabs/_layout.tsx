@@ -82,7 +82,7 @@ export default function Layout() {
           name="home"
           options={{
             title: "Home",
-            tabBarIcon: ({ focused }) => (
+            tabBarIcon: ({ focused }: { focused: boolean }) => (
               <TabIcon name={icons.home} focused={focused} />
             ),
             headerShown: false,
@@ -94,7 +94,7 @@ export default function Layout() {
           name="book"
           options={{
             title: "Book",
-            tabBarIcon: ({ focused }) => (
+            tabBarIcon: ({ focused }: { focused: boolean }) => (
               <TabIcon name={icons.search} focused={focused} />
             ),
             headerShown: false,
@@ -106,7 +106,7 @@ export default function Layout() {
           name="chat"
           options={{
             title: "Chat",
-            tabBarIcon: ({ focused }) => (
+            tabBarIcon: ({ focused }: { focused: boolean }) => (
               <TabIcon name={icons.chat} focused={focused} />
             ),
             headerShown: false,
@@ -118,7 +118,7 @@ export default function Layout() {
           name="profile"
           options={{
             title: "Profile",
-            tabBarIcon: ({ focused }) => (
+            tabBarIcon: ({ focused }: { focused: boolean }) => (
               <TabIcon name={icons.profile} focused={focused} />
             ),
             headerShown: false,

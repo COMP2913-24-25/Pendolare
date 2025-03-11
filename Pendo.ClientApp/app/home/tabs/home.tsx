@@ -1,5 +1,4 @@
 import { FontAwesome5 } from "@expo/vector-icons";
-import { router } from "expo-router";
 import { useState } from "react";
 import {
   Text,
@@ -28,6 +27,7 @@ const Home = () => {
 
   const confirmSignOut = async () => {
     setShowModal(false);
+    // Call the logout function from the AuthContext
     await logout();
   };
 
@@ -44,7 +44,7 @@ const Home = () => {
             >
               Welcome {"John"}👋
             </Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => setShowModal(true)}
               className="p-2"
             >
@@ -63,13 +63,7 @@ const Home = () => {
             Your current location
           </Text>
           <View className="h-[200px] border-2 border-gray-300 rounded-lg overflow-hidden">
-            {Platform.OS === "web" ? (
-              <View className="flex-1 items-center justify-center">
-                <Text>Map not available on web</Text>
-              </View>
-            ) : (
-              <Map pickup={null} dropoff={null} />
-            )}
+            <Map pickup={null} dropoff={null} />
           </View>
 
           {/* Next Journey Section */}
@@ -189,7 +183,7 @@ const Home = () => {
                   <View key={ride.id} className={index > 0 ? "mt-4" : ""}>
                     <UpcomingRide ride={ride} />
                   </View>
-                ),
+                )
               )}
               {(showPastRides ? pastRides : upcomingRides).length === 0 && (
                 <View className="bg-white rounded-lg p-4 shadow-md">
@@ -203,6 +197,7 @@ const Home = () => {
         </SafeAreaView>
       </Modal>
 
+      {/* Sign Out Modal */}
       <Modal
         animationType="fade"
         transparent={true}

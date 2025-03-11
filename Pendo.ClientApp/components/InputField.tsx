@@ -13,6 +13,11 @@ import { Text } from "@/components/ThemedText";
 import { useTheme } from "@/context/ThemeContext";
 import { InputFieldProps } from "@/types/type";
 
+/*
+  InputField
+  Renders a text input field with a label and optional icon
+  Uses the current theme for styling
+*/
 const InputField = ({
   label,
   icon,
@@ -27,6 +32,7 @@ const InputField = ({
   const { isDarkMode } = useTheme();
 
   return (
+    // KeyboardAvoidingView and TouchableWithoutFeedback are used to dismiss the keyboard when tapping outside the input
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >

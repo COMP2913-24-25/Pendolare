@@ -17,6 +17,10 @@ import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { requestOTP, verifyOTP } from "@/services/authService";
 
+/*
+  SignIn
+  Sign in screen for the app
+*/
 const SignIn = () => {
   const [email, setEmail] = useState("");
   const [countdown, setCountdown] = useState(0);
@@ -38,6 +42,7 @@ const SignIn = () => {
     return () => clearInterval(timer);
   }, [countdown]);
 
+  // Send verification code to the user's email
   const sendVerificationCode = async () => {
     if (!email) {
       Alert.alert("Error", "Please enter your email");
@@ -76,6 +81,7 @@ const SignIn = () => {
     await sendVerificationCode();
   };
 
+  // Verify the OTP code entered by the user
   const handleVerifyOTP = async () => {
     if (verification.code.length !== 6) {
       setVerification({
@@ -107,10 +113,6 @@ const SignIn = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleBypass = () => {
-    router.replace("/home/tabs/home");
   };
 
   return (
@@ -147,21 +149,6 @@ const SignIn = () => {
             disabled={loading}
             className="mt-6"
           />
-
-          <TouchableOpacity
-            onPress={handleBypass}
-            className={`mt-4 p-3 rounded-full ${
-              isDarkMode ? "bg-slate-800" : "bg-gray-200"
-            }`}
-          >
-            <Text
-              className={`text-center font-JakartaMedium ${
-                isDarkMode ? "text-gray-300" : "text-gray-600"
-              }`}
-            >
-              TESTING: BYPASS
-            </Text>
-          </TouchableOpacity>
 
           {/* Sign Up Link */}
           <View className="mt-6 flex-row justify-center">

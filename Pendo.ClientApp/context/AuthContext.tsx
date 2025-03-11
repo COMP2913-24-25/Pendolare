@@ -22,13 +22,19 @@ const AuthContext = createContext<AuthContextType>({
 
 export const useAuth = () => useContext(AuthContext);
 
+/* 
+  AuthProvider
+  Provides the auth context to the app
+  Redirects to auth if not logged in
+  Redirects to home if logged in
+*/
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const segments = useSegments();
   const navigationState = useRootNavigationState();
 
-  {/* Check authentication status on app load */}
+  // Check auth status on app load
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
@@ -47,24 +53,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [navigationState?.key]);
 
-  {/* Handle routing based on auth state */}
   useEffect(() => {
     if (loading || !navigationState?.key) return;
 
     const inAuthGroup = segments[0] === "auth";
 
     if (!isLoggedIn && !inAuthGroup) {
-      {/* Redirect to sign-in if not logged in */}
+      // Redirect to auth if not logged in
       console.log("Redirecting to auth");
       router.replace("/auth/sign-in");
     } else if (isLoggedIn && inAuthGroup) {
-      {/* Redirect to home if already logged in */}
+      // Redirect to home if logged in
       console.log("Redirecting to home");
       router.replace("/home/tabs/home");
     }
   }, [isLoggedIn, loading, segments, navigationState?.key]);
 
-  {/* Logout function */}
+  // Logout user
   const logout = async () => {
     await logoutService();
     setIsLoggedIn(false);

@@ -5,7 +5,7 @@ import {
   View,
   TextInput,
   TouchableOpacity,
-  ScrollView,
+  ScrollView as RNScrollView,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
@@ -34,7 +34,7 @@ const ChatDetail = () => {
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [typingUser, setTypingUser] = useState<string | null>(null);
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<RNScrollView>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<TextInput>(null);
 
@@ -109,22 +109,22 @@ const ChatDetail = () => {
     });
 
     messageService.on("message", (message) => {
-      // If echo message detected, update status of the last "sending" message
       if ((message as any).isEcho) {
+        // Update the last outgoing message with status "sent"
         setMessages((prevMessages) => {
-          const index = prevMessages.findIndex(
-            (msg) => msg.status === "sending",
+          const idx = prevMessages.findIndex(
+            (msg) =>
+              msg.status === "sending" && msg.content === message.content,
           );
-          if (index !== -1) {
-            const updatedMsg = {
-              ...prevMessages[index],
-              status: "sent" as const,
+          if (idx !== -1) {
+            const updated = {
+              ...prevMessages[idx],
+              ...message,
+              status: "sent" as const, // <-- cast to const
             };
-            return [
-              ...prevMessages.slice(0, index),
-              updatedMsg,
-              ...prevMessages.slice(index + 1),
-            ];
+            const newMessages = [...prevMessages];
+            newMessages[idx] = updated;
+            return newMessages;
           }
           return prevMessages;
         });
@@ -136,60 +136,56 @@ const ChatDetail = () => {
       } else if (message.type === "chat" && message.content) {
         const sender = message.from === "12345" ? "user" : "other";
 
-        // If this is an incoming message (not from the user), send a read receipt
         if (sender === "other" && message.id) {
           messageService.sendReadReceipt(message.id);
         }
 
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          {
-            ...message,
-            id: message.id || generateUniqueId(),
-            sender,
-            read: sender === "user", // Mark user's messages as read by default
-            status: sender === "user" ? ("delivered" as const) : undefined,
-          },
-        ]);
-      } else if (message.type === "read_receipt") {
-        // Update the read status of the message
         setMessages((prevMessages) => {
-          const updatedMessages = prevMessages.map((msg) => {
-            if (msg.id === message.message_id && msg.sender === "user") {
+          // For outgoing messages, update existing one if found
+          if (sender === "user") {
+            const idx = prevMessages.findIndex(
+              (msg) =>
+                msg.status === "sending" && msg.content === message.content,
+            );
+            if (idx !== -1) {
+              const updated = {
+                ...prevMessages[idx],
+                ...message,
+                status: "sent" as const, // <-- cast to const
+              };
+              const newMessages = [...prevMessages];
+              newMessages[idx] = updated;
+              return newMessages;
+            }
+          }
+          return [
+            ...prevMessages,
+            {
+              ...message,
+              id: message.id || generateUniqueId(),
+              sender,
+              read: sender === "user",
+              status: sender === "user" ? "delivered" : undefined,
+            },
+          ];
+        });
+      } else if (message.type === "read_receipt") {
+        setMessages((prevMessages) => {
+          return prevMessages.map((msg) => {
+            if (
+              msg.id === (message as any).message_id &&
+              msg.sender === "user"
+            ) {
               return { ...msg, read: true, status: "read" as const };
             }
             return msg;
           });
-          return updatedMessages;
         });
       }
-
-      // Scroll to bottom for new messages
+      // Scroll to bottom
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
-    });
-
-    // Set up typing notification listener
-    messageService.on("typing", (data) => {
-      if (data.user_id !== "12345") {
-        // If not the current user
-        setIsTyping(data.is_typing);
-        setTypingUser(data.is_typing ? data.user_id : null);
-
-        // Clear any existing typing timeout
-        if (typingTimeoutRef.current) {
-          clearTimeout(typingTimeoutRef.current);
-        }
-
-        // Auto-clear typing indicator after 5 seconds in case we miss the "stopped typing" event
-        if (data.is_typing) {
-          typingTimeoutRef.current = setTimeout(() => {
-            setIsTyping(false);
-            setTypingUser(null);
-          }, 5000);
-        }
-      }
     });
 
     // Connect to WebSocket
@@ -202,12 +198,7 @@ const ChatDetail = () => {
       messageService.off("disconnected");
       messageService.off("error");
       messageService.off("message");
-      messageService.off("typing");
       messageService.off("historyLoaded");
-
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
     };
   }, [chat?.id]);
 
@@ -224,22 +215,7 @@ const ChatDetail = () => {
     const success = messageService.sendMessage(newMessage.trim());
 
     if (success) {
-      // Notify that we've stopped typing
-      messageService.sendTypingNotification(false);
-
-      // Optimistically add message to UI with guaranteed unique ID
-      const newMsg: ChatMessage = {
-        id: generateUniqueId(),
-        type: "chat",
-        from: "12345",
-        content: newMessage.trim(),
-        timestamp: new Date().toISOString(),
-        sender: "user",
-        // Mark as still sending until echo confirms
-        status: "sending",
-      };
-
-      setMessages((prevMessages: any) => [...prevMessages, newMsg]);
+      // Removed optimistic UI update – wait for server echo
       setNewMessage("");
 
       // Scroll to bottom
@@ -252,9 +228,6 @@ const ChatDetail = () => {
   // Handle typing indicator
   const handleTextChange = (text: string) => {
     setNewMessage(text);
-
-    // Send typing notification if text is not empty
-    messageService.sendTypingNotification(text.length > 0);
   };
 
   const MessageBubble = ({ message }: { message: ChatMessage }) => {
@@ -402,8 +375,8 @@ const ChatDetail = () => {
           </View>
         )}
 
-        <ScrollView
-          ref={scrollViewRef}
+        <RNScrollView
+          ref={scrollViewRef} // No need for type casting when using the correct type
           className="flex-1 px-4"
           contentContainerStyle={{ paddingVertical: 20 }}
         >
@@ -423,38 +396,7 @@ const ChatDetail = () => {
               message={message}
             />
           ))}
-
-          {/* Typing indicator */}
-          {isTyping && (
-            <View className="flex-row mb-4 justify-start">
-              <View
-                className={`rounded-2xl px-4 py-2 ${isDarkMode ? "bg-slate-700" : "bg-gray-100"}`}
-              >
-                <View className="flex-row items-center">
-                  <Text
-                    className={isDarkMode ? "text-gray-300" : "text-gray-600"}
-                  >
-                    Typing
-                  </Text>
-                  <View className="flex-row ml-1">
-                    <View
-                      className="h-1 w-1 rounded-full bg-gray-400 mx-0.5 animate-bounce"
-                      style={{ animationDelay: "0ms" }}
-                    />
-                    <View
-                      className="h-1 w-1 rounded-full bg-gray-400 mx-0.5 animate-bounce"
-                      style={{ animationDelay: "300ms" }}
-                    />
-                    <View
-                      className="h-1 w-1 rounded-full bg-gray-400 mx-0.5 animate-bounce"
-                      style={{ animationDelay: "600ms" }}
-                    />
-                  </View>
-                </View>
-              </View>
-            </View>
-          )}
-        </ScrollView>
+        </RNScrollView>
 
         <View className="p-4 border-t border-gray-200 flex-row items-center">
           <TextInput

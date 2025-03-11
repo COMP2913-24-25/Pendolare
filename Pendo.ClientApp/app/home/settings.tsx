@@ -7,6 +7,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 
+/*
+    Settings
+    Screen for user settings
+*/
 const Settings = () => {
   const { isDarkMode, toggleTheme } = useTheme();
 

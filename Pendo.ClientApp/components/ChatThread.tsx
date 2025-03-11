@@ -16,6 +16,10 @@ interface ChatThreadProps {
   onPress: () => void;
 }
 
+/*
+  ChatThread
+  Thread item for chat list
+*/
 const ChatThread = ({
   type,
   title,
