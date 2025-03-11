@@ -4,13 +4,22 @@ from datetime import datetime
 from .cron_checker import checkTimeValid
 from sqlalchemy import DECIMAL, cast
 from fastapi import status
+from .statuses.booking_statii import BookingStatus
+from .responses import StatusResponse
 
 class CreateBookingCommand:
     """
     CreateBookingCommand class is responsible for creating a new booking.
     """
 
-    def __init__(self, request, response, email_sender, logger, dvla_client, configuration_provider):
+    def __init__(self, 
+                 request, 
+                 response, 
+                 email_sender, 
+                 logger, 
+                 dvla_client, 
+                 configuration_provider,
+                 payment_service_client):
         """
         Constructor for CreateBookingCommand class.
         :param request: Request object containing the booking details.
@@ -22,6 +31,7 @@ class CreateBookingCommand:
         self.dvla_client = dvla_client
         self.configuration_provider = configuration_provider
         self.response = response
+        self.payment_service_client = payment_service_client
 
     def Execute(self):
         """
@@ -61,20 +71,31 @@ class CreateBookingCommand:
             booking = Booking(
                 UserId=user.UserId,
                 JourneyId=journey.JourneyId,
-                BookingStatusId=1, #Pending - this should not change!
+                BookingStatusId=BookingStatus.PrePending,
                 FeeMargin=cast(current_booking_fee, DECIMAL(18, 2)),
             )
 
             self.booking_repository.CreateBooking(booking)
             self.logger.debug(f"Booking DB object created successfully. BookingId: {booking.BookingId}")
 
+            # Notify payment service of new booking
+            if not self.payment_service_client.PendingBookingRequest(booking.BookingId):
+                self.response.status_code = status.HTTP_403_FORBIDDEN
+                raise Exception("Payment service failed to process booking. User balance insufficient.")
+            
+            self.booking_repository.UpdateBookingStatus(booking.BookingId, BookingStatus.Pending)
+            self.logger.debug("Booking status updated to pending successfully.")
+
             email_data = generateEmailDataFromBooking(booking, user, journey, self.dvla_client.GetVehicleDetails(journey.VehicleRegistration))
 
             self.email_sender.SendBookingPending(user.Email, email_data)
             self.logger.debug("Booking pending email sent successfully.")
-            return {"Status": "Success", "createTime": datetime.now()}
+
+            return StatusResponse(Message="Booking created successfully.")
+        
         except Exception as e:
             self.logger.error(f"Error creating booking. Error: {str(e)}")
             if self.response.status_code is None:
                 self.response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-            return {"Status": "Failed", "Error": str(e)}
+                
+            return StatusResponse(Status="Error", Message=str(e))
