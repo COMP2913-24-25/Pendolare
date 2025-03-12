@@ -15,15 +15,19 @@ class BookingRepository():
         """
         self.db_session = next(get_db())
 
-    def GetBookingsForUser(self, user_id):
+    def GetBookingsForUser(self, user_id, booking_id = None):
         """
         GetBookingsForUser method returns all the bookings for a specific user.
         :param user_id: Id of the user.
         :return: List of bookings for the user, along with journey (altered by any ammendments) and booking status.
         """
+        filter = Booking.UserId == user_id, Booking.BookingStatusId != BookingStatus.PrePending
+        if booking_id:
+            filter = filter + (Booking.BookingId == booking_id)
+
         return_dto = []
         bookings = self.db_session.query(Booking)\
-            .filter(Booking.UserId == user_id, Booking.BookingStatusId != BookingStatus.PrePending)\
+            .filter(filter)\
             .options(
                 joinedload(Booking.BookingStatus_),
                 joinedload(Booking.Journey_),
@@ -32,10 +36,11 @@ class BookingRepository():
             .all()
         
         for booking in bookings:
-            startName, startLong, startLat, endName, endLong, endLat, rideTime, price = (None,) * 8
+            startTime, startName, startLong, startLat, endName, endLong, endLat, rideTime, price = (None,) * 9
 
             if booking.BookingAmmendment:
                 for amendment in sorted(booking.BookingAmmendment, key=lambda x: x.CreateDate):
+                    startTime = self.setIfNotNull(amendment.StartTime)
                     startName = self.setIfNotNull(amendment.StartName)
                     startLong = self.setIfNotNull(amendment.StartLong)
                     startLat = self.setIfNotNull(amendment.StartLat)
@@ -60,6 +65,7 @@ class BookingRepository():
                 "Journey": {
                     "JourneyId": booking.JourneyId,
                     "UserId": booking.Journey_.UserId,
+                    "StartTime" : self.setDefaultIfNotNull(startTime, booking.RideTime),
                     "StartName": self.setDefaultIfNotNull(startName, booking.Journey_.StartName),
                     "StartLong": self.setDefaultIfNotNull(startLong, booking.Journey_.StartLong),
                     "StartLat": self.setDefaultIfNotNull(startLat, booking.Journey_.StartLat),

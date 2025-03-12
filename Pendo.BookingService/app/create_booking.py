@@ -98,4 +98,4 @@ class CreateBookingCommand:
             if self.response.status_code is None:
                 self.response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
                 
-            return StatusResponse(Status="Error", Message=str(e))
+            return StatusResponse(Status="Failed", Message=str(e))
