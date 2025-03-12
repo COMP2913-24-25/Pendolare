@@ -1,23 +1,25 @@
-# Service Name
+# PaymentService
 
-Brief description of what this specific service does and its role in the Pendolare system.
+The payment service handles transactions and communication with Stripe for any payment operations required by the system.
 
 ## Overview
 
 Description of the service's main responsibilities and core functionalities.
 
 ### Features
-- Key feature 1
-- Key feature 2
-- Key feature 3
+- Provide backend transaction handling for Stripe payments on the front end
+- Manage a user's balance, updaing, viewing, etc
+- Link transactions to bookings and their status
 
 ## Tech Stack
-- Language/Framework: [e.g., Node.js, Java, Python]
-- Other significant technologies
+- Language/Framework: Python and FastAPI
+- Importantly uses Stripe's Python SDK - to integrate with Stripe's React Native SDK
+- Uses Docker containers for all parts
+- Testing handled by Pytest
 
 ## Prerequisites
-- Required software/tools with versions
-- Environment dependencies
+- Requirements.txt file
+- Docker
 - External service dependencies
 
 ## Getting Started
@@ -29,53 +31,25 @@ git clone [repository-url]
 
 # Navigate to service directory
 cd [service-name]
-
-# Install dependencies
-npm install  # or equivalent command
 ```
 
 ### Configuration
-1. Copy `.env.example` to `.env`
-2. Update environment variables:
-   - `DATABASE_URL`
-   - `SERVICE_PORT`
-   - `OTHER_REQUIRED_VARS`
+1. Configure database connection route in ```appsetting.{enviroment}.json```
+2. Ensure database post-deploy script has run.
 
 ### Running the Service
 ```bash
-# Development mode
-npm run dev  # or equivalent command
+# If local DB required:
+./runDatabase.sh
+# Connect to and publish database + post deploy script
 
-# Production mode
-npm run start  # or equivalent command
+# To run service
+./runPaymentService.sh # this runs tests on startup
 ```
-
-### Testing
-```bash
-# Run unit tests
-npm run test  # or equivalent command
-
-# Run integration tests
-npm run test:integration  # or equivalent command
-```
-
-## API Documentation
-
-### Endpoints
-- `GET /api/v1/resource` - Description
-- `POST /api/v1/resource` - Description
-- `PUT /api/v1/resource/:id` - Description
-- `DELETE /api/v1/resource/:id` - Description
 
 ## Monitoring and Logging
-- Metrics collection
-- Log locations
-- Monitoring tools used
-
-## Deployment
-- Deployment process
-- Required environment variables
-- Infrastructure dependencies
+- All transactions are logged in the Transaction Table, along with their status
+- Stripe takes logs of every customer and every transaction via their API
 
 
 ## Contact

@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from ..db.PendoDatabase import User, UserBalance
 from uuid import UUID
+from datetime import datetime
 
 # class CreateTransaction(BaseModel):
 #     UserId: UUID
@@ -15,3 +16,10 @@ class MakePendingBooking(BaseModel):
 class PaymentSheetRequest(BaseModel):
     UserId: UUID
     Amount: float
+
+class RefundPaymentRequest(BaseModel):
+    BookingId: UUID
+    CancelledById: UUID
+    LatestPrice: float
+    CancellationTime: datetime
+    JourneyTime: datetime

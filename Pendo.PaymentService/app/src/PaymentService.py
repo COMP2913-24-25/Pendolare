@@ -11,7 +11,7 @@ from .endpoints.PendingBookingCmd import PendingBookingCommand
 from .endpoints.PaymentMethodsCmd import PaymentMethodsCommand
 from .db.PendoDatabase import UserBalance
 from .db.PendoDatabaseProvider import get_db, Session, text, configProvider, environment
-from .requests.PaymentRequests import GetwithUUID, MakePendingBooking, PaymentSheetRequest
+from .requests.PaymentRequests import GetwithUUID, MakePendingBooking, PaymentSheetRequest, RefundPaymentRequest
 from .returns.PaymentReturns import ViewBalanceResponse, StatusResponse, PaymentMethodResponse, PaymentSheetResponse
 
 
@@ -128,7 +128,7 @@ def ViewBalance(request: GetwithUUID, db: Session = Depends(get_db)) -> ViewBala
 
 
 @app.post("/RefundPayment", tags=["Anytime"])
-def refund(request: GetwithUUID, db: Session = Depends(get_db)) -> StatusResponse:
+def refund(request: RefundPaymentRequest, db: Session = Depends(get_db)) -> StatusResponse:
     """
     Used to refund a payment on a cancelled journey, revert any pending balance.
     """
