@@ -57,11 +57,12 @@ class PaymentServiceClient:
         self.logger.info(f"Sending refund request to payment service for user {userId}")
 
         request = { 
-            "UserId": userId, 
             "BookingId": bookingId, 
-            "BookingTime": bookingTime, 
-            "RequestTime": requestTime, 
-            "Amount": refundAmount }
+            "CancelledById": userId, 
+            "LatestPrice": refundAmount,
+            "CancellationTime": requestTime,
+            "JourneyTime": bookingTime
+             }
 
         self.logger.debug(f"Sending refund request to payment service: {request}")
         response = requests.post(f"{self.paymentServiceConfiguration.paymentServiceUrl}/RefundPayment", json=request)
