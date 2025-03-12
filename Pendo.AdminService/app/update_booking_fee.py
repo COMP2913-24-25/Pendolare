@@ -17,12 +17,14 @@ class UpdateBookingFeeCommand:
                 self.response.status_code = status.HTTP_400_BAD_REQUEST
                 return {"Error": "Fee margin must be between 0.00 and 0.99"}
             
+            # Update booking fee to desired amount
             self.configuration_provider.UpdateValue(self.db_session, "Booking.FeeMargin", str(fee_margin))
             self.db_session.commit()
 
             return {"Status": "Booking fee margin updated successfully"}
         
         except Exception as e:
+            # Rollback changes if there is an error 
             self.db_session.rollback()
             self.response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
             return {"Error": str(e)}
