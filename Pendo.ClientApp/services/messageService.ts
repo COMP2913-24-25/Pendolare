@@ -97,14 +97,14 @@ class MessageService {
             Array.isArray(message.messages)
           ) {
             console.log("Received message history:", message.messages);
-            const normalizedMessages = message.messages.map((msg: any) => ({
+            const normalisedMessages = message.messages.map((msg: any) => ({
               ...msg,
               sender: msg.from === this.userId ? "user" : "other",
               read: msg.from === this.userId,
               status: msg.from === this.userId ? "delivered" : undefined,
             }));
             if (this.listeners.historyLoaded) {
-              this.listeners.historyLoaded(normalizedMessages);
+              this.listeners.historyLoaded(normalisedMessages);
             }
             return;
           }

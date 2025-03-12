@@ -27,7 +27,7 @@ interface RideDetailsProps {
 */
 const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
   const { isDarkMode } = useTheme();
-  const [isBooking, setIsBooking] = useState(false);
+  const [inBooking, setInBooking] = useState(false);
   const [bookingStatus, setBookingStatus] = useState<{
     success: boolean;
     message: string;
@@ -39,7 +39,7 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
   });
 
   const handleBooking = async () => {
-    setIsBooking(true);
+    setInBooking(true);
 
     try {
       // Extract departureTime from string or timestamp
@@ -80,7 +80,7 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
         showMessage: true,
       });
     } finally {
-      setIsBooking(false);
+      setInBooking(false);
     }
   };
 
@@ -238,12 +238,12 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
             <View className="flex-row justify-between space-x-4">
               <TouchableOpacity
                 className={`flex-1 ${
-                  isBooking ? "bg-blue-400" : "bg-blue-600"
+                  inBooking ? "bg-blue-400" : "bg-blue-600"
                 } py-4 rounded-xl items-center justify-center`}
                 onPress={handleBooking}
-                disabled={isBooking}
+                disabled={inBooking}
               >
-                {isBooking ? (
+                {inBooking ? (
                   <ActivityIndicator color="#FFFFFF" />
                 ) : (
                   <Text className="text-white text-center font-JakartaBold text-lg">

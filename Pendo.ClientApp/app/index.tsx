@@ -5,7 +5,6 @@ import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 
 export default function Index() {
-  const { isDarkMode } = useTheme();
   const { isLoggedIn, loading } = useAuth();
 
   // Show a blank screen while loading
