@@ -1,5 +1,6 @@
 import requests
 from pydantic import BaseModel
+from fastapi.encoders import jsonable_encoder
 from uuid import UUID
 
 class PaymentServiceRequest(BaseModel):
@@ -7,6 +8,9 @@ class PaymentServiceRequest(BaseModel):
     PaymentServiceRequest class is a request object for the payment service.
     """
     BookingId: UUID
+
+    def json(self):
+        return jsonable_encoder(self.model_dump())
 
 class PaymentServiceClient:
     """
@@ -26,10 +30,10 @@ class PaymentServiceClient:
         request = PaymentServiceRequest(BookingId=bookingId)
 
         self.logger.debug(f"Sending pending booking request to payment service: {request}")
-        response = requests.post(f"{self.paymentServiceConfiguration.paymentServiceUrl}/PendingBooking", json=request)
+        response = requests.post(f"{self.paymentServiceConfiguration.paymentServiceUrl}/PendingBooking", json=request.json())
         self.logger.debug(f"Received response from payment service: {response.json()}")
 
-        self._processResponse(response)
+        return self._processResponse(response)
 
     def CompletedBookingRequest(self, bookingId):
         """
@@ -41,7 +45,7 @@ class PaymentServiceClient:
 
         self.logger.debug(f"Sending completed booking request to payment service: {request}")
         
-        response = requests.post(f"{self.paymentServiceConfiguration.paymentServiceUrl}/CompletedBooking", json=request)
+        response = requests.post(f"{self.paymentServiceConfiguration.paymentServiceUrl}/CompletedBooking", json=request.json())
         self.logger.debug(f"Received response from payment service: {response.json()}")
 
         return self._processResponse(response)
@@ -81,7 +85,7 @@ class PaymentServiceClient:
             self.logger.warn("User balance insufficient to create pending booking")
             return False
         
-        if response["Status"] != "Success":
+        if response["Status"].lower() != "success":
             msg = f"Payment service returned an error: {response['Error']}"
             self.logger.error(msg)
             raise Exception(msg)
