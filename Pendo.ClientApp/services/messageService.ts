@@ -7,6 +7,7 @@ const DEFAULT_USER_ID = "12345";
 const DEFAULT_CONVERSATION_ID = "12345";
 
 export interface ChatMessage {
+  isEcho: any;
   id?: string;
   type: string;
   from?: string;
@@ -29,10 +30,6 @@ interface MessageServiceEvents {
 }
 
 class MessageService {
-  // Handle WebSocket close event
-  sendReadReceipt(id: string) {
-    throw new Error("Method not implemented.");
-  }
   private ws: WebSocket | null = null;
   private isConnected = false;
   private userId: string = DEFAULT_USER_ID;

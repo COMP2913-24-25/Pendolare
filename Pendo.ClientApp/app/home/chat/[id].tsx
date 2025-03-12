@@ -107,77 +107,44 @@ const ChatDetail = () => {
     });
 
     messageService.on("message", (message) => {
-      if ((message as any).isEcho) {
-        // Update the last outgoing message with status "sent"
-        setMessages((prevMessages: any[]) => {
-          const idx = prevMessages.findIndex(
-            (msg) =>
-              msg.status === "sending" && msg.content === message.content,
-          );
+      // Update message status when echo is received to confirm delivery
+      if (message.isEcho) {
+        setMessages((prev: any[]) => {
+          const idx = prev.findIndex((m: { status: string; content: string | undefined; }) => m.status === "sending" && m.content === message.content);
           if (idx !== -1) {
-            const updated = {
-              ...prevMessages[idx],
-              ...message,
-              status: "sent" as const,
-            };
-            const newMessages = [...prevMessages];
-            newMessages[idx] = updated;
+            const newMessages = [...prev];
+            newMessages[idx] = { ...newMessages[idx], ...message, status: "sent" };
             return newMessages;
           }
-          return prevMessages;
+          return prev;
         });
       } else if (message.type === "welcome" && message.content) {
-        setMessages((prevMessages: any) => [
-          ...prevMessages,
+        setMessages((prev: any) => [
+          ...prev,
           { ...message, id: generateUniqueId(), sender: "system" },
         ]);
       } else if (message.type === "chat" && message.content) {
         const sender = message.from === "12345" ? "user" : "other";
-
-        if (sender === "other" && message.id) {
-          messageService.sendReadReceipt(message.id);
-        }
-
-        setMessages((prevMessages: any[]) => {
-          // For outgoing messages, update existing one if found
+        setMessages((prev: any[]) => {
           if (sender === "user") {
-            const idx = prevMessages.findIndex(
-              (msg: { status: string; content: string | undefined; }) =>
-                msg.status === "sending" && msg.content === message.content,
-            );
+            const idx = prev.findIndex((m: { status: string; content: string | undefined; }) => m.status === "sending" && m.content === message.content);
             if (idx !== -1) {
-              const updated = {
-                ...prevMessages[idx],
-                ...message,
-                status: "sent" as const,
-              };
-              const newMessages = [...prevMessages];
-              newMessages[idx] = updated;
+              const newMessages = [...prev];
+              newMessages[idx] = { ...newMessages[idx], ...message, status: "sent" };
               return newMessages;
             }
           }
+          // Add new message
+          // If the message doesn't have an ID, generate one
           return [
-            ...prevMessages,
+            ...prev,
             {
               ...message,
               id: message.id || generateUniqueId(),
               sender,
-              read: sender === "user",
               status: sender === "user" ? "delivered" : undefined,
             },
           ];
-        });
-      } else if (message.type === "read_receipt") {
-        setMessages((prevMessages: any[]) => {
-          return prevMessages.map((msg: { id: any; sender: string; }) => {
-            if (
-              msg.id === (message as any).message_id &&
-              msg.sender === "user"
-            ) {
-              return { ...msg, read: true, status: "read" as const };
-            }
-            return msg;
-          });
         });
       }
       // Scroll to bottom
