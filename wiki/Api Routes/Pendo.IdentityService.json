@@ -5,7 +5,7 @@
     "version": "1.0"
   },
   "paths": {
-    "/api/Auth/RequestOtp": {
+    "/api/Identity/RequestOtp": {
       "post": {
         "tags": [
           "Auth"
@@ -44,7 +44,7 @@
         }
       }
     },
-    "/api/Auth/VerifyOtp": {
+    "/api/Identity/VerifyOtp": {
       "post": {
         "tags": [
           "Auth"
@@ -83,7 +83,7 @@
         }
       }
     },
-    "/api/Ping": {
+    "/api/Identity/Ping": {
       "get": {
         "tags": [
           "Ping"
@@ -103,10 +103,10 @@
         }
       }
     },
-    "/api/UpdateUser": {
+    "/api/Identity/UpdateUser": {
       "patch": {
         "tags": [
-          "UpdateUser"
+          "User"
         ],
         "operationId": "Update User",
         "requestBody": {
@@ -141,10 +141,84 @@
           }
         }
       }
+    },
+    "/api/Identity/GetUser": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "operationId": "Get User",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUserResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUserResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "GetUserRequest": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "GetUserResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          },
+          "userRating": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
       "OtpRequest": {
         "required": [
           "emailAddress"
