@@ -29,8 +29,8 @@ def health_check():
     return {"Status": "Ok"}
 
 @app.patch("/UpdateBookingFee", tags=["Booking Fee"], status_code=status.HTTP_200_OK)
-def update_booking_fee():
-    return {"Status": "Ok"}
+def update_booking_fee(request: UpdateBookingFeeRequest, response: Response, db_session: Session = Depends(get_db)):
+    return UpdateBookingFeeCommand(db_session, request, response, configuration_provider).Execute()
 
 @app.get("/GetBookingFee", tags=["Booking Fee"], status_code=status.HTTP_200_OK)
 def get_booking_fee(response : Response, db_session = Depends(get_db)):
