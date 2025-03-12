@@ -84,6 +84,7 @@ def test_get_bookings_for_user_no_ammendment(booking_repository):
         "Journey": {
             "JourneyId": 1,
             "UserId": dummy_booking.Journey_.UserId,
+            "StartTime": dummy_booking.RideTime,
             "StartName": dummy_booking.Journey_.StartName,
             "StartLong": dummy_booking.Journey_.StartLong,
             "StartLat": dummy_booking.Journey_.StartLat,
@@ -137,6 +138,7 @@ def test_get_bookings_for_user_single_ammendment(booking_repository):
         "Journey": {
             "JourneyId": 1,
             "UserId": 1,
+            "StartTime": "2025-03-02T11:00:00",
             "StartName": "Ammended Start",
             "StartLong": 11.1,
             "StartLat": 22.2,
@@ -201,6 +203,7 @@ def test_get_bookings_for_user_multiple_ammendments(booking_repository):
         "Journey": {
             "JourneyId": 1,
             "UserId": 1,
+            "StartTime": "2025-03-02T12:00:00",
             "StartName": "Late Start",
             "StartLong": 15.5,
             "StartLat": 25.5,

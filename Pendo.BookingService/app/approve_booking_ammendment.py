@@ -23,6 +23,7 @@ class ApproveBookingAmmendmentCommand:
         self.dvla_client = dvla_client
         self.email_sender = email_sender
         self.payment_service_client = payment_service_client
+        self.request_time = datetime.now()
 
     def Execute(self):
         """
@@ -87,8 +88,21 @@ class ApproveBookingAmmendmentCommand:
             self.booking_repository.UpdateBookingStatus(ammendment.BookingId, BookingStatus.Cancelled)
             self.logger.info(f"Booking {ammendment.BookingId} cancelled successfully.")
 
+            # Get the booking modified by ammendments
+            booking = self.booking_repository.GetBookingsForUser(passenger.UserId, ammendment.BookingId)[0]
+
+            booking_id = booking["Booking"]["BookingId"]
+            amount = booking["Journey"]["Price"]
+            journeyTime = booking["Journey"]["StartTime"]
+            userId = self.request.UserId
+
             # TODO: Check this with alex - surely we need to supply the bookingId???
-            if not self.payment_service_client.RefundRequest(passenger.UserId):
+            if not self.payment_service_client.RefundRequest(userId, 
+                                                             booking_id, 
+                                                             journeyTime, 
+                                                             self.request_time, 
+                                                             amount):
+                
                 msg = "Error refunding user"
                 self.logger.error(msg)
                 raise Exception(msg)
