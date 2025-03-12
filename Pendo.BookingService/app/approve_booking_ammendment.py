@@ -43,9 +43,13 @@ class ApproveBookingAmmendmentCommand:
                 self.response.status_code = status.HTTP_404_NOT_FOUND
                 raise Exception(f"Booking {booking_ammendment.BookingId} not found")
             
-            if booking.BookingStatusId != 1:
+            if not ((self.request.CancellationRequest and booking.BookingStatusId == BookingStatus.Confirmed) or booking.BookingStatusId == BookingStatus.Pending):
                 self.response.status_code = status.HTTP_400_BAD_REQUEST
-                raise Exception(f"Booking {booking_ammendment.BookingId} is not pending approval therefore cannot be ammended.")
+                msg = f"Booking {self.request.BookingId} is not pending therefore cannot be ammended." \
+                    if not self.request.CancellationRequest else f"Booking {self.request.BookingId} is not confirmed or pending therefore cannot be cancelled."
+                
+                self.logger.error(msg)
+                raise Exception(msg)
             
             if booking_ammendment.CancellationRequest:
                 if self.request.UserId != driver.UserId and self.request.UserId != passenger.UserId:
