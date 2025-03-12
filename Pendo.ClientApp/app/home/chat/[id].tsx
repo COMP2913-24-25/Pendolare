@@ -32,17 +32,13 @@ const ChatDetail = () => {
   const [isConnecting, setIsConnecting] = useState(true);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
-  const [isTyping, setIsTyping] = useState(false);
-  const [typingUser, setTypingUser] = useState<string | null>(null);
   const scrollViewRef = useRef<RNScrollView>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<TextInput>(null);
 
   const chat = demoChats.find((c: { id: number }) => c.id === Number(id));
 
   useEffect(() => {
     // Set the conversation ID in the message service when the chat changes
-    // This ensures we're in the correct conversation context
     if (chat && messageService) {
       messageService.setConversationId(`chat-${chat.id}`);
     }
@@ -87,7 +83,7 @@ const ChatDetail = () => {
 
       // Process and add historical messages
       if (historyMessages.length > 0) {
-        setMessages((prevMessages) => {
+        setMessages((prevMessages: any[]) => {
           // Merge with any existing messages, avoiding duplicates by ID
           const existingIds = new Set(prevMessages.map((m) => m.id));
           const newMessages = historyMessages.filter(
@@ -111,7 +107,7 @@ const ChatDetail = () => {
     messageService.on("message", (message) => {
       if ((message as any).isEcho) {
         // Update the last outgoing message with status "sent"
-        setMessages((prevMessages) => {
+        setMessages((prevMessages: any[]) => {
           const idx = prevMessages.findIndex(
             (msg) =>
               msg.status === "sending" && msg.content === message.content,
@@ -129,7 +125,7 @@ const ChatDetail = () => {
           return prevMessages;
         });
       } else if (message.type === "welcome" && message.content) {
-        setMessages((prevMessages) => [
+        setMessages((prevMessages: any) => [
           ...prevMessages,
           { ...message, id: generateUniqueId(), sender: "system" },
         ]);
@@ -140,18 +136,18 @@ const ChatDetail = () => {
           messageService.sendReadReceipt(message.id);
         }
 
-        setMessages((prevMessages) => {
+        setMessages((prevMessages: any[]) => {
           // For outgoing messages, update existing one if found
           if (sender === "user") {
             const idx = prevMessages.findIndex(
-              (msg) =>
+              (msg: { status: string; content: string | undefined; }) =>
                 msg.status === "sending" && msg.content === message.content,
             );
             if (idx !== -1) {
               const updated = {
                 ...prevMessages[idx],
                 ...message,
-                status: "sent" as const, // <-- cast to const
+                status: "sent" as const,
               };
               const newMessages = [...prevMessages];
               newMessages[idx] = updated;
@@ -170,8 +166,8 @@ const ChatDetail = () => {
           ];
         });
       } else if (message.type === "read_receipt") {
-        setMessages((prevMessages) => {
-          return prevMessages.map((msg) => {
+        setMessages((prevMessages: any[]) => {
+          return prevMessages.map((msg: { id: any; sender: string; }) => {
             if (
               msg.id === (message as any).message_id &&
               msg.sender === "user"
@@ -215,7 +211,6 @@ const ChatDetail = () => {
     const success = messageService.sendMessage(newMessage.trim());
 
     if (success) {
-      // Removed optimistic UI update – wait for server echo
       setNewMessage("");
 
       // Scroll to bottom
@@ -223,11 +218,6 @@ const ChatDetail = () => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
     }
-  };
-
-  // Handle typing indicator
-  const handleTextChange = (text: string) => {
-    setNewMessage(text);
   };
 
   const MessageBubble = ({ message }: { message: ChatMessage }) => {
@@ -284,36 +274,6 @@ const ChatDetail = () => {
             >
               {formatTimestamp(new Date(message.timestamp).getTime())}
             </Text>
-
-            {/* Read receipt indicator for user messages */}
-            {isUser && message.status && (
-              <View className="ml-2">
-                {message.status === "sending" && (
-                  <FontAwesome5
-                    name="clock"
-                    size={10}
-                    color={isDarkMode ? "#9CA3AF" : "#9CA3AF"}
-                  />
-                )}
-                {message.status === "sent" && (
-                  <FontAwesome5
-                    name="check"
-                    size={10}
-                    color={isDarkMode ? "#9CA3AF" : "#9CA3AF"}
-                  />
-                )}
-                {message.status === "delivered" && (
-                  <FontAwesome5
-                    name="check-double"
-                    size={10}
-                    color={isDarkMode ? "#9CA3AF" : "#9CA3AF"}
-                  />
-                )}
-                {message.status === "read" && (
-                  <FontAwesome5 name="check-double" size={10} color="#3B82F6" />
-                )}
-              </View>
-            )}
           </View>
         </View>
       </View>
@@ -376,7 +336,7 @@ const ChatDetail = () => {
         )}
 
         <RNScrollView
-          ref={scrollViewRef} // No need for type casting when using the correct type
+          ref={scrollViewRef}
           className="flex-1 px-4"
           contentContainerStyle={{ paddingVertical: 20 }}
         >
@@ -390,7 +350,7 @@ const ChatDetail = () => {
             </View>
           )}
 
-          {messages.map((message, index) => (
+          {messages.map((message: ChatMessage, index: any) => (
             <MessageBubble
               key={message.id || `msg-${index}-${message.timestamp}`}
               message={message}
@@ -407,7 +367,6 @@ const ChatDetail = () => {
             placeholder="Type a message..."
             placeholderTextColor={isDarkMode ? "#9CA3AF" : "#6B7280"}
             value={newMessage}
-            onChangeText={handleTextChange}
             multiline
           />
           <TouchableOpacity

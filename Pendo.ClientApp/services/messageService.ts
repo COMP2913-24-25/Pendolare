@@ -15,10 +15,11 @@ export interface ChatMessage {
   message?: string;
   timestamp: string;
   sender?: string;
-  read?: boolean;
-  status?: "sending" | "sent" | "delivered" | "read";
+  status?: "sending" | "sent" | "delivered";
 }
 
+// Event handling for message service
+// https://stackoverflow.com/questions/65819527/require-handling-of-event-in-typescript-interface
 interface MessageServiceEvents {
   message: (message: ChatMessage) => void;
   connected: () => void;
@@ -28,6 +29,10 @@ interface MessageServiceEvents {
 }
 
 class MessageService {
+  // Handle WebSocket close event
+  sendReadReceipt(id: string) {
+    throw new Error("Method not implemented.");
+  }
   private ws: WebSocket | null = null;
   private isConnected = false;
   private userId: string = DEFAULT_USER_ID;
@@ -39,10 +44,11 @@ class MessageService {
     this.connect = this.connect.bind(this);
     this.disconnect = this.disconnect.bind(this);
     this.sendMessage = this.sendMessage.bind(this);
-    this.sendReadReceipt = this.sendReadReceipt.bind(this);
     this.requestMessageHistory = this.requestMessageHistory.bind(this);
   }
 
+  // WS Connection handling
+  // Utilising: https://github.com/websockets/ws documentation & examples
   connect() {
     if (this.ws) {
       this.disconnect();
@@ -79,7 +85,7 @@ class MessageService {
       this.ws.onmessage = (event) => {
         let dataStr = event.data;
         let isEcho = false;
-        if (typeof dataStr === "string" && dataStr.startsWith("ECHO:")) {
+        if (typeof dataStr === "string" && dataStr.includes("ECHO:")) {
           isEcho = true;
           dataStr = dataStr.substring(5).trim();
         }
@@ -100,7 +106,6 @@ class MessageService {
             const normalisedMessages = message.messages.map((msg: any) => ({
               ...msg,
               sender: msg.from === this.userId ? "user" : "other",
-              read: msg.from === this.userId,
               status: msg.from === this.userId ? "delivered" : undefined,
             }));
             if (this.listeners.historyLoaded) {
@@ -141,6 +146,7 @@ class MessageService {
         }
       };
 
+      // Handle WebSocket errors
       this.ws.onerror = (error) => {
         console.error("WebSocket error:", error);
         if (this.listeners.error) {
@@ -148,6 +154,7 @@ class MessageService {
         }
       };
 
+      // Handle WebSocket close event
       this.ws.onclose = (event) => {
         console.log("WebSocket connection closed:", event.code, event.reason);
         this.isConnected = false;
@@ -163,14 +170,7 @@ class MessageService {
     }
   }
 
-  disconnect() {
-    if (this.ws) {
-      this.ws.close();
-      this.ws = null;
-      this.isConnected = false;
-    }
-  }
-
+  // Join the conversation
   private joinConversation() {
     if (!this.isConnected || !this.ws) {
       console.error("Cannot join conversation: WebSocket not connected");
@@ -218,11 +218,13 @@ class MessageService {
     }
   }
 
+  // Send a message to the conversation
   sendMessage(content: string): boolean {
     if (!this.isConnected || !this.ws) {
       console.error("Cannot send message: WebSocket not connected");
       return false;
     }
+
     const message = {
       type: "chat",
       from: this.userId,
@@ -230,7 +232,8 @@ class MessageService {
       content: content,
       timestamp: new Date().toISOString(),
     };
-    console.log(message);
+
+    // Send the message
     try {
       this.ws.send(JSON.stringify(message));
       console.log("Message sent:", content);
@@ -241,28 +244,8 @@ class MessageService {
     }
   }
 
-  sendReadReceipt(messageId: string): boolean {
-    if (!this.isConnected || !this.ws) {
-      console.error("Cannot send read receipt: WebSocket not connected");
-      return false;
-    }
-    const readReceipt = {
-      type: "read_receipt",
-      from: this.userId,
-      conversation_id: this.conversationId,
-      message_id: messageId,
-      timestamp: new Date().toISOString(),
-    };
-    try {
-      this.ws.send(JSON.stringify(readReceipt));
-      console.log("Read receipt sent for message:", messageId);
-      return true;
-    } catch (error) {
-      console.error("Error sending read receipt:", error);
-      return false;
-    }
-  }
-
+  // Add event listener
+  // Derived from: https://stackoverflow.com/questions/65819527/require-handling-of-event-in-typescript-interface
   on<K extends keyof MessageServiceEvents>(
     event: K,
     callback: MessageServiceEvents[K],
@@ -270,18 +253,31 @@ class MessageService {
     this.listeners[event] = callback;
   }
 
+  // Remove event listener
   off<K extends keyof MessageServiceEvents>(event: K) {
     delete this.listeners[event];
   }
 
+  // Set the conversation ID for the current session
   setConversationId(id: string) {
     this.conversationId = id;
     this.historyRequested = false;
   }
-
+  
+  // Set the user ID for the current session
   setUserId(id: string) {
     this.userId = id;
   }
+
+  // Disconnect from the WebSocket
+  disconnect() {
+    if (this.ws) {
+      this.ws.close();
+      this.ws = null;
+      this.isConnected = false;
+    }
+  }
+
 }
 
 export const messageService = new MessageService();

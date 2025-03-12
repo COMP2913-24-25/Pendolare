@@ -4,7 +4,7 @@ import { BOOKING_ENDPOINTS } from "@/constants";
 
 export interface CreateBookingRequest {
   JourneyId: string;
-  JourneyTime: string; // ISO date string
+  JourneyTime: string;
 }
 
 export interface BookingResponse {
@@ -28,7 +28,7 @@ export interface GetBookingsResponse {
   message?: string;
 }
 
-/**
+/*
  * Create a booking for a journey
  * Note: The UserId is automatically added by the Kong gateway
  */
@@ -73,7 +73,7 @@ export async function createBooking(
   }
 }
 
-/**
+/*
  * Fetch all bookings for the current user
  * Note: The UserId is automatically added by the Kong gateway
  */
