@@ -203,3 +203,33 @@ class BookingRepository():
         """
         booking_ammendment.UpdateDate = datetime.now()
         self.db_session.commit()
+
+    def CalculateDriverRating(self, driver_id):
+        """
+        CalculateDriverRating method calculates the driver rating based on the bookings.
+        :param driver_id: Id of the driver.
+        :return: Driver rating.
+        """
+        driver = self.GetUser(driver_id)
+        if driver is None:
+            raise Exception(f"Driver {driver_id} not found")
+
+        now = datetime.now()
+
+        pending_count = self.db_session.query(Booking)\
+            .join(Journey, Booking.JourneyId == Journey.JourneyId)\
+            .filter(Journey.UserId == driver_id, 
+                    Booking.BookingStatusId == BookingStatus.PendingCompletion or Booking.BookingStatusId == BookingStatus.Completed, 
+                    Booking.RideTime < now)\
+            .count()
+
+        completed_count = self.db_session.query(Booking)\
+            .join(Journey, Booking.JourneyId == Journey.JourneyId)\
+            .filter(Journey.UserId == driver_id, Booking.BookingStatusId == BookingStatus.Completed)\
+            .count()
+
+        total_bookings = pending_count + completed_count
+        rating = completed_count / float(total_bookings) if total_bookings > 0 else -1.0
+
+        driver.UserRating = rating
+        self.db_session.commit()

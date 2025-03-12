@@ -69,11 +69,15 @@ class BookingCompleteCommand:
                         self.logger.debug("Rolling back booking to 'Not Completed'.")
                         self.booking_repository.UpdateBookingStatus(self.bookingId, BookingStatus.NotCompleted)
                         return StatusResponse(Status="Failed", Message=msg)
+                    
+                    self.booking_repository.CalculateDriverRating(journey.UserId)
 
                     return StatusResponse(Message="Booking completed successfully.")
                 
                 self.logger.debug("Passenger has said booking did not happen. Setting booking to 'Not Completed'.")
                 self.booking_repository.UpdateBookingStatus(self.bookingId, BookingStatus.NotCompleted)
+
+                self.booking_repository.CalculateDriverRating(journey.UserId)
                 return StatusResponse(Message="Booking set to not completed.")
             
             self.response.status_code = status.HTTP_401_UNAUTHORIZED

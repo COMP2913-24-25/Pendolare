@@ -282,3 +282,53 @@ def test_get_booking_ammendment(booking_repository, mock_db_session):
     mock_db_session.query.assert_any_call(Booking)
     mock_db_session.query.assert_any_call(User)
     mock_db_session.query.assert_any_call(Journey)
+
+def test_calculate_driver_rating_no_bookings(booking_repository, mock_db_session):
+    mock_db_session.query.return_value.join.return_value.filter.return_value.count.side_effect = [0, 0]
+    mock_db_session.query.return_value.get.return_value = MagicMock(UserRating=None)
+
+    booking_repository.CalculateDriverRating(1)
+
+    mock_db_session.query.assert_any_call(Booking)
+    assert mock_db_session.query.return_value.join.return_value.filter.return_value.count.call_count == 2
+    assert mock_db_session.query.return_value.get.return_value.UserRating == -1.0
+    mock_db_session.commit.assert_called_once()
+
+
+def test_calculate_driver_rating_only_pending(booking_repository, mock_db_session):
+    mock_db_session.query.return_value.join.return_value.filter.return_value.count.side_effect = [3, 0]
+    mock_db_session.query.return_value.get.return_value = MagicMock(UserRating=None)
+
+    booking_repository.CalculateDriverRating(1)
+
+    assert mock_db_session.query.return_value.get.return_value.UserRating == 0.0
+    mock_db_session.commit.assert_called_once()
+
+
+def test_calculate_driver_rating_only_completed(booking_repository, mock_db_session):
+    mock_db_session.query.return_value.join.return_value.filter.return_value.count.side_effect = [0, 5]
+    mock_db_session.query.return_value.get.return_value = MagicMock(UserRating=None)
+
+    booking_repository.CalculateDriverRating(1)
+
+    assert mock_db_session.query.return_value.get.return_value.UserRating == 1.0
+    mock_db_session.commit.assert_called_once()
+
+
+def test_calculate_driver_rating_mixed_bookings(booking_repository, mock_db_session):
+    mock_db_session.query.return_value.join.return_value.filter.return_value.count.side_effect = [2, 8]
+    mock_db_session.query.return_value.get.return_value = MagicMock(UserRating=None)
+
+    booking_repository.CalculateDriverRating(1)
+
+    assert mock_db_session.query.return_value.get.return_value.UserRating == 0.8
+    mock_db_session.commit.assert_called_once()
+
+
+def test_calculate_driver_rating_driver_not_found(booking_repository, mock_db_session):
+    mock_db_session.query.return_value.get.return_value = None
+
+    with pytest.raises(Exception, match="Driver 1 not found"):
+        booking_repository.CalculateDriverRating(1)
+
+    mock_db_session.commit.assert_not_called()
