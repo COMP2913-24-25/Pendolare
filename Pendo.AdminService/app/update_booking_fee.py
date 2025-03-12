@@ -23,6 +23,7 @@ class UpdateBookingFeeCommand:
             return {"Status": "Booking fee margin updated successfully"}
         
         except Exception as e:
+            self.db_session.rollback()
             self.response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
             return {"Error": str(e)}
 
