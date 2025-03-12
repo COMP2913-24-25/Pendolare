@@ -1,3 +1,5 @@
+// WIP
+
 import { FontAwesome5 } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useState, useEffect, useRef } from "react";
@@ -116,7 +118,7 @@ const ChatDetail = () => {
             const updated = {
               ...prevMessages[idx],
               ...message,
-              status: "sent" as const, // <-- cast to const
+              status: "sent" as const,
             };
             const newMessages = [...prevMessages];
             newMessages[idx] = updated;
