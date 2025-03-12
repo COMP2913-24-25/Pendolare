@@ -4,6 +4,7 @@ from configuration_provider import ConfigurationProvider
 from db_provider import get_db
 from sqlalchemy.orm import Session
 from frequent_users import FrequentUsersCommand
+from update_booking_fee import UpdateBookingFeeCommand
 
 
 from request_lib import *
