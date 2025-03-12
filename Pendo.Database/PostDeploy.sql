@@ -24,7 +24,9 @@ USING (VALUES
     ('Confirmed', 'The booking is confirmed.'),
     ('Cancelled', 'The booking has been cancelled.'),
     ('PendingCompletion', 'The booking should have been completed but is pending completion.'),
-    ('Completed', 'The booking has been verified completed.')
+    ('Completed', 'The booking has been verified completed.'),
+    ('NotCompleted', 'The booking has been flagged as not fulfilled.'),
+    ('PrePending', 'The booking is about to be made pending, however is waiting for response from payment service.')
 ) AS source (Status, Description)
 ON target.Status = source.Status
 WHEN NOT MATCHED THEN

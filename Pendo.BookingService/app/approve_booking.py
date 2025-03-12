@@ -2,6 +2,7 @@ from .requests import ApproveBookingRequest
 from .booking_repository import BookingRepository
 from .email_sender import generateEmailDataFromBooking
 from fastapi import status
+from .statuses.booking_statii import BookingStatus
 
 class ApproveBookingCommand:
 
@@ -40,7 +41,7 @@ class ApproveBookingCommand:
                 raise Exception(f"User {self.request.UserId} is not authorised to approve booking {self.booking_id}")
 
             self.logger.debug(f"Booking {self.booking_id} approved successfully.")
-            self.booking_repository.UpdateBookingStatus(self.booking_id, 2)
+            self.booking_repository.UpdateBookingStatus(self.booking_id, BookingStatus.Confirmed)
             self.logger.debug(f"Booking {self.booking_id} status updated to confirmed.")
 
             email_data = generateEmailDataFromBooking(booking, driver, journey, self.dvla_client.GetVehicleDetails(journey.RegPlate))

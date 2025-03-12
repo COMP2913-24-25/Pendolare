@@ -37,6 +37,10 @@ class CreateBookingRequest(BaseModel):
     JourneyId: UUID
     JourneyTime: datetime
 
+class CompleteBookingRequest(BaseModel):
+    UserId: UUID
+    Completed: bool
+
 class UpdateBookingStatusRequest(BaseModel):
     BookingId: UUID
     Status: str
