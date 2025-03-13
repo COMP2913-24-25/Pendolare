@@ -11,7 +11,7 @@ Base = declarative_base()
 class BookingStatus(Base):
     __tablename__ = 'BookingStatus'
     __table_args__ = (
-        PrimaryKeyConstraint('BookingStatusId', name='PK__BookingS__54F9C05DA81CBBB1'),
+        PrimaryKeyConstraint('BookingStatusId', name='PK__BookingS__54F9C05DB2867074'),
         {'schema': 'booking'}
     )
 
@@ -26,7 +26,7 @@ class BookingStatus(Base):
 class UserType(Base):
     __tablename__ = 'UserType'
     __table_args__ = (
-        PrimaryKeyConstraint('UserTypeId', name='PK__UserType__40D2D816B2E3A3FE'),
+        PrimaryKeyConstraint('UserTypeId', name='PK__UserType__40D2D8165D4374F2'),
         {'schema': 'identity'}
     )
 
@@ -41,8 +41,8 @@ class UserType(Base):
 class TransactionStatus(Base):
     __tablename__ = 'TransactionStatus'
     __table_args__ = (
-        PrimaryKeyConstraint('TransactionStatusId', name='PK__Transact__57B5E1830FCDFBCC'),
-        Index('UQ__Transact__3A15923FF59D0A96', 'Status', unique=True),
+        PrimaryKeyConstraint('TransactionStatusId', name='PK__Transact__57B5E183D3F76B92'),
+        Index('UQ__Transact__3A15923F6EA4ABA0', 'Status', unique=True),
         {'schema': 'payment'}
     )
 
@@ -57,8 +57,8 @@ class TransactionStatus(Base):
 class TransactionType(Base):
     __tablename__ = 'TransactionType'
     __table_args__ = (
-        PrimaryKeyConstraint('TransactionTypeId', name='PK__Transact__20266D0BA112BCA1'),
-        Index('UQ__Transact__F9B8A48B3E65AAB4', 'Type', unique=True),
+        PrimaryKeyConstraint('TransactionTypeId', name='PK__Transact__20266D0B5F1C2D4E'),
+        Index('UQ__Transact__F9B8A48BCC876985', 'Type', unique=True),
         {'schema': 'payment'}
     )
 
@@ -73,8 +73,8 @@ class TransactionType(Base):
 class Configuration(Base):
     __tablename__ = 'Configuration'
     __table_args__ = (
-        PrimaryKeyConstraint('ConfigurationId', name='PK__Configur__95AA53BB68702C64'),
-        Index('UQ__Configur__C41E028981ABCD34', 'Key', unique=True),
+        PrimaryKeyConstraint('ConfigurationId', name='PK__Configur__95AA53BB335B71B6'),
+        Index('UQ__Configur__C41E028988194E4C', 'Key', unique=True),
         {'schema': 'shared'}
     )
 
@@ -89,9 +89,9 @@ class User(Base):
     __tablename__ = 'User'
     __table_args__ = (
         ForeignKeyConstraint(['UserTypeId'], ['identity.UserType.UserTypeId'], name='FK_User_UserType'),
-        PrimaryKeyConstraint('UserId', name='PK__User__1788CC4CB1C231FD'),
+        PrimaryKeyConstraint('UserId', name='PK__User__1788CC4C8A1E1C6D'),
         Index('IX_User_UserType', 'UserTypeId'),
-        Index('UQ__User__A9D1053473376B12', 'Email', unique=True),
+        Index('UQ__User__A9D105347E18CC5B', 'Email', unique=True),
         {'schema': 'identity'}
     )
 
@@ -106,6 +106,7 @@ class User(Base):
     UserType_: Mapped['UserType'] = relationship('UserType', back_populates='User')
     OtpLogin: Mapped[List['OtpLogin']] = relationship('OtpLogin', uselist=True, back_populates='User_')
     Journey: Mapped[List['Journey']] = relationship('Journey', uselist=True, back_populates='User_')
+    UserBalance: Mapped[List['UserBalance']] = relationship('UserBalance', uselist=True, back_populates='User_')
     Booking: Mapped[List['Booking']] = relationship('Booking', uselist=True, back_populates='User_')
     Transaction: Mapped[List['Transaction']] = relationship('Transaction', uselist=True, back_populates='User_')
 
@@ -114,7 +115,7 @@ class OtpLogin(Base):
     __tablename__ = 'OtpLogin'
     __table_args__ = (
         ForeignKeyConstraint(['UserId'], ['identity.User.UserId'], name='FK_OtpLogin_User'),
-        PrimaryKeyConstraint('OtpLoginId', name='PK__OtpLogin__C597BB31E22E7C3B'),
+        PrimaryKeyConstraint('OtpLoginId', name='PK__OtpLogin__C597BB314618C314'),
         Index('IX_OtpLogin_UserId', 'UserId'),
         {'schema': 'identity'}
     )
@@ -134,7 +135,7 @@ class Journey(Base):
     __tablename__ = 'Journey'
     __table_args__ = (
         ForeignKeyConstraint(['UserId'], ['identity.User.UserId'], name='FK_Journeys_UserId'),
-        PrimaryKeyConstraint('JourneyId', name='PK__Journey__4159B9EF104E6FDE'),
+        PrimaryKeyConstraint('JourneyId', name='PK__Journey__4159B9EF10D87CAB'),
         {'schema': 'journey'}
     )
 
@@ -166,18 +167,22 @@ class Journey(Base):
     Booking: Mapped[List['Booking']] = relationship('Booking', uselist=True, back_populates='Journey_')
 
 
-class UserBalance(User):
+class UserBalance(Base):
     __tablename__ = 'UserBalance'
     __table_args__ = (
-        ForeignKeyConstraint(['UserId'], ['identity.User.UserId'], name='FK_User_UserId'),
-        PrimaryKeyConstraint('UserId', name='PK__UserBala__1788CC4C99EDAE33'),
+        ForeignKeyConstraint(['UserId'], ['identity.User.UserId'], name='FK_UserBalance_UserId'),
+        PrimaryKeyConstraint('BalanceId', name='PK__UserBala__A760D5BED47C6E52'),
+        Index('IX_UserBalance_UserId', 'UserId'),
         {'schema': 'payment'}
     )
 
-    UserId = mapped_column(Uuid)
+    BalanceId = mapped_column(Uuid, server_default=text('(newsequentialid())'))
+    UserId = mapped_column(Uuid, nullable=False)
     Pending = mapped_column(DECIMAL(18, 8), nullable=False, server_default=text('((0))'))
     NonPending = mapped_column(DECIMAL(18, 8), nullable=False, server_default=text('((0))'))
     UpdatedDate = mapped_column(DATETIME2, nullable=False, server_default=text('(getutcdate())'))
+
+    User_: Mapped['User'] = relationship('User', back_populates='UserBalance')
 
 
 class Booking(Base):
@@ -186,7 +191,7 @@ class Booking(Base):
         ForeignKeyConstraint(['BookingStatusId'], ['booking.BookingStatus.BookingStatusId'], name='FK_Booking_BookingStatus'),
         ForeignKeyConstraint(['JourneyId'], ['journey.Journey.JourneyId'], name='FK_Booking_Journey'),
         ForeignKeyConstraint(['UserId'], ['identity.User.UserId'], name='FK_Booking_User'),
-        PrimaryKeyConstraint('BookingId', name='PK__Booking__73951AEDDAA187BA'),
+        PrimaryKeyConstraint('BookingId', name='PK__Booking__73951AED08D51CC8'),
         {'schema': 'booking'}
     )
 
@@ -211,7 +216,7 @@ class BookingAmmendment(Base):
     __tablename__ = 'BookingAmmendment'
     __table_args__ = (
         ForeignKeyConstraint(['BookingId'], ['booking.Booking.BookingId'], name='FK_BookingAmmendment_Booking'),
-        PrimaryKeyConstraint('BookingAmmendmentId', name='PK__BookingA__59DE3C6A45B05B13'),
+        PrimaryKeyConstraint('BookingAmmendmentId', name='PK__BookingA__59DE3C6A14EAB22A'),
         {'schema': 'booking'}
     )
 
@@ -241,7 +246,7 @@ class Transaction(Base):
         ForeignKeyConstraint(['TransactionStatusId'], ['payment.TransactionStatus.TransactionStatusId'], name='FK_Transaction_TransactionStatus'),
         ForeignKeyConstraint(['TransactionTypeId'], ['payment.TransactionType.TransactionTypeId'], name='FK_Transaction_TransactionType'),
         ForeignKeyConstraint(['UserId'], ['identity.User.UserId'], name='FK_Transaction_UserId'),
-        PrimaryKeyConstraint('TransactionId', name='PK__Transact__55433A6BF0591D1D'),
+        PrimaryKeyConstraint('TransactionId', name='PK__Transact__55433A6B2640D830'),
         {'schema': 'payment'}
     )
 

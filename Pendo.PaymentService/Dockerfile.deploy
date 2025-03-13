@@ -5,6 +5,7 @@
 #
 
 FROM python:3.12-slim
+EXPOSE 5004
 
 WORKDIR /code
 
