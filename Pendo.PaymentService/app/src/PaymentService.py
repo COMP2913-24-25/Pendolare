@@ -11,7 +11,7 @@ from .endpoints.PendingBookingCmd import PendingBookingCommand
 from .endpoints.PaymentMethodsCmd import PaymentMethodsCommand
 from .db.PendoDatabase import UserBalance
 from .db.PendoDatabaseProvider import get_db, Session, text, configProvider, environment
-from .requests.PaymentRequests import GetwithUUID, MakePendingBooking, PaymentSheetRequest
+from .requests.PaymentRequests import GetwithUUID, MakePendingBooking, PaymentSheetRequest, RefundPaymentRequest
 from .returns.PaymentReturns import ViewBalanceResponse, StatusResponse, PaymentMethodResponse, PaymentSheetResponse
 
 
@@ -19,7 +19,6 @@ if environment == "Development":
     logging.basicConfig(
         level=logging.DEBUG,
         stream=sys.stdout,
-        #filename='Pendo.PaymentService.log',
         format='%(asctime)s [%(levelname)s] %(name)s: %(message)s'
     )
 else:
@@ -50,14 +49,8 @@ def test_db(db: Session = Depends(get_db)):
 @app.post("/PaymentSheet", tags=["Stripe"])
 def PaymentSheet(request: PaymentSheetRequest, db: Session = Depends(get_db)) -> PaymentSheetResponse:
     configProvider.LoadStripeConfiguration(db)
-
-    print(configProvider.StripeConfiguration.publishable)
-    print(configProvider.StripeConfiguration.secret)
-
     payment_methods = stripe.Customer.list_payment_methods(id)
-    print("Methods: ", payment_methods)
-    
-    #response = PaymentSheetResponse(Status="success", PaymentIntent="paymentIntent.client_secret", EphemeralKey="ephemeralKey.secret", CustomerId=request.UserId, PublishableKey=configProvider.StripeConfiguration.publishable)
+    response = PaymentSheetResponse(Status="success", PaymentIntent="paymentIntent.client_secret", EphemeralKey="ephemeralKey.secret", CustomerId=request.UserId, PublishableKey=configProvider.StripeConfiguration.publishable)
     
     return response
 
@@ -68,7 +61,7 @@ def PaymentMethods(request: GetwithUUID, db: Session = Depends(get_db)) -> Payme
     Used to query stripe for the customers saved payment methods, to display before adding another card or contiuning with a booking
     """
     response = PaymentMethodsCommand(logging.getLogger("PaymentMethods"), request.UserId, db).Execute()
-    print(response)
+
     if response.Status != "success":
         raise HTTPException(400, detail=response.Error)
     else:
@@ -88,7 +81,7 @@ def PendingBooking(request: MakePendingBooking, db: Session = Depends(get_db)) -
     Used when a booking is created in the pending state
     """
     response = PendingBookingCommand(logging.getLogger("PendingBooking"), request.BookingId).Execute()
-    print(response)
+
     if response.Status != "success":
         raise HTTPException(400, detail=response.Error)
     else:
@@ -128,7 +121,7 @@ def ViewBalance(request: GetwithUUID, db: Session = Depends(get_db)) -> ViewBala
 
 
 @app.post("/RefundPayment", tags=["Anytime"])
-def refund(request: GetwithUUID, db: Session = Depends(get_db)) -> StatusResponse:
+def refund(request: RefundPaymentRequest, db: Session = Depends(get_db)) -> StatusResponse:
     """
     Used to refund a payment on a cancelled journey, revert any pending balance.
     """
