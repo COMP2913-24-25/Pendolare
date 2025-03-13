@@ -7,7 +7,7 @@ app = Flask(__name__)
 app.secret_key = 'reallyStrongPwd123'
 app.permanent_session_lifetime = timedelta(minutes=30)
 
-api_url = 'http://localhost:8080'
+api_url = 'https://pendo-gateway.clsolutions.dev'
 
 def check_inactivity():
     now = datetime.now().replace(tzinfo=None)
