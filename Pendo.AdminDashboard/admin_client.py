@@ -27,4 +27,9 @@ class AdminClient:
 
         self.logger.info(f'Received response from Admin API: {response.status_code}')
         self.logger.debug(f'Response payload: {response.text}')
-        return response
+        
+        json_response = response.json()
+        total_revenue = json_response.get('total', '')
+        
+        self.logger.info(f'Total Revenue: {total_revenue}')
+        return total_revenue
