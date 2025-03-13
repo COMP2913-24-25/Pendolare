@@ -48,7 +48,6 @@ if USE_DATABASE:
 # Initialize message handler with repository
 message_handler = MessageHandler(repository=repository)
 
-# HTTP routes for health checks
 async def health_check():
     """HTTP endpoint for health checks"""
     return web.json_response({
@@ -74,7 +73,77 @@ async def root_handler(request):
         }
     })
 
-# WebSocket handler
+async def user_conversations_handler(request):
+    """
+    HTTP endpoint to get user conversations.
+    
+    Expects a JSON body with:
+        - UserId (str)
+    """
+    try:
+        data = await request.json()
+    except Exception:
+        return web.json_response({"error": "Invalid JSON body"}, status=400)
+    
+    user_id = data.get("UserId")
+    if not user_id:
+        return web.json_response({"error": "UserId is not in the request body"}, status=400)
+    
+    try:
+        conversations = repository.get_user_conversations(user_id)
+        conv_list = []
+        for conv in conversations:
+            conv_list.append({
+                "ConversationId": str(conv.ConversationId),
+                "Type": conv.Type,
+                "CreateDate": conv.CreateDate.isoformat(),
+                "UpdateDate": conv.UpdateDate.isoformat(),
+                "Name": conv.Name
+            })
+        return web.json_response({"conversations": conv_list})
+    except Exception as e:
+        logger.error(f"Error fetching user conversations: {str(e)}")
+        return web.json_response({"error": str(e)}, status=500)
+
+async def create_conversation_handler(request):
+    """
+    HTTP endpoint to create a conversation with participants.
+
+    Expects a JSON body with:
+      - UserId (str)
+      - ConversationType (str)
+      - name (str, optional)
+      - participants (list of UUID strings)
+    """
+    try:
+        data = await request.json()
+    except Exception:
+        return web.json_response({"error": "Invalid JSON body"}, status=400)
+    
+    conversation_type = data.get("ConversationType")
+    if not conversation_type:
+        return web.json_response({"error": "ConversationType is required"}, status=400)
+    
+    participants = data.get("participants")
+    if not participants or not isinstance(participants, list):
+        return web.json_response({"error": "participants must be a list"}, status=400)
+    
+    name = data.get("name")
+    
+    try:
+        conversation = repository.create_conversation_with_participants(conversation_type, participants, name)
+        response_data = {
+            "ConversationId": str(conversation.ConversationId),
+            "Type": conversation.Type,
+            "CreateDate": conversation.CreateDate.isoformat(),
+            "UpdateDate": conversation.UpdateDate.isoformat(),
+            "Name": conversation.Name
+        }
+        return web.json_response(response_data)
+    except Exception as e:
+        logger.error(f"Error creating conversation: {str(e)}")
+        return web.json_response({"error": str(e)}, status=500)
+
 async def websocket_handler(websocket):
     """Handle incoming WebSocket connections"""
     # Extract path and headers
@@ -157,10 +226,11 @@ async def websocket_handler(websocket):
                 break
         logger.info(f"WebSocket connection ended: {client_id}")
 
-# Setup HTTP server with CORS support
-# Derived from: https://github.com/aio-libs/aiohttp-cors
 async def setup_http_server():
-    """Setup HTTP server with CORS support"""
+    """
+    Setup HTTP server with CORS support
+    Derived from: https://github.com/aio-libs/aiohttp-cors
+    """
     app = web.Application()
     
     cors = cors_setup(app, defaults={
@@ -172,8 +242,11 @@ async def setup_http_server():
         )
     })
     
-    app.router.add_get('/health', health_check)
     app.router.add_get('/', root_handler)
+    app.router.add_get('/Message/HealthCheck', health_check)
+    app.router.add_get('/Message/UserConversations', user_conversations_handler)
+    # New POST endpoint to create a conversation with participants
+    app.router.add_post('/Message/CreateConversation', create_conversation_handler)
     
     for route in list(app.router.routes()):
         cors.add(route)
@@ -186,7 +259,6 @@ async def setup_http_server():
 
     return runner
 
-# Setup WebSocket server
 async def setup_ws_server():
     """Setup WebSocket server"""
     # Create WebSocket server
