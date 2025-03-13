@@ -78,7 +78,6 @@ def dashboard():
         return redirect(url_for('dashboard'))
     
     booking_fee = 5
-    revenue_date = '2021-09-01'
 
     now = datetime.utcnow()
     start_of_week = now - timedelta(days=now.weekday())
@@ -90,7 +89,7 @@ def dashboard():
         {'username': 'user2', 'message': 'Dispute message 2'},
         {'username': 'user3', 'message': 'Lorem ipsum dorlor sit amet, consectetur adipiscing elit. Nullam'},
     ]
-    return render_template('dashboard.html', booking_fee=booking_fee, weekly_revenue=weekly_revenue, revenue_date=revenue_date, customer_disputes=customer_disputes)
+    return render_template('dashboard.html', booking_fee=booking_fee, weekly_revenue=weekly_revenue, revenue_date=start_of_week.strftime('%d %B %Y'), customer_disputes=customer_disputes)
 
 @app.route('/chat/<username>')
 def chat(username):
