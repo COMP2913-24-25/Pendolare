@@ -1,6 +1,5 @@
 import asyncio
 import websockets
-from websockets.http import Headers
 import logging
 import json
 import os
@@ -11,7 +10,6 @@ from datetime import datetime
 from src.message_handler import MessageHandler
 from src.db.MessageRepository import MessageRepository
 from aiohttp import web
-from aiohttp.web import middleware
 from aiohttp_cors import setup as cors_setup, ResourceOptions
 
 
