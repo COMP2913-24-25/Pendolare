@@ -20,7 +20,7 @@ class IdentityClient:
         self.logger.info(f'Requesting OTP for {email}')
         self.logger.debug(f'Requesting OTP with payload: {identityRequest}')
 
-        response = requests.post(f'{self.base_url}/api/Auth/RequestOtp', json=identityRequest, verify=True)
+        response = requests.post(f'{self.base_url}/api/Identity/RequestOtp', json=identityRequest, verify=True)
 
         self.logger.info(f'Received response from Identity API: {response.status_code}')
         self.logger.debug(f'Response payload: {response.text}')
@@ -38,7 +38,7 @@ class IdentityClient:
         self.logger.info(f'Verifying OTP for {email}')
         self.logger.debug(f'Verifying OTP with payload: {request}')
 
-        response = requests.post(f'{self.base_url}/api/Auth/VerifyOtp', json=request, verify=True)
+        response = requests.post(f'{self.base_url}/api/Identity/VerifyOtp', json=request, verify=True)
 
         self.logger.info(f'Received response from Identity API: {response.status_code}')
         self.logger.debug(f'Response payload: {response.text}')
