@@ -9,7 +9,7 @@ class ConfigurationProvider:
     ConfigurationProvider class is responsible for loading the application configuration.
     """
 
-    def __init__(self, path: str = "appsettings.development.json"):
+    def __init__(self, path: str = "app/appsettings.development.json"):
         self.path = Path(path)
         self.data = self._loadConfiguration()
         self.database = DbConfiguration(**self.data.get("DbConfiguration", {}))
