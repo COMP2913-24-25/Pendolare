@@ -4,6 +4,7 @@ from .PendoDatabaseProvider import get_db
 from sqlalchemy import desc
 import uuid
 import datetime
+from .PendoDatabase import User  # Ensure this imports the User model
 
 class MessageRepository():
     """
@@ -122,16 +123,54 @@ class MessageRepository():
     
     def get_user_conversations(self, user_id):
         """
-        Get all conversations a user is part of.
+        Get all conversations a user is part of
         
         Parameters:
             user_id: ID of the user
         
         Returns:
-            List of conversations
+            List of conversations sorted by most recent update
         """
         return self.db_session.query(Conversations)\
             .join(ConversationParticipants)\
             .filter(ConversationParticipants.UserId == user_id)\
             .filter(ConversationParticipants.LeftAt == None)\
+            .order_by(Conversations.UpdateDate.desc())\
             .all()
+    
+    def get_user_by_id(self, user_id):
+        """
+        Fetch a user from the database by user_id.
+
+        Parameters:
+            user_id (str): ID of the user
+
+        Returns:
+            The user object
+        """
+        return self.db_session.query(User).get(user_id)
+    
+    def create_conversation_with_participants(self, conversation_type, participants, name=None):
+        """
+        Create a new conversation and add participants.
+        For each participant, fetch the user; if user.UserTypeId is 2, default that participant to UUID("00000000-0000-0000-0000-000000000000").
+        This is to enable a centralised support system.
+        
+        Parameters:
+            conversation_type (str): Type of the conversation
+            participants (list): List of user_id strings (UUIDs)
+            name (str, optional): Conversation name
+        
+        Returns:
+            The created conversation object.
+        """
+        conversation = self.create_conversation(conversation_type, name)
+        default_uuid = uuid.UUID("00000000-0000-0000-0000-000000000000")
+        for participant in participants:
+            user = self.get_user_by_id(participant)
+            if user and getattr(user, "UserTypeId", None) == 2:
+                participant_id = default_uuid
+            else:
+                participant_id = participant
+            self.add_user_to_conversation(conversation.ConversationId, participant_id)
+        return conversation
