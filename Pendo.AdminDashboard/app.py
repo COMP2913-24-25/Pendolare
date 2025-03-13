@@ -84,12 +84,29 @@ def dashboard():
     end_of_week = now
 
     weekly_revenue = AdminClient(api_url, app.logger).GetWeeklyRevenue(start_of_week, end_of_week)
+
+    chart_labels = []
+    chart_data = []
+
+    for week_offset in range(5, 0, -1):
+        week_start = start_of_week - timedelta(weeks=week_offset)
+        week_end = week_start + timedelta(days=6) # sunday
+        chart_labels.append("w/c" +" "+ week_start.strftime("%d/%m/%Y"))
+        revenue = AdminClient(api_url, app.logger).GetWeeklyRevenue(week_start, week_end)
+        chart_data.append(revenue)
+    
     customer_disputes = [
         {'username': 'user1', 'message': 'Dispute message 1'},
         {'username': 'user2', 'message': 'Dispute message 2'},
         {'username': 'user3', 'message': 'Lorem ipsum dorlor sit amet, consectetur adipiscing elit. Nullam'},
     ]
-    return render_template('dashboard.html', booking_fee=booking_fee, weekly_revenue=weekly_revenue, revenue_date=start_of_week.strftime('%d %B %Y'), customer_disputes=customer_disputes)
+    return render_template('dashboard.html',
+                           booking_fee=booking_fee,
+                           weekly_revenue=weekly_revenue,
+                           revenue_date=start_of_week.strftime('%d %B %Y'),
+                           customer_disputes=customer_disputes,
+                           chart_labels=chart_labels,
+                           chart_data=chart_data)
 
 @app.route('/chat/<username>')
 def chat(username):
