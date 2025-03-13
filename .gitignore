@@ -1,7 +1,13 @@
-*/obj
-*/bin/Debug/*
-
+bin/
+obj/
 *.dacpac
-
+.vs
+.vscode
+efpt.config.json
+efpt.config.json.user
+/Pendo.IdentityService/Identity.DataAccess/efpt.config.json
 .DS_Store
 __pycache__
+/Pendo.BookingService/.venv-booking
+Pendo.BookingService/app/.env
+Pendo.BookingService/pyvenv.cfg
