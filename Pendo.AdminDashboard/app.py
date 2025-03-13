@@ -83,7 +83,7 @@ def dashboard():
     start_of_week = now - timedelta(days=now.weekday())
     end_of_week = now
 
-    weekly_revenue = AdminClient(api_url, app.logger).GetWeeklyRevenue(start_of_week, end_of_week).json()
+    weekly_revenue = AdminClient(api_url, app.logger).GetWeeklyRevenue(start_of_week, end_of_week)
     customer_disputes = [
         {'username': 'user1', 'message': 'Dispute message 1'},
         {'username': 'user2', 'message': 'Dispute message 2'},
