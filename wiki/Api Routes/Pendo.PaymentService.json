@@ -273,7 +273,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GetwithUUID"
+                "$ref": "#/components/schemas/RefundPaymentRequest"
               }
             }
           },
@@ -463,6 +463,43 @@
         ],
         "title": "PaymentSheetResponse"
       },
+      "RefundPaymentRequest": {
+        "properties": {
+          "BookingId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Bookingid"
+          },
+          "CancelledById": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Cancelledbyid"
+          },
+          "LatestPrice": {
+            "type": "number",
+            "title": "Latestprice"
+          },
+          "CancellationTime": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Cancellationtime"
+          },
+          "JourneyTime": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Journeytime"
+          }
+        },
+        "type": "object",
+        "required": [
+          "BookingId",
+          "CancelledById",
+          "LatestPrice",
+          "CancellationTime",
+          "JourneyTime"
+        ],
+        "title": "RefundPaymentRequest"
+      },
       "SingularPaymentMethod": {
         "properties": {
           "Brand": {
@@ -476,10 +513,6 @@
           "Last4": {
             "type": "string",
             "title": "Last4"
-          },
-          "Preferred": {
-            "type": "string",
-            "title": "Preferred"
           },
           "Exp_month": {
             "type": "integer",
@@ -499,7 +532,6 @@
           "Brand",
           "Funding",
           "Last4",
-          "Preferred",
           "Exp_month",
           "Exp_year",
           "PaymentType"
@@ -511,6 +543,17 @@
           "Status": {
             "type": "string",
             "title": "Status"
+          },
+          "Error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
           }
         },
         "type": "object",
