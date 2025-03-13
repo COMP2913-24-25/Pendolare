@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import requests
 from datetime import timedelta, datetime
 from identity_client import IdentityClient
+from admin_client import AdminClient
 
 app = Flask(__name__)
 app.secret_key = 'reallyStrongPwd123'
@@ -77,14 +78,18 @@ def dashboard():
         return redirect(url_for('dashboard'))
     
     booking_fee = 5
-    weekly_revenue = 1435
-    revenue_date = '2021-09-01'
+
+    now = datetime.utcnow()
+    start_of_week = now - timedelta(days=now.weekday())
+    end_of_week = now
+
+    weekly_revenue = AdminClient(api_url, app.logger).GetWeeklyRevenue(start_of_week, end_of_week).json()
     customer_disputes = [
         {'username': 'user1', 'message': 'Dispute message 1'},
         {'username': 'user2', 'message': 'Dispute message 2'},
         {'username': 'user3', 'message': 'Lorem ipsum dorlor sit amet, consectetur adipiscing elit. Nullam'},
     ]
-    return render_template('dashboard.html', booking_fee=booking_fee, weekly_revenue=weekly_revenue, revenue_date=revenue_date, customer_disputes=customer_disputes)
+    return render_template('dashboard.html', booking_fee=booking_fee, weekly_revenue=weekly_revenue, revenue_date=start_of_week.strftime('%d %B %Y'), customer_disputes=customer_disputes)
 
 @app.route('/chat/<username>')
 def chat(username):
