@@ -78,13 +78,9 @@ class GetWeeklyRevenueCommand:
     def get_labels(self, weekly_revenue):
         labels = []
         data = []
-        total = 0
-
-        weeks_sort = sorted(weekly_revenue)
-        for week_num in weeks_sort:
+        total = sum(weekly_revenue.values())
+        for week_num in sorted(weekly_revenue):
             labels.append(f"WEEK {week_num}")
             data.append(round(weekly_revenue[week_num], 2))
-        total += weekly_revenue[week_num]
-
         return labels, data, total
 
