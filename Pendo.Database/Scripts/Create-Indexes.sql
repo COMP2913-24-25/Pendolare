@@ -11,3 +11,16 @@ GO;
 CREATE INDEX IX_OtpLogin_UserId ON [identity].[OtpLogin] (UserId)
 
 GO;
+
+-- Messaging Service Indexes
+CREATE INDEX IX_Messages_ConversationId ON [messaging].[Messages]([ConversationId]);
+
+GO;
+
+CREATE INDEX IX_Messages_SenderId ON [messaging].[Messages]([SenderId]);
+
+GO;
+
+CREATE INDEX IX_ConversationParticipants_UserId ON [messaging].[ConversationParticipants]([UserId]);
+
+GO;
