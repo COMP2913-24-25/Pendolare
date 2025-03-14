@@ -1,7 +1,6 @@
 import { FontAwesome5 } from "@expo/vector-icons";
 import { useState } from "react";
 import {
-  Text,
   View,
   TouchableOpacity,
   Modal,
@@ -10,6 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import Map from "@/components/Map/Map";
+import { Text } from "@/components/common/ThemedText";
 import UpcomingRide from "@/components/RideView/UpcomingRide";
 import { icons, upcomingRides, pastRides } from "@/constants";
 import { useAuth } from "@/context/AuthContext";

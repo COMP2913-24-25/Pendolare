@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import CancellationReasonModal from "./Modals/CancellationReasonModal";
 import LateCancellationModal from "./Modals/LateCancellationModal";

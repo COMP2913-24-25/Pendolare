@@ -9,13 +9,14 @@ import {
 } from "react-native";
 import { ReactNativeModal } from "react-native-modal";
 
-import CustomButton from "@/components/CustomButton";
-import InputField from "@/components/InputField";
+import CustomButton from "@/components/common/ThemedButton";
+import InputField from "@/components/common/ThemedInputField";
 import { Text } from "@/components/ThemedText";
 import VerificationCodeInput from "@/components/VerificationCodeInput";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { requestOTP, verifyOTP } from "@/services/authService";
+import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
 
 /*
   SignIn
@@ -116,102 +117,104 @@ const SignIn = () => {
   };
 
   return (
-    <ScrollView
-      className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-white"}`}
-    >
-      <View className="flex-1">
-        {/* Welcome Header Section */}
-        <View className="relative w-full h-[150px]">
-          <Text className="text-2xl font-JakartaSemiBold absolute bottom-5 left-5">
-            Welcome Back
-          </Text>
-        </View>
-
-        {/* Login Form Section */}
-        <View className="p-5">
-          <InputField
-            label="Email"
-            placeholder="Enter email"
-            textContentType="emailAddress"
-            value={email}
-            onChangeText={setEmail}
-            labelStyle={isDarkMode ? "text-gray-300" : "text-gray-600"}
-            containerStyle={
-              isDarkMode
-                ? "bg-slate-700 border-slate-600"
-                : "bg-neutral-100 border-neutral-100"
-            }
-            inputStyle={isDarkMode ? "text-white" : "text-black"}
-          />
-          <CustomButton
-            title={loading ? "Please wait..." : "Sign In"}
-            onPress={onSignInPress}
-            disabled={loading}
-            className="mt-6"
-          />
-
-          {/* Sign Up Link */}
-          <View className="mt-6 flex-row justify-center">
-            <Text className="font-Jakarta">Don't have an account? </Text>
-            <TouchableOpacity onPress={() => router.replace("/auth/sign-up")}>
-              <Text className="text-blue-500 font-JakartaMedium">Sign Up</Text>
-            </TouchableOpacity>
+    <ThemedSafeAreaView className="flex-1">
+      <ScrollView
+        className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-white"}`}
+      >
+        <View className="flex-1">
+          {/* Welcome Header Section */}
+          <View className="relative w-full h-[150px]">
+            <Text className="text-2xl font-JakartaSemiBold absolute bottom-5 left-5">
+              Welcome Back
+            </Text>
           </View>
-        </View>
 
-        {/* OTP Verification Modal */}
-        <ReactNativeModal isVisible={verification.state === "pending"}>
-          <View
-            className={`px-7 py-9 rounded-2xl min-h-[300px] ${
-              isDarkMode ? "bg-slate-800" : "bg-white"
-            }`}
-          >
-            <Text className="font-JakartaExtraBold text-2xl mb-2">
-              Verification
-            </Text>
-            <Text className="font-Jakarta mb-5">
-              We've sent a verification code to {email}.
-            </Text>
-            <VerificationCodeInput
-              code={verification.code}
-              onCodeChange={(code) =>
-                setVerification({ ...verification, code, error: "" })
+          {/* Login Form Section */}
+          <View className="p-5">
+            <InputField
+              label="Email"
+              placeholder="Enter email"
+              textContentType="emailAddress"
+              value={email}
+              onChangeText={setEmail}
+              labelStyle={isDarkMode ? "text-gray-300" : "text-gray-600"}
+              containerStyle={
+                isDarkMode
+                  ? "bg-slate-700 border-slate-600"
+                  : "bg-neutral-100 border-neutral-100"
               }
+              inputStyle={isDarkMode ? "text-white" : "text-black"}
             />
-            {verification.error && (
-              <Text className="text-red-500 text-sm mt-1">
-                {verification.error}
-              </Text>
-            )}
             <CustomButton
-              title={loading ? "Verifying..." : "Verify & Sign In"}
-              onPress={handleVerifyOTP}
+              title={loading ? "Please wait..." : "Sign In"}
+              onPress={onSignInPress}
               disabled={loading}
-              className="mt-5 bg-success-500"
+              className="mt-6"
             />
 
-            {/* Resend Code Section */}
-            <View className="mt-4 items-center">
-              {loading ? (
-                <ActivityIndicator color={isDarkMode ? "#fff" : "#000"} />
-              ) : countdown > 0 ? (
-                <Text
-                  className={isDarkMode ? "text-gray-400" : "text-gray-500"}
-                >
-                  Resend code in {countdown}s
-                </Text>
-              ) : (
-                <TouchableOpacity onPress={sendVerificationCode}>
-                  <Text className="text-blue-500 font-JakartaMedium">
-                    Resend verification code
-                  </Text>
-                </TouchableOpacity>
-              )}
+            {/* Sign Up Link */}
+            <View className="mt-6 flex-row justify-center">
+              <Text className="font-Jakarta">Don't have an account? </Text>
+              <TouchableOpacity onPress={() => router.replace("/auth/sign-up")}>
+                <Text className="text-blue-500 font-JakartaMedium">Sign Up</Text>
+              </TouchableOpacity>
             </View>
           </View>
-        </ReactNativeModal>
-      </View>
-    </ScrollView>
+
+          {/* OTP Verification Modal */}
+          <ReactNativeModal isVisible={verification.state === "pending"}>
+            <View
+              className={`px-7 py-9 rounded-2xl min-h-[300px] ${
+                isDarkMode ? "bg-slate-800" : "bg-white"
+              }`}
+            >
+              <Text className="font-JakartaExtraBold text-2xl mb-2">
+                Verification
+              </Text>
+              <Text className="font-Jakarta mb-5">
+                We've sent a verification code to {email}.
+              </Text>
+              <VerificationCodeInput
+                code={verification.code}
+                onCodeChange={(code) =>
+                  setVerification({ ...verification, code, error: "" })
+                }
+              />
+              {verification.error && (
+                <Text className="text-red-500 text-sm mt-1">
+                  {verification.error}
+                </Text>
+              )}
+              <CustomButton
+                title={loading ? "Verifying..." : "Verify & Sign In"}
+                onPress={handleVerifyOTP}
+                disabled={loading}
+                className="mt-5 bg-success-500"
+              />
+
+              {/* Resend Code Section */}
+              <View className="mt-4 items-center">
+                {loading ? (
+                  <ActivityIndicator color={isDarkMode ? "#fff" : "#000"} />
+                ) : countdown > 0 ? (
+                  <Text
+                    className={isDarkMode ? "text-gray-400" : "text-gray-500"}
+                  >
+                    Resend code in {countdown}s
+                  </Text>
+                ) : (
+                  <TouchableOpacity onPress={sendVerificationCode}>
+                    <Text className="text-blue-500 font-JakartaMedium">
+                      Resend verification code
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          </ReactNativeModal>
+        </View>
+      </ScrollView>
+    </ThemedSafeAreaView>
   );
 };
 

@@ -1,12 +1,11 @@
 import { FontAwesome5 } from "@expo/vector-icons";
-import React from "react";
-import { View, Text, TouchableOpacity, Modal } from "react-native";
+import { View, TouchableOpacity, Modal } from "react-native";
 
 import Map from "../../Map/Map";
-
 import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 import { formatTimestamp } from "@/utils/formatTime";
+import { Text } from "@/components/common/ThemedText"; // updated
 
 interface UpcomingRideDetailsModalProps {
   ride: {
@@ -65,13 +64,8 @@ const UpcomingRideDetailsModal = ({
         </View>
 
         <View className="p-5 flex-1">
-          <Text
-            className={`text-2xl font-JakartaBold mt-8 mb-4 ${
-              isDarkMode ? "text-white" : "text-black"
-            }`}
-          >
-            Ride Details
-          </Text>
+          {/* Removed inline dark mode text colors */}
+          <Text className="text-2xl font-JakartaBold mt-8 mb-4">Ride Details</Text>
 
           <View
             className={`p-4 rounded-xl mb-4 ${
@@ -79,44 +73,20 @@ const UpcomingRideDetailsModal = ({
             }`}
           >
             <View className="mb-3">
-              <Text className={isDarkMode ? "text-gray-300" : "text-gray-500"}>
-                From
-              </Text>
-              <Text
-                className={`font-JakartaMedium ${isDarkMode ? "text-white" : "text-black"}`}
-              >
-                {ride.pickup.name}
-              </Text>
+              <Text>From</Text>
+              <Text className="font-JakartaMedium">{ride.pickup.name}</Text>
             </View>
             <View className="mb-3">
-              <Text className={isDarkMode ? "text-gray-300" : "text-gray-500"}>
-                To
-              </Text>
-              <Text
-                className={`font-JakartaMedium ${isDarkMode ? "text-white" : "text-black"}`}
-              >
-                {ride.dropoff.name}
-              </Text>
+              <Text>To</Text>
+              <Text className="font-JakartaMedium">{ride.dropoff.name}</Text>
             </View>
             <View className="mb-3">
-              <Text className={isDarkMode ? "text-gray-300" : "text-gray-500"}>
-                Departure
-              </Text>
-              <Text
-                className={`font-JakartaMedium ${isDarkMode ? "text-white" : "text-black"}`}
-              >
-                {formatTimestamp(ride.departureTime)}
-              </Text>
+              <Text>Departure</Text>
+              <Text className="font-JakartaMedium">{formatTimestamp(ride.departureTime)}</Text>
             </View>
             <View>
-              <Text className={isDarkMode ? "text-gray-300" : "text-gray-500"}>
-                Price
-              </Text>
-              <Text
-                className={`font-JakartaMedium ${isDarkMode ? "text-white" : "text-black"}`}
-              >
-                {ride.price}
-              </Text>
+              <Text>Price</Text>
+              <Text className="font-JakartaMedium">{ride.price}</Text>
             </View>
           </View>
 

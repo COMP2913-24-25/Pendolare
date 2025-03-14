@@ -1,10 +1,9 @@
 import { FontAwesome5 } from "@expo/vector-icons";
-import React from "react";
 import { View } from "react-native";
 
 import Map from "../Map/Map";
 
-import { Text } from "@/components/ThemedText";
+import { Text } from "@/components/common/ThemedText";
 import { icons } from "@/constants";
 
 interface Location {
@@ -56,10 +55,9 @@ const ConfirmationStep = ({
             <FontAwesome5
               name={icons.marker}
               size={16}
-              color={isDarkMode ? "#FFFFFF" : "#2563EB"}
               style={{ marginRight: 8 }}
             />
-            <Text className={isDarkMode ? "text-gray-300" : "text-gray-500"}>
+            <Text className="text-gray-500">
               From
             </Text>
           </View>
@@ -71,10 +69,9 @@ const ConfirmationStep = ({
             <FontAwesome5
               name={icons.target}
               size={16}
-              color={isDarkMode ? "#FFFFFF" : "#DC2626"}
               style={{ marginRight: 8 }}
             />
-            <Text className={isDarkMode ? "text-gray-300" : "text-gray-500"}>
+            <Text className="text-gray-500">
               To
             </Text>
           </View>
@@ -86,10 +83,9 @@ const ConfirmationStep = ({
             <FontAwesome5
               name="pound-sign"
               size={16}
-              color={isDarkMode ? "#FFFFFF" : "#666666"}
               style={{ marginRight: 8 }}
             />
-            <Text className={isDarkMode ? "text-gray-300" : "text-gray-500"}>
+            <Text className="text-gray-500">
               Price per Seat
             </Text>
           </View>
@@ -101,10 +97,9 @@ const ConfirmationStep = ({
             <FontAwesome5
               name="users"
               size={16}
-              color={isDarkMode ? "#FFFFFF" : "#666666"}
               style={{ marginRight: 8 }}
             />
-            <Text className={isDarkMode ? "text-gray-300" : "text-gray-500"}>
+            <Text className="text-gray-500">
               Available Seats
             </Text>
           </View>
@@ -116,10 +111,9 @@ const ConfirmationStep = ({
             <FontAwesome5
               name="clock"
               size={16}
-              color={isDarkMode ? "#FFFFFF" : "#666666"}
               style={{ marginRight: 8 }}
             />
-            <Text className={isDarkMode ? "text-gray-300" : "text-gray-500"}>
+            <Text className="text-gray-500">
               Date & Time
             </Text>
           </View>

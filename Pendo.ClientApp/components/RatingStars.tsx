@@ -1,8 +1,7 @@
+import { TouchableOpacity, View } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
-import React from "react";
-import { View, TouchableOpacity } from "react-native";
+import { useTheme } from "@/context/ThemeContext";
 
-import { icons } from "@/constants";
 
 interface RatingStarsProps {
   rating: number;
@@ -10,24 +9,17 @@ interface RatingStarsProps {
   size?: number;
 }
 
-/*
-  RatingStars
-  Renders 5 star icons for rating
-  Calls setRating callback with the selected rating
-*/
-const RatingStars = ({ rating, setRating, size = 24 }: RatingStarsProps) => {
+const RatingStars = ({ rating, setRating, size = 20 }: RatingStarsProps) => {
+  // WIP
+  const starColor = "#FFC107";
   return (
-    <View className="flex-row justify-center">
+    <View className="flex-row">
       {[1, 2, 3, 4, 5].map((star) => (
-        <TouchableOpacity
-          key={star}
-          onPress={() => setRating(star)}
-          className="mx-1"
-        >
+        <TouchableOpacity key={star} onPress={() => setRating(star)}>
           <FontAwesome5
-            name={icons.star}
+            name={star <= rating ? "star" : "star-o"}
             size={size}
-            color={star <= rating ? "#F59E0B" : "#D1D5DB"}
+            color={starColor}
           />
         </TouchableOpacity>
       ))}

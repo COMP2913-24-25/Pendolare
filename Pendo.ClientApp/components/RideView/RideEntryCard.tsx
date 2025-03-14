@@ -1,8 +1,6 @@
 import { FontAwesome5 } from "@expo/vector-icons";
-import React from "react";
 import { View, TouchableOpacity } from "react-native";
-
-import { Text } from "@/components/ThemedText";
+import { Text } from "@/components/common/ThemedText"; // updated import
 import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 
@@ -34,17 +32,13 @@ const RideEntryCard = ({ ride, onPress }: RideEntryCardProps) => {
   */
   return (
     <TouchableOpacity
-      className={`p-4 rounded-xl mb-4 shadow-sm ${
-        isDarkMode ? "bg-slate-800" : "bg-white"
-      }`}
+      className={`p-4 rounded-xl mb-4 shadow-sm ${isDarkMode ? "bg-slate-800" : "bg-white"}`}
       onPress={onPress}
     >
       <View className="flex-row justify-between items-center mb-3">
         <View className="flex-row items-center">
           <View
-            className={`w-10 h-10 rounded-full items-center justify-center mr-2 ${
-              isDarkMode ? "bg-slate-700" : "bg-gray-100"
-            }`}
+            className={`w-10 h-10 rounded-full items-center justify-center mr-2 ${isDarkMode ? "bg-slate-700" : "bg-gray-100"}`}
           >
             <FontAwesome5
               name={icons.person}
@@ -61,7 +55,7 @@ const RideEntryCard = ({ ride, onPress }: RideEntryCardProps) => {
                 color="#FFC107"
                 style={{ marginRight: 4 }}
               />
-              <Text className="text-gray-500 text-sm">{ride.rating}</Text>
+              <Text className="text-sm text-gray-500">{ride.rating}</Text>
             </View>
           </View>
         </View>
@@ -76,7 +70,7 @@ const RideEntryCard = ({ ride, onPress }: RideEntryCardProps) => {
             color={isDarkMode ? "#FFF" : "#666666"}
             style={{ marginRight: 8 }}
           />
-          <Text className={isDarkMode ? "text-gray-200" : "text-gray-600"}>
+          <Text className="text-gray-600">
             {ride.departureTime}
           </Text>
         </View>
@@ -87,7 +81,7 @@ const RideEntryCard = ({ ride, onPress }: RideEntryCardProps) => {
             color="#2563EB"
             style={{ marginRight: 8 }}
           />
-          <Text className={isDarkMode ? "text-gray-200" : "text-gray-600"}>
+          <Text className="text-gray-600">
             {ride.pickup.name}
           </Text>
         </View>
@@ -98,7 +92,7 @@ const RideEntryCard = ({ ride, onPress }: RideEntryCardProps) => {
             color="#DC2626"
             style={{ marginRight: 8 }}
           />
-          <Text className={isDarkMode ? "text-gray-200" : "text-gray-600"}>
+          <Text className="text-gray-600">
             {ride.dropoff.name}
           </Text>
         </View>

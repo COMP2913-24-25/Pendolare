@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { ScrollView, Text, View, TouchableOpacity, Modal } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-
+import { ScrollView, View, TouchableOpacity, Modal } from "react-native";
+import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
 import BookingCategory from "@/components/BookingCategory";
 import CreateRide from "@/components/CreateRide/CreateRide";
 import RideEntry from "@/components/RideView/RideEntry";
+import { Text } from "@/components/common/ThemedText";
 import { dummyRides } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 
@@ -15,7 +15,7 @@ const Book = () => {
   const { isDarkMode } = useTheme();
 
   return (
-    <SafeAreaView
+    <ThemedSafeAreaView
       className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-general-500"}`}
     >
       <ScrollView
@@ -104,7 +104,7 @@ const Book = () => {
           <CreateRide onClose={() => setShowCreateRideModal(false)} />
         </Modal>
       </ScrollView>
-    </SafeAreaView>
+    </ThemedSafeAreaView>
   );
 };
 

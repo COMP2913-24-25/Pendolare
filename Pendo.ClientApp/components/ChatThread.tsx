@@ -1,8 +1,6 @@
 import { FontAwesome5 } from "@expo/vector-icons";
-import React from "react";
 import { View, TouchableOpacity } from "react-native";
-
-import { Text } from "@/components/ThemedText";
+import { Text } from "@/components/common/ThemedText";
 import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 import { formatTimestamp } from "@/utils/formatTime";
@@ -52,17 +50,14 @@ const ChatThread = ({
       <View className="flex-1">
         <View className="flex-row justify-between items-center">
           <Text className="font-JakartaBold text-lg">{title}</Text>
-          <Text
-            className={isDarkMode ? "text-gray-400" : "text-gray-500"}
-            style={{ fontSize: 12 }}
-          >
+          <Text style={{ fontSize: 12 }}>
             {formatTimestamp(timestamp)}
           </Text>
         </View>
 
         <View className="flex-row justify-between items-center mt-1">
           <Text
-            className={`flex-1 mr-2 ${isDarkMode ? "text-gray-300" : "text-gray-500"}`}
+            className="flex-1 mr-2"
             numberOfLines={1}
           >
             {lastMessage}

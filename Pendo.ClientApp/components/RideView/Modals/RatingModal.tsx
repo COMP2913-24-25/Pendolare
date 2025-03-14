@@ -1,8 +1,7 @@
-import React from "react";
-import { View, Text, TouchableOpacity, Modal } from "react-native";
-
+import { View, TouchableOpacity, Modal } from "react-native";
 import RatingStars from "@/components/RatingStars";
 import { useTheme } from "@/context/ThemeContext";
+import { Text } from "@/components/common/ThemedText"; // updated
 
 interface RatingModalProps {
   visible: boolean;
@@ -38,14 +37,10 @@ const RatingModal = ({
         <View
           className={`p-6 rounded-xl w-[90%] max-w-[400px] ${isDarkMode ? "bg-slate-800" : "bg-white"}`}
         >
-          <Text
-            className={`text-xl font-JakartaBold mb-2 text-center ${isDarkMode ? "text-white" : "text-black"}`}
-          >
+          <Text className="text-xl font-JakartaBold mb-2 text-center">
             Rate your driver
           </Text>
-          <Text
-            className={`mb-4 text-center ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}
-          >
+          <Text className="mb-4 text-center">
             How was your ride with {driverName}?
           </Text>
 
@@ -53,9 +48,7 @@ const RatingModal = ({
 
           <View className="flex-row justify-end gap-4 mt-4">
             <TouchableOpacity onPress={onClose} className="py-2 px-4">
-              <Text className={isDarkMode ? "text-gray-300" : "text-gray-500"}>
-                Cancel
-              </Text>
+              <Text>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={onSubmit}

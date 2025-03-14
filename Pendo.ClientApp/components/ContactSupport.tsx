@@ -1,10 +1,9 @@
 import { FontAwesome5 } from "@expo/vector-icons";
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, Modal } from "react-native";
+import { View, TouchableOpacity, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
+import { Text } from "@/components/common/ThemedText"; // updated
 
 const supportCategories = [
   { id: "billing", title: "Billing & Payments", icon: "dollar-sign" },
@@ -55,21 +54,13 @@ const ContactSupport = ({
                 color={isDarkMode ? "#FFF" : "#000"}
               />
             </TouchableOpacity>
-            <Text
-              className={`text-2xl font-JakartaBold mt-4 ${
-                isDarkMode ? "text-white" : "text-black"
-              }`}
-            >
+            <Text className="text-2xl font-JakartaBold mt-4">
               Contact Support
             </Text>
             <View className="w-10 mt-4" />
           </View>
 
-          <Text
-            className={`text-base mb-6 ${
-              isDarkMode ? "text-gray-300" : "text-gray-600"
-            }`}
-          >
+          <Text className="text-base mb-6">
             Please select a category for your enquiry
           </Text>
 
