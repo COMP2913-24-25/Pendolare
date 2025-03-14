@@ -39,3 +39,7 @@ class CreateJourneyRequest(BaseModel):
     BootWidth: Optional[float] = None
     BootHeight: Optional[float] = None
     LockedUntil: Optional[datetime.datetime] = None
+
+class AdjustPriceRequest(BaseModel):
+    UserId: UUID
+    AdvertisedPrice: Optional[float] = 0

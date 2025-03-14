@@ -5,14 +5,15 @@ import logging
 import sys
 import time
 from uuid import UUID
-from .request_lib import GetJourneysRequest, CreateJourneyRequest
+from .request_lib import GetJourneysRequest, CreateJourneyRequest, AdjustPriceRequest
 from .journey_repository import JourneyRepository
 
 from fastapi import Depends, FastAPI, HTTPException, Response, status
 from pydantic import BaseModel
 from sqlalchemy import create_engine, asc, desc
 from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.ext.declarative import declarative_base
+#from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.sql import and_
 
@@ -61,13 +62,9 @@ def get_db():
     finally:
         db.close()
 
-@app.get("/")
-def journey():
-    return {"message": "Journey"}
-
-@app.post("/CreateJourney/")
+@app.post("api/journey/CreateJourney/")
 def create_journey(JourneyParam: CreateJourneyRequest, db: Session = Depends(get_db)):
-    logger.debug("Creating new journey data: %s", JourneyParam.dict())
+    logger.debug("Creating new journey data: %s", JourneyParam.model_dump())
 
     try:
         check_journey_data = CheckJourneyData(JourneyParam)
@@ -86,8 +83,7 @@ def create_journey(JourneyParam: CreateJourneyRequest, db: Session = Depends(get
         logger.error(f"Failed to create journey during database operation: {e}")
         return {"Status": "Failed", "Message": str(e)}
     
-
-@app.post("/ViewJourney/")
+@app.post("api/journey/ViewJourney/")
 def get_journeys(FilterParam: GetJourneysRequest, db: Session = Depends(get_db)):
     logger.debug("Getting journey data with filters: %s", FilterParam.dict())
 
@@ -108,7 +104,7 @@ def get_journeys(FilterParam: GetJourneysRequest, db: Session = Depends(get_db))
 
     return journeys
 
-@app.put("/LockJourney/{JourneyId}")
+@app.put("api/journey/LockJourney/{JourneyId}")
 def lock_journey(JourneyId: UUID, response : Response, db: Session = Depends(get_db)):
     logger.debug(f"Locking journey ID {JourneyId}")
     try:
@@ -119,5 +115,13 @@ def lock_journey(JourneyId: UUID, response : Response, db: Session = Depends(get
         logger.error(f"Failed to lock journey: {e}")
         return {"Status" : "Failed", "Message" : str(e)}
 
-def some_testing_function(param):
-    return param
+@app.put("api/journey/AdjustPrice/{journey_id}")
+async def adjust_price(journey_id: int, request: AdjustPriceRequest):
+    logger.debug(f"Adjusting price for journey ID {journey_id}")
+    try:
+        repo = JourneyRepository(db)
+        journey = repo.adjust_journey(JourneyId, request)
+        return journey
+    except Exception as e:
+        logger.error(f"Failed to adjust price journey: {e}")
+        return {"Status" : "Failed", "Message" : str(e)}

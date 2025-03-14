@@ -51,5 +51,7 @@ class FilterJourneys:
                 )
             )
 
+        filters.append(Journey.JourneyStatusId == 1)
+
 
         return filters
