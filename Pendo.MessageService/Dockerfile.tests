@@ -1,0 +1,26 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Install dependencies with better error handling
+COPY requirements.txt requirements-test.txt ./
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir -r requirements-test.txt
+
+# Copy application and test code
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p /app/src/configuration
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+ENV LOG_LEVEL=DEBUG
+ENV ENV=Testing
+ENV USE_DATABASE=false
+ENV WS_PORT=9099
+ENV HTTP_PORT=9098
+
+# Run tests
+CMD ["pytest", "-xvs", "tests/", "--cov=src", "--cov-report=term-missing"]
