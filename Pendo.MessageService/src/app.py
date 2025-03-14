@@ -259,9 +259,9 @@ async def setup_http_server():
     
     # Register HTTP endpoints
     app.router.add_get('/', root_handler)
-    app.router.add_get('/health', health_check)
-    app.router.add_post('/user-conversations', user_conversations_handler)
-    app.router.add_post('/create-conversation', create_conversation_handler)
+    app.router.add_get('/api/Message/HealthCheck', health_check)
+    app.router.add_get('/api/Message/UserConversation', user_conversations_handler)
+    app.router.add_post('/api/Message/CreateConversation', create_conversation_handler)
     
     # Add CORS to all routes
     for route in list(app.router.routes()):

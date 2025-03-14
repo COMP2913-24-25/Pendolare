@@ -1,0 +1,221 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Pendo.MessageService.Api",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api/Message"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "tags": ["Root"],
+        "summary": "Service Information",
+        "operationId": "root_get",
+        "responses": {
+          "200": {
+            "description": "Service information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "service": { "type": "string" },
+                    "version": { "type": "string" },
+                    "endpoints": {
+                      "type": "object",
+                      "properties": {
+                        "health": { "type": "string" },
+                        "websocket": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/HealthCheck": {
+      "get": {
+        "tags": ["HealthCheck"],
+        "summary": "Health Check",
+        "operationId": "health_check_get",
+        "responses": {
+          "200": {
+            "description": "Successful Health Check",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "timestamp": { "type": "string", "format": "date-time" },
+                    "service": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/UserConversation": {
+      "get": {
+        "tags": ["User Conversation"],
+        "summary": "Get User Conversations",
+        "operationId": "get_user_conversation",
+        "requestBody": {
+          "description": "User request to fetch conversations",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetUserConversationsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "List of user conversations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserConversationsResponse"
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid Request" },
+          "500": { "description": "Server Error" }
+        }
+      }
+    },
+    "/CreateConversation": {
+      "post": {
+        "tags": ["Create Conversation"],
+        "summary": "Create a new conversation with participants",
+        "operationId": "create_conversation_post",
+        "requestBody": {
+          "description": "Conversation creation request",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateConversationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Conversation created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationResponse"
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid Request" },
+          "500": { "description": "Server Error" }
+        }
+      }
+    },
+    "/ws/Register": {
+      "get": {
+        "tags": ["WebSocket"],
+        "summary": "Register user via WebSocket",
+        "description": "Initiate a WebSocket connection to register the user. Clients should send a JSON message with a 'register' flag and 'user_id'.",
+        "responses": {
+          "101": {
+            "description": "Switching Protocols (WebSocket handshake)"
+          }
+        }
+      }
+    },
+    "/ws/JoinConversation": {
+      "get": {
+        "tags": ["WebSocket"],
+        "summary": "Join a conversation via WebSocket",
+        "description": "After registration, clients can join a conversation by sending a JSON message with 'join_conversation', 'user_id', and 'conversation_id'.",
+        "responses": {
+          "101": {
+            "description": "Switching Protocols (WebSocket handshake)"
+          }
+        }
+      }
+    },
+    "/ws/Chat": {
+      "get": {
+        "tags": ["WebSocket"],
+        "summary": "Send chat messages via WebSocket",
+        "description": "Clients can send chat messages by sending a JSON message with type 'chat', including 'from', 'conversation_id', 'content', and optional 'timestamp'.",
+        "responses": {
+          "101": {
+            "description": "Switching Protocols (WebSocket handshake)"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "GetUserConversationsRequest": {
+        "type": "object",
+        "properties": {
+          "UserId": { "type": "string", "format": "uuid" }
+        },
+        "required": [ "UserId" ]
+      },
+      "UserConversationsResponse": {
+        "type": "object",
+        "properties": {
+          "conversations": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Conversation" }
+          }
+        }
+      },
+      "CreateConversationRequest": {
+        "type": "object",
+        "properties": {
+          "UserId": { "type": "string", "format": "uuid" },
+          "ConversationType": { "type": "string" },
+          "name": { "type": "string" },
+          "participants": {
+            "type": "array",
+            "items": { "type": "string", "format": "uuid" }
+          }
+        },
+        "required": [ "UserId", "ConversationType", "participants" ]
+      },
+      "ConversationResponse": {
+        "type": "object",
+        "properties": {
+          "ConversationId": { "type": "string", "format": "uuid" },
+          "Type": { "type": "string" },
+          "CreateDate": { "type": "string", "format": "date-time" },
+          "UpdateDate": { "type": "string", "format": "date-time" },
+          "Name": { "type": "string" }
+        }
+      },
+      "Conversation": {
+        "type": "object",
+        "properties": {
+          "ConversationId": { "type": "string", "format": "uuid" },
+          "Type": { "type": "string" },
+          "CreateDate": { "type": "string", "format": "date-time" },
+          "UpdateDate": { "type": "string", "format": "date-time" },
+          "Name": { "type": "string" }
+        }
+      }
+    }
+  }
+}
