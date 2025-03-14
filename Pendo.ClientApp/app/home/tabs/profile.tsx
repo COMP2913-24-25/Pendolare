@@ -4,8 +4,8 @@ import { router } from "expo-router";
 import { Image, ScrollView, View, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import InputField from "@/components/InputField";
-import { Text } from "@/components/ThemedText";
+import InputField from "@/components/common/ThemedInputField";
+import { Text } from "@/components/common/ThemedText";
 import { useTheme } from "@/context/ThemeContext";
 
 const Profile = () => {

@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import Swiper from "react-native-swiper";
 
-import CustomButton from "@/components/CustomButton";
+import Button from "@/components/common/ThemedButton";
 import { onboarding } from "@/constants";
 import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
 
@@ -60,7 +60,7 @@ const Home = () => {
       </Swiper>
 
       {/* Navigation Button */}
-      <CustomButton
+      <Button
         title={isLastSlide ? "Get Started" : "Next"}
         onPress={() =>
           isLastSlide

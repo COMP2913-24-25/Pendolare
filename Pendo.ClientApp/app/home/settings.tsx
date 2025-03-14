@@ -1,8 +1,10 @@
 import { FontAwesome5 } from "@expo/vector-icons";
 import { router } from "expo-router";
 import * as React from "react";
-import { View, Text, TouchableOpacity, Switch } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { View, Text, Switch } from "react-native";
+import { TouchableOpacity } from "react-native-gesture-handler";
+
+import SafeAreaView from "@/components/common/ThemedSafeAreaView";
 
 import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";

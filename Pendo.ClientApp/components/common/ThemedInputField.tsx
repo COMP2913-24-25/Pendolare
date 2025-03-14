@@ -9,7 +9,7 @@ import {
   Platform,
 } from "react-native";
 
-import { Text } from "@/components/ThemedText";
+import { Text } from "@/components/common/ThemedText";
 import { useTheme } from "@/context/ThemeContext";
 import { InputFieldProps } from "@/types/type";
 

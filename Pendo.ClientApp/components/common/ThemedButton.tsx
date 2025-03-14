@@ -1,3 +1,4 @@
+import React from "react";
 import { TouchableOpacity, Text } from "react-native";
 
 import { ButtonProps } from "@/types/type";
@@ -36,7 +37,7 @@ const getTextVariantStyle = (variant: ButtonProps["textVariant"]) => {
   CustomButton
   Custom button component with support for different variants and icons
 */
-const CustomButton = ({
+const Button = ({
   onPress,
   title,
   bgVariant = "primary",
@@ -65,4 +66,4 @@ const CustomButton = ({
   );
 };
 
-export default CustomButton;
+export default Button;
