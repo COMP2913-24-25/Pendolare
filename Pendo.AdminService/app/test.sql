@@ -8,6 +8,7 @@ DELETE FROM [journey].[Journey]
 DELETE FROM [identity].[OtpLogin]
 DELETE FROM [identity].[User]
 DELETE FROM [payment].[Transaction]
+DELETE FROM [payment].[Discounts]
 
 -- Declare User IDs
 DECLARE @PassengerId1 UNIQUEIDENTIFIER = '11856ed2-e4b2-41a3-aae7-de4966800e95'

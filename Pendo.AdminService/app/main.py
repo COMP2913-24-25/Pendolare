@@ -12,6 +12,8 @@ from request_lib import *
 from get_booking_fee import GetBookingFeeCommand
 from get_weekly_revenue import GetWeeklyRevenueCommand
 from journey_analytics import JourneyAnalyticsCommand
+from discount_repository import DiscountRepository
+from models import Discounts
 
 configuration_provider = ConfigurationProvider()
 
@@ -48,4 +50,47 @@ def journey_analytics(response: Response, db_session: Session = Depends(get_db))
 @app.get("/FrequentUsers", tags=["User Analytics"], status_code=status.HTTP_200_OK)
 def frequent_users(response: Response, db_session: Session = Depends(get_db)):
     return FrequentUsersCommand(db_session, response).execute()
+
+@app.post("/CreateDiscount", tags=["Discounts"], status_code=status.HTTP_200_OK)
+def create_discount(request: CreateDiscountRequest, db_session: Session = Depends(get_db)):
+    try:
+        repository = DiscountRepository(db_session)
+        discount_id = repository.CreateDiscount(request.WeeklyJourneys, request.DiscountPercentage)
+        return {"DiscountId": str(discount_id),
+                "Status": "Success", 
+                "Message": "Discount was created successfully"}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/Discounts",  tags=["Discounts"], status_code=status.HTTP_200_OK)
+def get_discounts(db_session: Session = Depends(get_db)):
+    try:
+        repository = DiscountRepository(db_session)
+        discounts = repository.GetDiscounts()
+        return [{"DiscountId": str(discount.DiscountID),
+                 "WeeklyJourneys": discount.WeeklyJourneys,
+                 "DiscountPercentage": discount.DiscountPercentage
+            }
+            for discount in discounts
+        ]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.delete("/Discounts/{discount_id}", tags=["Discounts"])
+def delete_discount(discount_id: str, db_session: Session = Depends(get_db)):
+    try:
+        repository = DiscountRepository(db_session)
+        deleted = repository.DeleteDiscount(discount_id)
+        if not deleted:
+            raise HTTPException(status_code=404, detail="Discount is not found")
+
+        return {
+            "Status": "Success",
+            "Message": "Discount was deleted successfully"
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
