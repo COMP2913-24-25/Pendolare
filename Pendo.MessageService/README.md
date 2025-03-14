@@ -1,6 +1,6 @@
 # Service Name
 
-Brief description of what this specific service does and its role in the Pendolare system.
+The message service facillitates conversation between users and support. 
 
 ## Overview
 

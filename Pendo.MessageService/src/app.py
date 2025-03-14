@@ -46,8 +46,10 @@ if USE_DATABASE:
 # Initialize message handler with repository
 message_handler = MessageHandler(repository=repository)
 
-async def health_check():
+async def health_check(request):
     """HTTP endpoint for health checks"""
+
+    # Return healthy status with timestamp
     return web.json_response({
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
@@ -78,6 +80,7 @@ async def user_conversations_handler(request):
     Expects a JSON body with:
         - UserId (str)
     """
+    # Parse JSON body
     try:
         data = await request.json()
     except Exception:
@@ -88,7 +91,13 @@ async def user_conversations_handler(request):
         return web.json_response({"error": "UserId is not in the request body"}, status=400)
     
     try:
-        conversations = repository.get_user_conversations(user_id)
+        # First check if repository exists in app context (for testing)
+        repo = request.app.get('repository', repository)
+        if repo is None:
+            return web.json_response({"error": "Repository not available"}, status=500)
+            
+        # Fetch user conversations from repository and return as JSON
+        conversations = repo.get_user_conversations(user_id)
         conv_list = []
         for conv in conversations:
             conv_list.append({
@@ -113,11 +122,13 @@ async def create_conversation_handler(request):
       - name (str, optional)
       - participants (list of UUID strings)
     """
+    # Parse JSON body
     try:
         data = await request.json()
     except Exception:
         return web.json_response({"error": "Invalid JSON body"}, status=400)
     
+    # Validate required fields
     conversation_type = data.get("ConversationType")
     if not conversation_type:
         return web.json_response({"error": "ConversationType is required"}, status=400)
@@ -128,14 +139,20 @@ async def create_conversation_handler(request):
     
     name = data.get("name")
     
+    # Create conversation with participants
     try:
-        conversation = repository.create_conversation_with_participants(conversation_type, participants, name)
+        # First check if repository exists in app context (for testing)
+        repo = request.app.get('repository', repository)
+        if repo is None:
+            return web.json_response({"error": "Repository not available"}, status=500)
+            
+        conversation = repo.create_conversation_with_participants(conversation_type, participants, name)
         response_data = {
             "ConversationId": str(conversation.ConversationId),
             "Type": conversation.Type,
             "CreateDate": conversation.CreateDate.isoformat(),
             "UpdateDate": conversation.UpdateDate.isoformat(),
-            "Name": conversation.Name
+            "Name": conversation.Name or f"Conv-{conversation.ConversationId}"
         }
         return web.json_response(response_data)
     except Exception as e:
@@ -240,15 +257,17 @@ async def setup_http_server():
         )
     })
     
+    # Register HTTP endpoints
     app.router.add_get('/', root_handler)
-    app.router.add_get('/Message/HealthCheck', health_check)
-    app.router.add_get('/Message/UserConversations', user_conversations_handler)
-    # New POST endpoint to create a conversation with participants
-    app.router.add_post('/Message/CreateConversation', create_conversation_handler)
+    app.router.add_get('/health', health_check)
+    app.router.add_post('/user-conversations', user_conversations_handler)
+    app.router.add_post('/create-conversation', create_conversation_handler)
     
+    # Add CORS to all routes
     for route in list(app.router.routes()):
         cors.add(route)
     
+    # Start HTTP server
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, '0.0.0.0', HTTP_PORT)

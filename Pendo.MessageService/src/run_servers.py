@@ -4,6 +4,8 @@ import sys
 import signal
 from src import app
 
+# Set up logging
+# Derived from: https://docs.python.org/3/howto/logging.html
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -42,6 +44,7 @@ async def main():
     register_signals(loop)
     logger.info("Starting servers with signal handling...")
     
+    # Run the main application
     try:
         await app.main()
     except asyncio.CancelledError:
