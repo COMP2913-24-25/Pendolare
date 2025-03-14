@@ -1,9 +1,10 @@
 import { FontAwesome5 } from "@expo/vector-icons";
 import axios from "axios";
 import * as Location from "expo-location";
-import React, { useEffect, useState } from "react";
-import { View, Platform } from "react-native";
+import { useEffect, useState } from "react";
+import { View, Platform, Text } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from "react-native-maps";
+import ThemedView from "@/components/common/ThemedView";
 
 import { icons } from "@/constants";
 
@@ -91,53 +92,60 @@ const Map = ({ pickup, dropoff }: MapProps) => {
   // Utilising: https://github.com/react-native-maps/react-native-maps
 
   return (
-    <View style={{ flex: 1 }}>
-      <MapView
-        style={{ flex: 1 }}
-        initialRegion={mapRegion}
-        region={mapRegion}
-        provider={Platform.select({
-          ios: PROVIDER_DEFAULT,
-          android: PROVIDER_DEFAULT,
-        })}
-        onMapReady={onMapReady}
-        loadingEnabled={true}
-        showsUserLocation={true}
-        followsUserLocation={true}
-      >
-        {isMapReady && pickup && (
-          <Marker
-            coordinate={pickup}
-            title="Pickup Location"
-            description={pickup.name}
-          >
-            <View className="bg-blue-600 p-2 rounded-full">
-              <FontAwesome5 name={icons.car} size={24} color="#FFF" />
-            </View>
-          </Marker>
-        )}
+    <ThemedView
+      className="flex-1 items-center justify-center"
+      lightStyle="bg-gray-200"
+      darkStyle="bg-slate-700"
+    >
+      <Text>Map Placeholder</Text>
+      <View style={{ flex: 1 }}>
+        <MapView
+          style={{ flex: 1 }}
+          initialRegion={mapRegion}
+          region={mapRegion}
+          provider={Platform.select({
+            ios: PROVIDER_DEFAULT,
+            android: PROVIDER_DEFAULT,
+          })}
+          onMapReady={onMapReady}
+          loadingEnabled={true}
+          showsUserLocation={true}
+          followsUserLocation={true}
+        >
+          {isMapReady && pickup && (
+            <Marker
+              coordinate={pickup}
+              title="Pickup Location"
+              description={pickup.name}
+            >
+              <View className="bg-blue-600 p-2 rounded-full">
+                <FontAwesome5 name={icons.car} size={24} color="#FFF" />
+              </View>
+            </Marker>
+          )}
 
-        {isMapReady && dropoff && (
-          <Marker
-            coordinate={dropoff}
-            title="Destination"
-            description={dropoff.name}
-          >
-            <View className="bg-red-600 p-2 rounded-full">
-              <FontAwesome5 name={icons.flag} size={24} color="#FFF" />
-            </View>
-          </Marker>
-        )}
+          {isMapReady && dropoff && (
+            <Marker
+              coordinate={dropoff}
+              title="Destination"
+              description={dropoff.name}
+            >
+              <View className="bg-red-600 p-2 rounded-full">
+                <FontAwesome5 name={icons.flag} size={24} color="#FFF" />
+              </View>
+            </Marker>
+          )}
 
-        {isMapReady && routeCoordinates.length > 0 && (
-          <Polyline
-            coordinates={routeCoordinates}
-            strokeColor="#2563EB"
-            strokeWidth={3}
-          />
-        )}
-      </MapView>
-    </View>
+          {isMapReady && routeCoordinates.length > 0 && (
+            <Polyline
+              coordinates={routeCoordinates}
+              strokeColor="#2563EB"
+              strokeWidth={3}
+            />
+          )}
+        </MapView>
+      </View>
+    </ThemedView>
   );
 };
 

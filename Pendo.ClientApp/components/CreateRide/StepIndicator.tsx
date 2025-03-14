@@ -1,7 +1,6 @@
-import React from "react";
+import * as React from "react";
 import { View } from "react-native";
-
-import { Text } from "@/components/ThemedText";
+import { Text } from "@/components/common/ThemedText";
 
 interface StepIndicatorProps {
   currentStep: number;

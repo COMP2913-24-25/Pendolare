@@ -1,7 +1,6 @@
-import React from "react";
-import { View, Text, TouchableOpacity, Modal } from "react-native";
-
+import { View, Modal, TouchableOpacity } from "react-native";
 import { useTheme } from "@/context/ThemeContext";
+import { Text } from "@/components/common/ThemedText"; // updated
 
 interface LateCancellationModalProps {
   visible: boolean;
@@ -31,23 +30,15 @@ const LateCancellationModal = ({
         <View
           className={`p-6 rounded-xl w-[90%] max-w-[400px] ${isDarkMode ? "bg-slate-800" : "bg-white"}`}
         >
-          <Text
-            className={`text-xl font-JakartaBold mb-4 ${isDarkMode ? "text-white" : "text-black"}`}
-          >
-            Late Cancellation Fee
-          </Text>
-          <Text
-            className={`mb-6 ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}
-          >
+          <Text className="text-xl font-JakartaBold mb-4">Late Cancellation Fee</Text>
+          <Text className="mb-6">
             Cancelling within 15 minutes of departure will incur a fee of 75% of
             the ride cost. Do you want to proceed?
           </Text>
 
           <View className="flex-row justify-end gap-4">
             <TouchableOpacity onPress={onClose} className="py-2 px-4">
-              <Text className={isDarkMode ? "text-gray-300" : "text-gray-500"}>
-                Never mind
-              </Text>
+              <Text>Never mind</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={onConfirm}

@@ -1,7 +1,5 @@
-import React from "react";
 import { View, TextInput } from "react-native";
-
-import { Text } from "@/components/ThemedText";
+import { Text } from "@/components/common/ThemedText";
 
 interface CostAndSeatsStepProps {
   isDarkMode: boolean;

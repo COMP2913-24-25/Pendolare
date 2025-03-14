@@ -1,8 +1,8 @@
 import { FontAwesome5 } from "@expo/vector-icons";
 import axios from "axios";
-import React, { useState } from "react";
+import { useState } from "react";
 import { View, TouchableOpacity, ScrollView } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
 
 import ConfirmationStep from "./ConfirmationStep";
 import CostAndSeatsStep from "./CostAndSeatsStep";
@@ -10,7 +10,7 @@ import DateTimeStep from "./DateTimeStep";
 import LocationStep from "./LocationStep";
 import StepIndicator from "./StepIndicator";
 
-import { Text } from "@/components/ThemedText";
+import { Text } from "@/components/common/ThemedText";
 import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 
@@ -24,9 +24,7 @@ interface CreateRideProps {
   onClose: () => void;
 }
 
-{
-  /* Ride Creation Page */
-}
+/* Ride Creation Page */
 const CreateRide = ({ onClose }: CreateRideProps) => {
   const { isDarkMode } = useTheme();
   const [step, setStep] = useState(1);
@@ -134,9 +132,10 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
   };
 
   return (
-    <SafeAreaView
-      className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-general-500"}`}
-      edges={["top", "bottom"]}
+    <ThemedSafeAreaView 
+      className="flex-1"
+      style={{ flex: 1 }}
+      // ThemedSafeAreaView will set background based on theme.
     >
       <View className="flex-1">
         <View className="px-5 pt-8">
@@ -227,7 +226,7 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
           </TouchableOpacity>
         </View>
       </View>
-    </SafeAreaView>
+    </ThemedSafeAreaView>
   );
 };
 

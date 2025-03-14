@@ -1,9 +1,8 @@
 import { FontAwesome5 } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import React, { useState } from "react";
+import { useState } from "react";
 import { View, TouchableOpacity, ScrollView } from "react-native";
-
-import { Text } from "@/components/ThemedText";
+import { Text } from "@/components/common/ThemedText";
 
 interface DateTimeStepProps {
   isDarkMode: boolean;
@@ -154,7 +153,7 @@ const DateTimeStep = ({
                 : "bg-white border-slate-200"
             }`}
           >
-            <Text className={isDarkMode ? "text-white" : "text-black"}>
+            <Text>
               {startDate.toLocaleDateString()}
             </Text>
           </TouchableOpacity>
@@ -168,7 +167,7 @@ const DateTimeStep = ({
                 : "bg-white border-slate-200"
             }`}
           >
-            <Text className={isDarkMode ? "text-white" : "text-black"}>
+            <Text>
               {endDate.toLocaleDateString()}
             </Text>
           </TouchableOpacity>
@@ -182,7 +181,7 @@ const DateTimeStep = ({
                 : "bg-white border-slate-200"
             }`}
           >
-            <Text className={isDarkMode ? "text-white" : "text-black"}>
+            <Text>
               {date.toLocaleTimeString()}
             </Text>
           </TouchableOpacity>
@@ -233,7 +232,7 @@ const DateTimeStep = ({
               : "bg-white border-slate-200"
           }`}
         >
-          <Text className={isDarkMode ? "text-white" : "text-black"}>
+          <Text>
             {date.toLocaleString()}
           </Text>
         </TouchableOpacity>

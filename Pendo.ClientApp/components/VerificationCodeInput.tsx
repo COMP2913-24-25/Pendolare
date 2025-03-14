@@ -1,5 +1,5 @@
-import React, { useRef, useState } from "react";
-import { View, TextInput, StyleSheet } from "react-native";
+import { useRef, useState } from "react";
+import { View, TextInput } from "react-native";
 
 import { useTheme } from "@/context/ThemeContext";
 

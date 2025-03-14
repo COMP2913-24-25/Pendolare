@@ -1,7 +1,5 @@
-import React from "react";
 import { TouchableOpacity } from "react-native";
-
-import { Text } from "@/components/ThemedText";
+import { Text } from "@/components/common/ThemedText";
 import { useTheme } from "@/context/ThemeContext";
 
 interface BookingCategoryProps {
@@ -47,9 +45,7 @@ const BookingCategory = ({
       >
         {title}
       </Text>
-      <Text className={isDarkMode ? "text-gray-300" : "text-gray-600"}>
-        {description}
-      </Text>
+      <Text>{description}</Text>
     </TouchableOpacity>
   );
 };

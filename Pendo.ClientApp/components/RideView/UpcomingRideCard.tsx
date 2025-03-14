@@ -1,6 +1,5 @@
-import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
-
+import { View, TouchableOpacity } from "react-native";
+import { Text } from "@/components/common/ThemedText"; // updated
 import { useTheme } from "@/context/ThemeContext";
 import { formatTimestamp } from "@/utils/formatTime";
 
@@ -30,24 +29,16 @@ const UpcomingRideCard = ({ ride, onPress }: UpcomingRideCardProps) => {
   */
   return (
     <TouchableOpacity
-      className={`bg-white p-4 rounded-lg shadow-sm ${isDarkMode ? "bg-slate-800" : "bg-white"}`}
+      className={`p-4 rounded-lg shadow-sm ${isDarkMode ? "bg-slate-800" : "bg-white"}`}
       onPress={onPress}
     >
       <View className="flex-row justify-between items-center mb-2">
-        <Text
-          className={`text-lg font-JakartaBold ${isDarkMode ? "text-white" : "text-black"}`}
-        >
-          {ride.dropoff.name}
-        </Text>
+        <Text className="text-lg font-JakartaBold">{ride.dropoff.name}</Text>
         <Text className="text-blue-600 font-JakartaBold">{ride.price}</Text>
       </View>
       <View className="flex-row justify-between items-center">
-        <Text className={`${isDarkMode ? "text-gray-300" : "text-gray-500"}`}>
-          {formatTimestamp(ride.departureTime)}
-        </Text>
-        <Text className={`${isDarkMode ? "text-gray-300" : "text-gray-500"}`}>
-          with {ride.driverName}
-        </Text>
+        <Text className="text-gray-500">{formatTimestamp(ride.departureTime)}</Text>
+        <Text className="text-gray-500">with {ride.driverName}</Text>
       </View>
     </TouchableOpacity>
   );

@@ -2,7 +2,7 @@
 
 import { FontAwesome5 } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   View,
   TextInput,
@@ -12,9 +12,8 @@ import {
   Platform,
   ActivityIndicator,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-
-import { Text } from "@/components/ThemedText";
+import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
+import { Text } from "@/components/common/ThemedText";
 import { icons, demoChats } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 import { messageService, ChatMessage } from "@/services/messageService";
@@ -254,7 +253,7 @@ const ChatDetail = () => {
   }
 
   return (
-    <SafeAreaView
+    <ThemedSafeAreaView
       className={isDarkMode ? "flex-1 bg-slate-900" : "flex-1 bg-white"}
     >
       <KeyboardAvoidingView
@@ -349,7 +348,7 @@ const ChatDetail = () => {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </ThemedSafeAreaView>
   );
 };
 

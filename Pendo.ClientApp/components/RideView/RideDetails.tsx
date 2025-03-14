@@ -1,16 +1,8 @@
 import { FontAwesome5 } from "@expo/vector-icons";
-import React, { useState } from "react";
-import {
-  View,
-  TouchableOpacity,
-  Modal,
-  ScrollView,
-  ActivityIndicator,
-} from "react-native";
-
+import { useState } from "react";
+import { View, TouchableOpacity, Modal, ScrollView, ActivityIndicator } from "react-native";
 import Map from "../Map/Map";
-
-import { Text } from "@/components/ThemedText";
+import { Text } from "@/components/common/ThemedText"; // updated
 import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 import { createBooking } from "@/services/bookingService";
@@ -135,11 +127,7 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
                   />
                 </View>
                 <View>
-                  <Text
-                    className={`font-JakartaBold text-lg ${isDarkMode ? "text-white" : "text-black"}`}
-                  >
-                    {ride.driverName}
-                  </Text>
+                  <Text className="font-JakartaBold text-lg">{ride.driverName}</Text>
                   <View className="flex-row items-center">
                     <FontAwesome5
                       name={icons.star}
@@ -147,11 +135,7 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
                       color="#FFC107"
                       style={{ marginRight: 4 }}
                     />
-                    <Text
-                      className={isDarkMode ? "text-gray-300" : "text-gray-500"}
-                    >
-                      {ride.rating}
-                    </Text>
+                    <Text className="text-sm text-gray-500">{ride.rating}</Text>
                   </View>
                 </View>
               </View>
@@ -166,52 +150,20 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
               }`}
             >
               <View className="mb-3">
-                <Text
-                  className={isDarkMode ? "text-gray-300" : "text-gray-500"}
-                >
-                  From
-                </Text>
-                <Text
-                  className={`font-JakartaMedium ${isDarkMode ? "text-white" : "text-black"}`}
-                >
-                  {ride.pickup.name}
-                </Text>
+                <Text className="text-gray-500">From</Text>
+                <Text className="font-JakartaMedium">{ride.pickup.name}</Text>
               </View>
               <View className="mb-3">
-                <Text
-                  className={isDarkMode ? "text-gray-300" : "text-gray-500"}
-                >
-                  To
-                </Text>
-                <Text
-                  className={`font-JakartaMedium ${isDarkMode ? "text-white" : "text-black"}`}
-                >
-                  {ride.dropoff.name}
-                </Text>
+                <Text className="text-gray-500">To</Text>
+                <Text className="font-JakartaMedium">{ride.dropoff.name}</Text>
               </View>
               <View className="mb-3">
-                <Text
-                  className={isDarkMode ? "text-gray-300" : "text-gray-500"}
-                >
-                  Departure
-                </Text>
-                <Text
-                  className={`font-JakartaMedium ${isDarkMode ? "text-white" : "text-black"}`}
-                >
-                  {ride.departureTime}
-                </Text>
+                <Text className="text-gray-500">Departure</Text>
+                <Text className="font-JakartaMedium">{ride.departureTime}</Text>
               </View>
               <View>
-                <Text
-                  className={isDarkMode ? "text-gray-300" : "text-gray-500"}
-                >
-                  Price
-                </Text>
-                <Text
-                  className={`font-JakartaMedium ${isDarkMode ? "text-white" : "text-black"}`}
-                >
-                  {ride.price}
-                </Text>
+                <Text className="text-gray-500">Price</Text>
+                <Text className="font-JakartaMedium">{ride.price}</Text>
               </View>
             </View>
 
@@ -227,9 +179,7 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
                   color={isDarkMode ? "#FFF" : "#666666"}
                   style={{ marginRight: 8 }}
                 />
-                <Text
-                  className={isDarkMode ? "text-gray-200" : "text-gray-600"}
-                >
+                <Text className="text-gray-600">
                   {ride.availableSeats} seats available
                 </Text>
               </View>

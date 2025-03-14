@@ -1,7 +1,6 @@
-import React from "react";
-import { View, TextInput, TouchableOpacity, FlatList } from "react-native";
-
-import { Text } from "@/components/ThemedText";
+import * as React from "react";
+import { View, TextInput, TouchableOpacity } from "react-native";
+import { Text } from "@/components/common/ThemedText";
 
 interface Location {
   name: string;

@@ -2,13 +2,13 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
 import { ScrollView, View, TouchableOpacity } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import ChatThread from "@/components/ChatThread";
 import ContactSupport from "@/components/ContactSupport";
-import { Text } from "@/components/ThemedText";
+import { Text } from "@/components/common/ThemedText";
 import { icons, demoChats } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
+import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
 
 // Type validation helper
 const isChatType = (type: string): type is "support" | "driver" => {
@@ -30,9 +30,7 @@ const Chat = () => {
   };
 
   return (
-    <SafeAreaView
-      className={isDarkMode ? "flex-1 bg-slate-900" : "flex-1 bg-white"}
-    >
+    <ThemedSafeAreaView className={isDarkMode ? "flex-1 bg-slate-900" : "flex-1 bg-white"}>
       <View className="flex-1 px-5">
         {/* Header Section */}
         <View className="flex-row justify-between items-center my-5">
@@ -94,7 +92,7 @@ const Chat = () => {
           onSelectCategory={handleSupportCategory}
         />
       </View>
-    </SafeAreaView>
+    </ThemedSafeAreaView>
   );
 };
 
