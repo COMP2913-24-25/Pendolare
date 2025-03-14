@@ -115,8 +115,13 @@ def chat(username):
 @app.route('/update_booking_fee', methods=['POST'])
 def update_booking_fee():
     booking_fee = request.form['booking_fee']
-
     # update the booking fee the database through analytics service
+    return redirect(url_for('dashboard'))
+
+@app.route('/update_discount_offers', methods=['POST'])
+def update_discount_offers():
+    discounts = request.form.getlist('discounts')
+    # update offers in db
     return redirect(url_for('dashboard'))
 
 @app.route('/ping')

@@ -38,7 +38,7 @@
                     <p class="card-text"> {{ weekly_revenue }} for week starting {{ revenue_date }}.</p>
                 </div>
             </div>
-            <div class="card">
+            <div class="card mb-3">
                 <div class="card-body">
                     <h5 class="card-title">Customer disputes</h5>
                     <div class="card" style="width: 18rem;">
@@ -54,6 +54,30 @@
                             {% endfor %}
                         </ul>
                     </div>
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Discount offer options</h5>
+                    <form method="POST" action="{{ url_for('update_discount_offers') }}">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="discounts" value="5" id="discount5">
+                            <label class="form-check-label" for="discount5">5%</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="discounts" value="10" id="discount10">
+                            <label class="form-check-label" for="discount10">10%</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="discounts" value="15" id="discount15">
+                            <label class="form-check-label" for="discount15">15%</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="discounts" value="20" id="discount20">
+                            <label class="form-check-label" for="discount20">20%</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-3">Submit</button>
+                    </form>
                 </div>
             </div>
         </div>
