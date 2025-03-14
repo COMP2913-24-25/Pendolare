@@ -9,9 +9,9 @@ import {
 } from "react-native";
 import { ReactNativeModal } from "react-native-modal";
 
-import CustomButton from "@/components/CustomButton";
-import InputField from "@/components/InputField";
-import { Text } from "@/components/ThemedText";
+import Button from "@/components/common/ThemedButton";
+import InputField from "@/components/common/ThemedInputField";
+import { Text } from "@/components/common/ThemedText";
 import VerificationCodeInput from "@/components/VerificationCodeInput";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
@@ -164,7 +164,7 @@ const Signup = () => {
             />
 
             {/* Sign Up Button */}
-            <CustomButton
+            <Button
               title={loading ? "Please wait..." : "Sign Up"}
               onPress={onSignUpPress}
               disabled={loading}
@@ -204,7 +204,7 @@ const Signup = () => {
                   {verification.error}
                 </Text>
               )}
-              <CustomButton
+              <Button
                 title={loading ? "Verifying..." : "Create Account"}
                 onPress={handleVerifyOTP}
                 disabled={loading}
