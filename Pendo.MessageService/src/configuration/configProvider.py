@@ -16,7 +16,11 @@ class ConfigurationProvider:
     def __init__(self, path: str = "appsettings.json"):
         self.path = Path(path)
         self.data = self._loadConfiguration()
-        self.database = DbConfiguration(**self.data.get("Database", {}))
+
+        # Load database configuration
+        db_data = self.data.get("Database") or self.data.get("DbConfiguration", {})
+        self.database = DbConfiguration(**db_data)
+
         self.emailConfiguration = None
         self.StripeConfiguration = None
 
