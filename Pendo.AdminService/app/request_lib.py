@@ -7,3 +7,7 @@ class GetWeeklyRevenueQuery(BaseModel):
 
 class UpdateBookingFeeRequest(BaseModel):
     FeeMargin: float
+
+class CreateDiscountRequest(BaseModel):
+    WeeklyJourneys: int
+    DiscountPercentage: float
