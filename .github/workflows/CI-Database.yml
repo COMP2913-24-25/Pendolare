@@ -2,7 +2,7 @@ name: CI-Database
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [ dev ]
     paths:
       - 'Pendo.Database/**'
   workflow_dispatch:
