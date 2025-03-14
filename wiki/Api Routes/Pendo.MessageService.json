@@ -133,6 +133,22 @@
         "tags": ["WebSocket"],
         "summary": "Register user via WebSocket",
         "description": "Initiate a WebSocket connection to register the user. Clients should send a JSON message with a 'register' flag and 'user_id'.",
+        "requestBody": {
+          "description": "Payload for WebSocket registration",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "register": { "type": "boolean" },
+                  "user_id": { "type": "string", "format": "uuid" }
+                },
+                "required": ["register", "user_id"]
+              }
+            }
+          }
+        },
         "responses": {
           "101": {
             "description": "Switching Protocols (WebSocket handshake)"
@@ -145,6 +161,23 @@
         "tags": ["WebSocket"],
         "summary": "Join a conversation via WebSocket",
         "description": "After registration, clients can join a conversation by sending a JSON message with 'join_conversation', 'user_id', and 'conversation_id'.",
+        "requestBody": {
+          "description": "Payload for joining a conversation via WebSocket",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "join_conversation": { "type": "boolean" },
+                  "user_id": { "type": "string", "format": "uuid" },
+                  "conversation_id": { "type": "string", "format": "uuid" }
+                },
+                "required": ["join_conversation", "user_id", "conversation_id"]
+              }
+            }
+          }
+        },
         "responses": {
           "101": {
             "description": "Switching Protocols (WebSocket handshake)"
@@ -157,6 +190,25 @@
         "tags": ["WebSocket"],
         "summary": "Send chat messages via WebSocket",
         "description": "Clients can send chat messages by sending a JSON message with type 'chat', including 'from', 'conversation_id', 'content', and optional 'timestamp'.",
+        "requestBody": {
+          "description": "Payload for sending a chat message via WebSocket",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "type": { "type": "string", "enum": ["chat"] },
+                  "from": { "type": "string", "format": "uuid" },
+                  "conversation_id": { "type": "string", "format": "uuid" },
+                  "content": { "type": "string" },
+                  "timestamp": { "type": "string", "format": "date-time" }
+                },
+                "required": ["type", "from", "conversation_id", "content"]
+              }
+            }
+          }
+        },
         "responses": {
           "101": {
             "description": "Switching Protocols (WebSocket handshake)"
