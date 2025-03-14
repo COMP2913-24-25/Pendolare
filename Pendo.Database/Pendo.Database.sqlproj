@@ -8,16 +8,14 @@
     <ModelCollation>1033, CI</ModelCollation>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="PostDeployScripts" />
     <Folder Include="Scripts" />
     <Folder Include="Tables" />
     <Folder Include="Tables\identity" />
-    <Folder Include="Tables\journey" />
     <Folder Include="Tables\payment" />
     <Folder Include="Tables\shared" />
   </ItemGroup>
   <ItemGroup>
-    <PostDeploy Include="PostDeployScripts\PopuplateUserType.sql" />
+    <PostDeploy Include="PostDeploy.sql" />
   </ItemGroup>
   <Target Name="BeforeBuild">
     <Delete Files="$(BaseIntermediateOutputPath)\project.assets.json" />
