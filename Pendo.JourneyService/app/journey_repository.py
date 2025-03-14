@@ -24,6 +24,7 @@ class JourneyRepository:
         journey.LockedUntil = datetime.now() + timedelta(minutes=10)
         self.db.commit()
         return journey
+        #return {"JourneyId": journey.JourneyId, "Locked": True}
     
     def create_journey(self, journey_data):
         journey_dict = journey_data.dict()  # Convert CreateJourneyRequest to dictionary
@@ -31,4 +32,19 @@ class JourneyRepository:
         self.db.add(journey)
         self.db.commit()
         self.db.refresh(journey)
+        return journey
+
+    def adjust_journey(self, JourneyId, response):
+        journey = self.db.query(Journey).filter_by(JourneyId=JourneyId).first()
+
+        if journey is None:
+            response.status_code = status.HTTP_404_NOT_FOUND
+            raise Exception("Cannot lock journey that does not exist.")
+
+        if response.AdvertisedPrice == 0:
+            response.status_code = status.HTTP_400_BAD_REQUEST
+            raise Exception("AdvertisedPrice is incomplete.")
+
+        journey.AdvertisedPrice = response.AdvertisedPrice
+        self.db.commit()
         return journey
