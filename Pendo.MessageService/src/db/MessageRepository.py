@@ -8,7 +8,7 @@ from .PendoDatabase import User  # Ensure this imports the User model
 
 class MessageRepository():
     """
-    This class is responsible for handling all the database operations related to bookings
+    This class is responsible for handling all the database operations related to messages
     """
 
     def __init__(self):
