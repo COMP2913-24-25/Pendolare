@@ -1,0 +1,623 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Pendo.PaymentService.Api",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api/PaymentService"
+    }
+  ],
+  "paths": {
+    "/HealthCheck": {
+      "get": {
+        "tags": [
+          "HealthCheck"
+        ],
+        "summary": "Test Db",
+        "operationId": "test_db_HealthCheck_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/PaymentSheet": {
+      "post": {
+        "tags": [
+          "Stripe"
+        ],
+        "summary": "Paymentsheet",
+        "operationId": "PaymentSheet_PaymentSheet_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentSheetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentSheetResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/PaymentMethods": {
+      "post": {
+        "tags": [
+          "Pre-booking"
+        ],
+        "summary": "Paymentmethods",
+        "description": "Used to query stripe for the customers saved payment methods, to display before adding another card or contiuning with a booking",
+        "operationId": "PaymentMethods_PaymentMethods_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetwithUUID"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentMethodResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/StripeWebhook": {
+      "post": {
+        "tags": [
+          "Stripe"
+        ],
+        "summary": "Stripewebhook",
+        "operationId": "StripeWebhook_StripeWebhook_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/PendingBooking": {
+      "post": {
+        "tags": [
+          "At Booking time"
+        ],
+        "summary": "Pendingbooking",
+        "description": "Used when a booking is created in the pending state",
+        "operationId": "PendingBooking_PendingBooking_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MakePendingBooking"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/CompletedBooking": {
+      "post": {
+        "tags": [
+          "On booking confirmation"
+        ],
+        "summary": "Completedbooking",
+        "description": "Used when a booking status changes to complete, takes payment from user's saved card details and non-pending balance",
+        "operationId": "CompletedBooking_CompletedBooking_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MakePendingBooking"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ViewBalance": {
+      "post": {
+        "tags": [
+          "Anytime"
+        ],
+        "summary": "Viewbalance",
+        "description": "Used to query a users balance, both pending and non-pending",
+        "operationId": "ViewBalance_ViewBalance_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetwithUUID"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ViewBalanceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/RefundPayment": {
+      "post": {
+        "tags": [
+          "Anytime"
+        ],
+        "summary": "Refund",
+        "description": "Used to refund a payment on a cancelled journey, revert any pending balance.",
+        "operationId": "refund_RefundPayment_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefundPaymentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/CreatePayout": {
+      "post": {
+        "tags": [
+          "Anytime"
+        ],
+        "summary": "Createpayout",
+        "description": "Used to retrieve the non-pending value of a user. Will send an email to Admin with value to process payment",
+        "operationId": "CreatePayout_CreatePayout_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MakePendingBooking"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "GetwithUUID": {
+        "properties": {
+          "UserId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Userid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "UserId"
+        ],
+        "title": "GetwithUUID"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "MakePendingBooking": {
+        "properties": {
+          "BookingId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Bookingid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "BookingId"
+        ],
+        "title": "MakePendingBooking"
+      },
+      "PaymentMethodResponse": {
+        "properties": {
+          "Status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "Methods": {
+            "items": {
+              "$ref": "#/components/schemas/SingularPaymentMethod"
+            },
+            "type": "array",
+            "title": "Methods"
+          }
+        },
+        "type": "object",
+        "required": [
+          "Status",
+          "Methods"
+        ],
+        "title": "PaymentMethodResponse"
+      },
+      "PaymentSheetRequest": {
+        "properties": {
+          "UserId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Userid"
+          },
+          "Amount": {
+            "type": "number",
+            "title": "Amount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "UserId",
+          "Amount"
+        ],
+        "title": "PaymentSheetRequest"
+      },
+      "PaymentSheetResponse": {
+        "properties": {
+          "Status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "PaymentIntent": {
+            "type": "string",
+            "title": "Paymentintent"
+          },
+          "EphemeralKey": {
+            "type": "string",
+            "title": "Ephemeralkey"
+          },
+          "CustomerId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Customerid"
+          },
+          "PublishableKey": {
+            "type": "string",
+            "title": "Publishablekey"
+          }
+        },
+        "type": "object",
+        "required": [
+          "Status",
+          "PaymentIntent",
+          "EphemeralKey",
+          "CustomerId",
+          "PublishableKey"
+        ],
+        "title": "PaymentSheetResponse"
+      },
+      "RefundPaymentRequest": {
+        "properties": {
+          "BookingId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Bookingid"
+          },
+          "CancelledById": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Cancelledbyid"
+          },
+          "LatestPrice": {
+            "type": "number",
+            "title": "Latestprice"
+          },
+          "CancellationTime": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Cancellationtime"
+          },
+          "JourneyTime": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Journeytime"
+          }
+        },
+        "type": "object",
+        "required": [
+          "BookingId",
+          "CancelledById",
+          "LatestPrice",
+          "CancellationTime",
+          "JourneyTime"
+        ],
+        "title": "RefundPaymentRequest"
+      },
+      "SingularPaymentMethod": {
+        "properties": {
+          "Brand": {
+            "type": "string",
+            "title": "Brand"
+          },
+          "Funding": {
+            "type": "string",
+            "title": "Funding"
+          },
+          "Last4": {
+            "type": "string",
+            "title": "Last4"
+          },
+          "Exp_month": {
+            "type": "integer",
+            "title": "Exp Month"
+          },
+          "Exp_year": {
+            "type": "integer",
+            "title": "Exp Year"
+          },
+          "PaymentType": {
+            "type": "string",
+            "title": "Paymenttype"
+          }
+        },
+        "type": "object",
+        "required": [
+          "Brand",
+          "Funding",
+          "Last4",
+          "Exp_month",
+          "Exp_year",
+          "PaymentType"
+        ],
+        "title": "SingularPaymentMethod"
+      },
+      "StatusResponse": {
+        "properties": {
+          "Status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "Error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "Status"
+        ],
+        "title": "StatusResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "ViewBalanceResponse": {
+        "properties": {
+          "Status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "NonPending": {
+            "type": "number",
+            "title": "Nonpending"
+          },
+          "Pending": {
+            "type": "number",
+            "title": "Pending"
+          }
+        },
+        "type": "object",
+        "required": [
+          "Status",
+          "NonPending",
+          "Pending"
+        ],
+        "title": "ViewBalanceResponse"
+      }
+    }
+  }
+}
