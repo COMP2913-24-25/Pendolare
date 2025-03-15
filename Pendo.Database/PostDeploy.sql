@@ -31,6 +31,38 @@ WHEN NOT MATCHED THEN
 
 GO
 
+-- Populate Transaction Statuses
+MERGE INTO [payment].[TransactionStatus] AS target
+USING (VALUES 
+    ('Pending', 'Transaction has been created, advertiser has recieved pending balance'),
+    ('Finalised', 'Transaction price has been finalised, booking has completed'),
+    ('Billed', 'Request has been sent to stripe'),
+    ('Failed', 'Stripe payment has failed'),
+    ('Paid', 'Complete, any balances set to non-pending')
+) AS source (Status, Description)
+ON target.Status = source.Status
+WHEN NOT MATCHED THEN
+    INSERT (Status, Description)
+    VALUES (source.Status, source.Description);
+
+GO
+
+-- Populate Transaction Types
+MERGE INTO [payment].[TransactionType] AS target
+USING (VALUES 
+    ('PendingAddition', 'Addition of Pending balance'),
+    ('PendingSubtraction', 'Deduction of Pending balance'),
+    ('NonPendingAddition', 'Addition of NonPending balance'),
+    ('NonPendingSubtraction', 'Deduction of NonPending balance'),
+    ('StripeAddition', 'A charge via stripe')
+) AS source (Type, Description)
+ON target.Type = source.Type
+WHEN NOT MATCHED THEN
+    INSERT (Type, Description)
+    VALUES (source.Type, source.Description);
+
+GO
+
 DECLARE @OtpConfiguration NVARCHAR(MAX) = '
 {
     "OtpLength": 6,
@@ -68,6 +100,19 @@ DECLARE @BookingEmailConfiguration NVARCHAR(MAX) = '
     "cancelledTemplateId": "d-fd645e276ceb4cafa14dae1d678b5b93"
 }'
 
+DECLARE @PaymentEmailConfiguration NVARCHAR(MAX) = '
+{
+    "apiKey": "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",
+    "fromEmail": "pendolare-dev@clsolutions.dev",
+    "payoutTemplateId": "TODO"
+}'
+
+DECLARE @StripeConfiguration NVARCHAR(MAX) = '
+{
+    "secret": "sk_test_51R01XVJJfevYXm7DQZlpUnTFEirQaRSDQfy6TJZ3kBdf2oVXnjl3hV1TSzfUiiSdmuXuZoOP6tBlKsn9hJbkdha900jFkB9ZZ8",
+    "publishable": "pk_test_51R01XVJJfevYXm7Da0LZSLPl85sFVvKX4ef9g0JnePgfzcdbbErjnaDs0E6CzZqUdMvpCLTkMOhYRoggxrS4WBFB00GndBkKYb"
+}'
+
 DECLARE @DvlaApiKey NVARCHAR(MAX) = 'bfehQJlOAs6trMLuOaahb4ZAS1STeM5n5yk6XvM2'
 
 MERGE INTO [shared].[Configuration] AS target
@@ -77,7 +122,9 @@ USING (VALUES
     ('Identity.ManagerConfiguration', @ManagerWhitelist),
     ('Booking.DvlaApiKey', @DvlaApiKey),
     ('Booking.EmailConfiguration', @BookingEmailConfiguration),
-    ('Booking.FeeMargin', '0.05')
+    ('Booking.FeeMargin', '0.05'),
+    ('Payment.StripeConfiguration', @StripeConfiguration),
+    ('Payment.EmailConfiguration', @PaymentEmailConfiguration)
 ) AS source ([Key], [Value])
 ON target.[Key] = source.[Key]
 WHEN NOT MATCHED THEN
