@@ -40,8 +40,16 @@ jobs:
           
           # Add meeting minutes dynamically to sidebar
           echo "" >> wiki/_Sidebar.md
-          echo "### Meeting Minutes" >> wiki/_Sidebar.md
-          find wiki/Meeting\ Minutes -type f -name "*.md" | sort | while read file; do
+          echo "### Meeting of Minutes" >> wiki/_Sidebar.md
+          find wiki/Meeting\ Minutes -type f -name "*.md" | grep -v "Retrospective" | sort | while read file; do
+            name=$(basename "$file" .md)
+            echo "* [[${name}]]" >> wiki/_Sidebar.md
+          done
+          
+          # Add retrospective sprint minutes to sidebar
+          echo "" >> wiki/_Sidebar.md
+          echo "### Meeting of Retrospective Sprint" >> wiki/_Sidebar.md
+          find wiki/Meeting\ Minutes -type f -name "*Retrospective*.md" | sort | while read file; do
             name=$(basename "$file" .md)
             echo "* [[${name}]]" >> wiki/_Sidebar.md
           done
@@ -52,17 +60,31 @@ jobs:
           echo "" >> wiki/_Sidebar.md
           echo "### Backend Services" >> wiki/_Sidebar.md
 
-          # Create Home.md with meeting minutes section
+          # Create Home.md with meeting minutes sections
           echo "# Services" > wiki/Home.md
           echo "" >> wiki/Home.md
-          echo "## Meeting Minutes" >> wiki/Home.md
+          
+          # Add regular meeting minutes section
+          echo "## Meeting of Minutes" >> wiki/Home.md
           echo "" >> wiki/Home.md
-          find wiki/Meeting\ Minutes -type f -name "*.md" | sort | while read file; do
+          find wiki/Meeting\ Minutes -type f -name "*.md" | grep -v "Retrospective" | sort | while read file; do
             name=$(basename "$file" .md)
             url_safe_name=$(echo "$name" | sed 's/ /-/g')
             wiki_link="https://github.com/COMP2913-24-25/software-engineering-project-team-2/wiki/${url_safe_name}"
             echo "- [${name}](${wiki_link})" >> wiki/Home.md
           done
+          
+          # Add retrospective sprint minutes section
+          echo "" >> wiki/Home.md
+          echo "## Meeting of Retrospective Sprint" >> wiki/Home.md
+          echo "" >> wiki/Home.md
+          find wiki/Meeting\ Minutes -type f -name "*Retrospective*.md" | sort | while read file; do
+            name=$(basename "$file" .md)
+            url_safe_name=$(echo "$name" | sed 's/ /-/g')
+            wiki_link="https://github.com/COMP2913-24-25/software-engineering-project-team-2/wiki/${url_safe_name}"
+            echo "- [${name}](${wiki_link})" >> wiki/Home.md
+          done
+          
           echo "" >> wiki/Home.md
           echo "## Frontend Software" >> wiki/Home.md
           echo "" >> wiki/Home.md
