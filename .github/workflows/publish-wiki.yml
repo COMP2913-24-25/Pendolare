@@ -97,9 +97,14 @@ jobs:
 
           FRONTEND_SERVICES=("Pendo.ClientApp" "Pendo.AdminDashboard")
 
-          find . -type f -path '*/README.md' ! -path "./wiki/*" ! -path "./Pendo*" | while read file; do
+          find . -type f -path '*/README.md' ! -path "./wiki/*" ! -path "./README.md" | while read file; do
             folder_name=$(dirname "$file" | sed 's|./||')
             base_name=$(basename "$folder_name")
+            
+            # Skip the root Pendo README, but keep Pendo service READMEs
+            if [[ "$folder_name" == "Pendo" ]]; then
+              continue
+            fi
 
             if [[ "$base_name" != Pendo.* ]]; then
               formatted_name="Pendo.$base_name"
