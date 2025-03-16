@@ -23,7 +23,7 @@ from .parameter_checking import CheckJourneyData
 
 app = FastAPI()
 
-#DATABASE_URL = "mssql+pymssql://SA:reallyStrongPwd123@172.17.0.2:1433/Pendo.Database"
+DATABASE_URL = "mssql+pymssql://SA:reallyStrongPwd123@172.17.0.2:1433/Pendo.Database"
 
 '''
 USE_DATABASE = os.environ.get("USE_DATABASE", "true").lower() == "true"
