@@ -60,11 +60,11 @@ jobs:
           echo "" >> wiki/_Sidebar.md
           echo "### Backend Services" >> wiki/_Sidebar.md
 
-          # Create Home.md with meeting minutes sections
-          echo "# Services" > wiki/Home.md
-          echo "" >> wiki/Home.md
+          # Create Home.md with separate sections
+          echo "# Project Wiki" > wiki/Home.md
           
           # Add regular meeting minutes section
+          echo "" >> wiki/Home.md
           echo "## Meeting of Minutes" >> wiki/Home.md
           echo "" >> wiki/Home.md
           find wiki/Meeting\ Minutes -type f -name "*.md" | grep -v "Retrospective" | sort | while read file; do
@@ -85,15 +85,19 @@ jobs:
             echo "- [${name}](${wiki_link})" >> wiki/Home.md
           done
           
+          # Add services section
           echo "" >> wiki/Home.md
-          echo "## Frontend Software" >> wiki/Home.md
+          echo "## Services" >> wiki/Home.md
+          
           echo "" >> wiki/Home.md
-          echo "## Backend Software" >> wiki/Home.md
+          echo "### Frontend Software" >> wiki/Home.md
+          echo "" >> wiki/Home.md
+          echo "### Backend Software" >> wiki/Home.md
           echo "" >> wiki/Home.md
 
           FRONTEND_SERVICES=("Pendo.ClientApp" "Pendo.AdminDashboard")
 
-          find . -type f -path '*/README.md' ! -path "./wiki/*" | while read file; do
+          find . -type f -path '*/README.md' ! -path "./wiki/*" ! -path "./Pendo*" | while read file; do
             folder_name=$(dirname "$file" | sed 's|./||')
             base_name=$(basename "$folder_name")
 
@@ -111,10 +115,10 @@ jobs:
             # Add to appropriate sidebar section
             if [[ " ${FRONTEND_SERVICES[@]} " =~ " ${formatted_name} " ]]; then
               sed -i "/^### Frontend Services/a * [[${formatted_name}]]" wiki/_Sidebar.md
-              sed -i "/^## Frontend Software/a - [${formatted_name}](${wiki_link})" wiki/Home.md
+              sed -i "/^### Frontend Software/a - [${formatted_name}](${wiki_link})" wiki/Home.md
             else
               sed -i "/^### Backend Services/a * [[${formatted_name}]]" wiki/_Sidebar.md
-              sed -i "/^## Backend Software/a - [${formatted_name}](${wiki_link})" wiki/Home.md
+              sed -i "/^### Backend Software/a - [${formatted_name}](${wiki_link})" wiki/Home.md
             fi
 
             # Process API routes
