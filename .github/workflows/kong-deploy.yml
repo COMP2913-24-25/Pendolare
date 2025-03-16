@@ -3,9 +3,6 @@ name: Deploy Kong Gateway to Azure
 on:
   pull_request:
     branches: 
-      - main
-      - dev
-      - project/api-gateway
     paths:
       - 'Pendo.ApiGateway/**'
       - 'infrastructure/**'
