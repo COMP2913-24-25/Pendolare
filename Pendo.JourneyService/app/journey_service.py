@@ -23,7 +23,17 @@ from .parameter_checking import CheckJourneyData
 
 app = FastAPI()
 
-DATABASE_URL = "mssql+pymssql://SA:reallyStrongPwd123@172.17.0.2:1433/Pendo.Database"
+#DATABASE_URL = "mssql+pymssql://SA:reallyStrongPwd123@172.17.0.2:1433/Pendo.Database"
+
+'''
+USE_DATABASE = os.environ.get("USE_DATABASE", "true").lower() == "true"
+if USE_DATABASE:
+    try:
+        logger.info("Database connection initialized")
+    except Exception as e:
+        logger.error(f"Failed to initialize database connection: {str(e)}")
+        logger.error(traceback.format_exc())
+'''
 
 Base = declarative_base()
 

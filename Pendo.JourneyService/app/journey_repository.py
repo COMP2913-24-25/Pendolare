@@ -24,7 +24,6 @@ class JourneyRepository:
         journey.LockedUntil = datetime.now() + timedelta(minutes=10)
         self.db.commit()
         return journey
-        #return {"JourneyId": journey.JourneyId, "Locked": True}
     
     def create_journey(self, journey_data):
         journey_dict = journey_data.dict()  # Convert CreateJourneyRequest to dictionary

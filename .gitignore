@@ -1,6 +1,7 @@
 */obj
 */bin/Debug/*
-/Pendo.JourneyService/temp/
+/Pendo.JourneyService/app/__pycache__
+/Pendo.JourneyService/temp/__pycache__
 bin/
 obj/
 *.dacpac
