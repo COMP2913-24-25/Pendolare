@@ -3,7 +3,8 @@ import { View, TouchableOpacity, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
-import { Text } from "@/components/common/ThemedText"; // updated
+import { Text } from "@/components/common/ThemedText";
+import { createConversation } from "@/services/messageService";
 
 const supportCategories = [
   { id: "billing", title: "Billing & Payments", icon: "dollar-sign" },
@@ -29,13 +30,21 @@ const ContactSupport = ({
 }: ContactSupportProps) => {
   const { isDarkMode } = useTheme();
 
-  /* 
-    Note: Styling and class names are derived from Tailwind CSS docs
-    https://tailwindcss.com/docs/
-    Additional design elements have been generated using Figma -> React Native (Tailwind)
-    https://www.figma.com/community/plugin/821138713091291738/figma-react-native
-    https://www.figma.com/community/plugin/1283055580669946018/tailwind-react-code-generator-by-pagesloft
-  */
+  const handleCategorySelect = async (category: string) => {
+    try {
+      const response = await createConversation({
+        UserId: "0", // Automatically appended through Kong
+        ConversationType: "Support",
+        name: category,
+        participants: ["0"], // Support participant ID
+      });
+      console.log("Conversation created:", response);
+      onSelectCategory(category);
+    } catch (error) {
+      console.error("Failed to create conversation:", error);
+    }
+  };
+
   return (
     <Modal
       visible={visible}
@@ -70,7 +79,7 @@ const ContactSupport = ({
               className={`p-4 rounded-xl mb-4 flex-row items-center ${
                 isDarkMode ? "bg-slate-800" : "bg-white"
               }`}
-              onPress={() => onSelectCategory(category.id)}
+              onPress={() => handleCategorySelect(category.id)}
             >
               <View
                 className={`w-10 h-10 rounded-full items-center justify-center mr-4 ${

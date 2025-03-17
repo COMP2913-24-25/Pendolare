@@ -27,18 +27,21 @@ export const onboarding = [
     title: "Plan your perfect ride with ease",
     description:
       "With Pendolare, you can schedule shared rides in advance, ensuring a smooth and stress-free journey.",
+    image: require("../assets/images/test-pic.jpg"),
   },
   {
     id: 2,
     title: "Shared travel, smarter journeys",
     description:
       "Reduce costs and your carbon footprint by sharing rides with others heading in the same direction.",
+    image: require("../assets/images/test-pic.jpg"),
   },
   {
     id: 3,
     title: "Reliable, pre-booked rides",
     description:
       "Choose your pickup time, connect with fellow travellers, and enjoy a convenient ride—on your schedule.",
+    image: require("../assets/images/test-pic.jpg"),
   },
 ];
 
@@ -61,6 +64,12 @@ export const BOOKING_ENDPOINTS = {
 };
 
 export const MESSAGE_API_BASE_URL = "wss://pendo-message.clsolutions.dev/ws";
+
+// Message endpoints
+export const MESSAGE_ENDPOINTS = {
+  GET_USER_CONVERSATIONS: "/Message/UserConversation",
+  CREATE_CONVERSATION: "/Message/CreateConversation",
+};
 
 // Dummy data generated utilising machine learning models
 export const dummyRides = [

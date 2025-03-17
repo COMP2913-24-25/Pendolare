@@ -15,6 +15,10 @@ import { icons, upcomingRides, pastRides } from "@/constants";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 
+/*
+  Home
+  Home screen for the app
+*/
 const Home = () => {
   const [showModal, setShowModal] = useState(false);
   const [showAllRides, setShowAllRides] = useState(false);

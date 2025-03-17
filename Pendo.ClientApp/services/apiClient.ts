@@ -1,5 +1,4 @@
-import { getJWT } from "./authService";
-
+import { getJWTToken } from "./authService";
 import { API_BASE_URL } from "@/constants";
 
 /*
@@ -10,7 +9,7 @@ export async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const jwt = await getJWT();
+  const jwt = await getJWTToken();
 
   const headers: HeadersInit = {
     "Content-Type": "application/json",
@@ -18,13 +17,14 @@ export async function apiRequest<T>(
     ...(options.headers || {}),
   };
 
-  console.log("headers", headers);
 
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       headers,
     });
+
+    console.log(response);
 
     const data = await response.json();
 

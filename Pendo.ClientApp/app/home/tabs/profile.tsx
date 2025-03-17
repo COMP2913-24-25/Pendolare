@@ -8,6 +8,10 @@ import InputField from "@/components/common/ThemedInputField";
 import { Text } from "@/components/common/ThemedText";
 import { useTheme } from "@/context/ThemeContext";
 
+/*
+  Profile
+  Profile screen for the app
+*/
 const Profile = () => {
   const { user } = useUser();
   const { isDarkMode } = useTheme();

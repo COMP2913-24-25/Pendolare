@@ -9,9 +9,11 @@ interface CostAndSeatsStepProps {
   setSeats: (value: string) => void;
 }
 
-{
-  /* Cost and Seats Step Page */
-}
+
+/*
+  CostAndSeatsStep
+  Step for entering cost and seats
+*/
 const CostAndSeatsStep = ({
   isDarkMode,
   cost,

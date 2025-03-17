@@ -1,17 +1,55 @@
 import { ClerkLoaded, ClerkProvider } from "@clerk/clerk-expo";
+import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
+import { View, Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { AuthProvider } from "@/context/AuthContext";
-import { ThemeProvider } from "@/context/ThemeContext";
+import { ThemeProvider, useTheme } from "@/context/ThemeContext";
 
 SplashScreen.preventAutoHideAsync();
 
 const publishableKey = process.env.EXPO_PUBLIC_PUBLISH_KEY;
 
+function AppLayout() {
+  const { isDarkMode } = useTheme();
+  
+  return (
+    <View style={{ flex: 1, backgroundColor: isDarkMode ? '#121212' : '#ffffff' }}>
+      {/* StatusBar styling based on theme */}
+      <StatusBar 
+        style={isDarkMode ? "light" : "dark"} 
+        backgroundColor={isDarkMode ? "bg-slate-900" : "bg-general-500"}
+        translucent={true}
+      />
+      
+      <Stack 
+        screenOptions={{
+          headerStyle: {
+            backgroundColor: isDarkMode ? '#121212' : '#ffffff',
+          },
+          headerTintColor: isDarkMode ? '#ffffff' : '#000000',
+          contentStyle: {
+            backgroundColor: isDarkMode ? '#121212' : '#f5f5f5',
+          },
+          // Add top padding to account for translucent status bar
+        }}
+      >
+        <Stack.Screen name="index" />
+        <Stack.Screen name="auth" />
+        <Stack.Screen name="home" />
+      </Stack>
+    </View>
+  );
+}
+
+/*
+  RootLayout
+  Main layout for the app
+*/
 export default function RootLayout() {
   const [loaded] = useFonts({
     "Jakarta-Bold": require("../assets/fonts/PlusJakartaSans-Bold.ttf"),
@@ -39,11 +77,7 @@ export default function RootLayout() {
         <AuthProvider>
           <ClerkProvider publishableKey={publishableKey as string}>
             <ClerkLoaded>
-              <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="index" />
-                <Stack.Screen name="auth" />
-                <Stack.Screen name="home" />
-              </Stack>
+              <AppLayout />
             </ClerkLoaded>
           </ClerkProvider>
         </AuthProvider>

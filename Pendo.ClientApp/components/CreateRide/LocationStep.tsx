@@ -20,6 +20,10 @@ interface LocationStepProps {
   handleLocationSelect: (location: Location) => void;
 }
 
+/*
+  LocationStep
+  Step for entering pickup and dropoff locations
+*/
 const LocationStep = ({
   isDarkMode,
   pickupSearch,

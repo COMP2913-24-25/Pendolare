@@ -6,6 +6,10 @@ interface StepIndicatorProps {
   currentStep: number;
 }
 
+/*
+  StepIndicator
+  Step indicator for create ride wizard
+*/
 const StepIndicator = ({ currentStep }: StepIndicatorProps) => {
   return (
     <View className="flex-row items-center justify-between mb-8 px-4 relative">

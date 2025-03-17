@@ -57,15 +57,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (loading || !navigationState?.key) return;
 
     const inAuthGroup = segments[0] === "auth";
+    const isOnboarding = segments.length > 1 && segments[1] === "onboarding";
 
     if (!isLoggedIn && !inAuthGroup) {
       // Redirect to auth if not logged in
       console.log("Redirecting to auth");
       router.replace("/auth/sign-in");
-    } else if (isLoggedIn && inAuthGroup) {
-      // Redirect to home if logged in
-      console.log("Redirecting to home");
-      router.replace("/home/tabs/home");
+    } else if (isLoggedIn && inAuthGroup && !isOnboarding) {
+      // If user is logged in and in auth group but NOT in onboarding,
+      // we need to check if they should see onboarding first
+      
+      // For now, always show onboarding after login
+      if (segments.length > 1 && segments[1] === "sign-in") {
+        console.log("Redirecting to onboarding");
+        router.replace("/auth/onboarding");
+      }
     }
   }, [isLoggedIn, loading, segments, navigationState?.key]);
 
