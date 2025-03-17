@@ -36,10 +36,10 @@ jobs:
 
     - name: Test project
       working-directory: ./Pendo.BookingService
-      run: pytest --junitxml=test_results.xml
+      run: pytest --junitxml=booking_test_results.xml
 
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v2
       if: always()
       with:
-        files: ./Pendo.BookingService/test_results.xml
+        files: ./Pendo.BookingService/booking_test_results.xml
