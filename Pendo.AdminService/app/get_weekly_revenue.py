@@ -2,7 +2,7 @@ from booking_repository import BookingRepository
 from response_lib import GetWeeklyRevenueResponse
 from fastapi import status
 from datetime import datetime
-from decimal import Decimal
+from sqlalchemy import and_
 
 from models import Booking, BookingStatus, Journey, BookingAmmendment
 
@@ -21,11 +21,6 @@ class GetWeeklyRevenueCommand:
         Get the weekly revenue from the database.
         """
         try:
-            booking_fee_margin = float(self.configuration_provider.GetSingleValue(self.db_session, "Booking.FeeMargin"))
-
-            #bookings = self.booking_repo.GetBookingsInWindow(self.request.StartDate, self.request.EndDate)
-            #wweekly_revenue_data = self.calculate_weekly_revenue(bookings, booking_fee_margin)
-            
             bookings = self.db_session.query(
                 Booking,
                 BookingStatus.Status,
@@ -35,14 +30,19 @@ class GetWeeklyRevenueCommand:
                 BookingStatus, Booking.BookingStatusId == BookingStatus.BookingStatusId
             ).join(
                 Journey, Booking.JourneyId == Journey.JourneyId
-            ).join(
-                BookingAmmendment, Booking.BookingId == BookingAmmendment.BookingId
+            ).outerjoin(
+                BookingAmmendment,
+                and_(
+                    Booking.BookingId == BookingAmmendment.BookingId,
+                    BookingAmmendment.DriverApproval == True,
+                    BookingAmmendment.PassengerApproval == True
+                )
             ).filter(
                 Booking.RideTime >= datetime.strptime(self.request.StartDate, "%Y-%m-%d"),
                 Booking.RideTime <= datetime.strptime(self.request.EndDate, "%Y-%m-%d")
             ).all()
 
-            weekly_revenue_data = self.calculate_management_revenue(bookings, booking_fee_margin, self.request.StartDate)
+            weekly_revenue_data = self.calculate_management_revenue(bookings, self.request.StartDate)
 
             labels, data, total = self.get_labels(weekly_revenue_data)
             currency = '£'
@@ -57,14 +57,14 @@ class GetWeeklyRevenueCommand:
         start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
         return ((booking_date.date() - start_date).days // 7) + 1
     
-    def calculate_management_revenue(self, bookings, fee_margin, start_date_str):
+    def calculate_management_revenue(self, bookings, start_date_str):
         weekly_revenue = {}
 
-        for booking, status, advertised_price, proposed_price in bookings:
+        for booking in bookings:
             # Calculate TotalCost based on proposed price
-            total_cost = proposed_price
+            total_cost = booking.BookingAmmendment[-1].ProposedPrice if len(booking.BookingAmmendment) != 0 else booking.Journey_.AdvertisedPrice
 
-            booking_fee = float(total_cost) * (fee_margin / 100)
+            booking_fee = float(total_cost) * (booking.FeeMargin / 100)
 
             week_number = self.calculate_week_number(booking.RideTime, start_date_str)
 
@@ -83,4 +83,3 @@ class GetWeeklyRevenueCommand:
             labels.append(f"WEEK {week_num}")
             data.append(round(weekly_revenue[week_num], 2))
         return labels, data, total
-

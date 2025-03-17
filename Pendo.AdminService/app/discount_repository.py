@@ -1,4 +1,4 @@
-from models import Discounts
+from app.models import Discounts
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
@@ -24,14 +24,8 @@ class DiscountRepository:
         return self.db_session.query(Discounts).all()
     
     def DeleteDiscount(self, discount_id: str):
-        try:
-            deleting_d = delete(Discounts).where(Discounts.DiscountID == discount_id)
-            to_execute = self.db_session.execute(deleting_d)
-            rows_deleted = to_execute.rowcount
-            self.db_session.commit()
-            return rows_deleted > 0
-
-        except SQLAlchemyError as e:
-            self.db_session.rollback()
-            print(f"Error deleting discount with ID {discount_id}: {e}")
-            return False
+        deleting_d = delete(Discounts).where(Discounts.DiscountID == discount_id)
+        to_execute = self.db_session.execute(deleting_d)
+        rows_deleted = to_execute.rowcount
+        self.db_session.commit()
+        return rows_deleted > 0
