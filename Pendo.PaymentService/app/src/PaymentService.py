@@ -42,7 +42,7 @@ logger.info("Starting Pendo.PaymentService.Api")
 
 app = FastAPI(title="Pendo.PaymentService.Api", 
     version="1.0.0",
-    root_path="/api/PaymentService")
+    root_path="/api/Payment")
 
 @app.get("/HealthCheck", tags=["HealthCheck"])
 def test_db(db: Session = Depends(get_db)):
