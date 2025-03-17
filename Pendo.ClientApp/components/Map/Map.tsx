@@ -34,7 +34,11 @@ const Map = ({ pickup, dropoff }: MapProps) => {
   const [routeCoordinates, setRouteCoordinates] = useState<{latitude: number, longitude: number}[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Request location permission and get current location
+  /*
+    Fetch User Location
+    Fetch user's current location using Expo Location API 
+    Derived from: https://docs.expo.dev/versions/latest/sdk/location/
+  */
   useEffect(() => {
     (async () => {
       try {
@@ -68,7 +72,10 @@ const Map = ({ pickup, dropoff }: MapProps) => {
     })();
   }, []);
 
-  // When pickup and dropoff locations change, calculate route
+  /*
+    Fetch Route
+    Fetch route from OpenRouteService API
+  */
   useEffect(() => {
     if (pickup && dropoff) {
       setMapRegion({
@@ -78,12 +85,19 @@ const Map = ({ pickup, dropoff }: MapProps) => {
         longitudeDelta: Math.abs(pickup.longitude - dropoff.longitude) * 1.5,
       });
 
-      // Fetch route from OpenRouteService API
+      /*
+        Fetch route from OpenRouteService API
+        Derived from: https://openrouteservice.org/dev/#/api-docs/directions/get
+      */
       const fetchRoute = async () => {
         const response = await axios.get(
           `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${process.env.EXPO_PUBLIC_OSR_KEY}&start=${pickup.longitude},${pickup.latitude}&end=${dropoff.longitude},${dropoff.latitude}`,
         );
         const coordinates = response.data.features[0].geometry.coordinates;
+        /*
+          Convert coordinates to points for Polyline
+          Derived from: https://github.com/react-native-maps/react-native-maps/blob/master/docs/polyline.md
+        */
         const points = coordinates.map(
           ([longitude, latitude]: [number, number]) => ({
             latitude,
@@ -168,6 +182,10 @@ const Map = ({ pickup, dropoff }: MapProps) => {
   );
 };
 
+/*
+  Custom styles for Map component
+  Derived from: https://github.com/react-native-maps/react-native-maps/blob/master/example/src/examples/CustomMarkers.tsx
+*/
 const styles = StyleSheet.create({
   container: {
     flex: 1,

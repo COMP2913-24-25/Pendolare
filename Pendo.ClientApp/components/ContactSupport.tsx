@@ -16,7 +16,7 @@ const supportCategories = [
 interface ContactSupportProps {
   visible: boolean;
   onClose: () => void;
-  onSelectCategory: (category: string) => void;
+  onSelectCategory: (conversation: any) => void;  // modified
 }
 
 /*
@@ -34,11 +34,11 @@ const ContactSupport = ({
     try {
       const response = await createConversation({
         ConversationType: "Support",
-        name: category,
+        name: "Support Chat - " + category.toUpperCase(),
         participants: ["00000000-0000-0000-0000-000000000000"], // Support participant ID
       });
       console.log("Conversation created:", response);
-      onSelectCategory(category);
+      onSelectCategory(response);  // pass conversation response
     } catch (error) {
       console.error("Failed to create conversation:", error);
     }

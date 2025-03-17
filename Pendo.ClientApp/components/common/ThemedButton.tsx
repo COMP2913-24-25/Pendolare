@@ -3,6 +3,10 @@ import { TouchableOpacity, Text } from "react-native";
 
 import { ButtonProps } from "@/types/type";
 
+/*
+  getBgVariantStyle
+  Returns the background color based on the variant
+*/
 const getBgVariantStyle = (variant: ButtonProps["bgVariant"]) => {
   switch (variant) {
     case "secondary":
@@ -18,6 +22,10 @@ const getBgVariantStyle = (variant: ButtonProps["bgVariant"]) => {
   }
 };
 
+/*
+  getTextVariantStyle
+  Returns the text color based on the variant
+*/
 const getTextVariantStyle = (variant: ButtonProps["textVariant"]) => {
   switch (variant) {
     case "primary":

@@ -1,94 +1,69 @@
 import { useUser } from "@clerk/clerk-expo";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { Image, ScrollView, View, TouchableOpacity } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { ScrollView, Image } from "react-native";
 
-import InputField from "@/components/common/ThemedInputField";
+import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
+import ThemedView from "@/components/common/ThemedView";
 import { Text } from "@/components/common/ThemedText";
-import { useTheme } from "@/context/ThemeContext";
+import ThemedInputField from "@/components/common/ThemedInputField";
+import ThemedButton from "@/components/common/ThemedButton";
 
-/*
-  Profile
-  Profile screen for the app
-*/
 const Profile = () => {
   const { user } = useUser();
-  const { isDarkMode } = useTheme();
 
   return (
-    <SafeAreaView
-      className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-white"}`}
-    >
-      {/* Header Section */}
-      <View className="flex-row justify-between items-center px-5 my-5">
+    <ThemedSafeAreaView className="flex-1">
+      {/* Header */}
+      <ThemedView className="flex-row justify-between items-center px-5 my-5">
         <Text className="text-2xl font-JakartaBold">My profile</Text>
-        <TouchableOpacity
+        <ThemedButton
           onPress={() => router.push("/home/settings")}
+          title=""
+          IconLeft={() => (
+            <FontAwesome5 name="cog" size={24} color="currentColor" />
+          )}
           className="p-2"
-        >
-          <FontAwesome5
-            name="cog"
-            size={24}
-            color={isDarkMode ? "#FFF" : "#000"}
-          />
-        </TouchableOpacity>
-      </View>
+        />
+      </ThemedView>
 
       <ScrollView
+        contentContainerStyle={{ paddingVertical: 20, paddingBottom: 120 }}
         className="px-5"
-        contentContainerStyle={{ paddingBottom: 120 }}
       >
-        {/* Profile Image Section */}
-        <View className="flex items-center justify-center my-5">
+        {/* Profile Image */}
+        <ThemedView className="items-center my-5">
           <Image
             source={{
-              uri: user?.externalAccounts[0]?.imageUrl ?? user?.imageUrl,
+              uri: user?.externalAccounts[0]?.imageUrl || user?.imageUrl,
             }}
-            style={{ width: 110, height: 110, borderRadius: 110 / 2 }}
-            className="rounded-full h-[110px] w-[110px] border-[3px] border-white shadow-sm shadow-neutral-300"
+            style={{ width: 110, height: 110, borderRadius: 55, borderWidth: 3, borderColor: "#FFF" }}
+            className="shadow-sm"
           />
-        </View>
+        </ThemedView>
 
-        {/* User Information Form Section */}
-        <View
-          className={`flex flex-col items-start justify-center bg-white rounded-lg shadow-sm shadow-neutral-300 px-5 py-3 ${
-            isDarkMode ? "bg-slate-800 shadow-slate-800" : "bg-white"
-          }`}
-        >
-          <View className="flex flex-col items-start justify-start w-full">
-            <InputField
-              label="First name"
-              placeholder={user?.firstName || "Not Found"}
-              containerStyle="w-full"
-              inputStyle={`p-3.5 ${isDarkMode ? "text-white" : "text-black"}`}
-              labelStyle={isDarkMode ? "text-gray-300" : "text-gray-600"}
-              editable={false}
-            />
-
-            <InputField
-              label="Last name"
-              placeholder={user?.lastName || "Not Found"}
-              containerStyle="w-full"
-              inputStyle={`p-3.5 ${isDarkMode ? "text-white" : "text-black"}`}
-              labelStyle={isDarkMode ? "text-gray-300" : "text-gray-600"}
-              editable={false}
-            />
-
-            <InputField
-              label="Email"
-              placeholder={
-                user?.primaryEmailAddress?.emailAddress || "Not Found"
-              }
-              containerStyle="w-full"
-              inputStyle={`p-3.5 ${isDarkMode ? "text-white" : "text-black"}`}
-              labelStyle={isDarkMode ? "text-gray-300" : "text-gray-600"}
-              editable={false}
-            />
-          </View>
-        </View>
+        {/* Profile Information */}
+        <ThemedView className="bg-white rounded-lg shadow-sm px-5 py-3">
+          <ThemedInputField
+            label="First name"
+            placeholder={user?.firstName || "Not Found"}
+            editable={false}
+            containerStyle="mb-4"
+          />
+          <ThemedInputField
+            label="Last name"
+            placeholder={user?.lastName || "Not Found"}
+            editable={false}
+            containerStyle="mb-4"
+          />
+          <ThemedInputField
+            label="Email"
+            placeholder={user?.primaryEmailAddress?.emailAddress || "Not Found"}
+            editable={false}
+          />
+        </ThemedView>
       </ScrollView>
-    </SafeAreaView>
+    </ThemedSafeAreaView>
   );
 };
 

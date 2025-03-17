@@ -20,6 +20,7 @@ const OnBoarding = () => {
   const { isDarkMode } = useTheme();
   const swiperRef = useRef<Swiper>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  
   // Initialize animations with starting values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
@@ -43,6 +44,7 @@ const OnBoarding = () => {
     slideAnim.setValue(50);
     
     // Start animations
+    // Derived from https://reactnative.dev/docs/animations
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -57,15 +59,21 @@ const OnBoarding = () => {
     ]).start();
   }, [activeIndex]);
 
+  /*
+    Handle next button press
+    Redirect to home if on last slide
+  */
   const handleNext = () => {
     if (isLastSlide) {
-      // After onboarding, navigate to home
       router.replace("/home/tabs/home");
     } else {
       swiperRef.current?.scrollBy(1);
     }
   };
 
+  /*
+    Render pagination dots
+  */
   const renderPagination = () => {
     return (
       <View className="flex flex-row justify-center my-5">
@@ -136,15 +144,14 @@ const OnBoarding = () => {
         </Swiper>
       </View>
       
-      {/* Footer with plenty of space */}
+      {/* Footer */}
       <View className="w-full items-center pt-6 pb-8" style={{ marginTop: 'auto' }}>
         {renderPagination()}
         
         <Button
           title={isLastSlide ? "Get Started" : "Next"}
           onPress={handleNext}
-          className="w-11/12 py-4 mt-4"
-          textClassName="text-lg font-JakartaBold"
+          className="text-lg font-JakartaBold"
         />
       </View>
     </ThemedSafeAreaView>
