@@ -21,7 +21,6 @@ export interface ChatMessage {
 }
 
 interface CreateConversationRequest {
-  UserId: string;
   ConversationType: string;
   name: string;
   participants: string[];
@@ -42,6 +41,7 @@ interface GetUserConversationsResponse {
 export async function createConversation(
   request: CreateConversationRequest,
 ): Promise<ConversationResponse> {
+  console.log(request)
   return apiRequest<ConversationResponse>(MESSAGE_ENDPOINTS.CREATE_CONVERSATION, {
     method: "POST",
     body: JSON.stringify(request),

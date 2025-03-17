@@ -33,10 +33,9 @@ const ContactSupport = ({
   const handleCategorySelect = async (category: string) => {
     try {
       const response = await createConversation({
-        UserId: "0", // Automatically appended through Kong
         ConversationType: "Support",
         name: category,
-        participants: ["0"], // Support participant ID
+        participants: ["00000000-0000-0000-0000-000000000000"], // Support participant ID
       });
       console.log("Conversation created:", response);
       onSelectCategory(category);
