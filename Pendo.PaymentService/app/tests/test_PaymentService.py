@@ -4,7 +4,7 @@
 # Created: 12/02/2025
 #
 
-import pytest 
+import pytest
 from src.PaymentService import some_testing_function
 
 def test_testing_function():
