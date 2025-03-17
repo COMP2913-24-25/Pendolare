@@ -1,4 +1,5 @@
 from ..db.PaymentRepository import PaymentRepository
+from ..db.PendoDatabase import UserBalance
 from ..returns.PaymentReturns import StatusResponse
 
 class StripeWebhookCommand:
@@ -33,7 +34,7 @@ class StripeWebhookCommand:
                 newBalanceSheet = UserBalance(UserId = self.UserId)
                 self.PaymentRepository.CreateUserBalance(newBalanceSheet)
                 
-            transaction = self.PayementRepository.GetTransaction(self.UserId, self.Amount, 3, 5)
+            transaction = self.PaymentRepository.GetTransaction(self.UserId, self.Amount, 3, 5)
             if transaction is None:
                 raise Exception("Transaction not found")
             

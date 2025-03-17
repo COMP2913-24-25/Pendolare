@@ -74,7 +74,7 @@ class PaymentRepository():
         :param user_id: Id of the user
         :param amount: Value to be increased of the non-pending balance
         """
-        BalanceSheet = self.db_session.GetUserBalance(user_id)
+        BalanceSheet = self.GetUserBalance(user_id)
         
         if BalanceSheet is None:
             raise Exception("Balance Sheet not found for user")
@@ -93,7 +93,7 @@ class PaymentRepository():
         """
         GetTransaction searches the db for a speicifc transaction log given the appropiate parameters
         """
-        return self.db_session.query(Transaction).filter(UserId = user_id, Value = amount, TransactionStatusId = status, TransactionTypeId = typeof).first()
+        return self.db_session.query(Transaction).filter(Transaction.UserId == user_id, Transaction.Value == amount, Transaction.TransactionStatusId == status, Transaction.TransactionTypeId == typeof).first()
 
     def UpdateTransaction(self, transaction_id, amount, typeof, status):
         """
@@ -103,6 +103,6 @@ class PaymentRepository():
         transactionToUpdate.Amount = amount
         transactionToUpdate.TransactionTypeId = typeof
         transactionToUpdate.TransactionStatusId = status
-        transactionToUpdate.UpdateDate = datetime.utcnow()
+        transactionToUpdate.UpdateDate = datetime.datetime.now()
         
         self.db_session.commit()
