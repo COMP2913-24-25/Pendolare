@@ -4,8 +4,9 @@ description: "Build and test the Identity Service project"
 on:
   pull_request:
     branches: [ main, dev ]
-    #paths:
-      #- 'Pendo.IdentityService/**'
+    paths:
+      - 'Pendo.IdentityService/**'
+      - '.github/workflows/Pendo.IdentityService.yml'
   workflow_dispatch:
 
 permissions:
@@ -16,7 +17,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  build_deploy:
+  build_test:
     runs-on: ubuntu-latest
 
     steps:
@@ -39,4 +40,4 @@ jobs:
       uses: EnricoMi/publish-unit-test-result-action@v2
       if: always()
       with:
-        files: ./Pendo.IdentityService/**/test_results.trx
+        files: ./Pendo.IdentityService/test_results.trx
