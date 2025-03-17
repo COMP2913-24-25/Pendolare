@@ -17,7 +17,7 @@ from .endpoints.StripeWebhookCmd import StripeWebhookCommand
 
 # database handling
 from .db.PendoDatabase import UserBalance
-from .db.PendoDatabaseProvider import get_db, Session, text, configProvider, environment
+from .db.PendoDatabaseProvider import get_db, Session, text, environment
 
 # requests and returns
 from .requests.PaymentRequests import GetwithUUID, MakePendingBooking, PaymentSheetRequest, RefundPaymentRequest
