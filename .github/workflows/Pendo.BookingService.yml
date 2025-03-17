@@ -3,8 +3,9 @@ description: "Build and test the Booking Service project"
 
 on:
   pull_request:
-    paths:
-      - 'Pendo.BookingService/**'
+    branches: [ main, dev ]
+    #paths:
+    #  - 'Pendo.BookingService/**'
   workflow_dispatch:
 
 permissions:

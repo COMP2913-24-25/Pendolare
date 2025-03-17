@@ -4,8 +4,8 @@ description: "Build and test the Identity Service project"
 on:
   pull_request:
     branches: [ main, dev ]
-    paths:
-      - 'Pendo.IdentityService/**'
+    #paths:
+      #- 'Pendo.IdentityService/**'
   workflow_dispatch:
 
 permissions:
