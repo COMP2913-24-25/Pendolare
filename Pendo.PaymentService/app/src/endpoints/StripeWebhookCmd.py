@@ -4,13 +4,14 @@ from ..returns.PaymentReturns import StatusResponse
 
 class StripeWebhookCommand:
     """
-    ViewBalanceCommand class is responsible for finding and returning the balance of a user.
+    StripeWebhookCommand class is responsible for handling the response from stripe after a successful charge.
     """
 
     def __init__(self, logger, UserId, Amount):
         """
-        Constructor for ViewBalanceCommand class.
-        :param UserId: Id for requested user balance
+        Constructor for StripeWebhookCommand class.
+        :param UserId: Id to update balance of
+        :param Amount: Value to increase by
         """
         self.PaymentRepository = PaymentRepository()
         self.logger = logger
@@ -19,8 +20,8 @@ class StripeWebhookCommand:
 
     def Execute(self):
         """
-        Execute method querys a user's balance.
-        :return: both balances of the user.
+        Execute method updates transaction log and updates a user's balance
+        :return: status on completion.
         """
         try:
             user = self.PaymentRepository.GetUser(self.UserId)
