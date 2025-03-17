@@ -79,16 +79,18 @@ def PaymentMethods(request: GetwithUUID, db: Session = Depends(get_db)) -> Payme
         return response
 
 @app.post("/StripeWebhook", tags=["Stripe"])
-def StripeWebhook(request: Request) -> StatusResponse:
+async def StripeWebhook(request: Request) -> StatusResponse:
 
     # update user balance
-    customer = request['object']['customer']
-    amount = request['object']['amount']
+
+    requestBody = await request.json()
+    customer = requestBody["object"]["customer"]
+    amount = requestBody['object']['amount']
 
     if (customer == None) or (amount == None):
         raise HTTPException(400, detail="Customer or ammount cannnot be parsed from the request")
     
-    response = PendingBookingCommand(logging.getLogger("StripeWebhook"), customer, amount).Execute()
+    response = StripeWebhookCommand(logging.getLogger("StripeWebhook"), customer, amount).Execute()
 
     if response.Status != "success":
         raise HTTPException(400, detail=response.Error)
