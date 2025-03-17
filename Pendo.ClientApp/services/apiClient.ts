@@ -19,6 +19,9 @@ export async function apiRequest<T>(
 
 
   try {
+
+    console.log(headers)
+    console.log(options.body)
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       headers,
