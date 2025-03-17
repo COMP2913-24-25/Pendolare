@@ -20,12 +20,16 @@ class JourneyAnalyticsCommand:
                 # Two counters are initialinitialised to store number of available journeys and cancelled journeys
                 available_count = 0  
                 cancelled_count = 0
+                booked_count = 0
 
                 # Iterates through all journeys to find available journeys 
                 for journey in journeys:
-                    bookings = self.db_session.query(Booking).filter(str(Booking.JourneyId) == str(journey.JourneyId)).all()
+                    bookings = self.db_session.query(Booking).filter(Booking.JourneyId == journey.JourneyId).all()
+
                     booking_statuses = []
                     is_available = True
+                    is_booked = False
+                    is_cancelled = False
                     # If there is a booking associated with a journey then loop through booking details to see if booked or cancelled 
                     for booking in bookings:
                         booking_status = self.db_session.query(BookingStatus).filter(BookingStatus.BookingStatusId == booking.BookingStatusId).first()
@@ -33,28 +37,24 @@ class JourneyAnalyticsCommand:
                             booking_statuses.append(booking_status.Status)
                             if booking_status.Status.lower() == "booked":
                                 is_available = False  
+                                is_booked = True
                             if booking_status.Status.lower() == "cancelled":
-                                cancelled_count += 1  
+                                is_cancelled = True
+                                is_available = False  
 
-                    if is_available:
+                    if is_booked:
+                        booked_count += 1
+                    if is_cancelled:
+                        cancelled_count += 1
+                    if is_available and not is_booked and not is_cancelled:
                         available_count += 1
-
-
-                    #journey_data.append({
-                        #"journey_id": str(journey.JourneyId),
-                        #"user_id": str(journey.UserId),
-                        #"start_name": journey.StartName,
-                        #"end_name": journey.EndName,
-                        #"start_date": str(journey.StartDate),
-                        #"start_time": str(journey.StartTime),
-                        #"max_passengers": journey.MaxPassengers,
-                        #"booking_statuses": booking_statuses
-                    #})
+                    
+                    
 
                 return {
-                #"journeys": journey_data,
                 "available_journeys": available_count,
-                "cancelled_journeys": cancelled_count
+                "cancelled_journeys": cancelled_count,
+                "booked_journeys": booked_count
             }
             except Exception as e:
                 self.response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
