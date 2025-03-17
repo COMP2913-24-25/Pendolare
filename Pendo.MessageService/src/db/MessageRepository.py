@@ -166,6 +166,29 @@ class MessageRepository():
             The user object
         """
         return self.db_session.query(User).get(user_id)
+
+    def create_user_stub(self, user_id):
+        """
+        Create a simple user stub with default values if not exists.
+        
+        Parameters:
+            user_id (str): ID of the user
+        
+        Returns:
+            The created user object
+        """
+        user = User(
+            UserId=user_id,
+            Email=f"user_{user_id}@example.com",
+            UserTypeId=1,  # Default user type
+            CreateDate=datetime.datetime.utcnow(),
+            UpdateDate=datetime.datetime.utcnow(),
+            FirstName="",
+            LastName=""
+        )
+        self.db_session.add(user)
+        self.db_session.commit()
+        return user
     
     def create_conversation_with_participants(self, conversation_type, participants, name=None):
         """
@@ -198,9 +221,11 @@ class MessageRepository():
                 
             # Check if the user exists before adding
             user = self.get_user_by_id(participant_id)
-            if user:
-                # Successfully add the user to the conversation
-                self.add_user_to_conversation(conversation.ConversationId, participant_id)
-                added_users.add(participant_str)
+            if not user:
+                user = self.create_user_stub(participant_id)
+                
+            # Successfully add the user to the conversation
+            self.add_user_to_conversation(conversation.ConversationId, participant_id)
+            added_users.add(participant_str)
         
         return conversation
