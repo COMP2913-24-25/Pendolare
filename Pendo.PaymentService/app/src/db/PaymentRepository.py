@@ -1,5 +1,6 @@
 from .PendoDatabase import *
 from sqlalchemy.orm import joinedload, with_loader_criteria
+import datetime
 from .PendoDatabaseProvider import get_db
 
 class PaymentRepository():
@@ -86,4 +87,22 @@ class PaymentRepository():
         CreateTransaction adds a pre-specified transaction to the database
         """
         self.db_session.add(transaction)
+        self.db_session.commit()
+
+    def GetTransaction(self, user_id = None, amount = None, status = None, typeof = None):
+        """
+        GetTransaction searches the db for a speicifc transaction log given the appropiate parameters
+        """
+        return self.db_session.query(Transaction).filter(UserId = user_id, Value = amount, TransactionStatusId = status, TransactionTypeId = typeof).first()
+
+    def UpdateTransaction(self, transaction_id, amount, typeof, status):
+        """
+        UpdateTransaction allows for an update to an existing transaction
+        """
+        transactionToUpdate = self.db_session.query(Transaction).get(transaction_id)
+        transactionToUpdate.Amount = amount
+        transactionToUpdate.TransactionTypeId = typeof
+        transactionToUpdate.TransactionStatusId = status
+        transactionToUpdate.UpdateDate = datetime.utcnow()
+        
         self.db_session.commit()
