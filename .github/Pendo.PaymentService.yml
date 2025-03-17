@@ -42,4 +42,4 @@ jobs:
       uses: EnricoMi/publish-unit-test-result-action@v2
       if: always()
       with:
-        files: ./Pendo.PaymentService/payment_test_results.xml
+        files: ./Pendo.PaymentService/**/payment_test_results.xml
