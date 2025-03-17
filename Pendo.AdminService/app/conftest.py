@@ -1,10 +1,20 @@
 import pytest
 from unittest.mock import MagicMock
+from fastapi import Response
+from sqlalchemy.orm import Session
 
 @pytest.fixture
-def mock_db_session():
+def configuration_provider_mock():
     return MagicMock()
 
 @pytest.fixture
-def mock_configuration_provider():
+def response_mock():
+    return MagicMock()
+
+@pytest.fixture
+def db_session_mock():
+    return MagicMock()
+
+@pytest.fixture
+def request_mock():
     return MagicMock()

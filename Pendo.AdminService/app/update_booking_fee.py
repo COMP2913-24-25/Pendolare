@@ -1,6 +1,6 @@
 from fastapi import status
 from sqlalchemy.orm import Session
-from configuration_provider import ConfigurationProvider
+
 
 class UpdateBookingFeeCommand:
     def __init__(self, db_session: Session, request, response, configuration_provider):
