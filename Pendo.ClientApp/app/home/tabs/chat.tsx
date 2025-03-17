@@ -6,12 +6,24 @@ import { ScrollView, View, TouchableOpacity } from "react-native";
 import ChatThread from "@/components/ChatThread";
 import ContactSupport from "@/components/ContactSupport";
 import { Text } from "@/components/common/ThemedText";
-import { icons, demoChats } from "@/constants";
+import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
 import { getUserConversations } from "@/services/messageService";
 
-// Type validation helper
+interface Conversation {
+  id: string;
+  type: "support" | "driver";
+  title: string;
+  lastMessage: string;
+  timestamp: number;
+  unread: number;
+}
+
+/*
+  Type Guard
+  Validate chat type
+*/
 const isChatType = (type: string): type is "support" | "driver" => {
   return type === "support" || type === "driver";
 };
@@ -23,28 +35,55 @@ const isChatType = (type: string): type is "support" | "driver" => {
 const Chat = () => {
   const { isDarkMode } = useTheme();
   const [showSupport, setShowSupport] = useState(false);
-  const [conversations, setConversations] = useState(demoChats);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+
+  /*
+    Fetch Conversations
+    Fetch user conversations from the server
+  */
+  const fetchConversations = async () => {
+    try {
+      const response = await getUserConversations();
+
+      /*
+        Normalise Conversations
+        Convert API response to a simpler format
+      */
+      const normalisedConversations = response.conversations.map((conv: any) => ({
+        ...conv,
+        type: conv.Type ? conv.Type.toLowerCase() : conv.type,
+        id: conv.id || conv.ConversationId,
+        title: conv.Name,
+        lastMessage: conv.lastMessage || "",
+        timestamp: new Date(conv.CreateDate).getTime(),
+      }));
+
+      console.log("normalised conversations:", normalisedConversations);
+      setConversations(normalisedConversations);
+    } catch (error) {
+      console.error("Failed to fetch conversations:", error);
+    }
+  };
 
   useEffect(() => {
-    const fetchConversations = async () => {
-      try {
-        const response = await getUserConversations();
-        setConversations(response.conversations);
-      } catch (error) {
-        console.error("Failed to fetch conversations:", error);
-      }
-    };
-
     fetchConversations();
   }, []);
 
-  // Handle support category selection
-  const handleSupportCategory = (category: string) => {
-    console.log("Creating support chat for category:", category);
+  /*
+    Handle Support Category
+    Callback when user selects a support category
+  */
+  const handleSupportCategory = async (newConversation: any) => {
+    console.log("New support chat created:", newConversation);
+    await fetchConversations();
     setShowSupport(false);
   };
 
-  const handleChatPress = (chatId: number) => {
+  /*
+    Handle Chat Press
+    Navigate to the chat screen when a chat is pressed
+  */
+  const handleChatPress = (chatId: string) => {
     router.push(`/home/chat/${chatId}`);
   };
 
@@ -74,12 +113,6 @@ const Chat = () => {
         {conversations.length > 0 ? (
           <ScrollView showsVerticalScrollIndicator={false}>
             {conversations.map((chat) => {
-              // Validate chat type before passing to ChatThread
-              if (!isChatType(chat.type)) {
-                console.error(`Invalid chat type: ${chat.type}`);
-                return null;
-              }
-
               return (
                 <ChatThread
                   key={chat.id}

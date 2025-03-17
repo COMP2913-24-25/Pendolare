@@ -77,14 +77,11 @@ export default function Layout() {
             alignItems: "center",
             borderTopWidth: 0,
           },
-          headerShown: false, // Hide all headers by default
+          headerShown: false,
           tabBarItemStyle: {
             height: 25,
             paddingVertical: 10,
             marginHorizontal: 5,
-          },
-          contentStyle: {
-            backgroundColor: backgroundColor, // Consistent background color
           }
         }}
       >

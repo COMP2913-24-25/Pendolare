@@ -14,12 +14,14 @@ import {
 } from "react-native";
 import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
 import { Text } from "@/components/common/ThemedText";
-import { icons, demoChats } from "@/constants";
+import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
-import { messageService, ChatMessage } from "@/services/messageService";
+import { messageService, ChatMessage, getUserConversations } from "@/services/messageService";
 import { formatTimestamp } from "@/utils/formatTime";
 
-// Helper function to generate unique IDs
+/*
+  Helper function to generate unique message IDs internally for categorisation
+*/
 const generateUniqueId = () => {
   return `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 };
@@ -30,6 +32,7 @@ const generateUniqueId = () => {
 */
 const ChatDetail = () => {
   const { id } = useLocalSearchParams();
+  const [chat, setChat] = useState<any>(null);
   const [newMessage, setNewMessage] = useState("");
   const { isDarkMode } = useTheme();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -39,13 +42,47 @@ const ChatDetail = () => {
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const scrollViewRef = useRef<RNScrollView>(null);
   const inputRef = useRef<TextInput>(null);
+  const lastSentMessageRef = useRef<string>("");
 
-  const chat = demoChats.find((c: { id: number }) => c.id === Number(id));
+  /*
+    Fetch chat details on initial load
+  */
+  useEffect(() => {
+    async function fetchChat() {
+      try {
+        // Fetch conversation details from API
+        const response = await getUserConversations();
+        
+        // Normalise conversation data
+        // This is a simplified version of the response structure
+        const normalisedConversations = response.conversations.map((conv: any) => ({
+          ...conv,
+          type: conv.Type ? conv.Type.toLowerCase() : conv.type,
+          id: conv.id || conv.ConversationId,
+          title: conv.Name,
+          lastMessage: conv.lastMessage || "",
+          timestamp: new Date(conv.CreateDate).getTime()
+        }));
+        
+        // Find the selected conversation by ID
+        const selectedChat = normalisedConversations.find((c: any) => c.id === id);
+        setChat(selectedChat);
+      } catch (error) {
+        console.error("Error fetching conversation:", error);
+      }
+    }
+    fetchChat();
+  }, [id]);
 
   useEffect(() => {
-    // Set the conversation ID in the message service when the chat changes
     if (chat && messageService) {
-      messageService.setConversationId(`chat-${chat.id}`);
+      messageService.setConversationId(chat.id);
+      // Set user id from normalised conversation response
+      // User ID is typically stamped when passing through the gateway 
+      // However, non REST API calls bypass this and require manual setting
+      if (chat.UserId) {
+        messageService.setUserId(chat.UserId);
+      }
     }
 
     // Clear messages when switching chats
@@ -53,8 +90,11 @@ const ChatDetail = () => {
     setIsLoadingHistory(false);
   }, [chat?.id]);
 
+  /*
+    Set up WebSocket event listeners
+  */
   useEffect(() => {
-    // Set up WebSocket event listeners
+    // Handle connection events
     messageService.on("connected", () => {
       setIsConnected(true);
       setIsConnecting(false);
@@ -67,6 +107,7 @@ const ChatDetail = () => {
       }
     });
 
+    // Handle disconnection events
     messageService.on("disconnected", (reason) => {
       setIsConnected(false);
       setIsLoadingHistory(false);
@@ -75,59 +116,71 @@ const ChatDetail = () => {
       }
     });
 
+    // Handle connection error events
     messageService.on("error", (error) => {
       setConnectionError(`Connection error: ${error}`);
       setIsConnecting(false);
       setIsLoadingHistory(false);
     });
 
-    // New listener for history loaded event
+    // Handle message history loaded event
     messageService.on("historyLoaded", (historyMessages) => {
       console.log("History loaded:", historyMessages.length, "messages");
       setIsLoadingHistory(false);
 
-      // Process and add historical messages
-      if (historyMessages.length > 0) {
-        setMessages((prevMessages: any[]) => {
-          // Merge with any existing messages, avoiding duplicates by ID
-          const existingIds = new Set(prevMessages.map((m) => m.id));
-          const newMessages = historyMessages.filter(
-            (m) => m.id && !existingIds.has(m.id),
-          );
+      /*
+        Merge new messages with existing messages
+        Only add messages that are not already in the list
+      */
+      setMessages((prevMessages: any[]) => {
+        // Create a set of existing message IDs for comparison
+        const existingIds = new Set(prevMessages.map((m) => m.id));
 
-          // Sort all messages by timestamp
-          return [...prevMessages, ...newMessages].sort(
-            (a, b) =>
-              new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-          );
-        });
+        // Filter out messages that are not already in the list
+        const newMessages = historyMessages.filter(
+          (m) => m.id && !existingIds.has(m.id)
+        );
 
-        // Scroll to bottom after history is loaded
-        setTimeout(() => {
-          scrollViewRef.current?.scrollToEnd({ animated: false });
-        }, 100);
-      }
+        // Sort messages by timestamp
+        return [...prevMessages, ...newMessages].sort(
+          (a, b) =>
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        );
+      });
+
+      // Scroll to bottom after loading history
+      // Derived from: https://reactnative.dev/docs/scrollview
+      // Delay scroll to ensure messages are rendered
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: false });
+      }, 100);
+
     });
 
+    // Handle incoming messages
     messageService.on("message", (message) => {
-      // Update message status when echo is received to confirm delivery
-      if (message.isEcho) {
-        setMessages((prev: any[]) => {
-          const idx = prev.findIndex((m: { status: string; content: string | undefined; }) => m.status === "sending" && m.content === message.content);
-          if (idx !== -1) {
-            const newMessages = [...prev];
-            newMessages[idx] = { ...newMessages[idx], ...message, status: "sent" };
-            return newMessages;
-          }
-          return prev;
-        });
-      } else if (message.type === "welcome" && message.content) {
-        setMessages((prev: any) => [
-          ...prev,
-          { ...message, id: generateUniqueId(), sender: "system" },
-        ]);
-      } else if (message.type === "chat" && message.content) {
-        const sender = message.from === "12345" ? "user" : "other";
+      console.log(message)
+
+      // Handle user message sent event
+      if (message.type === "user_message_sent") {
+        if (!message.content && lastSentMessageRef.current) {
+          message.content = lastSentMessageRef.current;
+        }
+        // Add user message to list
+        setMessages((prev) => [...prev, { ...message, sender: "user", status: "sent" }]);
+        lastSentMessageRef.current = "";
+        return;
+      }
+      
+      // Handle incoming chat messages
+      if (message.type === "chat" && message.content) {
+        // Determine sender based on user ID 
+        const sender = message.from === chat?.UserId ? "user" : "other";
+        
+        /*
+          Update message status based on sender
+          If the message is from the user, update the status to "sent"
+        */
         setMessages((prev: any[]) => {
           if (sender === "user") {
             const idx = prev.findIndex((m: { status: string; content: string | undefined; }) => m.status === "sending" && m.content === message.content);
@@ -137,18 +190,25 @@ const ChatDetail = () => {
               return newMessages;
             }
           }
+
           // Add new message
           // If the message doesn't have an ID, generate one
+          // IDs are generated server-side so this is a local categorisation technique
           return [
             ...prev,
             {
               ...message,
-              id: message.id || generateUniqueId(),
+              id: message.id,
               sender,
               status: sender === "user" ? "delivered" : undefined,
             },
           ];
         });
+      } else if (message.type === "welcome" && message.content) {
+        setMessages((prev: any) => [
+          ...prev,
+          { ...message, id: generateUniqueId(), sender: "system" },
+        ]);
       }
       // Scroll to bottom
       setTimeout(() => {
@@ -170,28 +230,36 @@ const ChatDetail = () => {
     };
   }, [chat?.id]);
 
-  // Scroll to bottom when messages change
+  /*
+    Scroll to bottom when new messages are added
+  */
   useEffect(() => {
     if (messages.length > 0 && !isLoadingHistory) {
       scrollViewRef.current?.scrollToEnd({ animated: false });
     }
   }, [messages.length, isLoadingHistory]);
 
+  /*
+    Send a message to the chat
+  */  
   const sendMessage = () => {
     if (!newMessage.trim() || !isConnected) return;
 
+    // Store last sent message before sending removing unnecessary whitespace
+    lastSentMessageRef.current = newMessage.trim();
     const success = messageService.sendMessage(newMessage.trim());
-
     if (success) {
       setNewMessage("");
-
-      // Scroll to bottom
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
     }
   };
 
+  /*
+    MessageBubble
+    Component for rendering chat messages
+  */
   const MessageBubble = ({ message }: { message: ChatMessage }) => {
     const isUser = message.sender === "user";
     const isSystem = message.sender === "system";
@@ -252,105 +320,98 @@ const ChatDetail = () => {
     );
   };
 
-  if (!chat) {
-    return null;
-  }
-
   return (
+    /* 
+      Note: Styling and class names are derived from Tailwind CSS docs
+      https://tailwindcss.com/docs/
+      Additional design elements have been generated using Figma -> React Native (Tailwind)
+      https://www.figma.com/community/plugin/821138713091291738/figma-react-native
+      https://www.figma.com/community/plugin/1283055580669946018/tailwind-react-code-generator-by-pagesloft
+    */
+
+    // KeyboardAvoidingView derived from: https://reactnative.dev/docs/keyboardavoidingview
     <ThemedSafeAreaView
       className={isDarkMode ? "flex-1 bg-slate-900" : "flex-1 bg-white"}
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={80}
         className="flex-1"
       >
-        <View
-          className={`flex-row items-center p-4 border-b ${isDarkMode ? "border-slate-700" : "border-gray-200"}`}
-        >
-          <TouchableOpacity onPress={() => router.back()} className="mr-4">
-            <FontAwesome5
-              name={icons.backArrow}
-              size={24}
-              color={isDarkMode ? "#FFF" : "#000"}
-            />
-          </TouchableOpacity>
-          <View className="flex-row items-center flex-1">
-            <View
-              className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${
-                isDarkMode ? "bg-slate-700" : "bg-gray-100"
-              }`}
-            >
-              <FontAwesome5
-                name={chat.type === "support" ? icons.chat : icons.person}
-                size={20}
-                color="#2563EB"
-              />
-            </View>
-            <Text className="font-JakartaBold text-lg">{chat.title}</Text>
+        { !chat ? (
+          <View className="flex-1 items-center justify-center">
+            <Text>Loading...</Text>
           </View>
+        ) : (
+          <>
+            {/* Header */}
+            <View className={`flex-row items-center p-4 border-b ${isDarkMode ? "border-slate-700" : "border-gray-200"}`}>
+              <TouchableOpacity onPress={() => router.back()} className="mr-4">
+                <FontAwesome5 name={icons.backArrow} size={24} color={isDarkMode ? "#FFF" : "#000"} />
+              </TouchableOpacity>
+              <View className="flex-row items-center flex-1">
+                <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${isDarkMode ? "bg-slate-700" : "bg-gray-100"}`}>
+                  <FontAwesome5 name={chat.type === "support" ? icons.chat : icons.person} size={20} color="#2563EB" />
+                </View>
+                <Text className="font-JakartaBold text-lg">{chat.title}</Text>
+              </View>
 
-          {/* Connection status indicator */}
-          <View className="flex-row items-center">
-            {isConnecting ? (
-              <ActivityIndicator size="small" color="#2563EB" />
-            ) : isConnected ? (
-              <View className="w-3 h-3 rounded-full bg-green-500 mr-1"></View>
-            ) : (
-              <View className="w-3 h-3 rounded-full bg-red-500 mr-1"></View>
+              {/* Connection status indicator */}
+              <View className="flex-row items-center">
+                {isConnecting ? (
+                  <ActivityIndicator size="small" color="#2563EB" />
+                ) : isConnected ? (
+                  <View className="w-3 h-3 rounded-full bg-green-500 mr-1"></View>
+                ) : (
+                  <View className="w-3 h-3 rounded-full bg-red-500 mr-1"></View>
+                )}
+              </View>
+            </View>
+      
+            {connectionError && (
+              <View className="bg-red-500 p-2">
+                <Text className="text-white text-center">{connectionError}</Text>
+              </View>
             )}
-          </View>
-        </View>
+      
+            <RNScrollView ref={scrollViewRef} className="flex-1 px-4" contentContainerStyle={{ paddingVertical: 20 }}>
 
-        {connectionError && (
-          <View className="bg-red-500 p-2">
-            <Text className="text-white text-center">{connectionError}</Text>
-          </View>
-        )}
-
-        <RNScrollView
-          ref={scrollViewRef}
-          className="flex-1 px-4"
-          contentContainerStyle={{ paddingVertical: 20 }}
-        >
-          {/* History loading indicator */}
-          {isLoadingHistory && (
-            <View className="flex-row justify-center mb-4">
-              <ActivityIndicator size="small" color="#2563EB" />
-              <Text className="ml-2 text-gray-500">
-                Loading message history...
-              </Text>
+              {/* History loading indicator */}
+              {isLoadingHistory && (
+                <View className="flex-row justify-center mb-4">
+                  <ActivityIndicator size="small" color="#2563EB" />
+                  <Text className="ml-2 text-gray-500">Loading message history...</Text>
+                </View>
+              )}
+      
+              {messages.map((message: ChatMessage, index: any) => (
+                <MessageBubble key={message.id || `msg-${index}-${message.timestamp}`} message={message} />
+              ))}
+            </RNScrollView>
+      
+            {/* Message Input */}
+            <View className="p-4 border-t border-gray-200 flex-row items-center">
+              <TextInput
+                ref={inputRef}
+                className={`flex-1 px-4 py-2 mr-2 rounded-full ${isDarkMode ? "bg-slate-700 text-white" : "bg-gray-100 text-black"}`}
+                placeholder="Type a message..."
+                placeholderTextColor={isDarkMode ? "#9CA3AF" : "#6B7280"}
+                value={newMessage}
+                onChangeText={setNewMessage}
+                multiline
+              />
+              <TouchableOpacity
+                className={`w-10 h-10 rounded-full items-center justify-center ${
+                  !newMessage.trim() || !isConnected ? "bg-blue-300" : "bg-blue-600"
+                }`}
+                disabled={!newMessage.trim() || !isConnected}
+                onPress={sendMessage}
+              >
+                <FontAwesome5 name="paper-plane" size={18} color="#FFF" />
+              </TouchableOpacity>
             </View>
-          )}
-
-          {messages.map((message: ChatMessage, index: any) => (
-            <MessageBubble
-              key={message.id || `msg-${index}-${message.timestamp}`}
-              message={message}
-            />
-          ))}
-        </RNScrollView>
-
-        <View className="p-4 border-t border-gray-200 flex-row items-center">
-          <TextInput
-            ref={inputRef}
-            className={`flex-1 px-4 py-2 mr-2 rounded-full ${
-              isDarkMode ? "bg-slate-700 text-white" : "bg-gray-100 text-black"
-            }`}
-            placeholder="Type a message..."
-            placeholderTextColor={isDarkMode ? "#9CA3AF" : "#6B7280"}
-            value={newMessage}
-            multiline
-          />
-          <TouchableOpacity
-            className={`w-10 h-10 rounded-full items-center justify-center ${
-              !newMessage.trim() || !isConnected ? "bg-blue-300" : "bg-blue-600"
-            }`}
-            disabled={!newMessage.trim() || !isConnected}
-            onPress={sendMessage}
-          >
-            <FontAwesome5 name="paper-plane" size={18} color="#FFF" />
-          </TouchableOpacity>
-        </View>
+          </>
+        )}
       </KeyboardAvoidingView>
     </ThemedSafeAreaView>
   );

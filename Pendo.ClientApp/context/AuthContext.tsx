@@ -34,7 +34,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const segments = useSegments();
   const navigationState = useRootNavigationState();
 
-  // Check auth status on app load
+  /*
+    Check auth status on app start
+  */
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
@@ -53,6 +55,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [navigationState?.key]);
 
+  /*
+    Redirect based on auth status
+  */
   useEffect(() => {
     if (loading || !navigationState?.key) return;
 
@@ -64,10 +69,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("Redirecting to auth");
       router.replace("/auth/sign-in");
     } else if (isLoggedIn && inAuthGroup && !isOnboarding) {
-      // If user is logged in and in auth group but NOT in onboarding,
-      // we need to check if they should see onboarding first
+      // If user is logged in and in auth group
+      // but not their first time, redirect to home
       
-      // For now, always show onboarding after login
+      // For testing purposes, always redirect to onboarding
       if (segments.length > 1 && segments[1] === "sign-in") {
         console.log("Redirecting to onboarding");
         router.replace("/auth/onboarding");
@@ -75,7 +80,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isLoggedIn, loading, segments, navigationState?.key]);
 
-  // Logout user
+  /*
+    Logout the user
+  */
   const logout = async () => {
     await logoutService();
     setIsLoggedIn(false);

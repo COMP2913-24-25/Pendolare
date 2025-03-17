@@ -5,8 +5,6 @@ import { apiRequest } from "./apiClient";
 import { MESSAGE_ENDPOINTS } from "@/constants";
 
 const WS_URL = MESSAGE_API_BASE_URL;
-const DEFAULT_USER_ID = "12345";
-const DEFAULT_CONVERSATION_ID = "12345";
 
 export interface ChatMessage {
   id?: string;
@@ -32,6 +30,7 @@ interface ConversationResponse {
   CreateDate: string;
   UpdateDate: string;
   Name: string;
+  UserId: string;
 }
 
 interface GetUserConversationsResponse {
@@ -64,11 +63,15 @@ interface MessageServiceEvents {
   historyLoaded: (messages: ChatMessage[]) => void;
 }
 
+/*
+  Message Service
+  WebSocket client for chat messages
+*/
 class MessageService {
   private ws: WebSocket | null = null;
   private isConnected = false;
-  private userId: string = DEFAULT_USER_ID;
-  private conversationId: string = DEFAULT_CONVERSATION_ID;
+  private userId: string = "";
+  private conversationId: string = "";
   private listeners: Partial<MessageServiceEvents> = {};
   private historyRequested: boolean = false;
 
@@ -91,7 +94,7 @@ class MessageService {
       this.ws = new WebSocket(WS_URL);
 
       this.ws.onopen = () => {
-        console.log("WebSocket connection established");
+        console.log("Successfully connected");
         this.isConnected = true;
 
         // Send registration message to register client with userId
@@ -114,6 +117,10 @@ class MessageService {
         this.historyRequested = false;
       };
 
+      /*
+        Handle incoming messages
+        Parse JSON messages and handle them accordingly
+      */
       this.ws.onmessage = (event) => {
         let dataStr = event.data;
         let isEcho = false;
@@ -124,22 +131,31 @@ class MessageService {
         let message: ChatMessage | any;
         try {
           message = JSON.parse(dataStr);
-          // Attach echo flag if detected
           if (isEcho) {
             message.isEcho = true;
           }
 
-          // Handle history response
+          // Handle history response messages
           if (
             message.type === "history_response" &&
             Array.isArray(message.messages)
           ) {
-            console.log("Received message history:", message.messages);
-            const normalisedMessages = message.messages.map((msg: any) => ({
-              ...msg,
-              sender: msg.from === this.userId ? "user" : "other",
-              status: msg.from === this.userId ? "delivered" : undefined,
-            }));
+            console.log(`Successfully loaded ${message.messages.length} messages from history`);
+            const normalisedMessages = message.messages.map((msg: any) => {
+              // Normalize API response fields to expected keys
+              const content = msg.Content || msg.content;
+              const timestamp = msg.CreateDate ? new Date(msg.CreateDate).toISOString() : (msg.timestamp || new Date().toISOString());
+              const id = msg.MessageId || msg.id;
+              const senderId = msg.SenderId || msg.from;
+              return {
+                ...msg,
+                content,
+                timestamp,
+                id,
+                sender: senderId === this.userId ? "user" : "other",
+                status: senderId === this.userId ? "delivered" : undefined,
+              };
+            });
             if (this.listeners.historyLoaded) {
               this.listeners.historyLoaded(normalisedMessages);
             }
@@ -202,7 +218,10 @@ class MessageService {
     }
   }
 
-  // Join the conversation
+  /*
+    Join Conversation
+    Send a message to join the current conversation
+  */
   private joinConversation() {
     if (!this.isConnected || !this.ws) {
       console.error("Cannot join conversation: WebSocket not connected");
@@ -224,6 +243,10 @@ class MessageService {
     }
   }
 
+  /*
+    Request Message History
+    Request message history for the current conversation
+  */
   requestMessageHistory(sinceTimestamp?: string): boolean {
     if (!this.isConnected || !this.ws) {
       console.error("Cannot request history: WebSocket not connected");
@@ -250,7 +273,10 @@ class MessageService {
     }
   }
 
-  // Send a message to the conversation
+  /*
+    Send Message
+    Send a chat message to the current conversation
+  */
   sendMessage(content: string): boolean {
     if (!this.isConnected || !this.ws) {
       console.error("Cannot send message: WebSocket not connected");

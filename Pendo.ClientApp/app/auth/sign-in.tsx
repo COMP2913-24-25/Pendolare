@@ -35,6 +35,9 @@ const SignIn = () => {
   const { setIsLoggedIn } = useAuth();
   const { isDarkMode } = useTheme();
 
+  /*
+    Countdown timer for resending verification code
+  */
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (countdown > 0) {
@@ -43,7 +46,9 @@ const SignIn = () => {
     return () => clearInterval(timer);
   }, [countdown]);
 
-  // Send verification code to the user's email
+  /*
+    Send verification code to user's email
+  */
   const sendVerificationCode = async () => {
     if (!email) {
       Alert.alert("Error", "Please enter your email");
@@ -78,11 +83,18 @@ const SignIn = () => {
     }
   };
 
+  /*
+    Handle sign in button press
+    Send verification code to the user's email
+  */
   const onSignInPress = async () => {
     await sendVerificationCode();
   };
 
-  // Verify the OTP code entered by the user
+  /*
+    Handle OTP verification
+    Redirect to onboarding if successful
+  */
   const handleVerifyOTP = async () => {
     if (verification.code.length !== 6) {
       setVerification({
