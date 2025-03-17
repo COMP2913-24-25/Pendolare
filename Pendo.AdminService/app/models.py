@@ -1,6 +1,6 @@
 from typing import List
 
-from sqlalchemy import Boolean, CHAR, Column, DECIMAL, Float, ForeignKeyConstraint, Identity, Index, Integer, PrimaryKeyConstraint, Unicode, Uuid, text
+from sqlalchemy import Boolean, CHAR, Column, DECIMAL, Float, ForeignKeyConstraint, Identity, Index, Integer, PrimaryKeyConstraint, Unicode, Uuid, CheckConstraint, text
 from sqlalchemy.dialects.mssql import DATETIME2
 from sqlalchemy.orm import Mapped, declarative_base, mapped_column, relationship
 from sqlalchemy.orm.base import Mapped
@@ -241,3 +241,15 @@ class BookingAmmendment(Base):
     StartTime = mapped_column(DATETIME2)
 
     Booking_: Mapped['Booking'] = relationship('Booking', back_populates='BookingAmmendment')
+
+class Discounts(Base):
+    __tablename__ = 'Discounts'
+    __table_args__ = (
+        {'schema': 'payment'},
+        
+    )
+    __table_args__ = {'schema': 'payment'}
+    DiscountID: Mapped[Uuid] = mapped_column(Uuid, primary_key=True, server_default=text('(newsequentialid())'))
+    WeeklyJourneys: Mapped[int] = mapped_column(Integer, nullable=False)
+    DiscountPercentage: Mapped[float] = mapped_column(Float, nullable=False)
+    CreateDate: Mapped[DATETIME2] = mapped_column(DATETIME2, nullable=False, server_default=text('(getutcdate())'))
