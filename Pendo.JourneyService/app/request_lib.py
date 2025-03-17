@@ -7,7 +7,6 @@ class GetJourneysRequest(BaseModel):
     BootHeight: Optional[float] = 0
     BootWidth: Optional[float] = 0
     StartDate: Optional[datetime.datetime] = None
-    #JourneyTime: Optional[datetime.datetime] = None
     JourneyType: Optional[int] = 0
     MaxPrice: Optional[float] = 0
     NumPassengers: Optional[int] = 0

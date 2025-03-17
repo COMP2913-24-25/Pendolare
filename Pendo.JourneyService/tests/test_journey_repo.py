@@ -10,6 +10,10 @@ def mock_db():
     return MagicMock()
 
 @pytest.fixture
+def mock_logger():
+    return logging.getLogger("test_logger")
+
+@pytest.fixture
 def mock_response():
     class DummyResponse:
         def __init__(self):
