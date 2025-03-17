@@ -139,3 +139,17 @@ WHEN MATCHED AND target.[Value] <> source.[Value] THEN
     UPDATE SET target.[Value] = source.[Value];
 
 GO
+
+-- As requested for Josh for admin support request messsage user
+DECLARE @AdminId UNIQUEIDENTIFIER = '00000000-0000-0000-0000-000000000000'
+
+INSERT INTO [identity].[User]
+(
+    UserId,
+    Email,
+    FirstName,
+    LastName,
+    UserTypeId
+)
+VALUES
+( @AdminId, 'Pendalore.Admin.Support@clsolutions.dev', 'Support', 'Admin', 1)

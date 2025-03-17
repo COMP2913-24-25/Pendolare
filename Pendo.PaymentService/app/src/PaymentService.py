@@ -4,14 +4,22 @@
 # Created: 12/02/2025
 #
 
+# univeral libaries
 from fastapi import FastAPI, HTTPException, Depends, Request
 import logging, sys, stripe
+
+# endpoint commands
 from .endpoints.ViewBalanceCmd import ViewBalanceCommand
 from .endpoints.PendingBookingCmd import PendingBookingCommand
 from .endpoints.PaymentMethodsCmd import PaymentMethodsCommand
 from .endpoints.PaymentSheetCmd import PaymentSheetCommand
+from .endpoints.StripeWebhookCmd import StripeWebhookCommand
+
+# database handling
 from .db.PendoDatabase import UserBalance
-from .db.PendoDatabaseProvider import get_db, Session, text, configProvider, environment
+from .db.PendoDatabaseProvider import get_db, Session, text, environment
+
+# requests and returns
 from .requests.PaymentRequests import GetwithUUID, MakePendingBooking, PaymentSheetRequest, RefundPaymentRequest
 from .returns.PaymentReturns import ViewBalanceResponse, StatusResponse, PaymentMethodResponse, PaymentSheetResponse
 
@@ -71,11 +79,23 @@ def PaymentMethods(request: GetwithUUID, db: Session = Depends(get_db)) -> Payme
         return response
 
 @app.post("/StripeWebhook", tags=["Stripe"])
-def StripeWebhook(request: Request) -> StatusResponse:
+async def StripeWebhook(request: Request) -> StatusResponse:
 
     # update user balance
 
-    return StatusResponse(Status="success")
+    requestBody = await request.json()
+    customer = requestBody["object"]["customer"]
+    amount = requestBody['object']['amount']
+
+    if (customer == None) or (amount == None):
+        raise HTTPException(400, detail="Customer or ammount cannnot be parsed from the request")
+    
+    response = StripeWebhookCommand(logging.getLogger("StripeWebhook"), customer, amount).Execute()
+
+    if response.Status != "success":
+        raise HTTPException(400, detail=response.Error)
+    else:
+        return response
 
 
 @app.post("/PendingBooking", tags=["At Booking time"])
