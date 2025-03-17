@@ -1,15 +1,16 @@
 -- Test Data Setup Script
 
 DELETE FROM [booking].[BookingAmmendment]
+DELETE FROM [payment].[UserBalance]
 DELETE FROM [booking].[Booking]
 DELETE FROM [journey].[Journey]
 DELETE FROM [identity].[OtpLogin]
 DELETE FROM [identity].[User]
 DELETE FROM [payment].[Transaction]
-DELETE FROM [payment].[UserBalance]
 
-DECLARE @PassengerId UNIQUEIDENTIFIER = '11856ed2-e4b2-41a3-aae7-de4966800e95'
-DECLARE @DriverId UNIQUEIDENTIFIER = '5800a98a-066b-45a3-8e64-a42b8a6d831a'
+DECLARE @PassengerId UNIQUEIDENTIFIER = '11856ed2-e4b2-1111-aae7-de4966800e95'
+DECLARE @DriverId UNIQUEIDENTIFIER = '5800a98a-066b-1111-8e64-a42b8a6d831a'
+DECLARE @WeirdId UNIQUEIDENTIFIER = '00000000-0000-1111-1111-000000000000'
 
 INSERT INTO [identity].[User]
 (
@@ -21,7 +22,8 @@ INSERT INTO [identity].[User]
 )
 VALUES
 ( @PassengerId, 'jameskinley24+passenger@gmail.com', 'James', 'Test', 1),
-( @DriverId, 'jameskinley24+driver@gmail.com', 'Senor', 'Test', 1)
+( @DriverId, 'jameskinley24+driver@gmail.com', 'Senor', 'Test', 1),
+( @WeirdId, 'driver@gmail.com', 'Test', 'NoSheet', 1)
 
 
 INSERT INTO [payment].[UserBalance]

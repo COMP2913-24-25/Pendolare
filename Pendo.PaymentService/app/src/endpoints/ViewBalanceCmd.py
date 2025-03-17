@@ -1,4 +1,5 @@
 from ..db.PaymentRepository import PaymentRepository
+from ..db.PendoDatabase import UserBalance
 from ..returns.PaymentReturns import ViewBalanceResponse, StatusResponse
 
 class ViewBalanceCommand:
@@ -29,9 +30,9 @@ class ViewBalanceCommand:
             
             userBalance = self.PaymentRepository.GetUserBalance(self.UserId)
             if userBalance is None:
-                raise Exception("Balance sheet not found")
-                # self.logger.info("Got balance sheet", userBalance)
-                # self.logger.info("non-pending", userBalance.NonPending, "pending", userBalance.Pending)
+                newBalanceSheet = UserBalance(UserId = self.UserId)
+                self.PaymentRepository.CreateUserBalance(newBalanceSheet)
+                userBalance = self.PaymentRepository.GetUserBalance(self.UserId)
 
             return ViewBalanceResponse(Status="success", NonPending=userBalance.NonPending, Pending=userBalance.Pending)
 
