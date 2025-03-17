@@ -3,8 +3,9 @@ description: "Build database project"
 
 on:
   pull_request:
-    paths:
-      - 'Pendo.Database/**'
+    branches: [ main, dev ]
+    #paths:
+    #  - 'Pendo.Database/**'
   workflow_dispatch:
 
 permissions:
