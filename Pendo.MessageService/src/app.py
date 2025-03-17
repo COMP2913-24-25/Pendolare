@@ -11,6 +11,7 @@ from src.message_handler import MessageHandler
 from src.db.MessageRepository import MessageRepository
 from aiohttp import web
 from aiohttp_cors import setup as cors_setup, ResourceOptions
+import uuid
 
 
 """
@@ -143,7 +144,24 @@ async def create_conversation_handler(request):
 
     participants.append(user_id)
     
+
+    user_id = data.get("UserId")
+    if not user_id:
+        return web.json_response({"error": "userid must be passed"}, status=400)
+    
+    participants.append(user_id)
+    
+    # Ensure participants are UUIDs
+    try:
+        participants = [uuid.UUID(p) if not isinstance(p, uuid.UUID) else p for p in participants]
+    except ValueError:
+        return web.json_response({"error": "Invalid UUID in participants list"}, status=400)
+    
     name = data.get("name")
+
+    print(participants)
+    print(name)
+    print("ELLO")
     
     # Create conversation with participants
     try:
