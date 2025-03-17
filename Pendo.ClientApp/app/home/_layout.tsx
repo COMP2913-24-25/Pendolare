@@ -1,5 +1,10 @@
 import { Stack } from "expo-router";
 
+/*
+  Home Layout
+  Layout for the home screens
+  Contains the tabs and chat screens
+*/
 export default function HomeLayout() {
   return (
     <Stack

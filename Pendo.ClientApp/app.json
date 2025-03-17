@@ -7,7 +7,13 @@
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "This app uses your location to display it on the map and provide navigation services."
+      }
+    },
+    "android": {
+      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
     },
     "web": {
       "bundler": "metro",
@@ -16,7 +22,13 @@
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Pendolare to use your location for accurate map navigation."
+        }
+      ]
     ],
     "extra": {
       "eas": {
@@ -24,7 +36,8 @@
       },
       "router": {
         "origin": false
-      }
+      },
+      "customDomain": "https://client-app.clsolutions.dev"
     },
     "experiments": {
       "typedRoutes": true

@@ -1,13 +1,14 @@
 // Full Message Service Client in TypeScript
 
 import { MESSAGE_API_BASE_URL } from "@/constants";
+import { apiRequest } from "./apiClient";
+import { MESSAGE_ENDPOINTS } from "@/constants";
 
 const WS_URL = MESSAGE_API_BASE_URL;
 const DEFAULT_USER_ID = "12345";
 const DEFAULT_CONVERSATION_ID = "12345";
 
 export interface ChatMessage {
-  isEcho: any;
   id?: string;
   type: string;
   from?: string;
@@ -17,6 +18,40 @@ export interface ChatMessage {
   timestamp: string;
   sender?: string;
   status?: "sending" | "sent" | "delivered";
+}
+
+interface CreateConversationRequest {
+  UserId: string;
+  ConversationType: string;
+  name: string;
+  participants: string[];
+}
+
+interface ConversationResponse {
+  ConversationId: string;
+  Type: string;
+  CreateDate: string;
+  UpdateDate: string;
+  Name: string;
+}
+
+interface GetUserConversationsResponse {
+  conversations: ConversationResponse[];
+}
+
+export async function createConversation(
+  request: CreateConversationRequest,
+): Promise<ConversationResponse> {
+  return apiRequest<ConversationResponse>(MESSAGE_ENDPOINTS.CREATE_CONVERSATION, {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
+export async function getUserConversations(): Promise<GetUserConversationsResponse> {
+  return apiRequest<GetUserConversationsResponse>(MESSAGE_ENDPOINTS.GET_USER_CONVERSATIONS, {
+    method: "GET",
+  });
 }
 
 // Event handling for message service

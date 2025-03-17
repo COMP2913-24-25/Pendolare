@@ -24,6 +24,10 @@ const generateUniqueId = () => {
   return `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 };
 
+/*
+  ChatDetail
+  Screen for viewing and sending messages in a chat
+*/
 const ChatDetail = () => {
   const { id } = useLocalSearchParams();
   const [newMessage, setNewMessage] = useState("");

@@ -8,6 +8,10 @@ import { Text } from "@/components/common/ThemedText";
 import { dummyRides } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 
+/*
+  Book
+  Screen for booking journeys
+*/
 const Book = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showRides, setShowRides] = useState(false);

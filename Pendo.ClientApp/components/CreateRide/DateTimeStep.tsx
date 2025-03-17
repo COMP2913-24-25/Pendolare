@@ -4,6 +4,22 @@ import { useState } from "react";
 import { View, TouchableOpacity, ScrollView } from "react-native";
 import { Text } from "@/components/common/ThemedText";
 
+
+const frequencies = [
+  { label: "Weekly", value: "weekly" },
+  { label: "Fortnightly", value: "fortnightly" },
+  { label: "Monthly", value: "monthly" },
+];
+
+const weekDays = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
 interface DateTimeStepProps {
   isDarkMode: boolean;
   isCommuter: boolean;
@@ -22,6 +38,10 @@ interface DateTimeStepProps {
   setEndDate: (date: Date) => void;
 }
 
+/*
+  DateTimeStep
+  Step for selecting date and time
+*/
 const DateTimeStep = ({
   isDarkMode,
   isCommuter,
@@ -45,22 +65,6 @@ const DateTimeStep = ({
   const [activeDatePicker, setActiveDatePicker] = useState<
     "time" | "start" | "end" | null
   >(null);
-
-  const frequencies = [
-    { label: "Weekly", value: "weekly" },
-    { label: "Fortnightly", value: "fortnightly" },
-    { label: "Monthly", value: "monthly" },
-  ];
-
-  const weekDays = [
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-    "Sunday",
-  ];
 
   const handleDatePickerShow = (type: "time" | "start" | "end") => {
     setActiveDatePicker(type);
@@ -98,14 +102,12 @@ const DateTimeStep = ({
         <Text className="mr-2">Commuter Journey</Text>
         <TouchableOpacity
           onPress={() => setIsCommuter(!isCommuter)}
-          className={`w-12 h-6 rounded-full ${
-            isCommuter ? "bg-blue-600" : "bg-gray-300"
-          } justify-center`}
+          className={`w-12 h-6 rounded-full ${isCommuter ? "bg-blue-600" : "bg-gray-300"
+            } justify-center`}
         >
           <View
-            className={`w-5 h-5 bg-white rounded-full ${
-              isCommuter ? "ml-6" : "ml-1"
-            }`}
+            className={`w-5 h-5 bg-white rounded-full ${isCommuter ? "ml-6" : "ml-1"
+              }`}
           />
         </TouchableOpacity>
       </View>
@@ -114,23 +116,20 @@ const DateTimeStep = ({
         <View className="mb-4">
           <Text className="mb-2">Frequency</Text>
           <View
-            className={`border rounded-lg mb-4 ${
-              isDarkMode ? "border-slate-600" : "border-slate-200"
-            }`}
+            className={`border rounded-lg mb-4 ${isDarkMode ? "border-slate-600" : "border-slate-200"
+              }`}
           >
             {frequencies.map((item) => (
               <TouchableOpacity
                 key={item.value}
                 onPress={() => setFrequency(item.value)}
-                className={`p-3 flex-row justify-between items-center border-b ${
-                  isDarkMode ? "border-slate-600" : "border-slate-200"
-                } ${
-                  frequency === item.value
+                className={`p-3 flex-row justify-between items-center border-b ${isDarkMode ? "border-slate-600" : "border-slate-200"
+                  } ${frequency === item.value
                     ? isDarkMode
                       ? "bg-slate-700"
                       : "bg-blue-50"
                     : ""
-                }`}
+                  }`}
               >
                 <Text>{item.label}</Text>
                 {frequency === item.value && (
@@ -147,11 +146,10 @@ const DateTimeStep = ({
           <Text className="mb-2">Start Date</Text>
           <TouchableOpacity
             onPress={() => handleDatePickerShow("start")}
-            className={`h-[45px] border rounded-lg px-3 justify-center mb-4 ${
-              isDarkMode
+            className={`h-[45px] border rounded-lg px-3 justify-center mb-4 ${isDarkMode
                 ? "bg-slate-700 border-slate-600"
                 : "bg-white border-slate-200"
-            }`}
+              }`}
           >
             <Text>
               {startDate.toLocaleDateString()}
@@ -161,11 +159,10 @@ const DateTimeStep = ({
           <Text className="mb-2">End Date</Text>
           <TouchableOpacity
             onPress={() => handleDatePickerShow("end")}
-            className={`h-[45px] border rounded-lg px-3 justify-center mb-4 ${
-              isDarkMode
+            className={`h-[45px] border rounded-lg px-3 justify-center mb-4 ${isDarkMode
                 ? "bg-slate-700 border-slate-600"
                 : "bg-white border-slate-200"
-            }`}
+              }`}
           >
             <Text>
               {endDate.toLocaleDateString()}
@@ -175,11 +172,10 @@ const DateTimeStep = ({
           <Text className="mb-2">Time</Text>
           <TouchableOpacity
             onPress={() => handleDatePickerShow("time")}
-            className={`h-[45px] border rounded-lg px-3 justify-center mb-4 ${
-              isDarkMode
+            className={`h-[45px] border rounded-lg px-3 justify-center mb-4 ${isDarkMode
                 ? "bg-slate-700 border-slate-600"
                 : "bg-white border-slate-200"
-            }`}
+              }`}
           >
             <Text>
               {date.toLocaleTimeString()}
@@ -197,18 +193,16 @@ const DateTimeStep = ({
                     : [...selectedDays, day],
                 );
               }}
-              className={`flex-row items-center p-2 border-b ${
-                isDarkMode ? "border-slate-700" : "border-slate-200"
-              }`}
+              className={`flex-row items-center p-2 border-b ${isDarkMode ? "border-slate-700" : "border-slate-200"
+                }`}
             >
               <View
-                className={`w-5 h-5 border rounded mr-2 ${
-                  selectedDays.includes(day)
+                className={`w-5 h-5 border rounded mr-2 ${selectedDays.includes(day)
                     ? "bg-blue-600 border-blue-600"
                     : isDarkMode
                       ? "border-slate-600"
                       : "border-slate-300"
-                }`}
+                  }`}
               >
                 {selectedDays.includes(day) && (
                   <FontAwesome5
@@ -226,11 +220,10 @@ const DateTimeStep = ({
       ) : (
         <TouchableOpacity
           onPress={() => setShowDatePicker(true)}
-          className={`h-[45px] border rounded-lg px-3 justify-center ${
-            isDarkMode
+          className={`h-[45px] border rounded-lg px-3 justify-center ${isDarkMode
               ? "bg-slate-700 border-slate-600"
               : "bg-white border-slate-200"
-          }`}
+            }`}
         >
           <Text>
             {date.toLocaleString()}

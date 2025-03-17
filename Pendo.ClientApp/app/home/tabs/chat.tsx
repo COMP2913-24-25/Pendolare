@@ -1,6 +1,6 @@
 import { FontAwesome5 } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ScrollView, View, TouchableOpacity } from "react-native";
 
 import ChatThread from "@/components/ChatThread";
@@ -9,15 +9,34 @@ import { Text } from "@/components/common/ThemedText";
 import { icons, demoChats } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
+import { getUserConversations } from "@/services/messageService";
 
 // Type validation helper
 const isChatType = (type: string): type is "support" | "driver" => {
   return type === "support" || type === "driver";
 };
 
+/*
+  Chat
+  Screen for user chats
+*/
 const Chat = () => {
   const { isDarkMode } = useTheme();
   const [showSupport, setShowSupport] = useState(false);
+  const [conversations, setConversations] = useState(demoChats);
+
+  useEffect(() => {
+    const fetchConversations = async () => {
+      try {
+        const response = await getUserConversations();
+        setConversations(response.conversations);
+      } catch (error) {
+        console.error("Failed to fetch conversations:", error);
+      }
+    };
+
+    fetchConversations();
+  }, []);
 
   // Handle support category selection
   const handleSupportCategory = (category: string) => {
@@ -52,9 +71,9 @@ const Chat = () => {
         </View>
 
         {/* Chat List or Empty State */}
-        {demoChats.length > 0 ? (
+        {conversations.length > 0 ? (
           <ScrollView showsVerticalScrollIndicator={false}>
-            {demoChats.map((chat) => {
+            {conversations.map((chat) => {
               // Validate chat type before passing to ChatThread
               if (!isChatType(chat.type)) {
                 console.error(`Invalid chat type: ${chat.type}`);

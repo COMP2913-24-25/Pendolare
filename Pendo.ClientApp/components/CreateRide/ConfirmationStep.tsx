@@ -21,9 +21,10 @@ interface ConfirmationStepProps {
   date: Date;
 }
 
-{
-  /* Confirmation Step Page */
-}
+/*
+  ConfirmationStep
+  Step for confirming ride details
+*/
 const ConfirmationStep = ({
   isDarkMode,
   pickup,

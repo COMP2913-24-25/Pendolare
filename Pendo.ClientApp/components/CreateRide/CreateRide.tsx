@@ -24,7 +24,10 @@ interface CreateRideProps {
   onClose: () => void;
 }
 
-/* Ride Creation Page */
+/*
+  CreateRide
+  Screen for creating a new ride
+*/
 const CreateRide = ({ onClose }: CreateRideProps) => {
   const { isDarkMode } = useTheme();
   const [step, setStep] = useState(1);

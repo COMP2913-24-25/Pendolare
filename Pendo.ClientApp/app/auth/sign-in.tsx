@@ -20,7 +20,7 @@ import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
 
 /*
   SignIn
-  Sign in screen for the app
+  Screen for signing in users
 */
 const SignIn = () => {
   const [email, setEmail] = useState("");
@@ -94,11 +94,12 @@ const SignIn = () => {
 
     try {
       setLoading(true);
-      const response = await verifyOTP(email, verification.code);
+      const response = await verifyOTP(verification.code);
 
       if (response.authenticated) {
         setIsLoggedIn(true);
-        router.replace("/home/tabs/home");
+        // Redirect to onboarding instead of home
+        router.replace("/auth/onboarding");
       } else {
         setVerification({
           ...verification,
@@ -151,14 +152,6 @@ const SignIn = () => {
               disabled={loading}
               className="mt-6"
             />
-
-            {/* Sign Up Link */}
-            <View className="mt-6 flex-row justify-center">
-              <Text className="font-Jakarta">Don't have an account? </Text>
-              <TouchableOpacity onPress={() => router.replace("/auth/sign-up")}>
-                <Text className="text-blue-500 font-JakartaMedium">Sign Up</Text>
-              </TouchableOpacity>
-            </View>
           </View>
 
           {/* OTP Verification Modal */}

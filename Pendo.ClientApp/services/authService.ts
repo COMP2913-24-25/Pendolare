@@ -54,29 +54,44 @@ export async function requestOTP(emailAddress: string): Promise<OTPResponse> {
   Verify the OTP for the given email address
   Returns a JWT token if successful, or an error message if verification fails
 */
-export async function verifyOTP(
-  email: string,
-  otp: string,
-): Promise<VerifyOTPResponse> {
+export async function verifyOTP(otp: string): Promise<VerifyOTPResponse> {
   try {
-    const data = await apiRequest<VerifyOTPResponse>(
-      AUTH_ENDPOINTS.VERIFY_OTP,
-      {
-        method: "POST",
-        body: JSON.stringify({ emailAddress: email, otp: otp }),
-      },
-    );
+    const emailAddress = await SecureStore.getItemAsync(USER_EMAIL_KEY);
+    
+    if (!emailAddress) {
+      return {
+        jwt: "",
+        isNewUser: false,
+        authenticated: false,
+        error: "No email address found. Please request an OTP first.",
+      };
+    }
 
-    // If the OTP is valid, store the JWT token and isNewUser flag
-    if (data.authenticated) {
-      await SecureStore.setItemAsync(JWT_KEY, data.jwt);
-      await SecureStore.setItemAsync(IS_NEW_USER_KEY, String(data.isNewUser));
-      return data;
+
+    console.log(JSON.stringify({ emailAddress, otp }));
+    
+    const response = await apiRequest<VerifyOTPResponse>(AUTH_ENDPOINTS.VERIFY_OTP, {
+      method: "POST",
+      body: JSON.stringify({ emailAddress, otp }),
+    });
+
+    if (response.jwt) {
+      // Store JWT token in secure storage
+      await SecureStore.setItemAsync(JWT_KEY, response.jwt);
+      // Store user status
+      await SecureStore.setItemAsync(IS_NEW_USER_KEY, response.isNewUser.toString());
+      
+      return {
+        ...response,
+        authenticated: true,
+      };
     }
 
     return {
-      ...data,
-      error: "Invalid verification code. Please try again.",
+      jwt: "",
+      isNewUser: false,
+      authenticated: false,
+      error: response.error || "Failed to verify OTP.",
     };
   } catch (error) {
     console.error("Verify OTP error:", error);
@@ -84,52 +99,39 @@ export async function verifyOTP(
       jwt: "",
       isNewUser: false,
       authenticated: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Network error. Please try again.",
+      error: error instanceof Error ? error.message : "Network error. Please try again.",
     };
   }
 }
 
-/* 
-  Retrieve the stored JWT token
-  Returns the JWT token if it exists, or null if it does not
+/*
+  Check if the user is authenticated by verifying the JWT token exists
 */
-export async function getJWT(): Promise<string | null> {
-  return await SecureStore.getItemAsync(JWT_KEY);
-}
-
-/* 
-  Retrieve the stored user email address
-  Returns the email address if it exists, or null if it does not
-*/
-export async function getUserEmail(): Promise<string | null> {
-  return await SecureStore.getItemAsync(USER_EMAIL_KEY);
-}
-
-/* 
-  Retrieve the isNewUser flag
-  Returns true if the user is new, or false if they are not
-*/
-export async function getIsNewUser(): Promise<boolean> {
-  const value = await SecureStore.getItemAsync(IS_NEW_USER_KEY);
-  return value === "true";
+export async function isAuthenticated(): Promise<boolean> {
+  const jwt = await SecureStore.getItemAsync(JWT_KEY);
+  return !!jwt;
 }
 
 /*
-  Clear the stored JWT token and isNewUser flag
+  Get the JWT token from secure storage
+*/
+export async function getJWTToken(): Promise<string | null> {
+  return SecureStore.getItemAsync(JWT_KEY);
+}
+
+/*
+  Check if the user is a new user
+*/
+export async function isNewUser(): Promise<boolean> {
+  const isNewUser = await SecureStore.getItemAsync(IS_NEW_USER_KEY);
+  return isNewUser === "true";
+}
+
+/*
+  Log out by clearing the secure storage
 */
 export async function logout(): Promise<void> {
   await SecureStore.deleteItemAsync(JWT_KEY);
+  await SecureStore.deleteItemAsync(USER_EMAIL_KEY);
   await SecureStore.deleteItemAsync(IS_NEW_USER_KEY);
-}
-
-/*
-  Check if the user is authenticated
-  Returns true if the user is authenticated, or false if they are not
-*/
-export async function isAuthenticated(): Promise<boolean> {
-  const jwt = await getJWT();
-  return !!jwt;
 }

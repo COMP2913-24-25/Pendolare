@@ -2,8 +2,12 @@ import { Redirect } from "expo-router";
 import { View } from "react-native";
 
 import { useAuth } from "@/context/AuthContext";
-import { useTheme } from "@/context/ThemeContext";
 
+/*
+  Index
+  Redirects users based on auth state
+  Redirects to onboarding if logged in (for now)
+*/
 export default function Index() {
   const { isLoggedIn, loading } = useAuth();
 
@@ -14,7 +18,7 @@ export default function Index() {
 
   // Redirect based on auth state
   return isLoggedIn ? (
-    <Redirect href="/home/tabs/home" />
+    <Redirect href="/auth/onboarding" />
   ) : (
     <Redirect href="/auth/sign-in" />
   );

@@ -39,8 +39,16 @@ const TabIcon = ({ name, focused }: { name: string; focused: boolean }) => (
   </View>
 );
 
+/*
+    Layout
+    Main layout for the app
+    Contains the tab navigation
+*/
 export default function Layout() {
   const { isDarkMode } = useTheme();
+  
+  // Set background colors based on theme
+  const backgroundColor = isDarkMode ? "#121212" : "#f5f5f5";
 
   return (
     <>
@@ -69,19 +77,22 @@ export default function Layout() {
             alignItems: "center",
             borderTopWidth: 0,
           },
-          headerShown: false,
+          headerShown: false, // Hide all headers by default
           tabBarItemStyle: {
             height: 25,
             paddingVertical: 10,
             marginHorizontal: 5,
           },
+          contentStyle: {
+            backgroundColor: backgroundColor, // Consistent background color
+          }
         }}
       >
         {/* Home Tab */}
         <Tabs.Screen
           name="home"
           options={{
-            title: "Home",
+            title: "",
             tabBarIcon: ({ focused }: { focused: boolean }) => (
               <TabIcon name={icons.home} focused={focused} />
             ),
@@ -93,7 +104,7 @@ export default function Layout() {
         <Tabs.Screen
           name="book"
           options={{
-            title: "Book",
+            title: "",
             tabBarIcon: ({ focused }: { focused: boolean }) => (
               <TabIcon name={icons.search} focused={focused} />
             ),
@@ -105,7 +116,7 @@ export default function Layout() {
         <Tabs.Screen
           name="chat"
           options={{
-            title: "Chat",
+            title: "",
             tabBarIcon: ({ focused }: { focused: boolean }) => (
               <TabIcon name={icons.chat} focused={focused} />
             ),
@@ -117,7 +128,7 @@ export default function Layout() {
         <Tabs.Screen
           name="profile"
           options={{
-            title: "Profile",
+            title: "",
             tabBarIcon: ({ focused }: { focused: boolean }) => (
               <TabIcon name={icons.profile} focused={focused} />
             ),

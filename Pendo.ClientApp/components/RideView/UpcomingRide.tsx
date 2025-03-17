@@ -1,5 +1,7 @@
 import { router } from "expo-router";
 import { useState } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { View } from "react-native";
 
 import CancellationReasonModal from "./Modals/CancellationReasonModal";
 import LateCancellationModal from "./Modals/LateCancellationModal";
@@ -33,6 +35,7 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [rating, setRating] = useState(0);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const insets = useSafeAreaInsets();
 
   // Check if the ride is within 15 minutes of departure
   const isLastMinuteCancellation = () => {
@@ -114,7 +117,7 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
   };
 
   return (
-    <>
+    <View style={{ paddingTop: insets.top > 0 ? insets.top : 20 }}>
       <UpcomingRideCard ride={ride} onPress={() => setShowDetails(true)} />
 
       <UpcomingRideDetailsModal
@@ -160,7 +163,7 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
         onSubmit={handleComplete}
         onDispute={handleDisputeRide}
       />
-    </>
+    </View>
   );
 };
 
