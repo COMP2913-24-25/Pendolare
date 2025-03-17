@@ -136,6 +136,12 @@ async def create_conversation_handler(request):
     participants = data.get("participants")
     if not participants or not isinstance(participants, list):
         return web.json_response({"error": "participants must be a list"}, status=400)
+
+    user_id = data.get("UserId")
+    if not user_id:
+        return web.json_response({"error": "userid must be specified"}, status=400)
+
+    participants.append(user_id)
     
     name = data.get("name")
     
