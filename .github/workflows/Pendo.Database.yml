@@ -4,8 +4,9 @@ description: "Build database project"
 on:
   pull_request:
     branches: [ main, dev ]
-    #paths:
-    #  - 'Pendo.Database/**'
+    paths:
+      - 'Pendo.Database/**'
+      - '.github/workflows/Pendo.Database.yml'
   workflow_dispatch:
 
 permissions:
@@ -13,7 +14,7 @@ permissions:
   contents: read
 
 jobs:
-  build_deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:

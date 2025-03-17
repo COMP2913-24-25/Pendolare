@@ -4,8 +4,9 @@ description: "Build and test the Booking Service project"
 on:
   pull_request:
     branches: [ main, dev ]
-    #paths:
-    #  - 'Pendo.BookingService/**'
+    paths:
+      - 'Pendo.BookingService/**'
+      - '.github/workflows/Pendo.BookingService.yml'
   workflow_dispatch:
 
 permissions:
@@ -16,7 +17,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  build_deploy:
+  build_test:
     runs-on: ubuntu-latest
 
     steps:
