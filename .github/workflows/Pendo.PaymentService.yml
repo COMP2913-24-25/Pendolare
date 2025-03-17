@@ -34,9 +34,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Copy configuration file
-      run: cp ./Pendo.PaymentService/src/configuration/appsettings.development.json ./Pendo.PaymentService/app/src/configuration/
-
     - name: Test project
       working-directory: ./Pendo.PaymentService/app
       run: pytest --junitxml=payment_test_results.xml
