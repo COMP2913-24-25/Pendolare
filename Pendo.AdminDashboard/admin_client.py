@@ -33,3 +33,10 @@ class AdminClient:
         
         self.logger.info(f'Total Revenue: {total_revenue}')
         return total_revenue
+
+    def UpdateBookingFee(self, fee):
+        self.logger.info("Updating booking fee")
+        payload = {"FeeMargin": float(fee)}
+        response = requests.patch(f'{self.base_url}/api/UpdateBookingFee', json=payload, verify=True)
+        self.logger.info(f"Update booking fee response: {response.status_code}")
+        return response
