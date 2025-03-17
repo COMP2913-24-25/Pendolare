@@ -34,6 +34,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Copy configuration file
+      run: cp ./Pendo.PaymentService/src/configuration/appsettings.development.json ./Pendo.PaymentService/app/src/configuration/
+
     - name: Test project
       working-directory: ./Pendo.PaymentService/app
       run: pytest --junitxml=payment_test_results.xml
@@ -42,4 +45,4 @@ jobs:
       uses: EnricoMi/publish-unit-test-result-action@v2
       if: always()
       with:
-        files: ./Pendo.PaymentService/**/payment_test_results.xml
+        files: ./Pendo.PaymentService/app/payment_test_results.xml
