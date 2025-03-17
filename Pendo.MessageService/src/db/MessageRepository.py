@@ -111,6 +111,12 @@ class MessageRepository():
         Returns:
             The newly created conversation participant object
         """
+        try:
+            conversation_id = uuid.UUID(conversation_id)
+            user_id = uuid.UUID(user_id)
+        except ValueError:
+            raise ValueError("Invalid UUID format for conversation_id or user_id")
+        
         participant = ConversationParticipants(
             ConversationId=conversation_id,
             UserId=user_id,
