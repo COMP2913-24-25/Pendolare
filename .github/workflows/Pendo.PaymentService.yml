@@ -37,7 +37,7 @@ jobs:
     - name: Move Configuration File to Correct Location
       working-directory: ./Pendo.PaymentService
       run: |
-        mkdir app/code/src/configuration/
+        mkdir app/code/src/configuration/ -p
         cp ./app/src/configuration/appsettings.development.json ./app/code/src/configuration/appsettings.development.json
 
     - name: Test project
