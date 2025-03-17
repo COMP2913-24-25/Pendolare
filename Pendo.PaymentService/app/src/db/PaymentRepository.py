@@ -19,8 +19,7 @@ class PaymentRepository():
         :param user_id: Id of the user.
         :return UserBalance object.
         """
-        # if user exists, and no balance table, make one
-        return self.db_session.query(UserBalance).get(user_id)
+        return self.db_session.query(UserBalance).filter_by(UserId=user_id).one_or_none()
     
     def GetUser(self, user_id):
         """
@@ -29,14 +28,6 @@ class PaymentRepository():
         :return: User object.
         """
         return self.db_session.query(User).get(user_id)
-    
-    # def GetJourney(self, journey_id):
-    #     """
-    #     GetJourney method returns the journey for the specified journey id.
-    #     :param journey_id: Id of the journey.
-    #     :return: Journey object.
-    #     """
-    #     return self.db_session.query(Journey).get(journey_id)
     
     def GetBookingById(self, booking_id):
         """
@@ -96,16 +87,3 @@ class PaymentRepository():
         """
         self.db_session.add(transaction)
         self.db_session.commit()
-
-    # def UpdateBooking(self, booking):
-    #     """
-    #     UpdateBooking method updates an existing booking in the database.
-    #     :param booking: Booking object to be updated.
-    #     """
-    #     existing_booking = self.GetBookingById(booking.id)
-
-    #     if existing_booking is None:
-    #         raise Exception("Booking not found")
-
-    #     self.db_session.add(booking)
-    #     self.db_session.commit()

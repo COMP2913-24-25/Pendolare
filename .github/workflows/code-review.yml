@@ -3,8 +3,6 @@ name: SonarCloud PR Analysis
 on:
   pull_request:
     branches:
-      - main
-      - dev
 
 jobs:
   detect-changes:

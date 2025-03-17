@@ -105,6 +105,13 @@ DECLARE @BookingEmailConfiguration NVARCHAR(MAX) = '
     "arrivalTemplateId": "d-d22b4b959aa0490ba8864716d45de8f5"
 }'
 
+DECLARE @PaymentEmailConfiguration NVARCHAR(MAX) = '
+{
+    "apiKey": "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",
+    "fromEmail": "pendolare-dev@clsolutions.dev",
+    "payoutTemplateId": "TODO"
+}'
+
 DECLARE @StripeConfiguration NVARCHAR(MAX) = '
 {
     "secret": "sk_test_51R01XVJJfevYXm7DQZlpUnTFEirQaRSDQfy6TJZ3kBdf2oVXnjl3hV1TSzfUiiSdmuXuZoOP6tBlKsn9hJbkdha900jFkB9ZZ8",
@@ -121,7 +128,8 @@ USING (VALUES
     ('Booking.DvlaApiKey', @DvlaApiKey),
     ('Booking.EmailConfiguration', @BookingEmailConfiguration),
     ('Booking.FeeMargin', '0.05'),
-    ('Payment.StripeConfiguration', @StripeConfiguration)
+    ('Payment.StripeConfiguration', @StripeConfiguration),
+    ('Payment.EmailConfiguration', @PaymentEmailConfiguration)
 ) AS source ([Key], [Value])
 ON target.[Key] = source.[Key]
 WHEN NOT MATCHED THEN

@@ -1,82 +1,66 @@
-# Service Name
-
-Brief description of what this specific service does and its role in the Pendolare system.
+# API Gateway
 
 ## Overview
 
-Description of the service's main responsibilities and core functionalities.
+The API Gateway serves as a central entry point for all client requests to backend microservices. It uses Kong, a lightweight cloud-native API gateway. The gateway handles routing, authentication, rate limiting, and provides an additional security layer by decoupling client applications from underlying service implementations.
 
 ### Features
-- Key feature 1
-- Key feature 2
-- Key feature 3
+- Request routing and load balancing
+- Authentication and authorisation
+- Rate limiting and throttling
+- Request/response transformation
+- Declarative configuration using YAML
+- Health checks and monitoring
 
 ## Tech Stack
-- Language/Framework: [e.g., Node.js, Java, Python]
-- Other significant technologies
+- API Gateway: Kong 3.3
+- Configuration: YAML-based declarative config
+- Containerisation: Docker
+- Networking: Custom Kong network
 
 ## Prerequisites
-- Required software/tools with versions
-- Environment dependencies
-- External service dependencies
+- Docker Engine v20.10.0 or higher
+- Docker Compose v2.0.0 or higher
+- Network ports 8000, 8001, 8002, and 8443 available on host machine
+- Kong network created in Docker
 
 ## Getting Started
 
 ### Installation
 ```bash
 # Clone the repository
-git clone [repository-url]
+git clone https://github.com/COMP2913-24-25/software-engineering-project-team-2.git
 
 # Navigate to service directory
-cd [service-name]
+cd Pendo.ApiGateway
 
-# Install dependencies
-npm install  # or equivalent command
+# Create Kong network if it doesn't exist
+docker network create kong-net
+
+# Build docker container
+docker build -t pendo-gateway .
+
+# Run docker container
+docker run -d --name pendo-gateway --add-host=host.docker.internal:host-gateway -p 9000:9000 -p 9001:9001 -p 8443:8443 -p 8444:8444 pendo-gateway
 ```
 
 ### Configuration
-1. Copy `.env.example` to `.env`
-2. Update environment variables:
-   - `DATABASE_URL`
-   - `SERVICE_PORT`
-   - `OTHER_REQUIRED_VARS`
-
-### Running the Service
-```bash
-# Development mode
-npm run dev  # or equivalent command
-
-# Production mode
-npm run start  # or equivalent command
-```
-
-### Testing
-```bash
-# Run unit tests
-npm run test  # or equivalent command
-
-# Run integration tests
-npm run test:integration  # or equivalent command
-```
-
-## API Documentation
-
-### Endpoints
-- `GET /api/v1/resource` - Description
-- `POST /api/v1/resource` - Description
-- `PUT /api/v1/resource/:id` - Description
-- `DELETE /api/v1/resource/:id` - Description
+1. The Kong API Gateway uses declarative configuration via the `kong.yml` file located at `kong/declarative/kong.yml`.
+2. To modify routes, services, or plugins, update this file and restart the container.
+3. Kong Admin API is accessible at http://localhost:8001 and Admin GUI at http://localhost:8002.
+4. API Gateway proxies requests through http://localhost:8000 (HTTP) and https://localhost:8443 (HTTPS).
 
 ## Monitoring and Logging
-- Metrics collection
-- Log locations
-- Monitoring tools used
+- Kong logs are streamed to stdout/stderr and can be viewed using `docker logs kong`
+- Health checks are configured to run every 10 seconds
+- Kong Admin API provides detailed metrics at `/status` and `/metrics` endpoints
+- Integration with Prometheus and Grafana is possible for advanced monitoring
 
-## Deployment
-- Deployment process
-- Required environment variables
-- Infrastructure dependencies
-
+## Troubleshooting
+- If the container fails to start, check for port conflicts
+- Verify the kong-net network exists: `docker network ls`
+- Check container logs: `docker logs kong`
+- Test Kong is running: `curl http://localhost:8001/status`
 
 ## Contact
-- User responsible: [Leeds Username]
+- User responsible: Josh Mundray (@sc232jm)

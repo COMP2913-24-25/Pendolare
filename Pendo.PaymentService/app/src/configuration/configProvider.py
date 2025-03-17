@@ -32,7 +32,7 @@ class ConfigurationProvider:
         Assumes the configuration key is 'Booking.EmailConfiguration' and that the 'Value'
         is a JSON string.
         """
-        config_row = db_session.query(Configuration).filter(Configuration.Key == "Booking.EmailConfiguration").first()
+        config_row = db_session.query(Configuration).filter(Configuration.Key == "Payment.EmailConfiguration").first()
 
         if config_row:
             email_config_data = json.loads(config_row.Value)
@@ -47,7 +47,6 @@ class ConfigurationProvider:
         Assumes the configuration key is 'Booking.EmailConfiguration' and that the 'Value'
         is a JSON string.
         """
-        print("Loading STRIPE")
         config_row = db_session.query(Configuration).filter(Configuration.Key == "Payment.StripeConfiguration").first()
 
         if config_row:

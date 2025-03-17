@@ -32,7 +32,7 @@ class PendingBookingCommand:
             if pendingBooking is None:
                 raise Exception("Booking not found")
 
-            if pendingBooking.BookingStatus_.Status != "Pending":
+            if pendingBooking.BookingStatus_.Status != "PrePending":
                 raise Exception("Not a pending booking")
 
             self.logger.info("Got Booking")
