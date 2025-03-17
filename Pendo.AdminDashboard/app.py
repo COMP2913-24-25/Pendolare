@@ -26,6 +26,8 @@ def before_request():
     if 'logged_in' in session:
         check_inactivity()
 
+
+
 @app.route('/')
 def home():
     return redirect(url_for('login'))
@@ -42,6 +44,7 @@ def login():
         else:
             flash('Failed to request OTP. Are you sure you have an account?')
     return render_template('login.html')
+
 
 @app.route('/verify_otp', methods=['GET', 'POST'])
 def verify_otp():
@@ -115,7 +118,11 @@ def chat(username):
 @app.route('/update_booking_fee', methods=['POST'])
 def update_booking_fee():
     booking_fee = request.form['booking_fee']
-    # update the booking fee the database through analytics service
+    response = AdminClient(api_url, app.logger).UpdateBookingFee(booking_fee)
+    if response.status_code == 200:
+        flash("Booking fee updated successfully.")
+    else:
+        flash("Failed to update booking fee.")
     return redirect(url_for('dashboard'))
 
 @app.route('/update_discount_offers', methods=['POST'])
