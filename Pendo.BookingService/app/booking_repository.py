@@ -2,6 +2,7 @@ from .models import Booking, User, Journey, BookingAmmendment, Configuration
 from sqlalchemy.orm import joinedload, with_loader_criteria
 from .db_provider import get_db
 from datetime import datetime
+from .statuses.booking_statii import BookingStatus
 
 class BookingRepository():
     """
@@ -14,15 +15,19 @@ class BookingRepository():
         """
         self.db_session = next(get_db())
 
-    def GetBookingsForUser(self, user_id):
+    def GetBookingsForUser(self, user_id, booking_id = None):
         """
         GetBookingsForUser method returns all the bookings for a specific user.
         :param user_id: Id of the user.
         :return: List of bookings for the user, along with journey (altered by any ammendments) and booking status.
         """
+        filter = Booking.UserId == user_id, Booking.BookingStatusId != BookingStatus.PrePending
+        if booking_id:
+            filter = filter + (Booking.BookingId == booking_id)
+
         return_dto = []
         bookings = self.db_session.query(Booking)\
-            .filter(Booking.UserId == user_id)\
+            .filter(filter)\
             .options(
                 joinedload(Booking.BookingStatus_),
                 joinedload(Booking.Journey_),
@@ -31,10 +36,11 @@ class BookingRepository():
             .all()
         
         for booking in bookings:
-            startName, startLong, startLat, endName, endLong, endLat, rideTime, price = (None,) * 8
+            startTime, startName, startLong, startLat, endName, endLong, endLat, rideTime, price = (None,) * 9
 
             if booking.BookingAmmendment:
                 for amendment in sorted(booking.BookingAmmendment, key=lambda x: x.CreateDate):
+                    startTime = self.setIfNotNull(amendment.StartTime)
                     startName = self.setIfNotNull(amendment.StartName)
                     startLong = self.setIfNotNull(amendment.StartLong)
                     startLat = self.setIfNotNull(amendment.StartLat)
@@ -59,6 +65,7 @@ class BookingRepository():
                 "Journey": {
                     "JourneyId": booking.JourneyId,
                     "UserId": booking.Journey_.UserId,
+                    "StartTime" : self.setDefaultIfNotNull(startTime, booking.RideTime),
                     "StartName": self.setDefaultIfNotNull(startName, booking.Journey_.StartName),
                     "StartLong": self.setDefaultIfNotNull(startLong, booking.Journey_.StartLong),
                     "StartLat": self.setDefaultIfNotNull(startLat, booking.Journey_.StartLat),
@@ -195,4 +202,34 @@ class BookingRepository():
         :param booking_ammendment: BookingAmmendment object to be updated.
         """
         booking_ammendment.UpdateDate = datetime.now()
+        self.db_session.commit()
+
+    def CalculateDriverRating(self, driver_id):
+        """
+        CalculateDriverRating method calculates the driver rating based on the bookings.
+        :param driver_id: Id of the driver.
+        :return: Driver rating.
+        """
+        driver = self.GetUser(driver_id)
+        if driver is None:
+            raise Exception(f"Driver {driver_id} not found")
+
+        now = datetime.now()
+
+        pending_count = self.db_session.query(Booking)\
+            .join(Journey, Booking.JourneyId == Journey.JourneyId)\
+            .filter(Journey.UserId == driver_id, 
+                    Booking.BookingStatusId == BookingStatus.PendingCompletion or Booking.BookingStatusId == BookingStatus.Completed, 
+                    Booking.RideTime < now)\
+            .count()
+
+        completed_count = self.db_session.query(Booking)\
+            .join(Journey, Booking.JourneyId == Journey.JourneyId)\
+            .filter(Journey.UserId == driver_id, Booking.BookingStatusId == BookingStatus.Completed)\
+            .count()
+
+        total_bookings = pending_count + completed_count
+        rating = completed_count / float(total_bookings) if total_bookings > 0 else -1.0
+
+        driver.UserRating = rating
         self.db_session.commit()
