@@ -105,17 +105,28 @@ class MessageRepository():
         Add a user to a conversation.
         
         Parameters:
-            conversation_id: ID of the conversation
-            user_id: ID of the user
+            conversation_id: ID of the conversation (string or UUID object)
+            user_id: ID of the user (string or UUID object)
         
         Returns:
             The newly created conversation participant object
         """
-        try:
-            conversation_id = uuid.UUID(conversation_id)
-            user_id = uuid.UUID(user_id)
-        except ValueError:
-            raise ValueError("Invalid UUID format for conversation_id or user_id")
+
+        print(conversation_id, user_id)
+        print(type(conversation_id), type(user_id))
+
+        # Convert to UUID objects if they're not already
+        if not isinstance(conversation_id, uuid.UUID):
+            try:
+                conversation_id = uuid.UUID(str(conversation_id))
+            except ValueError:
+                raise ValueError("Invalid UUID format for conversation_id")
+                
+        if not isinstance(user_id, uuid.UUID):
+            try:
+                user_id = uuid.UUID(str(user_id))
+            except ValueError:
+                raise ValueError("Invalid UUID format for user_id")
         
         participant = ConversationParticipants(
             ConversationId=conversation_id,
@@ -159,8 +170,6 @@ class MessageRepository():
     def create_conversation_with_participants(self, conversation_type, participants, name=None):
         """
         Create a new conversation and add participants.
-        For each participant, fetch the user; if user.UserTypeId is 2, default that participant to UUID("00000000-0000-0000-0000-000000000000").
-        This is to enable a centralised support system.
         
         Parameters:
             conversation_type (str): Type of the conversation
@@ -171,12 +180,27 @@ class MessageRepository():
             The created conversation object.
         """
         conversation = self.create_conversation(conversation_type, name)
-        default_uuid = uuid.UUID("00000000-0000-0000-0000-000000000000")
+        
+        # Track already added users to prevent duplicates
+        added_users = set()
+        
         for participant in participants:
-            user = self.get_user_by_id(participant)
-            if user and getattr(user, "UserTypeId", None) == 2:
-                participant_id = default_uuid
+            # Skip if we've already processed this participant
+            participant_str = str(participant)
+            if participant_str in added_users:
+                continue
+                
+            # Convert string to UUID if it's not already a UUID
+            if not isinstance(participant, uuid.UUID):
+                participant_id = uuid.UUID(str(participant))
             else:
                 participant_id = participant
-            self.add_user_to_conversation(conversation.ConversationId, participant_id)
+                
+            # Check if the user exists before adding
+            user = self.get_user_by_id(participant_id)
+            if user:
+                # Successfully add the user to the conversation
+                self.add_user_to_conversation(conversation.ConversationId, participant_id)
+                added_users.add(participant_str)
+        
         return conversation
