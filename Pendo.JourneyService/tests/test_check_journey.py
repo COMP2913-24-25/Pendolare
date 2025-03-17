@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 from app.request_lib import CreateJourneyRequest
 from app.parameter_checking import CheckJourneyData
 from datetime import datetime
+import logging
 
 @pytest.fixture
 def mock_request():
@@ -25,19 +26,23 @@ def mock_request():
     mock.LockedUntil = datetime.now()
     return mock
 
-def test_check_inputs_success(mock_request):
-    checker = CheckJourneyData(mock_request)
+@pytest.fixture
+def mock_logger():
+    return logging.getLogger("test_logger")
+
+def test_check_inputs_success(mock_request, mock_logger):
+    checker = CheckJourneyData(mock_request, mock_logger)
     result = checker.check_inputs()
     assert result == mock_request
 
-def test_check_inputs_missing_required_field():
+def test_check_inputs_missing_required_field(mock_logger):
     mock_request = MagicMock(spec=CreateJourneyRequest)
     mock_request.AdvertisedPrice = None
-    checker = CheckJourneyData(mock_request)
+    checker = CheckJourneyData(mock_request, mock_logger)
     with pytest.raises(Exception, match="AdvertisedPrice is required."):
         checker.check_inputs()
 
-def test_check_inputs_journey_type_2_missing_fields():
+def test_check_inputs_journey_type_2_missing_fields(mock_logger):
     mock_request = MagicMock(spec=CreateJourneyRequest)
     mock_request.AdvertisedPrice = 100
     mock_request.StartName = "Start Location"
@@ -57,12 +62,13 @@ def test_check_inputs_journey_type_2_missing_fields():
     mock_request.JourneyType = 2
     mock_request.Recurrance = None
     mock_request.ReturnUntil = None
-    checker = CheckJourneyData(mock_request)
+
+    checker = CheckJourneyData(mock_request, mock_logger)
     with pytest.raises(Exception, match="Recurrance is required for JourneyType 2."):
         checker.check_inputs()
 
-def test_check_inputs_journey_type_1_sets_repeat_until(mock_request):
+def test_check_inputs_journey_type_1_sets_repeat_until(mock_request, mock_logger):
     mock_request.JourneyType = 1
-    checker = CheckJourneyData(mock_request)
+    checker = CheckJourneyData(mock_request, mock_logger)
     result = checker.check_inputs()
     assert result.RepeatUntil == datetime(9999, 12, 31, 23, 59, 59)

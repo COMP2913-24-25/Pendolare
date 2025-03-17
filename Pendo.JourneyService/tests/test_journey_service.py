@@ -7,6 +7,7 @@ from app.journey_repository import JourneyRepository
 from fastapi import Response
 from app.parameter_checking import CheckJourneyData
 from datetime import datetime
+import logging
 
 @pytest.fixture
 def mock_db_session():
@@ -118,7 +119,7 @@ def test_adjust_price_success(mock_db_session, adjust_price_request):
     
     assert result is not None
 
-def test_check_inputs_journey_type_2_missing_fields():
+def test_check_inputs_journey_type_2_missing_fields(mock_logger):
     mock_request = MagicMock(spec=CreateJourneyRequest)
     for field in ["AdvertisedPrice", "StartName", "StartLong", "StartLat", "EndName", 
                  "EndLong", "EndLat", "StartDate", "StartTime", "MaxPassengers", 
@@ -128,6 +129,7 @@ def test_check_inputs_journey_type_2_missing_fields():
     mock_request.JourneyType = 2
     mock_request.Recurrance = None
     mock_request.ReturnUntil = None
-    checker = CheckJourneyData(mock_request)
+    checker = CheckJourneyData(mock_request, mock_logger)
+    
     with pytest.raises(Exception, match="Recurrance is required for JourneyType 2."):
         checker.check_inputs()

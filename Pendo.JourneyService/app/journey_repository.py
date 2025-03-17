@@ -3,7 +3,9 @@ from datetime import datetime, timedelta
 from fastapi import status
 
 class JourneyRepository:
-
+    """
+    JourneyRepository class is responsible for handling database operations for the Journey model
+    """
     def __init__(self, db):
         self.db = db
 
@@ -26,7 +28,7 @@ class JourneyRepository:
         return journey
     
     def create_journey(self, journey_data):
-        journey_dict = journey_data.dict()  # Convert CreateJourneyRequest to dictionary
+        journey_dict = journey_data.dict()
         journey = Journey(**journey_dict)
         self.db.add(journey)
         self.db.commit()

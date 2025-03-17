@@ -1,12 +1,15 @@
 from .request_lib import CreateJourneyRequest
 from fastapi import status
-#from . import logger_details
 from datetime import datetime
 import datetime
 
 class CheckJourneyData:
-    def __init__(self, request):
+    """
+    CheckJourneyData class used to validate the CreateJourneyRequest
+    """
+    def __init__(self, request, logger):
         self.request = request
+        self.logger = logger
 
     def check_inputs(self):
         required_fields = {
@@ -30,7 +33,7 @@ class CheckJourneyData:
 
         for field, error_message in required_fields.items():
             if getattr(self.request, field) is None:
-                # logger_details.error(f"{field} is None")
+                self.logger.error(f"{field} is None")
                 raise Exception(error_message)
 
         if self.request.JourneyType == 2:
@@ -40,7 +43,7 @@ class CheckJourneyData:
             }
             for field, error_message in required_type_2_fields.items():
                 if getattr(self.request, field) is None:
-                    # logger_details.error(f"{field} is None for JourneyType 2")
+                    self.logger.error(f"{field} is None for JourneyType 2")
                     raise Exception(error_message)
         elif self.request.JourneyType == 1:
             self.request.RepeatUntil = datetime.datetime(9999, 12, 31, 23, 59, 59)

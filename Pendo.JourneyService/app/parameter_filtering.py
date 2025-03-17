@@ -6,6 +6,9 @@ from geopy.distance import geodesic
 import logging
 
 class FilterJourneys:
+    """
+    FilterJourneys class is responsible for creating a filtering statement for journeys based on the request
+    """
     def __init__(self, request, db):
         self.request = request
         self.db = db
