@@ -34,12 +34,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Move Configuration File to Correct Location
-      working-directory: ./Pendo.PaymentService
-      run: |
-        mkdir app/code/src/configuration/ -p
-        cp ./app/src/configuration/appsettings.development.json ./app/code/src/configuration/appsettings.development.json
-
     - name: Test project
       working-directory: ./Pendo.PaymentService/app
       run: pytest --junitxml=payment_test_results.xml
