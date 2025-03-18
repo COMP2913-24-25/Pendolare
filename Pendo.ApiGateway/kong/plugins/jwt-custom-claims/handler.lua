@@ -1,27 +1,25 @@
 local jwt_decoder = require "kong.plugins.jwt.jwt_parser"
+local helpers = require "kong.plugins.jwt-custom-claims.helpers"
 local cjson = require "cjson.safe"
 local kong = kong
 
--- Define the plugin
 local JwtCustomClaimsHandler = {
-  -- Must run BEFORE ACL plugin (which is 950)
-  PRIORITY = 1010, 
+  PRIORITY = 1010, -- Run before the ACL Plugin
   VERSION = "1.0.0"
 }
 
 -- List of public paths
-local public_paths = { "/api/Identity/RequestOtp", "/api/Identity/VerifyOtp", "/api/Identity/Ping", "/api/Booking/HealthCheck" }
+local public_paths = { "/api/Identity/RequestOtp", "/api/Identity/VerifyOtp", "/api/Identity/Ping", "/api/Booking/HealthCheck", "/api/Admin/HealthCheck", "/api/Message/HealthCheck" }
 
 -- Define user type to ACL group mapping
 local user_type_to_acl = {
-  ["Manager"] = "manager",
-  ["User"] = "user"
-  -- Default will be "user" for any other user type
+  ["Manager"] = "manager", 
+  ["User"] = "authenticated"
+  -- Default will be "authenticated" for any other user type
 }
 
-
--- JWT Claims Handler Derived from: 
--- https://github.com/wshirey/kong-plugin-jwt-claims-validate/blob/master/handler.lua & https://github.com/Kong/kong-plugin-x-custom-jwt/blob/main/kong/plugins/x-custom-jwt/handler.lua
+-- JWT Docuemntation at: https://konghq.com/blog/engineering/craft-and-sign-custom-jwt
+-- Reference JWTClaim codebase: https://github.com/wshirey/kong-plugin-jwt-claims-validate/blob/master/handler.lua
 
 function JwtCustomClaimsHandler:access(conf)
   local request_path = kong.request.get_path()
@@ -29,7 +27,7 @@ function JwtCustomClaimsHandler:access(conf)
   for _, public_path in ipairs(public_paths) do
     if request_path:find("^" .. public_path) then
       kong.log.debug("Skipping JWT claims verification for public path: ", request_path)
-      return  -- bypass authentication
+      return  -- Bypass authentication
     end
   end
 
@@ -55,36 +53,37 @@ function JwtCustomClaimsHandler:access(conf)
 
   -- For analytics service, verify the user is a manager
   local service_name = kong.router.get_service() and kong.router.get_service().name
-  if service_name == "analytics-service" and conf.require_admin_for_analytics then
+  if service_name == "admin-service" and conf.require_admin_for_analytics then
     local user_type = jwt_claims["UserType"]
     if not user_type or user_type ~= "Manager" then
-      -- Return 403 Forbidden if user is not a manager
       return kong.response.exit(403, { message = "Access forbidden: Manager privileges required" })
     end
   end
   
+
+  -- NGINX context for the request --
+
   -- Add user info to headers for downstream services
   if conf.add_user_info_headers then
     if jwt_claims["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] then
       kong.service.request.set_header("X-User-Email", jwt_claims["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"])
     end
-    -- Add user type to headers for downstream services
+    
     kong.service.request.set_header("X-User-Type", jwt_claims["UserType"] or "")
   end
   
   -- Map user type to ACL group
   if conf.map_user_type_to_acl and jwt_claims["UserType"] then
     local user_type = jwt_claims["UserType"]
-    local acl_group = user_type_to_acl[user_type] or "user"
+    local acl_group = user_type_to_acl[user_type] or "authenticated"
     
     -- Set both headers used by Kong ACL plugin
     kong.service.request.set_header("X-Consumer-Groups", acl_group)
     kong.service.request.set_header("X-Consumer-Username", jwt_claims["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] or "jwt-user")
     
     -- Update the consumer in the context for ACL plugin
-    -- https://docs.konghq.com/kubernetes-ingress-controller/latest/plugins/acl/
     ngx.ctx.authenticated_consumer = {
-      id = jwt_claims["jti"] or "jwt-user",
+      id = jwt_claims["NameIdentifier"] or "jwt-user",
       username = jwt_claims["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] or "jwt-user"
     }
     
@@ -96,9 +95,11 @@ function JwtCustomClaimsHandler:access(conf)
     -- Register the consumer so downstream plugins recognise it
     kong.client.authenticate(ngx.ctx.authenticated_consumer)
   end
+
+  -- NGINX context for the request --
   
-  -- Extract user ID from jti claim and append to request body
-  local user_id = jwt_claims["jti"]
+  -- Extract user ID from NameIdentifier claim and append to request body
+  local user_id = jwt_claims["NameIdentifier"]
   if user_id then
     kong.log.debug("Adding UserId: " .. user_id .. " to request body")
     
@@ -131,10 +132,9 @@ function JwtCustomClaimsHandler:access(conf)
     
     if not success then
       kong.log.err("Error modifying request body: " .. tostring(err))
-      return -- Drop request if error modifying body
     end
   else
-    kong.log.debug("No jti claim found in JWT token")
+    kong.log.debug("No NameIdentifier claim found in JWT token")
   end
 end
 
