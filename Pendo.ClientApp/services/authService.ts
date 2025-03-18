@@ -20,6 +20,19 @@ interface VerifyOTPResponse {
   error?: string;
 }
 
+interface UpdateUserResponse {
+  success: boolean;
+  message: string;
+}
+
+interface GetUserResponse {
+  success: boolean;
+  message: string;
+  firstName: string;
+  lastName: string;
+  userRating: number;
+}
+
 /* 
   Request an OTP for the given email address
   Returns a success flag and an optional error message
@@ -100,6 +113,72 @@ export async function verifyOTP(otp: string): Promise<VerifyOTPResponse> {
       isNewUser: false,
       authenticated: false,
       error: error instanceof Error ? error.message : "Network error. Please try again.",
+    };
+  }
+}
+
+/**
+ * 
+ * @param firstName the first name to update the user with.
+ * @param lastName the last name to update the user with.
+ * 
+ * @returns a boolean indicating whether the user was successfully updated.
+ */
+export async function updateUser(firstName: string, lastName: string): Promise<boolean> {
+  try {
+    const jwt = await SecureStore.getItemAsync(JWT_KEY);
+    if (!jwt) {
+      return false;
+    }
+
+    const response = await apiRequest<UpdateUserResponse>(AUTH_ENDPOINTS.UPDATE_USER, {
+      method: "PATCH",
+      body: JSON.stringify({ firstName, lastName }),
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+
+    return response.success;
+  } catch (error) {
+    console.error("Update user error:", error);
+    return false;
+  }
+}
+
+/**
+ * Get the user's first name, last name, and rating.
+ * 
+ * @returns the user's first name, last name, and rating, or an error message if the user is not authenticated / does not exist.
+ */
+export async function getUser(): Promise<GetUserResponse> {
+  try {
+    const jwt = await SecureStore.getItemAsync(JWT_KEY);
+    if (!jwt) {
+      return {
+        success: false,
+        message: "User not authenticated",
+        firstName: "",
+        lastName: "",
+        userRating: 0,
+      };
+    }
+
+    const response = await apiRequest<GetUserResponse>(AUTH_ENDPOINTS.GET_USER, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+
+    return response;
+  } catch (error) {
+    console.error("Get user error:", error);
+    return {
+      success: false,
+      message: "Failed to get user",
+      firstName: "",
+      lastName: "",
+      userRating: 0,
     };
   }
 }

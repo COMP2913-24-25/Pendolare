@@ -55,6 +55,8 @@ export const API_BASE_URL = "https://pendo-gateway.clsolutions.dev/api";
 export const AUTH_ENDPOINTS = {
   REQUEST_OTP: "/Identity/RequestOtp",
   VERIFY_OTP: "/Identity/VerifyOtp",
+  UPDATE_USER: "/Identity/UpdateUser",
+  GET_USER: "/Identity/GetUser"
 };
 
 // Booking endpoints

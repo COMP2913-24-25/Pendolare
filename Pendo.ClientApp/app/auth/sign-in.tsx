@@ -110,8 +110,14 @@ const SignIn = () => {
 
       if (response.authenticated) {
         setIsLoggedIn(true);
-        // Redirect to onboarding instead of home
-        router.replace("/auth/onboarding");
+        // Redirect to onboarding instead of home when new user.
+        if (response.isNewUser) {
+          router.replace("/auth/newuser");
+          return;
+        }
+
+        // Otherwise just go to home
+        router.replace("/home/tabs/home");
       } else {
         setVerification({
           ...verification,
@@ -138,7 +144,7 @@ const SignIn = () => {
           {/* Welcome Header Section */}
           <View className="relative w-full h-[150px]">
             <Text className="text-2xl font-JakartaSemiBold absolute bottom-5 left-5">
-              Welcome Back
+              Welcome to Pendolare!
             </Text>
           </View>
 
