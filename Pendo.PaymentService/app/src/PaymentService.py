@@ -84,8 +84,8 @@ async def StripeWebhook(request: Request) -> StatusResponse:
     # update user balance
 
     requestBody = await request.json()
-    customer = requestBody["object"]["customer"]
-    amount = requestBody['object']['amount']
+    customer = requestBody["data"]["object"]["customer"]
+    amount = requestBody["data"]['object']['amount'] / 100
 
     if (customer == None) or (amount == None):
         raise HTTPException(400, detail="Customer or ammount cannnot be parsed from the request")
