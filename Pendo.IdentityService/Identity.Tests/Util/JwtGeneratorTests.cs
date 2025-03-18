@@ -41,7 +41,7 @@ public class JwtGeneratorTests
         string userEmail = "mundrayj@gmail.com";
         bool isManager = false;
 
-        string token = _jwtGenerator.GenerateJwt(userEmail, isManager);
+        string token = _jwtGenerator.GenerateJwt(Guid.NewGuid(), userEmail, isManager);
 
         token.Should().NotBeNullOrEmpty();
     }
@@ -51,8 +51,9 @@ public class JwtGeneratorTests
     {
         string userEmail = "mundrayj@gmail.com";
         bool isManager = true;
+        var userId = Guid.NewGuid();
 
-        string token = _jwtGenerator.GenerateJwt(userEmail, isManager);
+        string token = _jwtGenerator.GenerateJwt(userId, userEmail, isManager);
         var handler = new JsonWebTokenHandler();
         var validationParams = new TokenValidationParameters
         {
@@ -66,6 +67,7 @@ public class JwtGeneratorTests
         var result = await handler.ValidateTokenAsync(token, validationParams);
 
         result.IsValid.Should().BeTrue();
+        result.Claims[ClaimTypes.NameIdentifier].Should().Be(userId.ToString());
         result.Claims[ClaimTypes.Name].Should().Be(userEmail);
         result.Claims[Constants.UserTypeClaim].Should().Be(Constants.Manager);
     }
