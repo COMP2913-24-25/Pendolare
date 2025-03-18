@@ -83,7 +83,7 @@ function JwtCustomClaimsHandler:access(conf)
     
     -- Update the consumer in the context for ACL plugin
     ngx.ctx.authenticated_consumer = {
-      id = jwt_claims["NameIdentifier"] or "jwt-user",
+      id = jwt_claims["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] or "jwt-user",
       username = jwt_claims["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] or "jwt-user"
     }
     
@@ -99,7 +99,7 @@ function JwtCustomClaimsHandler:access(conf)
   -- NGINX context for the request --
   
   -- Extract user ID from NameIdentifier claim and append to request body
-  local user_id = jwt_claims["NameIdentifier"]
+  local user_id = jwt_claims["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"]
   if user_id then
     kong.log.debug("Adding UserId: " .. user_id .. " to request body")
     
