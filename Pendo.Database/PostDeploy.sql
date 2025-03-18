@@ -143,13 +143,14 @@ GO
 -- As requested for Josh for admin support request messsage user
 DECLARE @AdminId UNIQUEIDENTIFIER = '00000000-0000-0000-0000-000000000000'
 
-INSERT INTO [identity].[User]
-(
-    UserId,
-    Email,
-    FirstName,
-    LastName,
-    UserTypeId
-)
-VALUES
-( @AdminId, 'Pendalore.Admin.Support@clsolutions.dev', 'Support', 'Admin', 1)
+MERGE INTO [identity].[User] as target
+USING (
+    VALUES
+        (@AdminId, 'Pendolare.Admin.Support@clsolutions.dev', 'Support', 'Admin', 1)
+) AS source ([UserId], [Email], [FirstName], [LastName], [UserTypeId])
+ON target.[UserId] = source.[UserId]
+WHEN NOT MATCHED THEN
+    INSERT ([UserId], [Email], [FirstName], [LastName], [UserTypeId])
+    VALUES (source.[UserId], source.[Email], source.[FirstName], source.[LastName], source.[UserTypeId]);
+
+GO
