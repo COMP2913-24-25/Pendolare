@@ -1,4 +1,3 @@
-import { useUser } from "@clerk/clerk-expo";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { ScrollView, Image } from "react-native";
@@ -9,8 +8,26 @@ import { Text } from "@/components/common/ThemedText";
 import ThemedInputField from "@/components/common/ThemedInputField";
 import ThemedButton from "@/components/common/ThemedButton";
 
+import { USER_FIRST_NAME_KEY, USER_LAST_NAME_KEY, USER_RATING_KEY } from "@/services/authService";
+import * as SecureStore from "expo-secure-store";
+
 const Profile = () => {
-  const { user } = useUser();
+
+  const user: { firstName: string; lastName: string; rating: string } = {
+    firstName: "",
+    lastName: "",
+    rating: "N/A",
+  };
+
+  async function loadUser(): Promise<void> {
+    user.firstName = (await SecureStore.getItemAsync(USER_FIRST_NAME_KEY)) ?? "No first name set!";
+    user.lastName = (await SecureStore.getItemAsync(USER_LAST_NAME_KEY)) ?? "No last name set!";
+    user.rating = (await SecureStore.getItemAsync(USER_RATING_KEY)) ?? "N/A";
+  }
+
+  (async () => {
+    await loadUser();
+  })();
 
   return (
     <ThemedSafeAreaView className="flex-1">
@@ -35,7 +52,7 @@ const Profile = () => {
         <ThemedView className="items-center my-5">
           <Image
             source={{
-              uri: user?.externalAccounts[0]?.imageUrl || user?.imageUrl,
+              uri: "../assets/images/test-pic.jpg",
             }}
             style={{ width: 110, height: 110, borderRadius: 55, borderWidth: 3, borderColor: "#FFF" }}
             className="shadow-sm"
@@ -46,20 +63,15 @@ const Profile = () => {
         <ThemedView className="bg-white rounded-lg shadow-sm px-5 py-3">
           <ThemedInputField
             label="First name"
-            placeholder={user?.firstName || "Not Found"}
+            placeholder={user.firstName}
             editable={false}
             containerStyle="mb-4"
           />
           <ThemedInputField
             label="Last name"
-            placeholder={user?.lastName || "Not Found"}
+            placeholder={user.lastName}
             editable={false}
             containerStyle="mb-4"
-          />
-          <ThemedInputField
-            label="Email"
-            placeholder={user?.primaryEmailAddress?.emailAddress || "Not Found"}
-            editable={false}
           />
         </ThemedView>
       </ScrollView>

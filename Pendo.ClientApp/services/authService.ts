@@ -8,6 +8,10 @@ const JWT_KEY = "pendolare";
 const USER_EMAIL_KEY = "pendolare_email";
 const IS_NEW_USER_KEY = "pendolare_is_new_user";
 
+export const USER_FIRST_NAME_KEY = "userFirstName";
+export const USER_LAST_NAME_KEY = "userLastName";
+export const USER_RATING_KEY = "userRating";
+
 interface OTPResponse {
   success: boolean;
   message?: string;
@@ -147,7 +151,7 @@ export async function updateUser(firstName: string, lastName: string): Promise<b
 }
 
 /**
- * Get the user's first name, last name, and rating.
+ * Get the user's first name, last name, and rating and store them in the secure store.
  * 
  * @returns the user's first name, last name, and rating, or an error message if the user is not authenticated / does not exist.
  */
@@ -160,15 +164,26 @@ export async function getUser(): Promise<GetUserResponse> {
         message: "User not authenticated",
         firstName: "",
         lastName: "",
-        userRating: 0,
+        userRating: -1,
       };
     }
 
     const response = await apiRequest<GetUserResponse>(AUTH_ENDPOINTS.GET_USER, {
+      method: "POST",
+      body: JSON.stringify({}),
       headers: {
         Authorization: `Bearer ${jwt}`,
-      },
+      }
     });
+
+    console.error("Get user response:", response);
+
+    if (response.success) {
+      // Store the user's details securely
+      await SecureStore.setItemAsync("userFirstName", response.firstName);
+      await SecureStore.setItemAsync("userLastName", response.lastName);
+      await SecureStore.setItemAsync("userRating", response.userRating === -1 ? "N/A" : response.userRating.toString());
+    }
 
     return response;
   } catch (error) {
@@ -178,7 +193,7 @@ export async function getUser(): Promise<GetUserResponse> {
       message: "Failed to get user",
       firstName: "",
       lastName: "",
-      userRating: 0,
+      userRating: -1,
     };
   }
 }

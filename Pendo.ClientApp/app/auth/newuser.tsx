@@ -9,7 +9,7 @@ import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 
-import { updateUser } from "@/services/authService";
+import { updateUser, getUser } from "@/services/authService";
 
 /*
   CaptureName
@@ -42,7 +42,7 @@ const CaptureName = () => {
         return;
     }
 
-    Alert.alert("Success", "Name updated successfully");
+    await getUser();
 
     router.push("/auth/onboarding");
   };

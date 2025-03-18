@@ -28,7 +28,7 @@ export default function Index() {
 
   // Redirect based on auth state
   return isLoggedIn ? (
-    <Redirect href="/auth/onboarding" />
+    <Redirect href="/home/tabs/home" />
   ) : (
     <Redirect href="/auth/sign-in" />
   );

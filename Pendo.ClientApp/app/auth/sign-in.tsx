@@ -15,7 +15,7 @@ import { Text } from "@/components/common/ThemedText";
 import VerificationCodeInput from "@/components/VerificationCodeInput";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
-import { requestOTP, verifyOTP } from "@/services/authService";
+import { requestOTP, verifyOTP, getUser } from "@/services/authService";
 import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
 
 /*
@@ -116,7 +116,9 @@ const SignIn = () => {
           return;
         }
 
-        // Otherwise just go to home
+        // Otherwise get user and go to home
+        await getUser();
+        
         router.replace("/home/tabs/home");
       } else {
         setVerification({
