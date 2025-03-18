@@ -81,7 +81,7 @@ const Home = () => {
             <Text
               className={`text-xl font-JakartaBold mb-3 ${isDarkMode ? "text-white" : "text-black"}`}
             >
-              Next Journey
+              Upcoming Journeys
             </Text>
             {nextRide ? (
               <UpcomingRide ride={nextRide} />
