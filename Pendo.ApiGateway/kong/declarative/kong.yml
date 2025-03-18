@@ -297,7 +297,7 @@ consumers:
   - username: Pendo.IdentityService
     jwt_secrets:
       - key: Pendo.IdentityService
-        secret: d8d5304c4624d4ee3461edde3a7df1d2a2a7aec0aaa689b7ef6ca563ae3a67bb
+        secret: [[redacted]]
         algorithm: HS256
 
 plugins:
