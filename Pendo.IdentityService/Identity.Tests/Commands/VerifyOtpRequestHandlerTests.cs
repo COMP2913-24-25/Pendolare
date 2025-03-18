@@ -158,7 +158,7 @@ public class VerifyOtpRequestHandlerTests
         _otpLoginRepo.Setup(x => x.Update(It.IsAny<OtpLogin>(), true)).Returns(Task.CompletedTask);
         _otpLoginRepo.Setup(x => x.Read(It.IsAny<Expression<Func<OtpLogin, bool>>>()))
             .ReturnsAsync([otpLogin]);
-        _jwtGenerator.Setup(x => x.GenerateJwt(It.IsAny<string>(), true)).Returns("JWT_TOKEN");
+        _jwtGenerator.Setup(x => x.GenerateJwt(It.IsAny<Guid>(), It.IsAny<string>(), true)).Returns("JWT_TOKEN");
 
         var response = await _handler.Handle(request);
 

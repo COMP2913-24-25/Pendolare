@@ -1,0 +1,43 @@
+name: Pendo-IdentityService
+description: "Build and test the Identity Service project"
+
+on:
+  pull_request:
+    branches: [ main, dev ]
+    paths:
+      - 'Pendo.IdentityService/**'
+      - '.github/workflows/Pendo.IdentityService.yml'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+  issues: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  build_test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET 8.0
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Build project
+      working-directory: ./Pendo.IdentityService
+      run: dotnet build --configuration Release
+
+    - name: Test project
+      working-directory: ./Pendo.IdentityService
+      run: dotnet test --configuration Release --logger "trx;LogFileName=identity_test_results.trx"
+
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: always()
+      with:
+        files: ./Pendo.IdentityService/Identity.Tests/TestResults/identity_test_results.trx
