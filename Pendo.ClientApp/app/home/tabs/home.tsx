@@ -81,9 +81,9 @@ const Home = () => {
           </View>
 
           {/* Next Journey Section */}
-          <View className="mt-5">
+          <View className="mt-2">
             <Text
-              className={`text-xl font-JakartaBold mb-3 ${isDarkMode ? "text-white" : "text-black"}`}
+              className={`text-xl font-JakartaBold mt-2 ${isDarkMode ? "text-white" : "text-black"}`}
             >
               Upcoming Journeys
             </Text>
