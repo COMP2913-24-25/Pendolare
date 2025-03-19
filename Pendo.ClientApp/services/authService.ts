@@ -8,6 +8,10 @@ const JWT_KEY = "pendolare";
 const USER_EMAIL_KEY = "pendolare_email";
 const IS_NEW_USER_KEY = "pendolare_is_new_user";
 
+export const USER_FIRST_NAME_KEY = "userFirstName";
+export const USER_LAST_NAME_KEY = "userLastName";
+export const USER_RATING_KEY = "userRating";
+
 interface OTPResponse {
   success: boolean;
   message?: string;
@@ -18,6 +22,19 @@ interface VerifyOTPResponse {
   isNewUser: boolean;
   authenticated: boolean;
   error?: string;
+}
+
+interface UpdateUserResponse {
+  success: boolean;
+  message: string;
+}
+
+interface GetUserResponse {
+  success: boolean;
+  message: string;
+  firstName: string;
+  lastName: string;
+  userRating: number;
 }
 
 /* 
@@ -100,6 +117,81 @@ export async function verifyOTP(otp: string): Promise<VerifyOTPResponse> {
       isNewUser: false,
       authenticated: false,
       error: error instanceof Error ? error.message : "Network error. Please try again.",
+    };
+  }
+}
+
+/**
+ * 
+ * @param firstName the first name to update the user with.
+ * @param lastName the last name to update the user with.
+ * 
+ * @returns a boolean indicating whether the user was successfully updated.
+ */
+export async function updateUser(firstName: string, lastName: string): Promise<boolean> {
+  try {
+    const jwt = await SecureStore.getItemAsync(JWT_KEY);
+    if (!jwt) {
+      return false;
+    }
+
+    const response = await apiRequest<UpdateUserResponse>(AUTH_ENDPOINTS.UPDATE_USER, {
+      method: "PATCH",
+      body: JSON.stringify({ firstName, lastName }),
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+
+    return response.success;
+  } catch (error) {
+    console.error("Update user error:", error);
+    return false;
+  }
+}
+
+/**
+ * Get the user's first name, last name, and rating and store them in the secure store.
+ * 
+ * @returns the user's first name, last name, and rating, or an error message if the user is not authenticated / does not exist.
+ */
+export async function getUser(): Promise<GetUserResponse> {
+  try {
+    const jwt = await SecureStore.getItemAsync(JWT_KEY);
+    if (!jwt) {
+      return {
+        success: false,
+        message: "User not authenticated",
+        firstName: "",
+        lastName: "",
+        userRating: -1,
+      };
+    }
+
+    const response = await apiRequest<GetUserResponse>(AUTH_ENDPOINTS.GET_USER, {
+      method: "POST",
+      body: JSON.stringify({}),
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      }
+    });
+
+    if (response.success) {
+      // Store the user's details securely
+      await SecureStore.setItemAsync(USER_FIRST_NAME_KEY, response.firstName);
+      await SecureStore.setItemAsync(USER_LAST_NAME_KEY, response.lastName);
+      await SecureStore.setItemAsync(USER_RATING_KEY, response.userRating == -1 ? "N/A" : response.userRating.toString());
+    }
+
+    return response;
+  } catch (error) {
+    console.error("Get user error:", error);
+    return {
+      success: false,
+      message: "Failed to get user",
+      firstName: "",
+      lastName: "",
+      userRating: -1,
     };
   }
 }

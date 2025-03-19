@@ -51,7 +51,7 @@ const UpcomingRideDetailsModal = ({
           <Map pickup={ride.pickup} dropoff={ride.dropoff} />
           <TouchableOpacity
             onPress={onClose}
-            className={`absolute top-6 left-4 z-10 p-2 rounded-full ${
+            className={`absolute top-12 left-4 z-10 p-2 rounded-full ${
               isDarkMode ? "bg-slate-800" : "bg-white"
             }`}
           >

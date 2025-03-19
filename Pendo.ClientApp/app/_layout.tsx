@@ -14,9 +14,15 @@ SplashScreen.preventAutoHideAsync();
 
 const publishableKey = process.env.EXPO_PUBLIC_PUBLISH_KEY;
 
+const Header = ({ className }: { className?: string }) => {
+  return (
+    <View className={`h-14 ${className}`} />
+  );
+};
+
 function AppLayout() {
   const { isDarkMode } = useTheme();
-  
+
   return (
     <View style={{ flex: 1, backgroundColor: isDarkMode ? '#121212' : '#ffffff' }}>
       {/* StatusBar styling based on theme */}
@@ -38,9 +44,9 @@ function AppLayout() {
           // Add top padding to account for translucent status bar
         }}
       >
-        <Stack.Screen name="index" />
-        <Stack.Screen name="auth" />
-        <Stack.Screen name="home" />
+        <Stack.Screen name="index" options={{ headerShown: false }}/>
+        <Stack.Screen name="auth" options={{ headerShown: false }}/>
+        <Stack.Screen name="home" options={{ headerShown: false }}/>
       </Stack>
     </View>
   );
@@ -71,12 +77,15 @@ export default function RootLayout() {
     return null;
   }
 
+  const { isDarkMode } = useTheme();
+
   return (
     <SafeAreaProvider>
       <ThemeProvider>
         <AuthProvider>
           <ClerkProvider publishableKey={publishableKey as string}>
             <ClerkLoaded>
+              <Header className={isDarkMode ? "bg-slate-900" : "bg-general-500"}/>
               <AppLayout />
             </ClerkLoaded>
           </ClerkProvider>

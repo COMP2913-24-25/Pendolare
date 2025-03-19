@@ -17,7 +17,6 @@ export async function apiRequest<T>(
     ...(options.headers || {}),
   };
 
-
   try {
 
     console.log(headers)
@@ -32,7 +31,7 @@ export async function apiRequest<T>(
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || "API request failed");
+      throw new Error(data.message || `API request failed: ${response}`);
     }
 
     return data;

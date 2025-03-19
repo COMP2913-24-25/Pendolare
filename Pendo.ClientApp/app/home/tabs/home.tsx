@@ -14,6 +14,8 @@ import UpcomingRide from "@/components/RideView/UpcomingRide";
 import { icons, upcomingRides, pastRides } from "@/constants";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import { USER_FIRST_NAME_KEY } from "@/services/authService";
+import * as SecureStore from "expo-secure-store";
 
 /*
   Home
@@ -34,6 +36,8 @@ const Home = () => {
     await logout();
   };
 
+  const userFirstName = SecureStore.getItem(USER_FIRST_NAME_KEY);
+
   /* 
     Note: Styling and class names are derived from Tailwind CSS docs
     https://tailwindcss.com/docs/
@@ -52,7 +56,7 @@ const Home = () => {
             <Text
               className={`text-2xl font-JakartaExtraBold ${isDarkMode ? "text-white" : "text-black"}`}
             >
-              Welcome {"John"}👋
+              Welcome {userFirstName == null  ? "" : userFirstName} 👋
             </Text>
             <TouchableOpacity
               onPress={() => setShowModal(true)}
@@ -77,11 +81,11 @@ const Home = () => {
           </View>
 
           {/* Next Journey Section */}
-          <View className="mt-5">
+          <View className="mt-2">
             <Text
-              className={`text-xl font-JakartaBold mb-3 ${isDarkMode ? "text-white" : "text-black"}`}
+              className={`text-xl font-JakartaBold mt-2 ${isDarkMode ? "text-white" : "text-black"}`}
             >
-              Next Journey
+              Upcoming Journeys
             </Text>
             {nextRide ? (
               <UpcomingRide ride={nextRide} />
