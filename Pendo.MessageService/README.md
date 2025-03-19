@@ -1,24 +1,31 @@
-# Service Name
+# Pendo Message Service
 
-Brief description of what this specific service does and its role in the Pendolare system.
+The Pendo Message Service facilitates real-time communication between users and support teams by leveraging WebSockets and robust API integration. It provides persistent chat history, conversation management, and health monitoring.
 
 ## Overview
-
-Description of the service's main responsibilities and core functionalities.
+The service is designed for scalable, real-time messaging. It handles:
+- Real-time message broadcasting via WebSockets.
+- Secure storage and retrieval of conversation history.
+- Dynamic conversation management including join and leave operations.
 
 ### Features
-- Key feature 1
-- Key feature 2
-- Key feature 3
+- Real-time chat with WebSocket-based communication.
+- Persistent message history using a database.
+- Dynamic conversation creation and management.
+- Health and logging endpoints for monitoring.
+
+### Service Flowchart
+![Flowchart](https://github.com/user-attachments/assets/1efb103d-632a-4d6b-ba48-9ed30ed76152)
 
 ## Tech Stack
-- Language/Framework: [e.g., Node.js, Java, Python]
-- Other significant technologies
+- Language/Framework: Python, aiohttp, Websockets
+- Database: MSSQL (production), SQLite (testing)
+- ORM: SQLAlchemy, Pydantic for configuration
 
 ## Prerequisites
-- Required software/tools with versions
-- Environment dependencies
-- External service dependencies
+- Required software/tools (Python & Docker)
+- Environment dependencies (Python packages listed in requirements.txt)
+- External service dependencies (MSSQL for production)
 
 ## Getting Started
 
@@ -31,52 +38,40 @@ git clone [repository-url]
 cd [service-name]
 
 # Install dependencies
-npm install  # or equivalent command
+pip install -r requirements.txt
 ```
 
 ### Configuration
-1. Copy `.env.example` to `.env`
-2. Update environment variables:
-   - `DATABASE_URL`
-   - `SERVICE_PORT`
-   - `OTHER_REQUIRED_VARS`
+1. Copy configuration 
 
 ### Running the Service
 ```bash
-# Development mode
-npm run dev  # or equivalent command
+# Build the project container
+docker build -t pendo-message .
 
-# Production mode
-npm run start  # or equivalent command
+# Run the container
+docker run --name pendo-message -p PORT:PORT PORT:PORT pendo-message
 ```
 
-### Testing
+## Testing
 ```bash
-# Run unit tests
-npm run test  # or equivalent command
+# Build the project container with testing utils
+docker build -t pendo-message-test -f Dockerfile.tests .
 
-# Run integration tests
-npm run test:integration  # or equivalent command
+# Run the testing container
+docker run --name pendo-message-test pendo-message-test
 ```
-
-## API Documentation
-
-### Endpoints
-- `GET /api/v1/resource` - Description
-- `POST /api/v1/resource` - Description
-- `PUT /api/v1/resource/:id` - Description
-- `DELETE /api/v1/resource/:id` - Description
 
 ## Monitoring and Logging
-- Metrics collection
-- Log locations
-- Monitoring tools used
+The service logs critical events and metrics. Container logs can be accessed through
+
+```bash
+docker logs pendo-message-test
+```
 
 ## Deployment
-- Deployment process
-- Required environment variables
-- Infrastructure dependencies
-
-
+Deploy the service using Docker with the provided Dockerfile and shell scripts:
+- `Dockerfile` for the application.
+  
 ## Contact
-- User responsible: [Leeds Username]
+- User responsible: Josh Mundray @sc232jm
