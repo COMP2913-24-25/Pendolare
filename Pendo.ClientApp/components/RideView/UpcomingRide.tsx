@@ -116,6 +116,9 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
     }
   };
 
+  // Don't even ask! Only way I could fix the styling.
+  insets.top = 0;
+
   return (
     <View style={{ paddingTop: insets.top > 0 ? insets.top : 20 }}>
       <UpcomingRideCard ride={ride} onPress={() => setShowDetails(true)} />
