@@ -66,9 +66,14 @@ const Button = ({
       {...props}
     >
       {IconLeft && <IconLeft />}
-      <Text className={`text-lg font-bold ${getTextVariantStyle(textVariant)}`}>
-        {title}
-      </Text>
+      
+      {/* Conditionally render text if title isn't empty */}
+      {title && (
+        <Text className={`text-lg font-bold ${getTextVariantStyle(textVariant)}`}>
+          {title}
+        </Text>
+      )}
+      
       {IconRight && <IconRight />}
     </TouchableOpacity>
   );

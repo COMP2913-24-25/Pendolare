@@ -1,6 +1,6 @@
 import { FontAwesome5 } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { ScrollView, Image } from "react-native";
+import { ScrollView, Image, Alert } from "react-native";
 
 import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
 import ThemedView from "@/components/common/ThemedView";
@@ -11,36 +11,48 @@ import ThemedButton from "@/components/common/ThemedButton";
 import { USER_FIRST_NAME_KEY, USER_LAST_NAME_KEY, USER_RATING_KEY } from "@/services/authService";
 import * as SecureStore from "expo-secure-store";
 
+import { useState } from "react";
+import { Rating } from "react-native-ratings";
+import { getUser as apiGetUser, updateUser as apiUpdateUser } from "@/services/authService";
+
 const Profile = () => {
 
-  const user: { firstName: string; lastName: string; rating: string } = {
-    firstName: "",
-    lastName: "",
-    rating: "N/A",
+  //Refresh in the background when we load in
+  apiGetUser();
+
+  const getUser = () => {
+      return {
+      firstName: SecureStore.getItem(USER_FIRST_NAME_KEY) ?? "No first name set!",
+      lastName: SecureStore.getItem(USER_LAST_NAME_KEY) ?? "No last name set!",
+      rating: SecureStore.getItem(USER_RATING_KEY) ?? "N/A"
+    };
   };
 
-  async function loadUser(): Promise<void> {
-    user.firstName = (await SecureStore.getItemAsync(USER_FIRST_NAME_KEY)) ?? "No first name set!";
-    user.lastName = (await SecureStore.getItemAsync(USER_LAST_NAME_KEY)) ?? "No last name set!";
-    user.rating = (await SecureStore.getItemAsync(USER_RATING_KEY)) ?? "N/A";
-  }
+  const originalUser = getUser();
 
-  (async () => {
-    await loadUser();
-  })();
+  const [user, setUser] = useState(getUser());
+
+  const updateUser = (newUser : { firstName: string; lastName: string, rating: string}) => {
+    if (newUser.firstName.length > 30 || newUser.lastName.length > 30) {
+      return;
+    }
+    setUser(newUser);
+  };
+
+  const cardStyle = "bg-white rounded-lg shadow-sm px-5 py-3";
 
   return (
     <ThemedSafeAreaView className="flex-1">
       {/* Header */}
       <ThemedView className="flex-row justify-between items-center px-5 my-5">
-        <Text className="text-2xl font-JakartaBold">My profile</Text>
+        <Text className="text-2xl font-JakartaBold my-5">My Profile</Text>
         <ThemedButton
           onPress={() => router.push("/home/settings")}
           title=""
           IconLeft={() => (
             <FontAwesome5 name="cog" size={24} color="currentColor" />
           )}
-          className="p-2"
+          className="w-16 h-16 ml-6 rounded-l-full"
         />
       </ThemedView>
 
@@ -49,30 +61,57 @@ const Profile = () => {
         className="px-5"
       >
         {/* Profile Image */}
-        <ThemedView className="items-center my-5">
+        <ThemedView className={`items-center my-5 ${cardStyle}`}>
           <Image
             source={{
-              uri: "../assets/images/test-pic.jpg",
+              uri: "../../assets/images/test-pic.jpg",
             }}
             style={{ width: 110, height: 110, borderRadius: 55, borderWidth: 3, borderColor: "#FFF" }}
             className="shadow-sm"
           />
+          <ThemedView className="items-center mt-3">
+            {user.rating === "N/A" ? (
+              <Text className="text-lg font-Jakarta">No driver rating yet!</Text>
+            ) : (
+              <Rating startingValue={Number.parseInt(user.rating)} readonly />
+            )}
+            <Text className="text-xl font-JakartaBold">
+              {user.firstName} {user.lastName}
+            </Text>
+          </ThemedView>
         </ThemedView>
 
         {/* Profile Information */}
-        <ThemedView className="bg-white rounded-lg shadow-sm px-5 py-3">
+        <ThemedView className={cardStyle}>
           <ThemedInputField
             label="First name"
-            placeholder={user.firstName}
-            editable={false}
+            value={user.firstName}
+            editable={true}
             containerStyle="mb-4"
+            onChangeText={(text) => updateUser({...user, firstName: text})}
           />
           <ThemedInputField
             label="Last name"
-            placeholder={user.lastName}
-            editable={false}
+            value={user.lastName}
+            editable={true}
             containerStyle="mb-4"
+            onChangeText={(text) => updateUser({...user, lastName: text})}
           />
+          {(originalUser.firstName != user.firstName || originalUser.lastName != user.lastName) && (
+            <ThemedButton
+              title="Save Changes"
+              onPress={async () => {
+                let result = await apiUpdateUser(user.firstName, user.lastName);
+                if (!result) {
+                  Alert.alert("Failed to update user. Please try again.");
+                  console.error("Failed to update user. Please try again.");
+                  return;
+                }
+                SecureStore.setItem(USER_FIRST_NAME_KEY, user.firstName);
+                SecureStore.setItem(USER_LAST_NAME_KEY, user.lastName);
+              }}
+            />
+          )}
         </ThemedView>
       </ScrollView>
     </ThemedSafeAreaView>
