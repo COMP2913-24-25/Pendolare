@@ -54,6 +54,14 @@ const Book = () => {
             }}
             isSelected={selectedCategory === "commuter"}
           />
+
+          {/* Create Ride Button */}
+          <TouchableOpacity
+            className="bg-blue-500 p-4 rounded-lg mb-5"
+            onPress={() => setShowCreateRideModal(true)}
+          >
+            <Text className="text-white text-center">Create a Ride</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Available Journeys or Commuter Section */}
@@ -90,14 +98,6 @@ const Book = () => {
             </View>
           )
         )}
-
-        {/* Create Ride Button */}
-        <TouchableOpacity
-          className="bg-blue-500 p-4 rounded-lg mt-5"
-          onPress={() => setShowCreateRideModal(true)}
-        >
-          <Text className="text-white text-center">Create a Ride</Text>
-        </TouchableOpacity>
 
         {/* Create Ride Modal */}
         <Modal
