@@ -176,13 +176,11 @@ export async function getUser(): Promise<GetUserResponse> {
       }
     });
 
-    console.error("Get user response:", response);
-
     if (response.success) {
       // Store the user's details securely
-      await SecureStore.setItemAsync("userFirstName", response.firstName);
-      await SecureStore.setItemAsync("userLastName", response.lastName);
-      await SecureStore.setItemAsync("userRating", response.userRating === -1 ? "N/A" : response.userRating.toString());
+      await SecureStore.setItemAsync(USER_FIRST_NAME_KEY, response.firstName);
+      await SecureStore.setItemAsync(USER_LAST_NAME_KEY, response.lastName);
+      await SecureStore.setItemAsync(USER_RATING_KEY, response.userRating == -1 ? "N/A" : response.userRating.toString());
     }
 
     return response;

@@ -117,9 +117,7 @@ const SignIn = () => {
         }
 
         // Otherwise get user and go to home
-        await getUser();
-        
-        router.replace("/home/tabs/home");
+        getUser().then(() => router.replace("/home/tabs/home"));
       } else {
         setVerification({
           ...verification,

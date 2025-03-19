@@ -42,9 +42,7 @@ const CaptureName = () => {
         return;
     }
 
-    await getUser();
-
-    router.push("/auth/onboarding");
+    getUser().then(() => router.push("/auth/onboarding"));
   };
 
   return (
