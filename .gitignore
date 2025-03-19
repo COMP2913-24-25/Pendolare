@@ -5,13 +5,13 @@
 bin/
 obj/
 *.dacpac
+.DS_Store
 Pendo.MessageService/endpoints.md
 .vs
 .vscode
 efpt.config.json
 efpt.config.json.user
 /Pendo.IdentityService/Identity.DataAccess/efpt.config.json
-.DS_Store
 __pycache__
 /Pendo.BookingService/.venv-booking
 Pendo.BookingService/app/.env
