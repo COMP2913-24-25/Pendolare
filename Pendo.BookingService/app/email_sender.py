@@ -13,6 +13,15 @@ class MailSender:
         """
         self.config = sendgrid_configuration
 
+    def SendBookingArrivalEmail(self, to, data):
+        """
+        SendBookingArrivalEmail method sends a booking arrival email to the specified recipient.
+        :param to: Email address of the recipient.
+        :param data: Data to be passed to the email template.
+        :return: Response from SendGrid API.
+        """
+        return self._sendEmail(to, data, self.config.arrivalTemplateId)
+
     def SendBookingConfirmation(self, to, data):
         """
         SendBookingConfirmation method sends a booking confirmation email to the specified recipient.

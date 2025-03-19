@@ -1,7 +1,12 @@
+*/obj
+*/bin/Debug/*
+/Pendo.JourneyService/app/__pycache__
+/Pendo.JourneyService/temp/__pycache__
 bin/
 obj/
 *.dacpac
 .DS_Store
+Pendo.MessageService/endpoints.md
 .vs
 .vscode
 efpt.config.json
