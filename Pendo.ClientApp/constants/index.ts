@@ -1,3 +1,23 @@
+export interface Ride {
+  BookingId: string;
+  RideTime : Date;
+  Status: string;
+  DriverName: string;
+  DriverId: string;
+  Price: number;
+  Pickup : {
+    latitude: number;
+    longitude: number;
+    name: string
+  },
+  Dropoff : {
+    latitude: number;
+    longitude: number;
+    name: string
+  }
+  // Need to alter booking service to return driver name not ID!
+}
+
 export const icons = {
   home: "home",
   search: "search",
@@ -63,6 +83,11 @@ export const AUTH_ENDPOINTS = {
 export const BOOKING_ENDPOINTS = {
   CREATE_BOOKING: "/Booking/CreateBooking",
   GET_BOOKINGS: "/Booking/GetBookings",
+  ADD_BOOKING_AMMENDMENT: "/Booking/AddBookingAmmendment",
+  APPROVE_BOOKING_AMMENDMENT: "/Booking/ApproveBookingAmmendment",
+  APPROVE_BOOKING: "/Booking/ApproveBooking",
+  CONFIRM_AT_PICKUP: "/Booking/ConfirmAtPickup",
+  COMPLETE_BOOKING: "/Booking/CompleteBooking"
 };
 
 export const MESSAGE_API_BASE_URL = "wss://pendo-message.clsolutions.dev/ws";

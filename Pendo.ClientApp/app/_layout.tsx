@@ -57,6 +57,9 @@ function AppLayout() {
   Main layout for the app
 */
 export default function RootLayout() {
+
+  const { isDarkMode } = useTheme();
+
   const [loaded] = useFonts({
     "Jakarta-Bold": require("../assets/fonts/PlusJakartaSans-Bold.ttf"),
     "Jakarta-ExtraBold": require("../assets/fonts/PlusJakartaSans-ExtraBold.ttf"),
@@ -76,8 +79,6 @@ export default function RootLayout() {
   if (!loaded) {
     return null;
   }
-
-  const { isDarkMode } = useTheme();
 
   return (
     <SafeAreaProvider>
