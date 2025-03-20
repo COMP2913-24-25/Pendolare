@@ -10,6 +10,7 @@ import RideCompletionModal from "./Modals/RideCompletionModal";
 import UpcomingRideDetailsModal from "./Modals/UpcomingRideDetailsModal";
 import UpcomingRideCard from "./UpcomingRideCard";
 import { Ride } from "@/constants";
+import { cancelBooking } from "@/services/bookingService";
 
 interface UpcomingRideProps {
   ride : Ride
@@ -51,7 +52,7 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
 
   const handleCancel = async (reason: string) => {
     try {
-      await Promise.resolve(); // Replace with actual API call
+      await cancelBooking(ride.BookingId, reason); // Replace with actual API call
       setShowCancelModal(false);
       setShowDetails(false);
     } catch (error) {
@@ -115,50 +116,51 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
   return (
     <View style={{ paddingTop: insets.top > 0 ? insets.top : 20 }}>
       <UpcomingRideCard ride={ride} onPress={() => setShowDetails(true)} />
-
       <UpcomingRideDetailsModal
-        ride={ride}
-        visible={showDetails}
-        onClose={() => setShowDetails(false)}
-        onContactDriver={handleContactDriver}
-        onCancel={handleCancelAttempt}
-        onComplete={handleCompletionStart}
-        isPastRide={isPastRide()}
-      />
+          ride={ride}
+          visible={showDetails}
+          onClose={() => setShowDetails(false)}
+          onContactDriver={handleContactDriver}
+          onCancel={handleCancelAttempt}
+          onComplete={handleCompletionStart}
+          isPastRide={isPastRide()}
+        >
+            <View>
+              <LateCancellationModal
+                visible={showLateCancelWarning}
+                onClose={() => setShowLateCancelWarning(false)}
+                onConfirm={() => {
+                  setShowLateCancelWarning(false);
+                  setShowCancelModal(true);
+                }}
+              />
 
-      <LateCancellationModal
-        visible={showLateCancelWarning}
-        onClose={() => setShowLateCancelWarning(false)}
-        onConfirm={() => {
-          setShowLateCancelWarning(false);
-          setShowCancelModal(true);
-        }}
-      />
+              <CancellationReasonModal
+                visible={showCancelModal}
+                onCancel={() => setShowCancelModal(false)}
+                onReasonSelect={handleCancel}
+              />
 
-      <CancellationReasonModal
-        visible={showCancelModal}
-        onCancel={() => setShowCancelModal(false)}
-        onReasonSelect={handleCancel}
-      />
+              <RatingModal
+                visible={showRatingModal}
+                driverName={ride.DriverName}
+                rating={rating}
+                setRating={setRating}
+                onClose={() => setShowRatingModal(false)}
+                onSubmit={handleRate}
+              />
 
-      <RatingModal
-        visible={showRatingModal}
-        driverName={ride.DriverName}
-        rating={rating}
-        setRating={setRating}
-        onClose={() => setShowRatingModal(false)}
-        onSubmit={handleRate}
-      />
-
-      <RideCompletionModal
-        visible={showCompletionModal}
-        driverName={ride.DriverName}
-        rating={rating}
-        setRating={setRating}
-        onClose={() => setShowCompletionModal(false)}
-        onSubmit={handleComplete}
-        onDispute={handleDisputeRide}
-      />
+              <RideCompletionModal
+                visible={showCompletionModal}
+                driverName={ride.DriverName}
+                rating={rating}
+                setRating={setRating}
+                onClose={() => setShowCompletionModal(false)}
+                onSubmit={handleComplete}
+                onDispute={handleDisputeRide}
+              />
+            </View>
+        </UpcomingRideDetailsModal>
     </View>
   );
 };

@@ -1,3 +1,4 @@
+import React from "react";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { View, TouchableOpacity, Modal } from "react-native";
 
@@ -5,8 +6,7 @@ import Map from "../../Map/Map";
 import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 import { formatTimestamp } from "@/utils/formatTime";
-import { Text } from "@/components/common/ThemedText"; // updated
-
+import { Text } from "@/components/common/ThemedText";
 import { Ride } from "@/constants";
 import StatusBadge from "../StatusBadge";
 
@@ -18,11 +18,12 @@ interface UpcomingRideDetailsModalProps {
   onCancel: () => void;
   onComplete: () => void;
   isPastRide: boolean;
+  children?: React.ReactNode;
 }
 
 /*
     UpcomingRideDetailsModal
-    Modal component for viewing upcoming ride details
+    Modal component for viewing upcoming ride details.
 */
 const UpcomingRideDetailsModal = ({
   ride,
@@ -32,16 +33,10 @@ const UpcomingRideDetailsModal = ({
   onCancel,
   onComplete,
   isPastRide,
+  children,
 }: UpcomingRideDetailsModalProps) => {
   const { isDarkMode } = useTheme();
 
-  /* 
-    Note: Styling and class names are derived from Tailwind CSS docs
-    https://tailwindcss.com/docs/
-    Additional design elements have been generated using Figma -> React Native (Tailwind)
-    https://www.figma.com/community/plugin/821138713091291738/figma-react-native
-    https://www.figma.com/community/plugin/1283055580669946018/tailwind-react-code-generator-by-pagesloft
-  */
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-white"}`}>
@@ -62,7 +57,6 @@ const UpcomingRideDetailsModal = ({
         </View>
 
         <View className="p-5 flex-1">
-          {/* Removed inline dark mode text colors */}
           <Text className="text-2xl font-JakartaBold mt-4 mb-4">Ride Details</Text>
 
           <View
@@ -121,6 +115,7 @@ const UpcomingRideDetailsModal = ({
           </View>
         </View>
       </View>
+      {children}
     </Modal>
   );
 };

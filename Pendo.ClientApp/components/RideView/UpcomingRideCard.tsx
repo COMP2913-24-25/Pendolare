@@ -1,7 +1,6 @@
 import { View, TouchableOpacity } from "react-native";
 import { Text } from "@/components/common/ThemedText"; // updated
 import { useTheme } from "@/context/ThemeContext";
-import { formatTimestamp } from "@/utils/formatTime";
 import { Ride } from "@/constants";
 import StatusBadge from "./StatusBadge";
 
