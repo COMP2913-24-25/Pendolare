@@ -247,7 +247,7 @@ export async function confirmAtPickup(bookingId: string) : Promise<BookingRespon
       });
 
     return {
-      success: true,
+      ...response
     };
 
   } catch (error) {
