@@ -8,6 +8,7 @@ import { formatTimestamp } from "@/utils/formatTime";
 import { Text } from "@/components/common/ThemedText"; // updated
 
 import { Ride } from "@/constants";
+import StatusBadge from "../StatusBadge";
 
 interface UpcomingRideDetailsModalProps {
   ride: Ride;
@@ -62,14 +63,15 @@ const UpcomingRideDetailsModal = ({
 
         <View className="p-5 flex-1">
           {/* Removed inline dark mode text colors */}
-          <Text className="text-2xl font-JakartaBold mt-8 mb-4">Ride Details</Text>
+          <Text className="text-2xl font-JakartaBold mt-4 mb-4">Ride Details</Text>
 
           <View
             className={`p-4 rounded-xl mb-4 ${
               isDarkMode ? "bg-slate-800" : "bg-gray-50"
             }`}
           >
-            <View className="mb-3">
+            <StatusBadge statusText={ride.Status} />
+            <View className="mb-3 mt-3">
               <Text>From</Text>
               <Text className="font-JakartaMedium">{ride.Pickup.name}</Text>
             </View>
@@ -83,11 +85,11 @@ const UpcomingRideDetailsModal = ({
             </View>
             <View>
               <Text>Price</Text>
-              <Text className="font-JakartaMedium">{ride.Price}</Text>
+              <Text className="font-JakartaMedium">{`£${ride.Price.toFixed(2)}`}</Text>
             </View>
           </View>
 
-          <View className="flex-row gap-4 mt-auto">
+          <View className="flex-row gap-4">
             <TouchableOpacity
               onPress={onContactDriver}
               className="flex-1 bg-blue-600 p-4 rounded-xl"

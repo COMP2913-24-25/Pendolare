@@ -40,6 +40,8 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
   };
 
   const handleCancelAttempt = () => {
+    console.log("Handling cancellation.");
+    
     if (isLastMinuteCancellation()) {
       setShowLateCancelWarning(true);
     } else {
