@@ -76,6 +76,9 @@ export async function createBooking(
 ): Promise<BookingResponse> {
   try {
     // Convert journey ID to string if it's a number (for dummy data)
+    if (typeof journeyId === "undefined")
+      throw new Error("Journey ID is required to create a booking");
+
     const stringJourneyId = journeyId.toString();
 
     console.log("reached");

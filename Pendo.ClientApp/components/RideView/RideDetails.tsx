@@ -40,7 +40,7 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
           ? new Date(ride.departureTime)
           : new Date(ride.departureTime);
 
-      const result = await createBooking(ride.id, departureTime);
+      const result = await createBooking(ride.JourneyId, departureTime);
 
       if (result.success) {
         setBookingStatus({
@@ -95,7 +95,7 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
       onRequestClose={onClose}
     >
       <View className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-white"}`}>
-        <View className="h-1/2">
+        <View className="h-1/3">
           <Map pickup={ride.pickup} dropoff={ride.dropoff} />
           <TouchableOpacity
             className={`absolute top-12 left-4 p-2 rounded-full shadow-sm ${

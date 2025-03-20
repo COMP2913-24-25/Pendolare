@@ -2,12 +2,14 @@ import { apiRequest } from "./apiClient";
 import { JOURNEY_ENDPOINTS } from "@/constants";
 
 interface JourneyDetails {
+    JourneyId: string;
+    UserId: string;
     BootHeight: number;
     BootWidth: number;
     StartDate: Date;
     JourneyType: number;
     MaxPrice: number;
-    NumPassengers: number;
+    MaxPassengers: number;
     DistanceRadius: number;
     StartLat: number;
     StartLong: number;
