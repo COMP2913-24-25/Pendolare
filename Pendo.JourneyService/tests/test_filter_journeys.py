@@ -4,6 +4,7 @@ from app.request_lib import GetJourneysRequest
 from app.PendoDatabase import Journey
 from app.parameter_filtering import FilterJourneys
 from datetime import datetime
+from uuid import UUID
 from sqlalchemy.sql import and_
 
 @pytest.fixture
@@ -12,7 +13,7 @@ def mock_db():
 
 @pytest.fixture
 def mock_request():
-    return GetJourneysRequest()
+    return GetJourneysRequest(UserId=UUID('123e4567-e89b-12d3-a456-426614174000'))
 
 @pytest.fixture
 def filter_journeys(mock_request, mock_db):
