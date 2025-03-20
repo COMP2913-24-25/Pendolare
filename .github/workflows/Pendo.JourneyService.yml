@@ -35,11 +35,11 @@ jobs:
         pip install -r requirements.txt
 
     - name: Test project
-      working-directory: ./Pendo.JourneyService/app
+      working-directory: ./Pendo.JourneyService
       run: pytest --junitxml=journey_test_results.xml
 
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v2
       if: always()
       with:
-        files: ./Pendo.JourneyService/app/journey_test_results.xml
+        files: ./Pendo.JourneyService/journey_test_results.xml
