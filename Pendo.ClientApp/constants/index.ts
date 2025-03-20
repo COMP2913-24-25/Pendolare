@@ -90,6 +90,14 @@ export const BOOKING_ENDPOINTS = {
   COMPLETE_BOOKING: "/Booking/CompleteBooking"
 };
 
+// Journey endpoints
+export const JOURNEY_ENDPOINTS = {
+  CREATE_JOURNEY: "/Journey/CreateJourney",
+  GET_JOURNEYS: "/Journey/ViewJourney",
+  LOCK_JOURNEY: "/Journey/LockJourney",
+  ADJUST_PRICE: "/Journey/AdjustPrice",
+};
+
 export const MESSAGE_API_BASE_URL = "wss://pendo-message.clsolutions.dev/ws";
 
 // Message endpoints

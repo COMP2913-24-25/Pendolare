@@ -13,6 +13,8 @@ import StepIndicator from "./StepIndicator";
 import { Text } from "@/components/common/ThemedText";
 import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
+import { createJourney } from "@/services/journeyService";
+import { validateRegPlate } from "@/services/dvlaService";
 
 interface Location {
   name: string;
@@ -35,6 +37,7 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
   const [dropoff, setDropoff] = useState<Location | null>(null);
   const [cost, setCost] = useState("");
   const [seats, setSeats] = useState("");
+  const [regPlate, setRegPlate] = useState(""); // <<-- new state for reg plate
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [searchResults, setSearchResults] = useState<Location[]>([]);
@@ -113,25 +116,40 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
   };
 
   // Create a new ride object
-  const handleCreateRide = () => {
-    const newRide = {
-      id: Date.now(),
-      driverName: "Alex McCall",
-      availableSeats: parseInt(seats, 10),
-      departureTime: date.toLocaleTimeString(),
-      destination: dropoff?.name || "Unknown",
-      price: `£${cost}`,
-      rating: 5.0,
-      pickup,
-      dropoff,
-      isCommuter,
-      frequency: isCommuter ? frequency : undefined,
-      repeatDays: isCommuter ? selectedDays : undefined,
-      startDate: isCommuter ? startDate : undefined,
-      endDate: isCommuter ? endDate : undefined,
-      time: isCommuter ? date.toLocaleTimeString() : undefined,
-    };
-    onClose();
+  const handleCreateRide = async () => {
+    try {
+      // Validate registration plate if provided
+      if (regPlate.trim()) {
+        const isPlateValid = await validateRegPlate(regPlate);
+        if (!isPlateValid) {
+          alert("Invalid registration plate. Please check and try again.");
+          return;
+        }
+      }
+      const payload = {
+        AdvertisedPrice: parseFloat(cost),
+        StartName: pickup?.name || "",
+        StartLat: pickup?.latitude,
+        StartLong: pickup?.longitude,
+        EndName: dropoff?.name || "",
+        EndLat: dropoff?.latitude,
+        EndLong: dropoff?.longitude,
+        StartDate: date.toISOString(),
+        StartTime: date.toISOString(),
+        MaxPassengers: parseInt(seats, 10),
+        JourneyStatusId: 1,
+        RegPlate: regPlate,
+        BootWidth: 0,
+        BootHeight: 0,
+        ...(isCommuter && {
+          RepeatUntil: endDate.toISOString(),
+        }),
+      };
+      const result = await createJourney(payload);
+      onClose();
+    } catch (error) {
+      console.error("Failed to create journey:", error);
+    }
   };
 
   return (
@@ -183,6 +201,8 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
               seats={seats}
               setCost={setCost}
               setSeats={setSeats}
+              regPlate={regPlate}
+              setRegPlate={setRegPlate}
             />
           )}
           {step === 3 && (
