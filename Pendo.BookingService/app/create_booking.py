@@ -6,6 +6,7 @@ from sqlalchemy import DECIMAL, cast
 from fastapi import status
 from .statuses.booking_statii import BookingStatus
 from .responses import StatusResponse
+from .db_provider import get_db
 
 class CreateBookingCommand:
     """
@@ -50,20 +51,20 @@ class CreateBookingCommand:
                 raise Exception("Journey not found")
             
             #Check booking not in the past
-            if self.request.BookingTime < datetime.now():
+            if self.request.JourneyTime < datetime.now():
                 self.response.status_code = status.HTTP_400_BAD_REQUEST
                 raise Exception("Booking time cannot be in the past")
             
-            if journey.JourneyTypeId == 2 and not checkTimeValid(journey.Recurrance, self.request.BookingTime):
+            if journey.JourneyType == 2 and not checkTimeValid(journey.Recurrance, self.request.JourneyTime):
                 self.response.status_code = status.HTTP_400_BAD_REQUEST
                 raise Exception("Booking time is not valid for the commuter journey")
             
-            existing_booking = self.booking_repository.GetExistingBooking(user.UserId, journey.JourneyId, self.request.BookingTime)
+            existing_booking = self.booking_repository.GetExistingBooking(user.UserId, journey.JourneyId, self.request.JourneyTime)
             if existing_booking is not None:
                 self.response.status_code = status.HTTP_400_BAD_REQUEST
                 raise Exception("Booking for this time and journey combination already exists")
             
-            current_booking_fee = self.configuration_provider.GetSingleValue("Booking.FeeMargin")
+            current_booking_fee = self.configuration_provider.GetSingleValue(next(get_db()), "Booking.FeeMargin")
             if current_booking_fee is None:
                 self.response.status_code = status.HTTP_404_NOT_FOUND
                 raise Exception("Booking fee margin not found.")
@@ -73,6 +74,7 @@ class CreateBookingCommand:
                 JourneyId=journey.JourneyId,
                 BookingStatusId=BookingStatus.PrePending,
                 FeeMargin=cast(current_booking_fee, DECIMAL(18, 2)),
+                RideTime=self.request.JourneyTime
             )
 
             self.booking_repository.CreateBooking(booking)
