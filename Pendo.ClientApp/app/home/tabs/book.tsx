@@ -1,12 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ScrollView, View, TouchableOpacity, Modal } from "react-native";
 import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
 import BookingCategory from "@/components/BookingCategory";
 import CreateRide from "@/components/CreateRide/CreateRide";
 import RideEntry from "@/components/RideView/RideEntry";
 import { Text } from "@/components/common/ThemedText";
-import { dummyRides } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
+import { getJourneys } from "@/services/journeyService";
 
 /*
   Book
@@ -17,6 +17,23 @@ const Book = () => {
   const [showRides, setShowRides] = useState(false);
   const [showCreateRideModal, setShowCreateRideModal] = useState(false);
   const { isDarkMode } = useTheme();
+  const [availableRides, setAvailableRides] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function fetchRides() {
+      console.log("reaached");
+      try {
+        const response = await getJourneys();
+        if (response.success) {
+          console.log("found available rides");
+          setAvailableRides(response.journeys);
+        }
+      } catch (error) {
+        console.error("Failed to fetch journeys:", error);
+      }
+    }
+    fetchRides();
+  }, []);
 
   return (
     <ThemedSafeAreaView
@@ -72,8 +89,8 @@ const Book = () => {
             >
               Available Journeys
             </Text>
-            {dummyRides.map((ride) => (
-              <RideEntry key={ride.id} ride={ride} />
+            {availableRides.map((ride, index) => (
+              <RideEntry key={ride.BookingId || index} ride={ride} />
             ))}
           </View>
         ) : (

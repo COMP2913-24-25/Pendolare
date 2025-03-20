@@ -1,3 +1,4 @@
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ClerkLoaded, ClerkProvider } from "@clerk/clerk-expo";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
@@ -24,31 +25,31 @@ function AppLayout() {
   const { isDarkMode } = useTheme();
 
   return (
-    <View style={{ flex: 1, backgroundColor: isDarkMode ? '#121212' : '#ffffff' }}>
-      {/* StatusBar styling based on theme */}
-      <StatusBar 
-        style={isDarkMode ? "light" : "dark"} 
-        backgroundColor={isDarkMode ? "bg-slate-900" : "bg-general-500"}
-        translucent={true}
-      />
-      
-      <Stack 
-        screenOptions={{
-          headerStyle: {
-            backgroundColor: isDarkMode ? '#121212' : '#ffffff',
-          },
-          headerTintColor: isDarkMode ? '#ffffff' : '#000000',
-          contentStyle: {
-            backgroundColor: isDarkMode ? '#121212' : '#f5f5f5',
-          },
-          // Add top padding to account for translucent status bar
-        }}
-      >
-        <Stack.Screen name="index" options={{ headerShown: false }}/>
-        <Stack.Screen name="auth" options={{ headerShown: false }}/>
-        <Stack.Screen name="home" options={{ headerShown: false }}/>
-      </Stack>
-    </View>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={{ flex: 1, backgroundColor: isDarkMode ? '#121212' : '#ffffff' }}>
+        {/* StatusBar styling based on theme */}
+        <StatusBar 
+          style={isDarkMode ? "light" : "dark"} 
+          backgroundColor={isDarkMode ? "bg-slate-900" : "bg-general-500"}
+          translucent={true}
+        />
+        <Stack 
+          screenOptions={{
+            headerStyle: {
+              backgroundColor: isDarkMode ? '#121212' : '#ffffff',
+            },
+            headerTintColor: isDarkMode ? '#ffffff' : '#000000',
+            contentStyle: {
+              backgroundColor: isDarkMode ? '#121212' : '#f5f5f5',
+            },
+          }}
+        >
+          <Stack.Screen name="index" options={{ headerShown: false }}/>
+          <Stack.Screen name="auth" options={{ headerShown: false }}/>
+          <Stack.Screen name="home" options={{ headerShown: false }}/>
+        </Stack>
+      </View>
+    </GestureHandlerRootView>
   );
 }
 
