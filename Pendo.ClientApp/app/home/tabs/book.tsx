@@ -21,7 +21,7 @@ const Book = () => {
 
   useEffect(() => {
     async function fetchRides() {
-      console.log("reaached");
+      console.log("Getting available rides");
       try {
         const response = await getJourneys();
         if (response.success) {
@@ -34,6 +34,8 @@ const Book = () => {
     }
     fetchRides();
   }, []);
+
+  console.log("Available rides:", availableRides.map((ride) => ride.JourneyId));
 
   return (
     <ThemedSafeAreaView
