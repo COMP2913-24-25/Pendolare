@@ -4,6 +4,7 @@ from typing import Optional
 from uuid import UUID
 
 class GetJourneysRequest(BaseModel):
+    UserId: UUID
     BootHeight: Optional[float] = 0
     BootWidth: Optional[float] = 0
     StartDate: Optional[datetime.datetime] = None

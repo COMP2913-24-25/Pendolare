@@ -1,14 +1,19 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "FastAPI",
-    "version": "0.1.0"
+    "title": "Pendo.JourneyService.Api",
+    "version": "1.0.0"
   },
+  "servers": [
+    {
+      "url": "/api/Journey"
+    }
+  ],
   "paths": {
-    "api/journey/CreateJourney/": {
+    "/CreateJourney": {
       "post": {
         "summary": "Create Journey",
-        "operationId": "create_journeyapi_journey_CreateJourney__post",
+        "operationId": "create_journey_CreateJourney_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -43,10 +48,10 @@
         }
       }
     },
-    "api/journey/ViewJourney/": {
+    "/ViewJourney": {
       "post": {
         "summary": "Get Journeys",
-        "operationId": "get_journeysapi_journey_ViewJourney__post",
+        "operationId": "get_journeys_ViewJourney_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -81,10 +86,10 @@
         }
       }
     },
-    "api/journey/LockJourney/{JourneyId}": {
+    "/LockJourney/{JourneyId}": {
       "put": {
         "summary": "Lock Journey",
-        "operationId": "lock_journeyapi_journey_LockJourney__JourneyId__put",
+        "operationId": "lock_journey_LockJourney__JourneyId__put",
         "parameters": [
           {
             "name": "JourneyId",
@@ -121,10 +126,10 @@
         }
       }
     },
-    "api/journey/AdjustPrice/{journey_id}": {
+    "/AdjustPrice/{journey_id}": {
       "put": {
         "summary": "Adjust Price",
-        "operationId": "adjust_priceapi_journey_AdjustPrice__journey_id__put",
+        "operationId": "adjust_price_AdjustPrice__journey_id__put",
         "parameters": [
           {
             "name": "journey_id",
