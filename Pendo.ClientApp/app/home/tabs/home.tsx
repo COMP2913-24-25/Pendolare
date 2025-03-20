@@ -1,5 +1,5 @@
 import { FontAwesome5 } from "@expo/vector-icons";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   TouchableOpacity,
@@ -11,11 +11,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Map from "@/components/Map/Map";
 import { Text } from "@/components/common/ThemedText";
 import UpcomingRide from "@/components/RideView/UpcomingRide";
-import { icons, upcomingRides, pastRides } from "@/constants";
+import { icons, Ride } from "@/constants";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { USER_FIRST_NAME_KEY } from "@/services/authService";
 import * as SecureStore from "expo-secure-store";
+import { getBookings } from "@/services/bookingService";
 
 /*
   Home
@@ -28,7 +29,61 @@ const Home = () => {
   const { isDarkMode } = useTheme();
   const { logout } = useAuth();
 
-  const nextRide = upcomingRides[0];
+  const [upcomingRides, setUpcomingRides] = useState<Ride[]>([]);
+  const [pastRides, setPastRides] = useState<Ride[]>([]);
+  const [nextRide, setNextRide] = useState<Ride | null>(null);
+  const [userFirstName, setUserFirstName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserFirstName = async () => {
+      const storedFirstName = await SecureStore.getItemAsync(USER_FIRST_NAME_KEY);
+      setUserFirstName(storedFirstName);
+    };
+    fetchUserFirstName();
+  }, []);
+
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const response = await getBookings();
+        
+        // Process the response to transform the bookings into Ride objects
+        const allRides: Ride[] = response.bookings.map((booking: any) => ({
+          BookingId: booking.Booking.BookingId,
+          RideTime: new Date(booking.Booking.RideTime),
+          Status: booking.BookingStatus.Status,
+          DriverName: "to be fixed",
+          DriverId: booking.Journey.UserId,
+          Price: booking.Journey.Price,
+          Pickup: {
+            latitude: booking.Journey.StartLat,
+            longitude: booking.Journey.StartLong,
+            name: booking.Journey.StartName
+          },
+          Dropoff: {
+            latitude: booking.Journey.EndLat,
+            longitude: booking.Journey.EndLong,
+            name: booking.Journey.EndName
+          }
+        }));
+        
+        // Split the rides into upcoming and past based on the current time
+        console.log(allRides[0].RideTime);
+        const upcoming = allRides.filter(ride => ride.RideTime.getTime() > Date.now());
+        const past = allRides.filter(ride => ride.RideTime.getTime() <= Date.now());
+        const next = upcoming.length > 0 ? upcoming[0] : null;
+
+        // Update state with the retrieved rides
+        setUpcomingRides(upcoming);
+        setPastRides(past);
+        setNextRide(next);
+      } catch (error) {
+        console.error('Error fetching bookings:', error);
+      }
+    };
+
+    fetchBookings();
+  }, []);
 
   const confirmSignOut = async () => {
     setShowModal(false);
@@ -36,15 +91,6 @@ const Home = () => {
     await logout();
   };
 
-  const userFirstName = SecureStore.getItem(USER_FIRST_NAME_KEY);
-
-  /* 
-    Note: Styling and class names are derived from Tailwind CSS docs
-    https://tailwindcss.com/docs/
-    Additional design elements have been generated using Figma -> React Native (Tailwind)
-    https://www.figma.com/community/plugin/821138713091291738/figma-react-native
-    https://www.figma.com/community/plugin/1283055580669946018/tailwind-react-code-generator-by-pagesloft
-  */
   return (
     <SafeAreaView
       className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-general-500"}`}
@@ -56,7 +102,7 @@ const Home = () => {
             <Text
               className={`text-2xl font-JakartaExtraBold ${isDarkMode ? "text-white" : "text-black"}`}
             >
-              Welcome {userFirstName == null  ? "" : userFirstName} 👋
+              Welcome {userFirstName ?? ""} 👋
             </Text>
             <TouchableOpacity
               onPress={() => setShowModal(true)}
@@ -97,7 +143,7 @@ const Home = () => {
           </View>
 
           {/* View All Journeys Button */}
-          {upcomingRides.length > 1 && (
+          {(upcomingRides.length > 1 || pastRides.length > 1) && (
             <TouchableOpacity
               onPress={() => setShowAllRides(true)}
               className="mt-4 bg-blue-600 py-3 rounded-xl"
@@ -194,7 +240,7 @@ const Home = () => {
             >
               {(showPastRides ? pastRides : upcomingRides).map(
                 (ride, index) => (
-                  <View key={ride.id} className={index > 0 ? "mt-4" : ""}>
+                  <View key={ride.BookingId} className={index > 0 ? "mt-4" : ""}>
                     <UpcomingRide ride={ride} />
                   </View>
                 ),

@@ -1,3 +1,23 @@
+export interface Ride {
+  BookingId: string;
+  RideTime : Date;
+  Status: string;
+  DriverName: string;
+  DriverId: string;
+  Price: number;
+  Pickup : {
+    latitude: number;
+    longitude: number;
+    name: string
+  },
+  Dropoff : {
+    latitude: number;
+    longitude: number;
+    name: string
+  }
+  // Need to alter booking service to return driver name not ID!
+}
+
 export const icons = {
   home: "home",
   search: "search",

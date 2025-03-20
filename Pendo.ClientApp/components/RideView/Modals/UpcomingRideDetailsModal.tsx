@@ -7,13 +7,10 @@ import { useTheme } from "@/context/ThemeContext";
 import { formatTimestamp } from "@/utils/formatTime";
 import { Text } from "@/components/common/ThemedText"; // updated
 
+import { Ride } from "@/constants";
+
 interface UpcomingRideDetailsModalProps {
-  ride: {
-    pickup: any;
-    dropoff: any;
-    departureTime: number;
-    price: string;
-  };
+  ride: Ride;
   visible: boolean;
   onClose: () => void;
   onContactDriver: () => void;
@@ -48,7 +45,7 @@ const UpcomingRideDetailsModal = ({
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-white"}`}>
         <View className="h-1/3">
-          <Map pickup={ride.pickup} dropoff={ride.dropoff} />
+          <Map pickup={ride.Pickup} dropoff={ride.Dropoff} />
           <TouchableOpacity
             onPress={onClose}
             className={`absolute top-12 left-4 z-10 p-2 rounded-full ${
@@ -74,19 +71,19 @@ const UpcomingRideDetailsModal = ({
           >
             <View className="mb-3">
               <Text>From</Text>
-              <Text className="font-JakartaMedium">{ride.pickup.name}</Text>
+              <Text className="font-JakartaMedium">{ride.Pickup.name}</Text>
             </View>
             <View className="mb-3">
               <Text>To</Text>
-              <Text className="font-JakartaMedium">{ride.dropoff.name}</Text>
+              <Text className="font-JakartaMedium">{ride.Dropoff.name}</Text>
             </View>
             <View className="mb-3">
               <Text>Departure</Text>
-              <Text className="font-JakartaMedium">{formatTimestamp(ride.departureTime)}</Text>
+              <Text className="font-JakartaMedium">{formatTimestamp(ride.RideTime.getTime())}</Text>
             </View>
             <View>
               <Text>Price</Text>
-              <Text className="font-JakartaMedium">{ride.price}</Text>
+              <Text className="font-JakartaMedium">{ride.Price}</Text>
             </View>
           </View>
 

@@ -9,19 +9,10 @@ import RatingModal from "./Modals/RatingModal";
 import RideCompletionModal from "./Modals/RideCompletionModal";
 import UpcomingRideDetailsModal from "./Modals/UpcomingRideDetailsModal";
 import UpcomingRideCard from "./UpcomingRideCard";
+import { Ride } from "@/constants";
 
 interface UpcomingRideProps {
-  ride: {
-    id: number;
-    driverName: string;
-    driverId: number;
-    departureTime: number;
-    price: string;
-    pickup: any;
-    dropoff: any;
-    status?: string;
-    rating?: number;
-  };
+  ride : Ride
 }
 
 /*
@@ -41,11 +32,11 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
   const isLastMinuteCancellation = () => {
     const now = Date.now();
     const fifteenMinutes = 15 * 60 * 1000;
-    return ride.departureTime - now <= fifteenMinutes;
+    return ride.RideTime.getTime() - now <= fifteenMinutes;
   };
 
   const isPastRide = () => {
-    return Date.now() > ride.departureTime;
+    return Date.now() > ride.RideTime.getTime();
   };
 
   const handleCancelAttempt = () => {
@@ -71,7 +62,7 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
       setShowDetails(false);
       // Small delay to allow modal to start closing
       await new Promise((resolve) => setTimeout(resolve, 100));
-      router.push(`/home/chat/${ride.driverId}`);
+      router.push(`/home/chat/${ride.DriverId}`);
     } catch (error) {
       console.error("Error navigating to chat:", error);
     }
@@ -150,7 +141,7 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
 
       <RatingModal
         visible={showRatingModal}
-        driverName={ride.driverName}
+        driverName={ride.DriverName}
         rating={rating}
         setRating={setRating}
         onClose={() => setShowRatingModal(false)}
@@ -159,7 +150,7 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
 
       <RideCompletionModal
         visible={showCompletionModal}
-        driverName={ride.driverName}
+        driverName={ride.DriverName}
         rating={rating}
         setRating={setRating}
         onClose={() => setShowCompletionModal(false)}

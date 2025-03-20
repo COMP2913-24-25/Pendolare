@@ -14,17 +14,37 @@ export interface BookingResponse {
 }
 
 export interface BookingDetails {
-  id: string;
-  userId: string;
-  journeyId: string;
-  journeyTime: string;
-  status: string;
-  createdAt: string;
+  Booking: {
+    BookingId : string;
+    UserId: string;
+    FeeMargin: number;
+    RideTime: Date;
+  };
+  BookingStatus: {
+    StatusId: number;
+    Status: string;
+    Description: string;
+  },
+  Journey: {
+    JourneyId: string;
+    UserId: string;
+    StartTime: Date;
+    StartName: string;
+    StartLong: number;
+    StartLat: number;
+    EndName: string;
+    EndLong: number;
+    EndLat: number;
+    Price: number;
+    JourneyStatusId: number;
+    JourneyType: number;
+  }
 }
 
-export interface GetBookingsResponse {
-  success: boolean;
+export interface GetBookingsResponse
+{
   bookings: BookingDetails[];
+  success: boolean;
   message?: string;
 }
 
@@ -79,16 +99,17 @@ export async function createBooking(
  */
 export async function getBookings(): Promise<GetBookingsResponse> {
   try {
-    const response = await apiRequest<GetBookingsResponse>(
+    const response = await apiRequest<BookingDetails[]>(
       BOOKING_ENDPOINTS.GET_BOOKINGS,
       {
-        method: "GET",
+        method: "POST",
       },
+      true
     );
 
     return {
-      ...response,
-      success: true,
+      bookings: response,
+      success: true
     };
   } catch (error) {
     console.error("Get bookings error:", error);
