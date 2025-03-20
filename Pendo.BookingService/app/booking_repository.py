@@ -27,12 +27,13 @@ class BookingRepository():
 
         return_dto = []
         bookings = self.db_session.query(Booking)\
-            .filter(filter)\
+            .filter(*filter)\
             .options(
                 joinedload(Booking.BookingStatus_),
-                joinedload(Booking.Journey_),
-                joinedload(Booking.BookingAmmendment),
-                with_loader_criteria(BookingAmmendment, BookingAmmendment.DriverApproval and BookingAmmendment.PassengerApproval))\
+                joinedload(Booking.User_),
+                joinedload(Booking.Journey_).joinedload(Journey.User_),
+                joinedload(Booking.BookingAmmendment, innerjoin=False),
+                with_loader_criteria(BookingAmmendment, (BookingAmmendment.DriverApproval & BookingAmmendment.PassengerApproval)))\
             .all()
         
         for booking in bookings:
@@ -53,7 +54,7 @@ class BookingRepository():
             return_dto.append({
                 "Booking": {
                     "BookingId": booking.BookingId,
-                    "UserId": booking.UserId,
+                    "User": booking.User_,
                     "FeeMargin": booking.FeeMargin,
                     "RideTime": self.setDefaultIfNotNull(rideTime, booking.RideTime)
                 },
@@ -64,7 +65,7 @@ class BookingRepository():
                 },
                 "Journey": {
                     "JourneyId": booking.JourneyId,
-                    "UserId": booking.Journey_.UserId,
+                    "User": booking.Journey_.User_,
                     "StartTime" : self.setDefaultIfNotNull(startTime, booking.RideTime),
                     "StartName": self.setDefaultIfNotNull(startName, booking.Journey_.StartName),
                     "StartLong": self.setDefaultIfNotNull(startLong, booking.Journey_.StartLong),
