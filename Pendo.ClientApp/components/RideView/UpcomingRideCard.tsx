@@ -1,15 +1,11 @@
 import { View, TouchableOpacity } from "react-native";
 import { Text } from "@/components/common/ThemedText"; // updated
 import { useTheme } from "@/context/ThemeContext";
-import { formatTimestamp } from "@/utils/formatTime";
+import { Ride } from "@/constants";
+import StatusBadge from "./StatusBadge";
 
 interface UpcomingRideCardProps {
-  ride: {
-    driverName: string;
-    departureTime: number;
-    price: string;
-    dropoff: { name: string };
-  };
+  ride : Ride;
   onPress: () => void;
 }
 
@@ -32,14 +28,16 @@ const UpcomingRideCard = ({ ride, onPress }: UpcomingRideCardProps) => {
       className={`p-4 rounded-lg shadow-sm ${isDarkMode ? "bg-slate-800" : "bg-white"}`}
       onPress={onPress}
     >
+
       <View className="flex-row justify-between items-center mb-2">
-        <Text className="text-lg font-JakartaBold">{ride.dropoff.name}</Text>
-        <Text className="text-blue-600 font-JakartaBold">{ride.price}</Text>
+        <Text className="text-lg font-JakartaBold">{ride.Dropoff.name}</Text>
+        <Text className="text-blue-600 font-JakartaBold">£{ride.Price.toFixed(2)}</Text>
       </View>
-      <View className="flex-row justify-between items-center">
-        <Text className="text-gray-500">{formatTimestamp(ride.departureTime)}</Text>
-        <Text className="text-gray-500">with {ride.driverName}</Text>
+      <View className="flex-row justify-between items-center mb-2">
+        <Text className="text-gray-500">{ride.RideTime.toUTCString()}</Text>
+        <Text className="text-gray-500">With {ride.DriverName}</Text>
       </View>
+      <StatusBadge statusText={ride.Status} />
     </TouchableOpacity>
   );
 };

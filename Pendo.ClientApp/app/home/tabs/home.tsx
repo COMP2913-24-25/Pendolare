@@ -1,5 +1,5 @@
 import { FontAwesome5 } from "@expo/vector-icons";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   TouchableOpacity,
@@ -11,11 +11,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Map from "@/components/Map/Map";
 import { Text } from "@/components/common/ThemedText";
 import UpcomingRide from "@/components/RideView/UpcomingRide";
-import { icons, upcomingRides, pastRides } from "@/constants";
+import { icons, Ride } from "@/constants";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { USER_FIRST_NAME_KEY } from "@/services/authService";
 import * as SecureStore from "expo-secure-store";
+import { getBookings } from "@/services/bookingService";
 
 /*
   Home
@@ -24,11 +25,71 @@ import * as SecureStore from "expo-secure-store";
 const Home = () => {
   const [showModal, setShowModal] = useState(false);
   const [showAllRides, setShowAllRides] = useState(false);
-  const [showPastRides, setShowPastRides] = useState(false);
+  const [currentJourneyTab, setCurrentJourneyTab] = useState("Upcoming");
   const { isDarkMode } = useTheme();
   const { logout } = useAuth();
 
-  const nextRide = upcomingRides[0];
+  const [upcomingRides, setUpcomingRides] = useState<Ride[]>([]);
+  const [pastRides, setPastRides] = useState<Ride[]>([]);
+  const [cancelledRides, setCancelledRides] = useState<Ride[]>([]);
+  const [nextRide, setNextRide] = useState<Ride | null>(null);
+  const [userFirstName, setUserFirstName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserFirstName = async () => {
+      const storedFirstName = await SecureStore.getItemAsync(USER_FIRST_NAME_KEY);
+      setUserFirstName(storedFirstName);
+    };
+    fetchUserFirstName();
+  }, []);
+
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const response = await getBookings();
+        
+        // Process the response to transform the bookings into Ride objects
+        const allRides: Ride[] = response.bookings.map((booking: any) => ({
+          BookingId: booking.Booking.BookingId,
+          RideTime: new Date(booking.Booking.RideTime),
+          Status: booking.BookingStatus.Status,
+          DriverName: "to be fixed",
+          DriverId: booking.Journey.UserId,
+          Price: booking.Journey.Price,
+          Pickup: {
+            latitude: booking.Journey.StartLat,
+            longitude: booking.Journey.StartLong,
+            name: booking.Journey.StartName
+          },
+          Dropoff: {
+            latitude: booking.Journey.EndLat,
+            longitude: booking.Journey.EndLong,
+            name: booking.Journey.EndName
+          }
+        }));
+        
+        // Split the rides into upcoming and past based on the current time
+        const cancelled = allRides.filter(ride => ride.Status === "Cancelled");
+        const upcoming = allRides.filter(ride => ride.RideTime.getTime() > Date.now() && !cancelled.includes(ride));
+        const past = allRides.filter(ride => ride.RideTime.getTime() <= Date.now());
+        const next = upcoming.length > 0 ? upcoming[0] : null;
+
+        // Update state with the retrieved rides
+        setUpcomingRides(upcoming);
+        setPastRides(past);
+        setCancelledRides(cancelled);
+        setNextRide(next);
+      } catch (error) {
+        console.error('Error fetching bookings:', error);
+      }
+    };
+
+    fetchBookings();
+  }, []);
+
+  useEffect(() => {
+    setCurrentJourneyTab("Upcoming");
+  }, []);
 
   const confirmSignOut = async () => {
     setShowModal(false);
@@ -36,18 +97,9 @@ const Home = () => {
     await logout();
   };
 
-  const userFirstName = SecureStore.getItem(USER_FIRST_NAME_KEY);
-
-  /* 
-    Note: Styling and class names are derived from Tailwind CSS docs
-    https://tailwindcss.com/docs/
-    Additional design elements have been generated using Figma -> React Native (Tailwind)
-    https://www.figma.com/community/plugin/821138713091291738/figma-react-native
-    https://www.figma.com/community/plugin/1283055580669946018/tailwind-react-code-generator-by-pagesloft
-  */
   return (
     <SafeAreaView
-      className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-general-500"}`}
+      className={`flex-1 pt-2 ${isDarkMode ? "bg-slate-900" : "bg-general-500"}`}
     >
       <ScrollView className="flex-1">
         <View className="px-4">
@@ -56,7 +108,7 @@ const Home = () => {
             <Text
               className={`text-2xl font-JakartaExtraBold ${isDarkMode ? "text-white" : "text-black"}`}
             >
-              Welcome {userFirstName == null  ? "" : userFirstName} 👋
+              Welcome {userFirstName ?? ""} 👋
             </Text>
             <TouchableOpacity
               onPress={() => setShowModal(true)}
@@ -97,16 +149,14 @@ const Home = () => {
           </View>
 
           {/* View All Journeys Button */}
-          {upcomingRides.length > 1 && (
-            <TouchableOpacity
-              onPress={() => setShowAllRides(true)}
-              className="mt-4 bg-blue-600 py-3 rounded-xl"
-            >
-              <Text className="text-white text-center font-JakartaBold">
-                View All Upcoming Journeys
-              </Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            onPress={() => setShowAllRides(true)}
+            className="mt-4 bg-blue-600 py-3 rounded-xl"
+          >
+            <Text className="text-white text-center font-JakartaBold">
+              View All Upcoming Journeys
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
@@ -117,7 +167,7 @@ const Home = () => {
         onRequestClose={() => setShowAllRides(false)}
       >
         <SafeAreaView
-          className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-general-500"}`}
+          className={`flex-1 pt-4 ${isDarkMode ? "bg-slate-900" : "bg-general-500"}`}
         >
           <View className="flex-1 px-4">
             <View className="flex-row items-center justify-between my-5">
@@ -134,7 +184,7 @@ const Home = () => {
               <Text
                 className={`text-2xl font-JakartaBold ${isDarkMode ? "text-white" : "text-black"}`}
               >
-                {showPastRides ? "Journey History" : "Upcoming Journeys"}
+                {currentJourneyTab}
               </Text>
               <View className="w-8" />
             </View>
@@ -144,17 +194,17 @@ const Home = () => {
             >
               <TouchableOpacity
                 className={`flex-1 py-2 rounded-lg ${
-                  !showPastRides
+                  currentJourneyTab === "Upcoming"
                     ? isDarkMode
                       ? "bg-slate-700"
                       : "bg-white shadow"
                     : ""
                 }`}
-                onPress={() => setShowPastRides(false)}
+                onPress={() => setCurrentJourneyTab("Upcoming")}
               >
                 <Text
                   className={`text-center font-JakartaMedium ${
-                    !showPastRides
+                    currentJourneyTab === "Upcoming"
                       ? "text-blue-600"
                       : isDarkMode
                         ? "text-gray-400"
@@ -166,17 +216,17 @@ const Home = () => {
               </TouchableOpacity>
               <TouchableOpacity
                 className={`flex-1 py-2 rounded-lg ${
-                  showPastRides
+                  currentJourneyTab === "Past"
                     ? isDarkMode
                       ? "bg-slate-700"
                       : "bg-white shadow"
                     : ""
                 }`}
-                onPress={() => setShowPastRides(true)}
+                onPress={() => setCurrentJourneyTab("Past")}
               >
                 <Text
                   className={`text-center font-JakartaMedium ${
-                    showPastRides
+                    currentJourneyTab === "Past"
                       ? "text-blue-600"
                       : isDarkMode
                         ? "text-gray-400"
@@ -186,23 +236,45 @@ const Home = () => {
                   Past
                 </Text>
               </TouchableOpacity>
+              <TouchableOpacity
+                className={`flex-1 py-2 rounded-lg ${
+                  currentJourneyTab === "Cancelled"
+                    ? isDarkMode
+                      ? "bg-slate-700"
+                      : "bg-white shadow"
+                    : ""
+                }`}
+                onPress={() => setCurrentJourneyTab("Cancelled")}
+              >
+                <Text
+                  className={`text-center font-JakartaMedium ${
+                    currentJourneyTab === "Cancelled"
+                      ? "text-blue-600"
+                      : isDarkMode
+                        ? "text-gray-400"
+                        : "text-gray-500"
+                  }`}
+                >
+                  Cancelled
+                </Text>
+              </TouchableOpacity>
             </View>
 
             <ScrollView
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ paddingTop: 8 }}
             >
-              {(showPastRides ? pastRides : upcomingRides).map(
+              {(currentJourneyTab === "Cancelled" ? cancelledRides : (currentJourneyTab === "Upcoming" ? upcomingRides : pastRides)).map(
                 (ride, index) => (
-                  <View key={ride.id} className={index > 0 ? "mt-4" : ""}>
+                  <View key={ride.BookingId} className={index > 0 ? "mt-4" : ""}>
                     <UpcomingRide ride={ride} />
                   </View>
                 ),
               )}
-              {(showPastRides ? pastRides : upcomingRides).length === 0 && (
+              {(currentJourneyTab === "Cancelled" ? cancelledRides : (currentJourneyTab === "Upcoming" ? upcomingRides : pastRides)).length === 0 && (
                 <View className="bg-white rounded-lg p-4 shadow-md">
                   <Text className="text-gray-500">
-                    No {showPastRides ? "past" : "upcoming"} journeys
+                    No {currentJourneyTab} journeys
                   </Text>
                 </View>
               )}
