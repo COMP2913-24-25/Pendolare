@@ -20,7 +20,7 @@ class PaymentRepository():
         :param user_id: Id of the user.
         :return UserBalance object.
         """
-        return self.db_session.query(UserBalance).filter(UserBalance.UserId=user_id).one_or_none()
+        return self.db_session.query(UserBalance).filter(UserBalance.UserId == user_id).one_or_none()
     
     def GetUser(self, user_id):
         """
