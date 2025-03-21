@@ -72,7 +72,7 @@ export interface GetBookingsResponse
  */
 export async function createBooking(
   journeyId: string | number,
-  journeyTime: Date | number,
+  journeyTime: Date
 ): Promise<BookingResponse> {
   try {
     // Convert journey ID to string if it's a number (for dummy data)
@@ -81,19 +81,13 @@ export async function createBooking(
 
     const stringJourneyId = journeyId.toString();
 
-    // Ensure we have a proper date string
-    const dateString =
-      typeof journeyTime === "number"
-        ? new Date(journeyTime).toISOString()
-        : journeyTime.toISOString();
-
     const response = await apiRequest<BookingResponse>(
       BOOKING_ENDPOINTS.CREATE_BOOKING,
       {
         method: "POST",
         body: JSON.stringify({
           JourneyId: stringJourneyId,
-          JourneyTime: dateString,
+          JourneyTime: journeyTime.toISOString().split("Z")[0],
         }),
       },
     );

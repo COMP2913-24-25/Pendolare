@@ -6,6 +6,8 @@ import { Text } from "@/components/common/ThemedText"; // updated
 import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 import { createBooking } from "@/services/bookingService";
+import { toHumanReadable } from "@/utils/cronTools";
+import { Rating } from "react-native-ratings";
 
 interface RideDetailsProps {
   ride: any;
@@ -129,13 +131,11 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
                 <View>
                   <Text className="font-JakartaBold text-lg">{ride.driverName}</Text>
                   <View className="flex-row items-center">
-                    <FontAwesome5
-                      name={icons.star}
-                      size={16}
-                      color="#FFC107"
-                      style={{ marginRight: 4 }}
-                    />
-                    <Text className="text-sm text-gray-500">{ride.rating}</Text>
+                    {ride.rating === -1 ? (
+                      <Text className="text-xs font-Jakarta">No driver rating yet!</Text>
+                    ) : (
+                      <Rating startingValue={ride.rating} readonly imageSize={16} />
+                    )}
                   </View>
                 </View>
               </View>
@@ -180,7 +180,7 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
                   style={{ marginRight: 8 }}
                 />
                 <Text className="text-gray-600">
-                  {ride.availableSeats} seats available
+                  {ride.MaxPassengers} seats available
                 </Text>
               </View>
             </View>

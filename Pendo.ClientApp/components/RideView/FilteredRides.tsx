@@ -4,29 +4,99 @@ import Slider from "@react-native-community/slider";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import RideEntry from "./RideEntry";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { getJourneys } from "@/services/journeyService";
+import { getJourneys, GetJourneysRequest } from "@/services/journeyService";
+import { searchLocations } from "@/services/locationService";
 
 interface FilteredRidesProps {
+  resetFilters: boolean;
+  setResetFilters: (reset: boolean) => void;
   isDarkMode: boolean;
   journeyType: number;
 }
 
-const FilteredRides = ({ isDarkMode, journeyType }: FilteredRidesProps) => {
+interface Location {
+  name: string;
+  latitude: number;
+  longitude: number;
+}
+
+const FilteredRides = ({ resetFilters, setResetFilters, isDarkMode, journeyType }: FilteredRidesProps) => {
+
   const [collapsed, setCollapsed] = useState(true);
+
+  const [fieldPickupLocation, setFieldPickupLocation] = useState("");
+  const [pickupCoords, setPickupCoords] = useState({ lat: 0.0, lon: 0.0 })
   const [pickupLocation, setPickupLocation] = useState("");
   const [pickupRadius, setPickupRadius] = useState(5);
+  const [dropoffCoords, setDropoffCoords] = useState({ lat: 0.0, lon: 0.0 })
+
+  const [fieldDropoffLocation, setFieldDropoffLocation] = useState("");
   const [dropoffLocation, setDropoffLocation] = useState("");
   const [dropoffRadius, setDropoffRadius] = useState(5);
   const [startDateTime, setStartDateTime] = useState(new Date());
   const [filteredRides, setFilteredRides] = useState<any[]>([]);
-  const [showRecurrence, setShowRecurrence] = useState(journeyType === 2);
+
+  const [pickupSearchResults, setPickupSearchResults] = useState<any[]>([]);
+  const [dropoffSearchResults, setDropoffSearchResults] = useState<any[]>([]);
+
+  const handleLocationSelect = (searching: string ,location: Location) => {
+    if (searching === "pickup") {
+      setPickupCoords({ lat: location.latitude, lon: location.longitude })
+      setPickupLocation(location.name);
+      setFieldPickupLocation(location.name);
+      setPickupSearchResults([]);
+    } else {
+      setDropoffCoords({ lat: location.latitude, lon: location.longitude })
+      setDropoffLocation(location.name);
+      setFieldDropoffLocation(location.name);
+      setDropoffSearchResults([]);
+    }
+  };
+
+  const kmToLat = (km : number) => km / 111.32;
+  const kmToLon = (km: number, lat: number) => km / (111.32 * Math.cos(lat * (Math.PI / 180.00)));
 
   const getRides = async () => {
+    
+    let filters : GetJourneysRequest = {};
+
+    if (pickupLocation.length > 0) {
+      const latOffset = kmToLat(pickupRadius);
+      const lonOffset = kmToLon(pickupRadius, pickupCoords.lat);
+
+      // Journey Service does not currently calculate deal with radius correctly. This needs to be fixed
+      filters.DistanceRadius = latOffset;
+      filters.StartLat = pickupCoords.lat;
+      filters.StartLong = pickupCoords.lon;
+    }
+
+    if (dropoffLocation.length > 0) {
+      const latOffset = kmToLat(dropoffRadius);
+      const lonOffset = kmToLon(pickupRadius, pickupCoords.lat);
+
+      // Journey Service does not currently calculate deal with radius correctly. This needs to be fixed
+      filters.DistanceRadius = latOffset;
+      filters.EndLat = dropoffCoords.lat;
+      filters.EndLong = dropoffCoords.lon;
+    }
+
     console.log("Getting available rides");
     try {
-      const response = await getJourneys();
+      if (resetFilters) {
+        filters = {};
+        setResetFilters(false);
+        setFieldDropoffLocation("");
+        setFieldPickupLocation("");
+        setDropoffLocation("");
+        setPickupLocation("");
+      }
+
+      filters.StartDate = startDateTime.toISOString();
+      filters.JourneyType = journeyType;
+
+      const response = await getJourneys(filters);
       if (response.success) {
-        console.log("found available rides");
+        console.log("Found available rides");
         setFilteredRides(response.journeys);
       }
     } catch (error) {
@@ -36,12 +106,33 @@ const FilteredRides = ({ isDarkMode, journeyType }: FilteredRidesProps) => {
 
   useEffect(() => {
     getRides();
-  }, []);
+  }, [resetFilters]);
 
   const toggleCollapse = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setCollapsed(!collapsed);
   };
+
+  const renderSearchResults = (searchResults : Location[], searching: string) => {
+      if (searchResults.length === 0) return null;
+  
+      return (
+        <View
+          className={`relative left-0 right-0 ${isDarkMode ? "bg-slate-800" : "bg-white"} rounded-lg shadow-lg z-50`}
+          style={{ maxHeight: 200 }}
+        >
+          {searchResults.slice(0, 3).map((item, index) => (
+            <TouchableOpacity
+              key={`${item.name}-${index}`}
+              className={`p-3 border-b ${isDarkMode ? "border-slate-700" : "border-slate-100"}`}
+              onPress={() => handleLocationSelect(searching, item)}
+            >
+              <Text>{item.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      );
+    };
 
   return (
     <View>
@@ -62,14 +153,18 @@ const FilteredRides = ({ isDarkMode, journeyType }: FilteredRidesProps) => {
             <TextInput
               placeholder="Enter pickup location"
               placeholderTextColor={isDarkMode ? "#ccc" : "#555"}
-              value={pickupLocation}
-              onChangeText={setPickupLocation}
+              value={fieldPickupLocation}
+              onChangeText={(text) => {
+                setFieldPickupLocation(text);
+                searchLocations(text, "pickup", null, setPickupSearchResults);
+              }}
               className={`p-2 border rounded-lg ${
                 isDarkMode
                   ? "bg-slate-700 text-white border-gray-600"
                   : "bg-gray-50 text-black border-gray-300"
               }`}
             />
+            {renderSearchResults(pickupSearchResults, "pickup")}
             <Text className={`${isDarkMode ? "text-white" : "text-black"} mt-2`}>Pickup Radius: {pickupRadius} km</Text>
             <Slider
               value={pickupRadius}
@@ -86,14 +181,18 @@ const FilteredRides = ({ isDarkMode, journeyType }: FilteredRidesProps) => {
             <TextInput
               placeholder="Enter dropoff location"
               placeholderTextColor={isDarkMode ? "#ccc" : "#555"}
-              value={dropoffLocation}
-              onChangeText={setDropoffLocation}
+              value={fieldDropoffLocation}
+              onChangeText={(text) => {
+                setFieldDropoffLocation(text);
+                searchLocations(text, "dropoff", null, setDropoffSearchResults);
+              }}
               className={`p-2 border rounded-lg ${
                 isDarkMode
                   ? "bg-slate-700 text-white border-gray-600"
                   : "bg-gray-50 text-black border-gray-300"
               }`}
             />
+            {renderSearchResults(dropoffSearchResults, "dropoff")}
             <Text className={`${isDarkMode ? "text-white" : "text-black"} mt-2`}>Dropoff Radius: {dropoffRadius} km</Text>
             <Slider
               value={dropoffRadius}
@@ -107,7 +206,7 @@ const FilteredRides = ({ isDarkMode, journeyType }: FilteredRidesProps) => {
           </View>
           <View className="mb-3">
             <Text className={`${isDarkMode ? "text-white" : "text-black"} mb-1`}>Journey Time</Text>
-            <View style={{ marginLeft: -10}}>
+            <View style={{ marginLeft: -16}}>
               <DateTimePicker
                 minimumDate={new Date()}
                 value={startDateTime}
@@ -115,8 +214,22 @@ const FilteredRides = ({ isDarkMode, journeyType }: FilteredRidesProps) => {
                 display="default"
                 themeVariant={isDarkMode ? "dark" : "light"}
                 textColor={isDarkMode ? "#ffffff" : "#000000"}
+                onChange={(_, date) => {
+                  console.log(date);
+                  if (typeof date !== "undefined") {
+                    setStartDateTime(date);
+                  }
+                }}
               />
             </View>
+          </View>
+          <View>
+            <TouchableOpacity
+              className="bg-blue-500 p-4 rounded-lg mb-5"
+              onPress={() => getRides()}
+            >
+            <Text className="text-md font-JakartaSemiBold text-white text-center">Filter Rides</Text>
+            </TouchableOpacity>
           </View>
         </View>
       )}

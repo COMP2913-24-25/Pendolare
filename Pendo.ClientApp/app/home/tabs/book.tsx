@@ -14,6 +14,7 @@ import FilteredRides from "@/components/RideView/FilteredRides";
 const Book = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("normal");
   const [showCreateRideModal, setShowCreateRideModal] = useState(false);
+  const [resetFilters, setResetFilters] = useState(false);
   const { isDarkMode } = useTheme();
 
   return (
@@ -48,6 +49,7 @@ const Book = () => {
             description="Find available journeys to your destination"
             onPress={() => {
               setSelectedCategory("normal");
+              setResetFilters(true);
             }}
             isSelected={selectedCategory === "normal"}
           />
@@ -57,13 +59,14 @@ const Book = () => {
             description="Set up regular journeys for your daily commute"
             onPress={() => {
               setSelectedCategory("commuter");
+              setResetFilters(true);
             }}
             isSelected={selectedCategory === "commuter"}
           />
         </View>
 
         {/* Available Journeys or Commuter Section */}
-        <FilteredRides isDarkMode={isDarkMode} journeyType={selectedCategory === "commuter" ? 2 : 1} />
+        <FilteredRides resetFilters={resetFilters} setResetFilters={setResetFilters} isDarkMode={isDarkMode} journeyType={selectedCategory === "commuter" ? 2 : 1} />
 
         {/* Create Ride Modal */}
         <Modal

@@ -15,6 +15,8 @@ import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 import { createJourney } from "@/services/journeyService";
 import { validateRegPlate } from "@/services/dvlaService";
+import { toCronString } from "@/utils/cronTools";
+import { searchLocations } from "@/services/locationService";
 
 interface Location {
   name: string;
@@ -51,45 +53,6 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
   >("weekly");
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
-
-  // Search for locations using OpenRouteService API
-  // https://openrouteservice.org/dev/#/api-docs/geocode/search/get
-  const searchLocation = async (query: string, type: "pickup" | "dropoff") => {
-    if (query.length < 3) return;
-    setSearching(type);
-
-    try {
-      // Make a GET request to the OpenRouteService API with boundary coordinates
-      const response = await axios.get(
-        `https://api.openrouteservice.org/geocode/search`,
-        {
-          params: {
-            api_key: process.env.EXPO_PUBLIC_OSR_KEY,
-            text: query,
-            "boundary.rect.min_lat": "49.674",
-            "boundary.rect.max_lat": "61.061",
-            "boundary.rect.min_lon": "-8.178",
-            "boundary.rect.max_lon": "1.987",
-            // Limit search results to UK only
-            sources: "openstreetmap",
-          },
-        },
-      );
-
-      if (response.data.features) {
-        // Map the response data to a simplified location object
-        setSearchResults(
-          response.data.features.map((feature: any) => ({
-            name: feature.properties.label,
-            latitude: feature.geometry.coordinates[1],
-            longitude: feature.geometry.coordinates[0],
-          })),
-        );
-      }
-    } catch (error) {
-      console.error("Location search error:", error);
-    }
-  };
 
   // Handle location selection from search results
   const handleLocationSelect = (location: Location) => {
@@ -139,13 +102,18 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
         MaxPassengers: parseInt(seats, 10),
         JourneyStatusId: 1,
         RegPlate: regPlate,
+        Recurrance: isCommuter ? toCronString(frequency, selectedDays, date) : undefined,
+        RepeatUntil: isCommuter ? endDate.toISOString() : new Date(9999, 9, 9).toISOString(),
         BootWidth: 0,
         BootHeight: 0,
         ...(isCommuter && {
           RepeatUntil: endDate.toISOString(),
         }),
       };
+
       const result = await createJourney(payload);
+      console.log(result);
+
       onClose();
     } catch (error) {
       console.error("Failed to create journey:", error);
@@ -190,7 +158,7 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
               searchResults={searchResults}
               setPickupSearch={setPickupSearch}
               setDropoffSearch={setDropoffSearch}
-              searchLocation={searchLocation}
+              searchLocation={(query, type) => searchLocations(query, type, setSearching, setSearchResults)}
               handleLocationSelect={handleLocationSelect}
             />
           )}
