@@ -3,6 +3,7 @@ import requests
 from datetime import timedelta, datetime
 from identity_client import IdentityClient
 from admin_client import AdminClient
+from message_client import MessageClient
 
 app = Flask(__name__)
 app.secret_key = 'reallyStrongPwd123'
@@ -58,6 +59,7 @@ def verify_otp():
             data = response.json()
             if data.get('isManager'):
                 session['logged_in'] = True
+                session['jwt'] = data.get('jwt')  # store the JWT for future requests
                 session['last_activity'] = datetime.utcnow().replace(tzinfo=None)
                 return redirect(url_for('dashboard'))
             else:
@@ -80,45 +82,41 @@ def dashboard():
         booking_fee = request.form['booking_fee']
         return redirect(url_for('dashboard'))
     
-    booking_fee = 5
+    admin_client = AdminClient(api_url, app.logger, jwt=session.get('jwt'))
+    booking_fee = admin_client.GetBookingFee()  # fetch actual booking fee
+    print("Booking fee:", booking_fee)  # added print statement to output booking_fee to terminal
 
     now = datetime.utcnow()
     start_of_week = now - timedelta(days=now.weekday())
     end_of_week = now
-
-    weekly_revenue = AdminClient(api_url, app.logger).GetWeeklyRevenue(start_of_week, end_of_week)
-
-    chart_labels = []
-    chart_data = []
-
-    for week_offset in range(5, 0, -1):
-        week_start = start_of_week - timedelta(weeks=week_offset)
-        week_end = week_start + timedelta(days=6) # sunday
-        chart_labels.append("w/c" +" "+ week_start.strftime("%d/%m/%Y"))
-        revenue = AdminClient(api_url, app.logger).GetWeeklyRevenue(week_start, week_end)
-        chart_data.append(revenue)
+    rev_response = admin_client.GetWeeklyRevenue(start_of_week, end_of_week)
+    # For weekly revenue display in the current week, assume rev_response contains {"total": ...}
+    rev_this_week = rev_response.get('total')
     
-    customer_disputes = [
-        {'username': 'user1', 'message': 'Dispute message 1'},
-        {'username': 'user2', 'message': 'Dispute message 2'},
-        {'username': 'user3', 'message': 'Lorem ipsum dorlor sit amet, consectetur adipiscing elit. Nullam'},
-    ]
+    messaging_client = MessageClient(f"{api_url}/api/Message", app.logger, jwt=session.get('jwt'))
+    # Using UUID 0 (dummy admin UUID) to fetch conversations
+    user_conversations = messaging_client.get_user_conversations("00000000-0000-0000-0000-000000000000")
+    
     return render_template('dashboard.html',
                            booking_fee=booking_fee,
-                           weekly_revenue=weekly_revenue,
+                           rev_this_week=rev_this_week,
                            revenue_date=start_of_week.strftime('%d %B %Y'),
-                           customer_disputes=customer_disputes,
-                           chart_labels=chart_labels,
-                           chart_data=chart_data)
+                           conversations=user_conversations)
 
-@app.route('/chat/<username>')
-def chat(username):
-    return f"Chat with {username}"
+@app.route('/chat/conversation/<conversation_id>', methods=['GET'])
+def chat_conversation(conversation_id):
+    messaging_client = MessageClient(f"{api_url}/api/Message", app.logger, jwt=session.get('jwt'))
+    conv_response = messaging_client.join_conversation("00000000-0000-0000-0000-000000000000", conversation_id)
+    app.logger.info(f"Join conversation returned: {conv_response}")
+    print("conv_response:", conv_response)  # This prints the conv_response contents to the terminal
+    return render_template('chat.html',
+                           conversation_id=conversation_id,
+                           conversation=conv_response)
 
 @app.route('/update_booking_fee', methods=['POST'])
 def update_booking_fee():
     booking_fee = request.form['booking_fee']
-    response = AdminClient(api_url, app.logger).UpdateBookingFee(booking_fee)
+    response = AdminClient(api_url, app.logger, jwt=session.get('jwt')).UpdateBookingFee(booking_fee)
     if response.status_code == 200:
         flash("Booking fee updated successfully.")
     else:
