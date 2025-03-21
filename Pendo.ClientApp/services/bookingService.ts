@@ -34,7 +34,7 @@ export interface BookingResponse {
 export interface BookingDetails {
   Booking: {
     BookingId : string;
-    UserId: string;
+    User: object;
     FeeMargin: number;
     RideTime: Date;
   };
@@ -45,7 +45,7 @@ export interface BookingDetails {
   },
   Journey: {
     JourneyId: string;
-    UserId: string;
+    User: object;
     StartTime: Date;
     StartName: string;
     StartLong: number;
@@ -80,8 +80,6 @@ export async function createBooking(
       throw new Error("Journey ID is required to create a booking");
 
     const stringJourneyId = journeyId.toString();
-
-    console.log("reached");
 
     // Ensure we have a proper date string
     const dateString =
