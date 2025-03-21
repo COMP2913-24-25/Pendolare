@@ -1,23 +1,17 @@
-from typing import Optional, List
-from datetime import datetime
-import datetime
 import logging
 import sys
-import time
 from uuid import UUID
 from .request_lib import GetJourneysRequest, CreateJourneyRequest, AdjustPriceRequest
 from .journey_repository import JourneyRepository
 
-from fastapi import Depends, FastAPI, HTTPException, Response, status
-from pydantic import BaseModel
-from sqlalchemy import create_engine, asc, desc
-from sqlalchemy.orm import sessionmaker, Session
+from fastapi import Depends, FastAPI, Response
+from sqlalchemy import  asc, desc
+from sqlalchemy.orm import Session
 
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.orm import joinedload
 from sqlalchemy.sql import and_
 
-from .PendoDatabase import Journey, User
+from .PendoDatabase import Journey
 from .parameter_filtering import FilterJourneys
 from .parameter_checking import CheckJourneyData
 from .PendoDatabaseProvider import get_db
@@ -71,7 +65,7 @@ def get_journeys(FilterParam: GetJourneysRequest, db: Session = Depends(get_db))
     filters = filter_journeys.apply_filters()
 
     repo = JourneyRepository(db)
-    journeys_query = repo.get_journeys(filters)
+    journeys_query = repo.get_journeys(filters).options(joinedload(Journey.User_, innerjoin=False))
 
     #Apply sorting if specified by the request parameters
     if FilterParam.SortByPrice:
