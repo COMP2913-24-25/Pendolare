@@ -48,7 +48,7 @@ export async function createConversation(
 }
 
 export async function getUserConversations(): Promise<GetUserConversationsResponse> {
-  return apiRequest<GetUserConversationsResponse>(MESSAGE_ENDPOINTS.GET_USER_CONVERSATIONS, {
+  return await apiRequest<GetUserConversationsResponse>(MESSAGE_ENDPOINTS.GET_USER_CONVERSATIONS, {
     method: "GET",
   });
 }
