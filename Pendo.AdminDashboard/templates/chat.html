@@ -2,13 +2,13 @@
 
 {% block head %}
     <title>Support chat {{ conversation_id }}</title>
+    <script src="{{ url_for('static', filename='js/send_message.js') }}"></script>
 {% endblock %}
 
 {% block body %}
 <div class="container">
     <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Back to dashboard</a>
     <h1>Support chat {{ conversation_id }}</h1>
-    <!-- Console log container for conversation history -->
     <div id="console" class="console" style="background-color: #f5f5f5; border-radius: 5px; padding: 1rem; max-height: 300px; overflow-y: auto;">
         {% if conversation %}
             {% if conversation.messages is defined and conversation.messages|length > 0 %}
@@ -29,6 +29,14 @@
             <p>No messages yet.</p>
         {% endif %}
     </div>
-    <!-- Future chat components will go here -->
+    <div id="message-input" style="margin-top: 1rem;">
+        <input type="text" 
+               id="chatMessage" 
+               placeholder="Type your message here..." 
+               class="form-control" 
+               data-conversation-id="{{ conversation_id }}" 
+               data-sender="00000000-0000-0000-0000-000000000000" />
+        <button id="sendMessageBtn" class="btn btn-primary mt-2">Send</button>
+    </div>
 </div>
 {% endblock %}
