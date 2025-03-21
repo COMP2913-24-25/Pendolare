@@ -4,6 +4,7 @@ import { JOURNEY_ENDPOINTS } from "@/constants";
 interface JourneyDetails {
     JourneyId: string;
     UserId: string;
+    User_: object;
     BootHeight: number;
     BootWidth: number;
     StartDate: Date;
@@ -15,7 +16,10 @@ interface JourneyDetails {
     StartLong: number;
     EndLat: number;
     EndLong: number;
-    SortByPrice: "string"
+    SortByPrice: "string";
+    Recurrance: string;
+    RepeatUntil: Date
+    JourneyStatusId: number;
 }
 
 interface GetJourneyResponse {

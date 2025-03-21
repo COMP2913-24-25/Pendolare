@@ -31,7 +31,9 @@ export async function apiRequest<T>(
 
     if (forceJsonParse) {
       console.log("Forcing JSON parse");
+
       data = JSON.parse(await response.text());
+
       console.log(data);
     }
     else{

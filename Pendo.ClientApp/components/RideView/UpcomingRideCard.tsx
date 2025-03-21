@@ -28,14 +28,22 @@ const UpcomingRideCard = ({ ride, onPress }: UpcomingRideCardProps) => {
       className={`p-4 rounded-lg shadow-sm ${isDarkMode ? "bg-slate-800" : "bg-white"}`}
       onPress={onPress}
     >
-
       <View className="flex-row justify-between items-center mb-2">
-        <Text className="text-lg font-JakartaBold">{ride.Dropoff.name}</Text>
-        <Text className="text-blue-600 font-JakartaBold">£{ride.Price.toFixed(2)}</Text>
+        <Text
+          className="text-lg font-JakartaBold flex-1"
+          numberOfLines={2}
+          adjustsFontSizeToFit
+          minimumFontScale={1}
+        >
+          {ride.Dropoff.name}
+        </Text>
+        <Text className="text-blue-600 font-JakartaBold ml-2">
+          £{ride.Price.toFixed(2)}
+        </Text>
       </View>
       <View className="flex-row justify-between items-center mb-2">
         <Text className="text-gray-500">{ride.RideTime.toUTCString()}</Text>
-        <Text className="text-gray-500">With {ride.DriverName}</Text>
+        <Text className="text-gray-800 font-JakartaSemiBold">With {ride.DriverName}</Text>
       </View>
       <StatusBadge statusText={ride.Status} />
     </TouchableOpacity>
