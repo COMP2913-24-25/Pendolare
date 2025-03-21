@@ -38,6 +38,7 @@ const ChatDetail = () => {
   const [isConnecting, setIsConnecting] = useState(true);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [hasSetChatVars, setHasSetChatVars] = useState(false);
   const scrollViewRef = useRef<RNScrollView>(null);
   const inputRef = useRef<TextInput>(null);
   const lastSentMessageRef = useRef<string>("");
@@ -49,6 +50,7 @@ const ChatDetail = () => {
     async function fetchChat() {
       try {
         // Fetch conversation details from API
+        console.log("Fetching conversation details for:", id);
         const response = await getUserConversations();
         
         // Normalise conversation data
@@ -67,6 +69,7 @@ const ChatDetail = () => {
 
         if (typeof selectedChat === "undefined") {
           console.log("Chat not found. Creating new conversation.");
+          setIsLoadingHistory(false);
 
           const userName : any = typeof name === "undefined" ? id.toString() : name as string;
 
@@ -78,14 +81,17 @@ const ChatDetail = () => {
             });
             console.log("Conversation created:", response);
 
+            setHasSetChatVars(true);
             setChat({
               id: response.ConversationId,
+              ConversationId: response.ConversationId,
               type: response.Type,
               title: response.Name,
               lastMessage: "",
               timestamp: new Date().getTime(),
-              UserId: response.UserId
+              UserId: id.toString()
             });  // pass conversation response
+
             return;
             
           } catch (error) {
@@ -93,6 +99,7 @@ const ChatDetail = () => {
           }
         }
 
+        setHasSetChatVars(true);
         setChat(selectedChat);
       } catch (error) {
         console.error("Error fetching conversation:", error);
@@ -102,20 +109,17 @@ const ChatDetail = () => {
   }, [id]);
 
   useEffect(() => {
+    console.log("Chat updated:", chat);
     if (chat && messageService) {
       messageService.setConversationId(chat.id);
       // Set user id from normalised conversation response
       // User ID is typically stamped when passing through the gateway 
       // However, non REST API calls bypass this and require manual setting
-      if (chat.UserId) {
-        console.log("Setting user ID:");
-        console.log(chat.UserId);
+      if (hasSetChatVars) {
+        console.log("Setting user ID:", chat.UserId);
         messageService.setUserId(chat.UserId);
-      }
 
-      if (chat.ConversationId) {
-        console.log("Setting conversation ID:");
-        console.log(chat.ConversationId);
+        console.log("Setting conversation ID:", chat.ConversationId);
         messageService.setConversationId(chat.ConversationId);
       }
     }
