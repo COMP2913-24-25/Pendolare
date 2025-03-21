@@ -63,10 +63,6 @@ const ChatDetail = () => {
           lastMessage: conv.lastMessage || "",
           timestamp: new Date(conv.CreateDate).getTime()
         }));
-
-        console.log("Normalised conversations:", normalisedConversations.length);
-
-        console.log(normalisedConversations[0].UserId, id.toString());
         
         // Find the selected conversation by ID
         const selectedChat = normalisedConversations.find((c: any) => c.UserId == id.toString());
