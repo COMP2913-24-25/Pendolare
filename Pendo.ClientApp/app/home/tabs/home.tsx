@@ -54,7 +54,7 @@ const Home = () => {
           RideTime: new Date(booking.Booking.RideTime),
           Status: booking.BookingStatus.Status,
           DriverName: booking.Journey.User.FirstName,
-          DriverId: booking.Journey.UserId,
+          DriverId: booking.Journey.User.UserId,
           Price: booking.Journey.Price,
           Pickup: {
             latitude: booking.Journey.StartLat,

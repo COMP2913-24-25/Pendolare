@@ -53,8 +53,16 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
   const handleCancel = async (reason: string) => {
     try {
       await cancelBooking(ride.BookingId, reason); // Replace with actual API call
+
       setShowCancelModal(false);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       setShowDetails(false);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      router.push(`/home/chat/${ride.DriverId}?name=${ride.DriverName}&initialMessage=Ride cancelled for reason: ${reason}.`);
+
+      console.log(`Ride cancelled for reason: ${reason}`);
     } catch (error) {
       console.error("Error cancelling ride:", error);
     }
@@ -65,7 +73,7 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
       setShowDetails(false);
       // Small delay to allow modal to start closing
       await new Promise((resolve) => setTimeout(resolve, 100));
-      router.push(`/home/chat/${ride.DriverId}`);
+      router.push(`/home/chat/${ride.DriverId}?name=${ride.DriverName}`);
     } catch (error) {
       console.error("Error navigating to chat:", error);
     }
@@ -77,7 +85,8 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
       setShowDetails(false);
       // Small delay to allow modals to start closing
       await new Promise((resolve) => setTimeout(resolve, 100));
-      router.push("/home/chat/1");
+      console.log(`DRIVER ID: ${ride.DriverId}`);
+      router.push(`/home/chat/${ride.DriverId}`);
     } catch (error) {
       console.error("Error navigating to support:", error);
     }
