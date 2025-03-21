@@ -31,7 +31,7 @@ const generateUniqueId = () => {
 const ChatDetail = () => {
   const { id, name, initialMessage } = useLocalSearchParams();
   const [chat, setChat] = useState<any>(null);
-  const [newMessage, setNewMessage] = useState(initialMessage as string);
+  const [newMessage, setNewMessage] = useState(typeof initialMessage === "undefined" ? "" : initialMessage as string);
   const { isDarkMode } = useTheme();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -63,9 +63,13 @@ const ChatDetail = () => {
           lastMessage: conv.lastMessage || "",
           timestamp: new Date(conv.CreateDate).getTime()
         }));
+
+        console.log("Normalised conversations:", normalisedConversations.length);
+
+        console.log(normalisedConversations[0].UserId, id.toString());
         
         // Find the selected conversation by ID
-        const selectedChat = normalisedConversations.find((c: any) => c.id === id);
+        const selectedChat = normalisedConversations.find((c: any) => c.UserId == id.toString());
 
         if (typeof selectedChat === "undefined") {
           console.log("Chat not found. Creating new conversation.");
