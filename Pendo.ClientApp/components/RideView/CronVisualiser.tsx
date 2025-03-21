@@ -1,44 +1,16 @@
 import React, { useMemo } from "react";
 import { View, Text } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
-import cronParser from "cron-parser";
+import { toHumanReadable } from "@/utils/cronTools";
 
 interface CronVisualizerProps {
   cron: string; // CRON expression (e.g., "0 9 * * 1,3,5")
-  endDate: Date; // End date (ISO string)
+  endDate: Date;
   isDarkMode: boolean;
 }
 
-const dayMap: { [key: string]: string } = {
-  "0": "Sunday",
-  "1": "Monday",
-  "2": "Tuesday",
-  "3": "Wednesday",
-  "4": "Thursday",
-  "5": "Friday",
-  "6": "Saturday",
-};
-
-const CronVisualizer: React.FC<CronVisualizerProps> = ({ cron, endDate, isDarkMode }) => {
-  const humanReadable = useMemo(() => {
-    try {
-      const interval = cronParser.parse(cron);
-      const nextDate = interval.next().toDate();
-
-      const parts = cron.split(" ");
-      const time = nextDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      const days = parts[4].split(",").map((d) => dayMap[d.trim()] || "").join(", ");
-      
-      let frequency = "Weekly"; // Default
-      if (parts[2] !== "*") frequency = "Monthly"; // Runs on specific day of the month
-      else if (parts[4].includes(",")) frequency = "Weekly"; // Multiple days
-      else if (parts[4].match(/(0|1|2|3|4|5|6)/)) frequency = "Fortnightly"; // Every 2 weeks
-
-      return `${frequency}, ${days ? `on ${days}` : "every day"} at ${time}`;
-    } catch (error) {
-      return "Invalid schedule";
-    }
-  }, [cron]);
+const CronVisualizer = ({ cron, endDate, isDarkMode } : CronVisualizerProps) => {
+  const humanReadable = useMemo(() => {return toHumanReadable(cron)}, [cron]);
 
   console.log(humanReadable);
 

@@ -23,7 +23,7 @@ const RideEntry = ({ ride }: RideEntryProps) => {
       typeof ride.AdvertisedPrice === "number"
         ? `£${ride.AdvertisedPrice.toFixed(2)}`
         : ride.price || "",
-    departureTime: ride.StartTime || ride.departureTime || "",
+    departureTime: new Date(ride.StartTime || ride.StartDate).toUTCString(),
     pickup: { name: ride.StartName || (ride.pickup && ride.pickup.name) || "Unknown Pickup" },
     dropoff: { name: ride.EndName || (ride.dropoff && ride.dropoff.name) || "Unknown Dropoff" },
     JourneyId: ride.JourneyId || ride.id,

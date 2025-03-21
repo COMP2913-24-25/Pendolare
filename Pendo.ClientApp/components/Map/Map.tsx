@@ -6,6 +6,7 @@ import { View, StyleSheet, Platform, ActivityIndicator, Alert } from "react-nati
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from "react-native-maps";
 
 import { icons } from "@/constants";
+import { getRoute } from "@/services/locationService";
 
 interface Location {
   latitude: number;
@@ -83,31 +84,9 @@ const Map = ({ pickup, dropoff }: MapProps) => {
         longitude: (pickup.longitude + dropoff.longitude) / 2,
         latitudeDelta: Math.abs(pickup.latitude - dropoff.latitude) * 1.5,
         longitudeDelta: Math.abs(pickup.longitude - dropoff.longitude) * 1.5,
-      });
+        });
 
-      /*
-        Fetch route from OpenRouteService API
-        Derived from: https://openrouteservice.org/dev/#/api-docs/directions/get
-      */
-      const fetchRoute = async () => {
-        const response = await axios.get(
-          `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${process.env.EXPO_PUBLIC_OSR_KEY}&start=${pickup.longitude},${pickup.latitude}&end=${dropoff.longitude},${dropoff.latitude}`,
-        );
-        const coordinates = response.data.features[0].geometry.coordinates;
-        /*
-          Convert coordinates to points for Polyline
-          Derived from: https://github.com/react-native-maps/react-native-maps/blob/master/docs/polyline.md
-        */
-        const points = coordinates.map(
-          ([longitude, latitude]: [number, number]) => ({
-            latitude,
-            longitude,
-          }),
-        );
-        setRouteCoordinates(points);
-      };
-
-      fetchRoute();
+      getRoute(pickup, dropoff, setRouteCoordinates);
     }
   }, [pickup, dropoff]);
 
