@@ -1,7 +1,5 @@
-// WIP
-
 import { FontAwesome5 } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useGlobalSearchParams, useLocalSearchParams } from "expo-router";
 import { useState, useEffect, useRef } from "react";
 import {
   View,
@@ -44,6 +42,8 @@ const ChatDetail = () => {
   const inputRef = useRef<TextInput>(null);
   const lastSentMessageRef = useRef<string>("");
 
+  console.log(id);
+
   /*
     Fetch chat details on initial load
   */
@@ -81,6 +81,8 @@ const ChatDetail = () => {
       // User ID is typically stamped when passing through the gateway 
       // However, non REST API calls bypass this and require manual setting
       if (chat.UserId) {
+        console.log("Setting user ID:");
+        console.log(chat.UserId);
         messageService.setUserId(chat.UserId);
       }
     }
