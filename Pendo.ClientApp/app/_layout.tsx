@@ -10,6 +10,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider, useTheme } from "@/context/ThemeContext";
+import ThemedView from "@/components/common/ThemedView";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -17,7 +18,7 @@ const publishableKey = process.env.EXPO_PUBLIC_PUBLISH_KEY;
 
 const Header = ({ className }: { className?: string }) => {
   return (
-    <View className={`h-14 ${className}`} />
+    <ThemedView className={`h-14 ${className}`}  />
   );
 };
 
