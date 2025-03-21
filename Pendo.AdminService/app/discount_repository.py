@@ -1,7 +1,5 @@
-from app.models import Discounts
+from models import Discounts
 from sqlalchemy import delete
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import SQLAlchemyError
 
 class DiscountRepository:
     """
