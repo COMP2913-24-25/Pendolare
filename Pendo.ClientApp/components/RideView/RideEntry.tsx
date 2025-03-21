@@ -17,16 +17,18 @@ const RideEntry = ({ ride }: RideEntryProps) => {
 
   // Normalise the ride object from journey data
   const normalisedRide = {
-    driverName: ride.driverName || "Unknown Driver",
-    rating: ride.rating || 0,
+    driverName: ride.User_.FirstName || ride.User_.LastName || "Unknown Driver",
+    rating: typeof ride.User_.UserRating !== "undefined" ? ride.User_.UserRating : -1,
     price:
       typeof ride.AdvertisedPrice === "number"
         ? `£${ride.AdvertisedPrice.toFixed(2)}`
         : ride.price || "",
-    departureTime: ride.StartTime || ride.departureTime || "",
+    departureTime: new Date(ride.StartTime || ride.StartDate).toUTCString(),
     pickup: { name: ride.StartName || (ride.pickup && ride.pickup.name) || "Unknown Pickup" },
     dropoff: { name: ride.EndName || (ride.dropoff && ride.dropoff.name) || "Unknown Dropoff" },
     JourneyId: ride.JourneyId || ride.id,
+    recurrence: ride.Recurrance,
+    repeatUntil: ride.RepeatUntil,
     ...ride,
   };
 

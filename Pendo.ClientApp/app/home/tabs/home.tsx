@@ -53,7 +53,7 @@ const Home = () => {
           BookingId: booking.Booking.BookingId,
           RideTime: new Date(booking.Booking.RideTime),
           Status: booking.BookingStatus.Status,
-          DriverName: "to be fixed",
+          DriverName: booking.Journey.User.FirstName,
           DriverId: booking.Journey.UserId,
           Price: booking.Journey.Price,
           Pickup: {

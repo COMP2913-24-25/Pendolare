@@ -34,7 +34,7 @@ export interface BookingResponse {
 export interface BookingDetails {
   Booking: {
     BookingId : string;
-    UserId: string;
+    User: object;
     FeeMargin: number;
     RideTime: Date;
   };
@@ -45,7 +45,7 @@ export interface BookingDetails {
   },
   Journey: {
     JourneyId: string;
-    UserId: string;
+    User: object;
     StartTime: Date;
     StartName: string;
     StartLong: number;
@@ -72,19 +72,14 @@ export interface GetBookingsResponse
  */
 export async function createBooking(
   journeyId: string | number,
-  journeyTime: Date | number,
+  journeyTime: Date
 ): Promise<BookingResponse> {
   try {
     // Convert journey ID to string if it's a number (for dummy data)
+    if (typeof journeyId === "undefined")
+      throw new Error("Journey ID is required to create a booking");
+
     const stringJourneyId = journeyId.toString();
-
-    console.log("reached");
-
-    // Ensure we have a proper date string
-    const dateString =
-      typeof journeyTime === "number"
-        ? new Date(journeyTime).toISOString()
-        : journeyTime.toISOString();
 
     const response = await apiRequest<BookingResponse>(
       BOOKING_ENDPOINTS.CREATE_BOOKING,
@@ -92,7 +87,7 @@ export async function createBooking(
         method: "POST",
         body: JSON.stringify({
           JourneyId: stringJourneyId,
-          JourneyTime: dateString,
+          JourneyTime: journeyTime.toISOString().split("Z")[0],
         }),
       },
     );
@@ -247,7 +242,7 @@ export async function confirmAtPickup(bookingId: string) : Promise<BookingRespon
       });
 
     return {
-      success: true,
+      ...response
     };
 
   } catch (error) {

@@ -14,11 +14,14 @@ import * as SecureStore from "expo-secure-store";
 import { useState } from "react";
 import { Rating } from "react-native-ratings";
 import { getUser as apiGetUser, updateUser as apiUpdateUser } from "@/services/authService";
+import { useTheme } from "@/context/ThemeContext";
 
 const Profile = () => {
 
   //Refresh in the background when we load in
   apiGetUser();
+
+  const { isDarkMode } = useTheme();
 
   const getUser = () => {
       return {
@@ -39,10 +42,10 @@ const Profile = () => {
     setUser(newUser);
   };
 
-  const cardStyle = "bg-white rounded-lg shadow-sm px-5 py-3";
+  const cardStyle = `${isDarkMode ? "bg-dark" : "bg_white"} rounded-lg shadow-sm px-5 py-3`;
 
   return (
-    <ThemedSafeAreaView className="flex-1">
+    <ThemedSafeAreaView className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-general-500"}`}>
       {/* Header */}
       <ThemedView className="flex-row justify-between items-center px-5 my-5">
         <Text className="text-2xl font-JakartaBold my-5">My Profile</Text>

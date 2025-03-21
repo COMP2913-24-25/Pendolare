@@ -2,18 +2,24 @@ import { apiRequest } from "./apiClient";
 import { JOURNEY_ENDPOINTS } from "@/constants";
 
 interface JourneyDetails {
+    JourneyId: string;
+    UserId: string;
+    User_: object;
     BootHeight: number;
     BootWidth: number;
     StartDate: Date;
     JourneyType: number;
     MaxPrice: number;
-    NumPassengers: number;
+    MaxPassengers: number;
     DistanceRadius: number;
     StartLat: number;
     StartLong: number;
     EndLat: number;
     EndLong: number;
-    SortByPrice: "string"
+    SortByPrice: "string";
+    Recurrance: string;
+    RepeatUntil: Date
+    JourneyStatusId: number;
 }
 
 interface GetJourneyResponse {

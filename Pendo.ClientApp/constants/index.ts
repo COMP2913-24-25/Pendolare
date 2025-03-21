@@ -39,6 +39,7 @@ export const icons = {
   support: "headset",
   car: "car",
   flag: "flag",
+  repeat: "redo"
 };
 
 export const onboarding = [
