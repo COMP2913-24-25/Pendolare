@@ -16,6 +16,12 @@ class DbConfiguration(BaseModel):
         """
         return f"mssql+pymssql://{self.dbUsername}:{self.dbPassword}@{self.dbServer}/{self.dbDatabase}"
     
+class PaymentServiceConfiguration(BaseModel):
+    """
+    PaymentServiceConfiguration class is a configuration object for Payment Service.
+    """
+    paymentServiceUrl : str
+    
 class SendGridConfiguration(BaseModel):
     """
     SendGridConfiguration class is a configuration object for SendGrid.
@@ -25,3 +31,4 @@ class SendGridConfiguration(BaseModel):
     pendingTemplateId : str
     confirmedTemplateId : str
     cancelledTemplateId : str
+    arrivalTemplateId : str

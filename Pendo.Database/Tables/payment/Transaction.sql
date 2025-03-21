@@ -8,6 +8,7 @@ CREATE TABLE [payment].[Transaction]
 (
   [TransactionId] UNIQUEIDENTIFIER NOT NULL PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
   [UserId] UNIQUEIDENTIFIER NOT NULL,
+  [BookingId] UNIQUEIDENTIFIER NULL,
   [Value] DECIMAL(18,8) NOT NULL,
   [CurrencyCode] CHAR(3) NOT NULL,
   [TransactionStatusId] INT NOT NULL,
@@ -22,5 +23,8 @@ CREATE TABLE [payment].[Transaction]
   REFERENCES [payment].[TransactionStatus](TransactionStatusId),
 
   CONSTRAINT FK_Transaction_TransactionType FOREIGN KEY ([TransactionTypeId])
-  REFERENCES [payment].[TransactionType](TransactionTypeId)
+  REFERENCES [payment].[TransactionType](TransactionTypeId),
+
+  CONSTRAINT FK_Transaction_TransactionBooking FOREIGN KEY ([BookingId])
+  REFERENCES [booking].[Booking](BookingId)
 );

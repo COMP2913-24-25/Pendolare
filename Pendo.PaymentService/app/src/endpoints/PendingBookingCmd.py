@@ -1,0 +1,70 @@
+from ..db.PaymentRepository import PaymentRepository
+from ..db.PendoDatabase import Transaction
+from ..returns.PaymentReturns import StatusResponse, PaymentMethodResponse
+from .ViewBalanceCmd import ViewBalanceCommand
+import datetime
+
+class PendingBookingCommand:
+    """
+    PendingBookingCommand class is responsible for creating a transaction record when a booking becomes pending.
+    """
+
+    def __init__(self, logger, BookingId):
+        """
+        Constructor for PendingBookingCommand class.
+        :param BookingId
+        """
+        self.PaymentRepository = PaymentRepository()
+        self.logger = logger
+        self.BookingId = BookingId
+
+    def Execute(self):
+        """
+        Execute method creates a transaction record on pending booking
+        :return: status of operation
+        """
+
+        try:
+            # get booking
+            self.logger.info("Getting booking...")
+            pendingBooking = self.PaymentRepository.GetBookingById(self.BookingId)
+            
+            if pendingBooking is None:
+                raise Exception("Booking not found")
+
+            if pendingBooking.BookingStatus_.Status != "PrePending":
+                raise Exception("Not a pending booking")
+
+            self.logger.info("Got Booking")
+            
+            # find driver and booker, calculate price and margin
+            Driver = self.PaymentRepository.GetUserBalance(pendingBooking.Journey_.UserId)
+            Booker = self.PaymentRepository.GetUserBalance(pendingBooking.UserId)
+            Margin = round(pendingBooking.FeeMargin * pendingBooking.Journey_.AdvertisedPrice, 2)
+            Price = pendingBooking.Journey_.AdvertisedPrice - Margin
+
+             # ensure that booker has sufficient balance
+            if Booker.NonPending < pendingBooking.Journey_.AdvertisedPrice:
+                raise Exception("Not enough user balance to set journey to pending")
+
+            # increase advertiser pending balance by Booking value (minus fee!)
+            Status = self.PaymentRepository.UpdatePendingBalance(Driver.UserId, Price)
+
+            advertiserPendingUpdate = Transaction(
+                UserId=Driver.UserId, 
+                BookingId=self.BookingId,
+                Value=Price, 
+                CurrencyCode=pendingBooking.Journey_.CurrencyCode, 
+                TransactionStatusId=1,
+                TransactionTypeId=1,
+                CreateDate=datetime.datetime.now(),
+                UpdateDate=datetime.datetime.now())
+
+            self.PaymentRepository.CreateTransaction(advertiserPendingUpdate)
+
+            return StatusResponse(Status="success")
+
+        except Exception as e:
+            self.logger.error(f"Error in Pending Booking. Error: {str(e)}")
+            return StatusResponse(Status="fail", Error=str(e))
+        
