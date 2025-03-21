@@ -3,6 +3,7 @@ from .booking_repository import BookingRepository
 from .models import BookingAmmendment
 from fastapi import status
 from datetime import datetime
+from .statuses.booking_statii import BookingStatus
 
 class AddBookingAmmendmentCommand:
     def __init__(self, request: AddBookingAmmendmentRequest, response, logger):
@@ -36,6 +37,15 @@ class AddBookingAmmendmentCommand:
         if booking is None:
             self.response.status_code = status.HTTP_404_NOT_FOUND
             raise Exception(f"Booking {self.request.BookingId} not found")
+        
+        if not ((self.request.CancellationRequest and booking.BookingStatusId == BookingStatus.Confirmed) or booking.BookingStatusId == BookingStatus.Pending):
+            self.response.status_code = status.HTTP_400_BAD_REQUEST
+            msg = f"Booking {self.request.BookingId} is not pending therefore cannot be ammended." \
+                if not self.request.CancellationRequest else f"Booking {self.request.BookingId} is not confirmed or pending therefore cannot be cancelled."
+            
+            self.logger.error(msg)
+            raise Exception(msg)
+
 
     def _createBookingAmendment(self):
         return BookingAmmendment(

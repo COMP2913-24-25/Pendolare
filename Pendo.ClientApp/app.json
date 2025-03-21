@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "Pendolare",
+    "slug": "pendolino",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "myapp",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "This app uses your location to display it on the map and provide navigation services."
+      }
+    },
+    "android": {
+      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "server"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Pendolare to use your location for accurate map navigation."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "8d1dc9bd-9a58-4ea9-bed5-0d022703a12e"
+      },
+      "router": {
+        "origin": false
+      },
+      "customDomain": "https://client-app.clsolutions.dev"
+    },
+    "experiments": {
+      "typedRoutes": true
+    },
+    "owner": "sc232jm"
+  }
+}

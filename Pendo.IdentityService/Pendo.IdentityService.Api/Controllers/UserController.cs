@@ -1,4 +1,5 @@
-﻿using Identity.Schema;
+﻿using Azure.Core;
+using Identity.Schema;
 using Identity.Schema.User;
 using Identity.Util;
 using Microsoft.AspNetCore.Mvc;
@@ -8,22 +9,22 @@ using Swashbuckle.AspNetCore.Annotations;
 
 namespace Pendo.IdentityService.Api.Controllers;
 
-[Route("api/UpdateUser")]
+[Route("api/Identity")]
 [ApiController]
 [Consumes(Constants.AppJson)]
 [Produces(Constants.AppJson)]
-public class UpdateUserController : ControllerBase
+public class UserController : ControllerBase
 {
     private readonly ICommandDispatcher _commandDispatcher;
-    private readonly ILogger<UpdateUserController> _logger;
+    private readonly ILogger<UserController> _logger;
 
-    public UpdateUserController(ICommandDispatcher commandDispatcher, ILogger<UpdateUserController> logger)
+    public UserController(ICommandDispatcher commandDispatcher, ILogger<UserController> logger)
     {
         _commandDispatcher = commandDispatcher;
         _logger = logger;
     }
 
-    [HttpPatch(Name = "Update User")]
+    [HttpPatch("UpdateUser", Name = "Update User")]
     [SwaggerResponse(200, type: typeof(Response))]
     [SwaggerResponse(400, type: typeof(Response))]
     public async Task<IActionResult> UpdateUser([FromBody] UpdateUserRequest request)
@@ -35,4 +36,15 @@ public class UpdateUserController : ControllerBase
         return result.Success ? Ok(result) : BadRequest(result);
     }
 
+    [HttpPost("GetUser", Name = "Get User")]
+    [SwaggerResponse(200, type: typeof(GetUserResponse))]
+    [SwaggerResponse(400, type: typeof(GetUserResponse))]
+    public async Task<IActionResult> GetUser([FromBody] GetUserRequest request)
+    {
+        _logger.LogDebug($"Executing {nameof(GetUserRequest)}. Body: {JsonConvert.SerializeObject(request)}");
+
+        var result = await _commandDispatcher.Dispatch<GetUserRequest, GetUserResponse>(request);
+
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
 }
