@@ -5,7 +5,6 @@ import { View, TouchableOpacity, Modal } from "react-native";
 import Map from "../../Map/Map";
 import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
-import { formatTimestamp } from "@/utils/formatTime";
 import { Text } from "@/components/common/ThemedText";
 import { Ride } from "@/constants";
 import StatusBadge from "../StatusBadge";
@@ -75,7 +74,7 @@ const UpcomingRideDetailsModal = ({
             </View>
             <View className="mb-3">
               <Text>Departure</Text>
-              <Text className="font-JakartaMedium">{formatTimestamp(ride.RideTime.getTime())}</Text>
+              <Text className="font-JakartaMedium">{ride.RideTime.toUTCString()}</Text>
             </View>
             <View>
               <Text>Price</Text>
