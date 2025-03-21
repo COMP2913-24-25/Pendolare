@@ -53,8 +53,16 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
   const handleCancel = async (reason: string) => {
     try {
       await cancelBooking(ride.BookingId, reason); // Replace with actual API call
+
       setShowCancelModal(false);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       setShowDetails(false);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      router.push(`/home/chat/${ride.DriverId}?name=${ride.DriverName}&initialMessage=Ride cancelled for reason: ${reason}.`);
+
+      console.log(`Ride cancelled for reason: ${reason}`);
     } catch (error) {
       console.error("Error cancelling ride:", error);
     }

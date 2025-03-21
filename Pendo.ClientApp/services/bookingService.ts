@@ -215,7 +215,7 @@ export async function cancelBooking(bookingId: string, reason: string): Promise<
   try {
     console.log(`Cancelling booking ${bookingId} with reason: ${reason}`);
     // Replace with actual API call
-    await Promise.resolve();
+    await Promise.resolve(); // use the bookingAmmendment endpoint!
 
     return {
       success: true,

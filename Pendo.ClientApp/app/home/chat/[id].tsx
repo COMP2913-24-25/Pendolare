@@ -29,9 +29,9 @@ const generateUniqueId = () => {
   Screen for viewing and sending messages in a chat
 */
 const ChatDetail = () => {
-  const { id, name } = useLocalSearchParams();
+  const { id, name, initialMessage } = useLocalSearchParams();
   const [chat, setChat] = useState<any>(null);
-  const [newMessage, setNewMessage] = useState("");
+  const [newMessage, setNewMessage] = useState(initialMessage as string);
   const { isDarkMode } = useTheme();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -199,6 +199,15 @@ const ChatDetail = () => {
     // Handle incoming messages
     messageService.on("message", (message) => {
       // Handle user message sent event
+
+      if (message.type === "conversation_joined") {
+        console.log("Initial message:", initialMessage);
+
+        if (initialMessage) {
+          setNewMessage(initialMessage as string);
+          sendMessage();
+        }
+      }
 
       if (message.type === "user_message_sent") {
         if (!message.content && lastSentMessageRef.current) {
