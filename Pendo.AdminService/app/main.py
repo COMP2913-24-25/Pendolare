@@ -20,7 +20,7 @@ configuration_provider = ConfigurationProvider()
 app = FastAPI(
     title="Pendo.AdminService.Api", 
     version="1.0.0",
-    root_path="/api")
+    root_path="/api/Admin")
 
 
 @app.get("/")
@@ -92,5 +92,3 @@ def delete_discount(discount_id: str, db_session: Session = Depends(get_db)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
