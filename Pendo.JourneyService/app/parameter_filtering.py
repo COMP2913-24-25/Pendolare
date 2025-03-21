@@ -1,20 +1,20 @@
 from .request_lib import GetJourneysRequest
 from .PendoDatabase import Journey
-from datetime import datetime
 from sqlalchemy.sql import and_
-from geopy.distance import geodesic
-import logging
 
 class FilterJourneys:
     """
     FilterJourneys class is responsible for creating a filtering statement for journeys based on the request
     """
-    def __init__(self, request, db):
+    def __init__(self, request : GetJourneysRequest, db):
         self.request = request
         self.db = db
 
     def apply_filters(self):
         filters = []
+
+        # Don't show the user their own journeys!
+        filters.append(Journey.UserId != self.request.UserId)
 
         if self.request.MaxPrice is not None and self.request.MaxPrice > 0:
             filters.append(Journey.AdvertisedPrice <= self.request.MaxPrice)
