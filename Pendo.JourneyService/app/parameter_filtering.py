@@ -1,6 +1,8 @@
 from .request_lib import GetJourneysRequest
 from .PendoDatabase import Journey
 from sqlalchemy.sql import and_
+import math
+from datetime import timedelta
 
 class FilterJourneys:
     """
@@ -35,22 +37,25 @@ class FilterJourneys:
             filters.append(Journey.MaxPassengers >= self.request.NumPassengers)
 
         if self.request.StartDate is not None:
-            filters.append(Journey.StartDate >= self.request.StartDate)
-
+            filters.append(and_(Journey.StartDate >= self.request.StartDate, Journey.StartDate < (self.request.StartDate + timedelta(days=1))))
 
         if self.request.StartLat and self.request.StartLong:
+            lat_diff = self.request.DistanceRadius / 111.0
+            long_diff = self.request.DistanceRadius / (111.0 * math.cos(math.radians(self.request.StartLat)))
             filters.append(
                 and_(
-                    Journey.StartLat.between(self.request.StartLat - self.request.DistanceRadius, self.request.StartLat + self.request.DistanceRadius),
-                    Journey.StartLong.between(self.request.StartLong - self.request.DistanceRadius, self.request.StartLong + self.request.DistanceRadius)
+                    Journey.StartLat.between(self.request.StartLat - lat_diff, self.request.StartLat + lat_diff),
+                    Journey.StartLong.between(self.request.StartLong - long_diff, self.request.StartLong + long_diff)
                 )
             )
 
         if self.request.EndLat and self.request.EndLong:
+            lat_diff = self.request.DistanceRadius / 111.0
+            long_diff = self.request.DistanceRadius / (111.0 * math.cos(math.radians(self.request.EndLat)))
             filters.append(
                 and_(
-                    Journey.EndLat.between(self.request.EndLat - self.request.DistanceRadius, self.request.EndLat + self.request.DistanceRadius),
-                    Journey.EndLong.between(self.request.EndLong - self.request.DistanceRadius, self.request.EndLong + self.request.DistanceRadius)
+                    Journey.EndLat.between(self.request.EndLat - lat_diff, self.request.EndLat + lat_diff),
+                    Journey.EndLong.between(self.request.EndLong - lat_diff, self.request.EndLong + long_diff)
                 )
             )
 
