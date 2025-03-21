@@ -1,7 +1,5 @@
-// WIP
-
 import { FontAwesome5 } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useGlobalSearchParams, useLocalSearchParams } from "expo-router";
 import { useState, useEffect, useRef } from "react";
 import {
   View,
@@ -16,7 +14,7 @@ import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
 import { Text } from "@/components/common/ThemedText";
 import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
-import { messageService, ChatMessage, getUserConversations } from "@/services/messageService";
+import { messageService, ChatMessage, getUserConversations, createConversation } from "@/services/messageService";
 import { formatTimestamp } from "@/utils/formatTime";
 
 /*
@@ -31,15 +29,16 @@ const generateUniqueId = () => {
   Screen for viewing and sending messages in a chat
 */
 const ChatDetail = () => {
-  const { id } = useLocalSearchParams();
+  const { id, name, initialMessage } = useLocalSearchParams();
   const [chat, setChat] = useState<any>(null);
-  const [newMessage, setNewMessage] = useState("");
+  const [newMessage, setNewMessage] = useState(initialMessage as string);
   const { isDarkMode } = useTheme();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(true);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [hasSetChatVars, setHasSetChatVars] = useState(false);
   const scrollViewRef = useRef<RNScrollView>(null);
   const inputRef = useRef<TextInput>(null);
   const lastSentMessageRef = useRef<string>("");
@@ -51,6 +50,7 @@ const ChatDetail = () => {
     async function fetchChat() {
       try {
         // Fetch conversation details from API
+        console.log("Fetching conversation details for:", id);
         const response = await getUserConversations();
         
         // Normalise conversation data
@@ -66,6 +66,40 @@ const ChatDetail = () => {
         
         // Find the selected conversation by ID
         const selectedChat = normalisedConversations.find((c: any) => c.id === id);
+
+        if (typeof selectedChat === "undefined") {
+          console.log("Chat not found. Creating new conversation.");
+          setIsLoadingHistory(false);
+
+          const userName : any = typeof name === "undefined" ? id.toString() : name as string;
+
+          try {
+            const response = await createConversation({
+              ConversationType: "direct",
+              name: `Chat with ${userName}.`,
+              participants: [ id.toString() ] // Driver ID
+            });
+            console.log("Conversation created:", response);
+
+            setHasSetChatVars(true);
+            setChat({
+              id: response.ConversationId,
+              ConversationId: response.ConversationId,
+              type: response.Type,
+              title: response.Name,
+              lastMessage: "",
+              timestamp: new Date().getTime(),
+              UserId: id.toString()
+            });  // pass conversation response
+
+            return;
+            
+          } catch (error) {
+            console.error("Failed to create conversation:", error);
+          }
+        }
+
+        setHasSetChatVars(true);
         setChat(selectedChat);
       } catch (error) {
         console.error("Error fetching conversation:", error);
@@ -75,20 +109,25 @@ const ChatDetail = () => {
   }, [id]);
 
   useEffect(() => {
+    console.log("Chat updated:", chat);
     if (chat && messageService) {
       messageService.setConversationId(chat.id);
       // Set user id from normalised conversation response
       // User ID is typically stamped when passing through the gateway 
       // However, non REST API calls bypass this and require manual setting
-      if (chat.UserId) {
+      if (hasSetChatVars) {
+        console.log("Setting user ID:", chat.UserId);
         messageService.setUserId(chat.UserId);
+
+        console.log("Setting conversation ID:", chat.ConversationId);
+        messageService.setConversationId(chat.ConversationId);
       }
     }
 
     // Clear messages when switching chats
     setMessages([]);
     setIsLoadingHistory(false);
-  }, [chat?.id]);
+  }, [chat?.UserId, chat?.ConversationId]);
 
   /*
     Set up WebSocket event listeners
@@ -159,15 +198,24 @@ const ChatDetail = () => {
 
     // Handle incoming messages
     messageService.on("message", (message) => {
-      console.log(message)
-
       // Handle user message sent event
+
+      if (message.type === "conversation_joined") {
+        console.log("Initial message:", initialMessage);
+
+        if (initialMessage) {
+          setNewMessage(initialMessage as string);
+          sendMessage();
+        }
+      }
+
       if (message.type === "user_message_sent") {
         if (!message.content && lastSentMessageRef.current) {
           message.content = lastSentMessageRef.current;
         }
         // Add user message to list
         setMessages((prev) => [...prev, { ...message, sender: "user", status: "sent" }]);
+
         lastSentMessageRef.current = "";
         return;
       }
@@ -247,6 +295,7 @@ const ChatDetail = () => {
 
     // Store last sent message before sending removing unnecessary whitespace
     lastSentMessageRef.current = newMessage.trim();
+
     const success = messageService.sendMessage(newMessage.trim());
     if (success) {
       setNewMessage("");
@@ -384,7 +433,7 @@ const ChatDetail = () => {
                 </View>
               )}
       
-              {messages.map((message: ChatMessage, index: any) => (
+              {messages.filter(message => message.type !== "welcome" && message.content !== undefined).map((message: ChatMessage, index: any) => (
                 <MessageBubble key={message.id || `msg-${index}-${message.timestamp}`} message={message} />
               ))}
             </RNScrollView>
