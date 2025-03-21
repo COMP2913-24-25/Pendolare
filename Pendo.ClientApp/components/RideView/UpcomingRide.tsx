@@ -77,7 +77,8 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
       setShowDetails(false);
       // Small delay to allow modals to start closing
       await new Promise((resolve) => setTimeout(resolve, 100));
-      router.push("/home/chat/1");
+      console.log(`DRIVER ID: ${ride.DriverId}`);
+      router.push(`/home/chat/${ride.DriverId}`);
     } catch (error) {
       console.error("Error navigating to support:", error);
     }

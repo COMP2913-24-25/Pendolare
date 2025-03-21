@@ -67,6 +67,8 @@ const Home = () => {
             name: booking.Journey.EndName
           }
         }));
+
+        console.log(`Driver ID : ${allRides[0].Status}`);
         
         // Split the rides into upcoming and past based on the current time
         const cancelled = allRides.filter(ride => ride.Status === "Cancelled");
