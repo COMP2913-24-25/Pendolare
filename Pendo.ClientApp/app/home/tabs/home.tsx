@@ -54,7 +54,7 @@ const Home = () => {
           RideTime: new Date(booking.Booking.RideTime),
           Status: booking.BookingStatus.Status,
           DriverName: booking.Journey.User.FirstName,
-          DriverId: booking.Journey.UserId,
+          DriverId: booking.Journey.User.UserId,
           Price: booking.Journey.Price,
           Pickup: {
             latitude: booking.Journey.StartLat,
@@ -67,8 +67,6 @@ const Home = () => {
             name: booking.Journey.EndName
           }
         }));
-
-        console.log(`Driver ID : ${allRides[0].Status}`);
         
         // Split the rides into upcoming and past based on the current time
         const cancelled = allRides.filter(ride => ride.Status === "Cancelled");

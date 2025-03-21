@@ -65,7 +65,7 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
       setShowDetails(false);
       // Small delay to allow modal to start closing
       await new Promise((resolve) => setTimeout(resolve, 100));
-      router.push(`/home/chat/${ride.DriverId}`);
+      router.push(`/home/chat/${ride.DriverId}?name=${ride.DriverName}`);
     } catch (error) {
       console.error("Error navigating to chat:", error);
     }

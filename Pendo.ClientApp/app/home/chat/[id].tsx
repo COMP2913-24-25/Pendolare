@@ -14,7 +14,7 @@ import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
 import { Text } from "@/components/common/ThemedText";
 import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
-import { messageService, ChatMessage, getUserConversations } from "@/services/messageService";
+import { messageService, ChatMessage, getUserConversations, createConversation } from "@/services/messageService";
 import { formatTimestamp } from "@/utils/formatTime";
 
 /*
@@ -29,7 +29,7 @@ const generateUniqueId = () => {
   Screen for viewing and sending messages in a chat
 */
 const ChatDetail = () => {
-  const { id } = useLocalSearchParams();
+  const { id, name } = useLocalSearchParams();
   const [chat, setChat] = useState<any>(null);
   const [newMessage, setNewMessage] = useState("");
   const { isDarkMode } = useTheme();
@@ -41,8 +41,6 @@ const ChatDetail = () => {
   const scrollViewRef = useRef<RNScrollView>(null);
   const inputRef = useRef<TextInput>(null);
   const lastSentMessageRef = useRef<string>("");
-
-  console.log(id);
 
   /*
     Fetch chat details on initial load
@@ -66,6 +64,35 @@ const ChatDetail = () => {
         
         // Find the selected conversation by ID
         const selectedChat = normalisedConversations.find((c: any) => c.id === id);
+
+        if (typeof selectedChat === "undefined") {
+          console.log("Chat not found. Creating new conversation.");
+
+          const userName : any = typeof name === "undefined" ? id.toString() : name as string;
+
+          try {
+            const response = await createConversation({
+              ConversationType: "direct",
+              name: `Chat with ${userName}.`,
+              participants: [ id.toString() ] // Driver ID
+            });
+            console.log("Conversation created:", response);
+
+            setChat({
+              id: response.ConversationId,
+              type: response.Type,
+              title: response.Name,
+              lastMessage: "",
+              timestamp: new Date().getTime(),
+              UserId: response.UserId
+            });  // pass conversation response
+            return;
+            
+          } catch (error) {
+            console.error("Failed to create conversation:", error);
+          }
+        }
+
         setChat(selectedChat);
       } catch (error) {
         console.error("Error fetching conversation:", error);
@@ -85,12 +112,18 @@ const ChatDetail = () => {
         console.log(chat.UserId);
         messageService.setUserId(chat.UserId);
       }
+
+      if (chat.ConversationId) {
+        console.log("Setting conversation ID:");
+        console.log(chat.ConversationId);
+        messageService.setConversationId(chat.ConversationId);
+      }
     }
 
     // Clear messages when switching chats
     setMessages([]);
     setIsLoadingHistory(false);
-  }, [chat?.id]);
+  }, [chat?.UserId, chat?.ConversationId]);
 
   /*
     Set up WebSocket event listeners
@@ -161,15 +194,15 @@ const ChatDetail = () => {
 
     // Handle incoming messages
     messageService.on("message", (message) => {
-      console.log(message)
-
       // Handle user message sent event
+
       if (message.type === "user_message_sent") {
         if (!message.content && lastSentMessageRef.current) {
           message.content = lastSentMessageRef.current;
         }
         // Add user message to list
         setMessages((prev) => [...prev, { ...message, sender: "user", status: "sent" }]);
+
         lastSentMessageRef.current = "";
         return;
       }
@@ -249,6 +282,7 @@ const ChatDetail = () => {
 
     // Store last sent message before sending removing unnecessary whitespace
     lastSentMessageRef.current = newMessage.trim();
+
     const success = messageService.sendMessage(newMessage.trim());
     if (success) {
       setNewMessage("");
@@ -386,7 +420,7 @@ const ChatDetail = () => {
                 </View>
               )}
       
-              {messages.map((message: ChatMessage, index: any) => (
+              {messages.filter(message => message.type !== "welcome" && message.content !== undefined).map((message: ChatMessage, index: any) => (
                 <MessageBubble key={message.id || `msg-${index}-${message.timestamp}`} message={message} />
               ))}
             </RNScrollView>
