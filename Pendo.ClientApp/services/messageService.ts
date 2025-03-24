@@ -48,7 +48,7 @@ export async function createConversation(
 }
 
 export async function getUserConversations(): Promise<GetUserConversationsResponse> {
-  return apiRequest<GetUserConversationsResponse>(MESSAGE_ENDPOINTS.GET_USER_CONVERSATIONS, {
+  return await apiRequest<GetUserConversationsResponse>(MESSAGE_ENDPOINTS.GET_USER_CONVERSATIONS, {
     method: "GET",
   });
 }
@@ -142,7 +142,7 @@ class MessageService {
           ) {
             console.log(`Successfully loaded ${message.messages.length} messages from history`);
             const normalisedMessages = message.messages.map((msg: any) => {
-              // Normalize API response fields to expected keys
+              // Normalise API response fields to expected keys
               const content = msg.Content || msg.content;
               const timestamp = msg.CreateDate ? new Date(msg.CreateDate).toISOString() : (msg.timestamp || new Date().toISOString());
               const id = msg.MessageId || msg.id;

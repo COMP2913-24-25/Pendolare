@@ -6,6 +6,8 @@ import { Text } from "@/components/common/ThemedText"; // updated
 import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 import { createBooking } from "@/services/bookingService";
+import { toHumanReadable } from "@/utils/cronTools";
+import { Rating } from "react-native-ratings";
 
 interface RideDetailsProps {
   ride: any;
@@ -40,7 +42,7 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
           ? new Date(ride.departureTime)
           : new Date(ride.departureTime);
 
-      const result = await createBooking(ride.id, departureTime);
+      const result = await createBooking(ride.JourneyId, departureTime);
 
       if (result.success) {
         setBookingStatus({
@@ -95,7 +97,7 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
       onRequestClose={onClose}
     >
       <View className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-white"}`}>
-        <View className="h-1/2">
+        <View className="h-1/3">
           <Map pickup={ride.pickup} dropoff={ride.dropoff} />
           <TouchableOpacity
             className={`absolute top-12 left-4 p-2 rounded-full shadow-sm ${
@@ -129,13 +131,11 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
                 <View>
                   <Text className="font-JakartaBold text-lg">{ride.driverName}</Text>
                   <View className="flex-row items-center">
-                    <FontAwesome5
-                      name={icons.star}
-                      size={16}
-                      color="#FFC107"
-                      style={{ marginRight: 4 }}
-                    />
-                    <Text className="text-sm text-gray-500">{ride.rating}</Text>
+                    {ride.rating === -1 ? (
+                      <Text className="text-xs font-Jakarta">No driver rating yet!</Text>
+                    ) : (
+                      <Rating startingValue={ride.rating} readonly imageSize={16} />
+                    )}
                   </View>
                 </View>
               </View>
@@ -180,7 +180,7 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
                   style={{ marginRight: 8 }}
                 />
                 <Text className="text-gray-600">
-                  {ride.availableSeats} seats available
+                  {ride.MaxPassengers} seats available
                 </Text>
               </View>
             </View>

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { View, TextInput, TouchableOpacity } from "react-native";
+import { View, TextInput, TouchableOpacity, ScrollView } from "react-native";
 import { Text } from "@/components/common/ThemedText";
 
 interface Location {
@@ -38,6 +38,9 @@ const LocationStep = ({
   const renderSearchResults = () => {
     if (searchResults.length === 0) return null;
 
+    // Limit to at most 5 results
+    const limitedResults = searchResults.slice(0, 5);
+
     return (
       <View
         className={`absolute left-0 right-0 ${
@@ -45,15 +48,24 @@ const LocationStep = ({
         } ${isDarkMode ? "bg-slate-800" : "bg-white"} rounded-lg shadow-lg z-50`}
         style={{ maxHeight: 200 }}
       >
-        {searchResults.map((item, index) => (
-          <TouchableOpacity
-            key={`${item.name}-${index}`}
-            className={`p-3 border-b ${isDarkMode ? "border-slate-700" : "border-slate-100"}`}
-            onPress={() => handleLocationSelect(item)}
-          >
-            <Text>{item.name}</Text>
-          </TouchableOpacity>
-        ))}
+        <ScrollView keyboardShouldPersistTaps="handled">
+          {limitedResults.map((item, index) => (
+            <TouchableOpacity
+              key={`${item.name}-${index}`}
+              className={`p-3 border-b ${isDarkMode ? "border-slate-700" : "border-slate-100"}`}
+              onPress={() => handleLocationSelect(item)}
+            >
+              <Text>{item.name}</Text>
+            </TouchableOpacity>
+          ))}
+          {searchResults.length > 5 && (
+            <View className={`p-3 ${isDarkMode ? "bg-slate-700" : "bg-gray-100"}`}>
+              <Text className="text-center text-xs text-gray-500">
+                {searchResults.length - 5} more results...
+              </Text>
+            </View>
+          )}
+        </ScrollView>
       </View>
     );
   };

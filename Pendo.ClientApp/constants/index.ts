@@ -1,3 +1,23 @@
+export interface Ride {
+  BookingId: string;
+  RideTime : Date;
+  Status: string;
+  DriverName: string;
+  DriverId: string;
+  Price: number;
+  Pickup : {
+    latitude: number;
+    longitude: number;
+    name: string
+  },
+  Dropoff : {
+    latitude: number;
+    longitude: number;
+    name: string
+  }
+  // Need to alter booking service to return driver name not ID!
+}
+
 export const icons = {
   home: "home",
   search: "search",
@@ -19,6 +39,7 @@ export const icons = {
   support: "headset",
   car: "car",
   flag: "flag",
+  repeat: "redo"
 };
 
 export const onboarding = [
@@ -55,12 +76,27 @@ export const API_BASE_URL = "https://pendo-gateway.clsolutions.dev/api";
 export const AUTH_ENDPOINTS = {
   REQUEST_OTP: "/Identity/RequestOtp",
   VERIFY_OTP: "/Identity/VerifyOtp",
+  UPDATE_USER: "/Identity/UpdateUser",
+  GET_USER: "/Identity/GetUser"
 };
 
 // Booking endpoints
 export const BOOKING_ENDPOINTS = {
   CREATE_BOOKING: "/Booking/CreateBooking",
   GET_BOOKINGS: "/Booking/GetBookings",
+  ADD_BOOKING_AMMENDMENT: "/Booking/AddBookingAmmendment",
+  APPROVE_BOOKING_AMMENDMENT: "/Booking/ApproveBookingAmmendment",
+  APPROVE_BOOKING: "/Booking/ApproveBooking",
+  CONFIRM_AT_PICKUP: "/Booking/ConfirmAtPickup",
+  COMPLETE_BOOKING: "/Booking/CompleteBooking"
+};
+
+// Journey endpoints
+export const JOURNEY_ENDPOINTS = {
+  CREATE_JOURNEY: "/Journey/CreateJourney",
+  GET_JOURNEYS: "/Journey/ViewJourney",
+  LOCK_JOURNEY: "/Journey/LockJourney",
+  ADJUST_PRICE: "/Journey/AdjustPrice",
 };
 
 export const MESSAGE_API_BASE_URL = "wss://pendo-message.clsolutions.dev/ws";
