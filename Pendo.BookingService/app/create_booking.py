@@ -88,7 +88,7 @@ class CreateBookingCommand:
             self.booking_repository.UpdateBookingStatus(booking.BookingId, BookingStatus.Pending)
             self.logger.debug("Booking status updated to pending successfully.")
 
-            email_data = generateEmailDataFromBooking(booking, user, journey, self.dvla_client.GetVehicleDetails(journey.VehicleRegistration))
+            email_data = generateEmailDataFromBooking(booking, user, journey, self.dvla_client.GetVehicleDetails(journey.RegPlate))
 
             self.email_sender.SendBookingPending(user.Email, email_data)
             self.logger.debug("Booking pending email sent successfully.")
