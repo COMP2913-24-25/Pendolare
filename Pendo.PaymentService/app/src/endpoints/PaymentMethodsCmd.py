@@ -21,7 +21,7 @@ class PaymentMethodsCommand:
         :return: payment methods of the user.
         """
         try:            
-            stripe.api_key = stripe_secret
+            stripe.api_key = self.stripe_secret
         
             payment_methods = stripe.Customer.list_payment_methods(str(self.UserId))
             parsedMethods = []
