@@ -83,7 +83,7 @@ class CreateBookingCommand:
             # Notify payment service of new booking
             if not self.payment_service_client.PendingBookingRequest(booking.BookingId):
                 self.response.status_code = status.HTTP_403_FORBIDDEN
-                self.booking_repository.DeleteBooking(booking.BookingId)
+                self.booking_repository.DeleteBooking(booking)
                 raise Exception("Payment service failed to process booking. User balance insufficient.")
             
             self.booking_repository.UpdateBookingStatus(booking.BookingId, BookingStatus.Pending)
