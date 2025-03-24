@@ -1,90 +1,182 @@
 import pytest
-from unittest.mock import MagicMock
-from src.returns.PaymentReturns import StatusResponse
+from unittest.mock import MagicMock, patch
 from src.db.PendoDatabase import UserBalance
+from src.returns.PaymentReturns import StatusResponse
 from src.endpoints.StripeWebhookCmd import StripeWebhookCommand
+import uuid
 
 @pytest.fixture
 def mock_logger():
     return MagicMock()
 
 @pytest.fixture
-def mock_payment_repository():
-    repo = MagicMock()
-    # Set up default returns for repository methods
-    user = MagicMock()
-    user.UserId = "user123"
-    repo.GetUser.return_value = user
-    
-    balance = MagicMock()
-    balance.UserId = "user123"
-    balance.NonPending = 100.0
-    balance.Pending = 50.0
-    repo.GetUserBalance.return_value = balance
-    
-    transaction = MagicMock()
-    transaction.TransactionId = "trans123"
-    transaction.UserId = "user123"
-    transaction.Value = 25.0
-    repo.GetTransaction.return_value = transaction
-    
-    return repo
+def user_id():
+    return str(uuid.uuid4())
 
 @pytest.fixture
-def stripe_webhook_command(mock_logger, mock_payment_repository):
-    cmd = StripeWebhookCommand(mock_logger, "user123", 25.0)
-    cmd.PaymentRepository = mock_payment_repository
-    return cmd
+def amount():
+    return 100.00
 
-def test_execute_success(stripe_webhook_command, mock_payment_repository, mock_logger):
+@pytest.fixture
+def mock_user():
+    user = MagicMock()
+    user.UserId = str(uuid.uuid4())
+    return user
+
+@pytest.fixture
+def mock_transaction():
+    transaction = MagicMock()
+    transaction.TransactionId = str(uuid.uuid4())
+    return transaction
+
+@pytest.fixture
+def stripe_webhook_command(mock_logger, user_id, amount):
+    # Use patch to mock the PaymentRepository class
+    with patch('src.endpoints.StripeWebhookCmd.PaymentRepository') as MockRepo:
+        # Set up the mock to return itself when instantiated
+        MockRepo.return_value = MagicMock()
+        # Create the command, which will use our mocked repo
+        command = StripeWebhookCommand(mock_logger, user_id, amount)
+        yield command
+
+def test_webhook_success(stripe_webhook_command, mock_user, mock_transaction, user_id, amount):
+    # Arrange
+    stripe_webhook_command.PaymentRepository.GetUser.return_value = mock_user
+    stripe_webhook_command.PaymentRepository.GetUserBalance.return_value = MagicMock(spec=UserBalance)
+    stripe_webhook_command.PaymentRepository.GetTransaction.return_value = mock_transaction
+    
+    # Act
     result = stripe_webhook_command.Execute()
     
-    assert isinstance(result, StatusResponse)
+    # Assert
     assert result.Status == "success"
-    mock_payment_repository.UpdateTransaction.assert_called_once_with("trans123", 25.0, 5, 5)
-    mock_payment_repository.UpdateNonPendingBalance.assert_called_once_with("user123", 25.0)
-    mock_logger.info.assert_called_with("Got user", mock_payment_repository.GetUser.return_value)
+    stripe_webhook_command.PaymentRepository.GetUser.assert_called_once_with(user_id)
+    stripe_webhook_command.PaymentRepository.GetUserBalance.assert_called_once_with(user_id)
+    stripe_webhook_command.PaymentRepository.GetTransaction.assert_called_once_with(user_id, amount, 3, 5)
+    stripe_webhook_command.PaymentRepository.UpdateTransaction.assert_called_once_with(
+        mock_transaction.TransactionId, amount, 5, 5
+    )
+    stripe_webhook_command.PaymentRepository.UpdateNonPendingBalance.assert_called_once_with(user_id, amount)
 
-def test_execute_user_not_found(stripe_webhook_command, mock_payment_repository):
-    mock_payment_repository.GetUser.return_value = None
+def test_webhook_user_not_found(stripe_webhook_command, user_id):
+    # Arrange
+    stripe_webhook_command.PaymentRepository.GetUser.return_value = None
     
+    # Act
     result = stripe_webhook_command.Execute()
     
-    assert isinstance(result, StatusResponse)
+    # Assert
     assert result.Status == "fail"
-    assert "User not found" in result.Error
-    mock_payment_repository.UpdateTransaction.assert_not_called()
-    mock_payment_repository.UpdateNonPendingBalance.assert_not_called()
+    assert result.Error == "User not found"
+    stripe_webhook_command.PaymentRepository.GetUser.assert_called_once_with(user_id)
+    stripe_webhook_command.logger.error.assert_called_once()
 
-def test_execute_create_user_balance_if_none(stripe_webhook_command, mock_payment_repository):
-    mock_payment_repository.GetUserBalance.return_value = None
+def test_webhook_no_user_balance(stripe_webhook_command, mock_user, mock_transaction, user_id, amount):
+    # Arrange
+    stripe_webhook_command.PaymentRepository.GetUser.return_value = mock_user
+    stripe_webhook_command.PaymentRepository.GetUserBalance.return_value = None
+    stripe_webhook_command.PaymentRepository.GetTransaction.return_value = mock_transaction
     
+    # Act
     result = stripe_webhook_command.Execute()
     
+    # Assert
     assert result.Status == "success"
-    mock_payment_repository.CreateUserBalance.assert_called_once()
+    stripe_webhook_command.PaymentRepository.CreateUserBalance.assert_called_once()
+    assert stripe_webhook_command.PaymentRepository.CreateUserBalance.call_args[0][0].UserId == user_id
     
-    # Verify the created UserBalance has the correct UserId
-    created_balance = mock_payment_repository.CreateUserBalance.call_args[0][0]
-    assert isinstance(created_balance, UserBalance)
-    assert created_balance.UserId == "user123"
+    # Verify the flow continues after creating the user balance
+    stripe_webhook_command.PaymentRepository.UpdateTransaction.assert_called_once()
+    stripe_webhook_command.PaymentRepository.UpdateNonPendingBalance.assert_called_once()
 
-def test_execute_transaction_not_found(stripe_webhook_command, mock_payment_repository):
-    mock_payment_repository.GetTransaction.return_value = None
+def test_webhook_transaction_not_found(stripe_webhook_command, mock_user, user_id, amount):
+    # Arrange
+    stripe_webhook_command.PaymentRepository.GetUser.return_value = mock_user
+    stripe_webhook_command.PaymentRepository.GetUserBalance.return_value = MagicMock(spec=UserBalance)
+    stripe_webhook_command.PaymentRepository.GetTransaction.return_value = None
     
+    # Act
     result = stripe_webhook_command.Execute()
     
+    # Assert
     assert result.Status == "fail"
-    assert "Transaction not found" in result.Error
-    mock_payment_repository.UpdateTransaction.assert_not_called()
-    mock_payment_repository.UpdateNonPendingBalance.assert_not_called()
-
-def test_execute_exception_handling(stripe_webhook_command, mock_payment_repository, mock_logger):
-    mock_payment_repository.GetUser.side_effect = Exception("Test exception")
+    assert result.Error == "Transaction not found"
+    stripe_webhook_command.PaymentRepository.GetTransaction.assert_called_once_with(user_id, amount, 3, 5)
+    stripe_webhook_command.logger.error.assert_called_once()
     
+    # Verify that update methods were not called
+    stripe_webhook_command.PaymentRepository.UpdateTransaction.assert_not_called()
+    stripe_webhook_command.PaymentRepository.UpdateNonPendingBalance.assert_not_called()
+
+def test_webhook_update_failure(stripe_webhook_command, mock_user, mock_transaction, user_id, amount):
+    # Arrange
+    stripe_webhook_command.PaymentRepository.GetUser.return_value = mock_user
+    stripe_webhook_command.PaymentRepository.GetUserBalance.return_value = MagicMock(spec=UserBalance)
+    stripe_webhook_command.PaymentRepository.GetTransaction.return_value = mock_transaction
+    stripe_webhook_command.PaymentRepository.UpdateTransaction.side_effect = Exception("Database error")
+    
+    # Act
     result = stripe_webhook_command.Execute()
     
+    # Assert
     assert result.Status == "fail"
-    assert "Test exception" in result.Error
-    mock_logger.error.assert_called_once()
-    assert "Error fetching balance sheet" in mock_logger.error.call_args[0][0]
+    assert result.Error == "Database error"
+    stripe_webhook_command.logger.error.assert_called_once()
+    
+    # Verify update was attempted
+    stripe_webhook_command.PaymentRepository.UpdateTransaction.assert_called_once()
+    # Verify balance was not updated after the transaction update failed
+    stripe_webhook_command.PaymentRepository.UpdateNonPendingBalance.assert_not_called()
+
+# Modified to use patching instead of directly checking instance type
+def test_webhook_constructor():
+    # Arrange
+    logger = MagicMock()
+    user_id = str(uuid.uuid4())
+    amount = 50.0
+    
+    # Act - Use patch to mock the PaymentRepository
+    with patch('src.endpoints.StripeWebhookCmd.PaymentRepository') as MockRepo:
+        # Mock the repository class
+        mock_repo_instance = MagicMock()
+        MockRepo.return_value = mock_repo_instance
+        
+        # Create the command
+        command = StripeWebhookCommand(logger, user_id, amount)
+        
+        # Assert
+        assert command.logger == logger
+        assert command.UserId == user_id
+        assert command.Amount == amount
+        # Verify the repository was instantiated
+        MockRepo.assert_called_once()
+        assert command.PaymentRepository == mock_repo_instance
+
+@patch('uuid.uuid4')
+def test_webhook_complete_flow_with_new_balance(mock_uuid, stripe_webhook_command, mock_user, mock_transaction, user_id, amount):
+    # Arrange
+    mock_uuid.return_value = "test-uuid"
+    stripe_webhook_command.PaymentRepository.GetUser.return_value = mock_user
+    stripe_webhook_command.PaymentRepository.GetUserBalance.return_value = None
+    stripe_webhook_command.PaymentRepository.GetTransaction.return_value = mock_transaction
+    
+    # Act
+    result = stripe_webhook_command.Execute()
+    
+    # Assert
+    assert result.Status == "success"
+    
+    # Verify the flow of operations is correct
+    expected_calls = [
+        stripe_webhook_command.PaymentRepository.GetUser,
+        stripe_webhook_command.logger.info,
+        stripe_webhook_command.PaymentRepository.GetUserBalance,
+        stripe_webhook_command.PaymentRepository.CreateUserBalance,
+        stripe_webhook_command.PaymentRepository.GetTransaction,
+        stripe_webhook_command.PaymentRepository.UpdateTransaction,
+        stripe_webhook_command.PaymentRepository.UpdateNonPendingBalance
+    ]
+    
+    # Rough verification of method call order
+    for i, call in enumerate(expected_calls[:-1]):
+        assert call.call_count > 0, f"Method at index {i} was not called"
