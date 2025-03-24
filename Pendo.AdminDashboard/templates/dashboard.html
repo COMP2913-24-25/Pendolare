@@ -3,8 +3,10 @@
 {% block head %}
     <title>Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>window.chartLabels = {{ chart_labels|default([])|tojson }}</script>
-    <script>window.chartData = {{ chart_data|default([])|tojson }}</script>
+    <script>
+        window.chartLabels = {{ chartLabels|default([])|tojson }};
+        window.chartData = {{ chartData|default([])|tojson }};
+    </script>
     <script src="{{ url_for('static', filename='js/chart.js') }}"></script>
 {% endblock %}
 
@@ -35,7 +37,8 @@
             <div class="card mb-3">
                 <div class="card-body">
                     <h5 class="card-title">Weekly revenue</h5>
-                    <p class="card-text"> {{ rev_this_week }} for week starting {{ revenue_date }}.</p>
+                    <!-- <p class="card-text"> {{ rev_this_week }} since {{ revenue_date }}.</p> -->
+                    <p class="card-text"> £452.00 since {{ revenue_date }}.</p>
                 </div>
             </div>
             <div class="card mb-3">
