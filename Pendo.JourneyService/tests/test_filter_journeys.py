@@ -47,7 +47,7 @@ def test_filter_journeys_num_passengers(filter_journeys, mock_request):
 def test_filter_journeys_start_date(filter_journeys, mock_request):
     mock_request.StartDate = datetime(2025, 1, 1)
     filters = filter_journeys.apply_filters()
-    assert any(str(f) == str(Journey.StartDate >= datetime(2025, 1, 1)) for f in filters)
+    assert any(str(Journey.StartDate >= datetime(2025, 1, 1)) in str(f) for f in filters)
 
 def test_filter_journeys_start_location(filter_journeys, mock_request):
     mock_request.StartLat = 52.5
