@@ -1,118 +1,42 @@
 {
-  "openapi": "3.1.0",
+  "openapi": "3.0.1",
   "info": {
-    "title": "pendo.identityapi",
-    "description": "API for client authentication in the Identity Service.",
-    "version": "1.0.0"
+    "title": "Pendo.IdentityService.Api",
+    "version": "1.0"
   },
-  "servers": [
-    {
-      "url": "prod (tbc)"
-    },
-    {
-      "url": "dev (tbc)"
-    }
-  ],
   "paths": {
-    "/client/authenticate": {
+    "/api/Identity/RequestOtp": {
       "post": {
-        "summary": "Authenticate a client using Client ID and Secret",
-        "operationId": "authenticateClient",
         "tags": [
-          "Client Authentication"
+          "Auth"
         ],
+        "operationId": "Request One-Time-Passcode Email",
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "client_id": {
-                    "type": "string",
-                    "description": "The unique identifier for the client."
-                  },
-                  "client_secret": {
-                    "type": "string",
-                    "description": "The secret key associated with the client ID."
-                  }
-                },
-                "required": [
-                  "client_id",
-                  "client_secret"
-                ]
+                "$ref": "#/components/schemas/OtpRequest"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Successfully authenticated. Returns an access token.",
+            "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "access_token": {
-                      "type": "string",
-                      "description": "The JWT access token."
-                    },
-                    "token_type": {
-                      "type": "string",
-                      "enum": [
-                        "Bearer"
-                      ],
-                      "description": "The type of token issued."
-                    },
-                    "expires_in": {
-                      "type": "integer",
-                      "description": "Expiry time of the token in seconds."
-                    }
-                  }
+                  "$ref": "#/components/schemas/Response"
                 }
               }
             }
           },
           "400": {
-            "description": "Bad request due to missing or invalid parameters."
-          },
-          "401": {
-            "description": "Unauthorised. Invalid Client ID or Secret."
-          },
-          "500": {
-            "description": "Internal server error."
-          }
-        }
-      }
-    },
-    "/users/auth/register": {
-      "post": {
-        "summary": "Registers a new user.",
-        "tags": [
-          "User Operations - Authentication"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "description": "The email of the user to be registered."
-                  },
-                  "first_name": {
-                    "type": "string"
-                  },
-                  "last_name": {
-                    "type": "string"
-                  }
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
                 }
               }
             }
@@ -120,125 +44,297 @@
         }
       }
     },
-    "/users/auth/request-otp": {
-      "get": {
-        "summary": "Requests a One-Time-Passcode for the user to login with.",
-        "tags": [
-          "User Operations - Authentication"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/users/auth/verify-otp": {
-      "post": {
-        "summary": "Verifies the One-Time-Passcode is correct for the user.",
-        "tags": [
-          "User Operations - Authentication"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/users/auth/logout": {
-      "post": {
-        "summary": "Logs a user out.",
-        "tags": [
-          "User Operations - Authentication"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/users/auth/login-external": {
+    "/api/Identity/VerifyOtp": {
       "post": {
         "tags": [
-          "User Operations - Authentication"
+          "Auth"
         ],
-        "security": [
-          {
-            "BearerAuth": []
+        "operationId": "Verify One-Time-Passcode",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyOtpRequest"
+              }
+            }
           }
-        ]
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyOtpResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyOtpResponse"
+                }
+              }
+            }
+          }
+        }
       }
     },
-    "/users/auth/callback-external": {
-      "post": {
-        "tags": [
-          "User Operations - Authentication"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/users/auth/refresh-token": {
-      "post": {
-        "tags": [
-          "User Operations - Authentication"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/users/getuser": {
+    "/api/Identity/Ping": {
       "get": {
         "tags": [
-          "User Operations"
+          "Ping"
         ],
-        "security": [
-          {
-            "BearerAuth": []
+        "operationId": "Ping",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PingResponse"
+                }
+              }
+            }
           }
-        ]
+        }
       }
     },
-    "/users/updateuser": {
-      "post": {
+    "/api/Identity/UpdateUser": {
+      "patch": {
         "tags": [
-          "User Operations"
+          "User"
         ],
-        "security": [
-          {
-            "BearerAuth": []
+        "operationId": "Update User",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserRequest"
+              }
+            }
           }
-        ]
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
+          }
+        }
       }
     },
-    "/management/auth/register": {
+    "/api/Identity/GetUser": {
       "post": {
-        "summary": "Registers a new manager - not sure how this will work?",
         "tags": [
-          "Management User Operations"
+          "User"
         ],
-        "security": [
-          {
-            "BearerAuth": []
+        "operationId": "Get User",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetUserRequest"
+              }
+            }
           }
-        ]
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUserResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUserResponse"
+                }
+              }
+            }
+          }
+        }
       }
     }
   },
   "components": {
-    "securitySchemes": {
-      "BearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT"
+    "schemas": {
+      "GetUserRequest": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "GetUserResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          },
+          "userRating": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OtpRequest": {
+        "required": [
+          "emailAddress"
+        ],
+        "type": "object",
+        "properties": {
+          "emailAddress": {
+            "type": "string",
+            "format": "email",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PingResponse": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timeSent": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Response": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "UpdateUserRequest": {
+        "required": [
+          "firstName",
+          "lastName",
+          "userId"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "firstName": {
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "lastName": {
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "VerifyOtpRequest": {
+        "required": [
+          "emailAddress",
+          "otp"
+        ],
+        "type": "object",
+        "properties": {
+          "emailAddress": {
+            "minLength": 1,
+            "type": "string",
+            "format": "email"
+          },
+          "otp": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "VerifyOtpResponse": {
+        "required": [
+          "jwt"
+        ],
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "jwt": {
+            "type": "string",
+            "nullable": true
+          },
+          "isNewUser": {
+            "type": "boolean"
+          },
+          "authenticated": {
+            "type": "boolean"
+          },
+          "isManager": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
       }
     }
   }

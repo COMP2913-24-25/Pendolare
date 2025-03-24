@@ -2,7 +2,7 @@ name: Publish wiki
 
 on:
   push:
-    branches: [main]
+    branches: [dev]
 
 concurrency:
   group: publish-wiki
@@ -40,8 +40,16 @@ jobs:
           
           # Add meeting minutes dynamically to sidebar
           echo "" >> wiki/_Sidebar.md
-          echo "### Meeting Minutes" >> wiki/_Sidebar.md
-          find wiki/Meeting\ Minutes -type f -name "*.md" | sort | while read file; do
+          echo "### Meeting of Minutes" >> wiki/_Sidebar.md
+          find wiki/Meeting\ Minutes -type f -name "*.md" | grep -v "Retrospective" | sort | while read file; do
+            name=$(basename "$file" .md)
+            echo "* [[${name}]]" >> wiki/_Sidebar.md
+          done
+          
+          # Add retrospective sprint minutes to sidebar
+          echo "" >> wiki/_Sidebar.md
+          echo "### Meeting of Retrospective Sprint" >> wiki/_Sidebar.md
+          find wiki/Meeting\ Minutes -type f -name "*Retrospective*.md" | sort | while read file; do
             name=$(basename "$file" .md)
             echo "* [[${name}]]" >> wiki/_Sidebar.md
           done
@@ -52,28 +60,51 @@ jobs:
           echo "" >> wiki/_Sidebar.md
           echo "### Backend Services" >> wiki/_Sidebar.md
 
-          # Create Home.md with meeting minutes section
-          echo "# Services" > wiki/Home.md
+          # Create Home.md with separate sections
+          echo "# Project Wiki" > wiki/Home.md
+          
+          # Add regular meeting minutes section
           echo "" >> wiki/Home.md
-          echo "## Meeting Minutes" >> wiki/Home.md
+          echo "## Meeting of Minutes" >> wiki/Home.md
           echo "" >> wiki/Home.md
-          find wiki/Meeting\ Minutes -type f -name "*.md" | sort | while read file; do
+          find wiki/Meeting\ Minutes -type f -name "*.md" | grep -v "Retrospective" | sort | while read file; do
             name=$(basename "$file" .md)
             url_safe_name=$(echo "$name" | sed 's/ /-/g')
             wiki_link="https://github.com/COMP2913-24-25/software-engineering-project-team-2/wiki/${url_safe_name}"
             echo "- [${name}](${wiki_link})" >> wiki/Home.md
           done
+          
+          # Add retrospective sprint minutes section
           echo "" >> wiki/Home.md
-          echo "## Frontend Software" >> wiki/Home.md
+          echo "## Meeting of Retrospective Sprint" >> wiki/Home.md
           echo "" >> wiki/Home.md
-          echo "## Backend Software" >> wiki/Home.md
+          find wiki/Meeting\ Minutes -type f -name "*Retrospective*.md" | sort | while read file; do
+            name=$(basename "$file" .md)
+            url_safe_name=$(echo "$name" | sed 's/ /-/g')
+            wiki_link="https://github.com/COMP2913-24-25/software-engineering-project-team-2/wiki/${url_safe_name}"
+            echo "- [${name}](${wiki_link})" >> wiki/Home.md
+          done
+          
+          # Add services section
+          echo "" >> wiki/Home.md
+          echo "## Services" >> wiki/Home.md
+          
+          echo "" >> wiki/Home.md
+          echo "### Frontend Software" >> wiki/Home.md
+          echo "" >> wiki/Home.md
+          echo "### Backend Software" >> wiki/Home.md
           echo "" >> wiki/Home.md
 
           FRONTEND_SERVICES=("Pendo.ClientApp" "Pendo.AdminDashboard")
 
-          find . -type f -path '*/README.md' ! -path "./wiki/*" | while read file; do
+          find . -type f -path '*/README.md' ! -path "./wiki/*" ! -path "./README.md" | while read file; do
             folder_name=$(dirname "$file" | sed 's|./||')
             base_name=$(basename "$folder_name")
+            
+            # Skip the root Pendo README, but keep Pendo service READMEs
+            if [[ "$folder_name" == "Pendo" ]]; then
+              continue
+            fi
 
             if [[ "$base_name" != Pendo.* ]]; then
               formatted_name="Pendo.$base_name"
@@ -89,10 +120,10 @@ jobs:
             # Add to appropriate sidebar section
             if [[ " ${FRONTEND_SERVICES[@]} " =~ " ${formatted_name} " ]]; then
               sed -i "/^### Frontend Services/a * [[${formatted_name}]]" wiki/_Sidebar.md
-              sed -i "/^## Frontend Software/a - [${formatted_name}](${wiki_link})" wiki/Home.md
+              sed -i "/^### Frontend Software/a - [${formatted_name}](${wiki_link})" wiki/Home.md
             else
               sed -i "/^### Backend Services/a * [[${formatted_name}]]" wiki/_Sidebar.md
-              sed -i "/^## Backend Software/a - [${formatted_name}](${wiki_link})" wiki/Home.md
+              sed -i "/^### Backend Software/a - [${formatted_name}](${wiki_link})" wiki/Home.md
             fi
 
             # Process API routes
