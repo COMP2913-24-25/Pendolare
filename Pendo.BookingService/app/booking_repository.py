@@ -126,10 +126,23 @@ class BookingRepository():
         CreateBooking method creates a new booking in the database.
         :param booking: Booking object to be created.
         """
+        self.db_session.add(booking)
+        self.db_session.commit()
+
+    def DeleteBooking(self, booking):
+        """
+        DeleteBooking method deletes a booking from the database.
+        :param booking: Booking object to be deleted.
+        """
+        self.db_session.delete(booking)
+        self.db_session.commit()
+
+    def MarkJourneyBooked(self, booking):
+        """
+        MarkJourneyBooked method marks the journey as booked in the database.
+        """
         journey = self.GetJourney(booking.JourneyId)
         journey.JourneyStatusId = 2
-
-        self.db_session.add(booking)
         self.db_session.commit()
 
     def ApproveBooking(self, booking_id):
