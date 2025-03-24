@@ -53,31 +53,24 @@ const FilteredRides = ({ resetFilters, setResetFilters, isDarkMode, journeyType 
     }
   };
 
-  const kmToLat = (km : number) => km / 111.32;
-  const kmToLon = (km: number, lat: number) => km / (111.32 * Math.cos(lat * (Math.PI / 180.00)));
-
   const getRides = async () => {
     
     let filters : GetJourneysRequest = {};
 
     if (pickupLocation.length > 0) {
-      const latOffset = kmToLat(pickupRadius);
-      const lonOffset = kmToLon(pickupRadius, pickupCoords.lat);
-
       // Journey Service does not currently calculate deal with radius correctly. This needs to be fixed
-      filters.DistanceRadius = latOffset;
+      filters.DistanceRadius = pickupRadius;
       filters.StartLat = pickupCoords.lat;
       filters.StartLong = pickupCoords.lon;
+      filters.StartDate = startDateTime.toISOString();
     }
 
     if (dropoffLocation.length > 0) {
-      const latOffset = kmToLat(dropoffRadius);
-      const lonOffset = kmToLon(pickupRadius, pickupCoords.lat);
-
       // Journey Service does not currently calculate deal with radius correctly. This needs to be fixed
-      filters.DistanceRadius = latOffset;
+      filters.DistanceRadius = pickupRadius;
       filters.EndLat = dropoffCoords.lat;
       filters.EndLong = dropoffCoords.lon;
+      filters.StartDate = startDateTime.toISOString();
     }
 
     console.log("Getting available rides");
@@ -91,7 +84,6 @@ const FilteredRides = ({ resetFilters, setResetFilters, isDarkMode, journeyType 
         setPickupLocation("");
       }
 
-      filters.StartDate = startDateTime.toISOString();
       filters.JourneyType = journeyType;
 
       const response = await getJourneys(filters);
@@ -165,7 +157,7 @@ const FilteredRides = ({ resetFilters, setResetFilters, isDarkMode, journeyType 
               }`}
             />
             {renderSearchResults(pickupSearchResults, "pickup")}
-            <Text className={`${isDarkMode ? "text-white" : "text-black"} mt-2`}>Pickup Radius: {pickupRadius} km</Text>
+            <Text className={`${isDarkMode ? "text-white" : "text-black"} mt-2`}>Search Radius: {pickupRadius} km</Text>
             <Slider
               value={pickupRadius}
               onValueChange={setPickupRadius}
@@ -193,16 +185,6 @@ const FilteredRides = ({ resetFilters, setResetFilters, isDarkMode, journeyType 
               }`}
             />
             {renderSearchResults(dropoffSearchResults, "dropoff")}
-            <Text className={`${isDarkMode ? "text-white" : "text-black"} mt-2`}>Dropoff Radius: {dropoffRadius} km</Text>
-            <Slider
-              value={dropoffRadius}
-              onValueChange={setDropoffRadius}
-              minimumValue={1}
-              maximumValue={50}
-              step={1}
-              minimumTrackTintColor={isDarkMode ? "#fff" : "#000"}
-              maximumTrackTintColor={isDarkMode ? "#aaa" : "#888"}
-            />
           </View>
           <View className="mb-3">
             <Text className={`${isDarkMode ? "text-white" : "text-black"} mb-1`}>Journey Time</Text>
