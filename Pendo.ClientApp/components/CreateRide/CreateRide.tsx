@@ -1,6 +1,5 @@
 import { FontAwesome5 } from "@expo/vector-icons";
-import axios from "axios";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { View, TouchableOpacity, ScrollView } from "react-native";
 import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
 
@@ -35,24 +34,42 @@ interface CreateRideProps {
 const CreateRide = ({ onClose }: CreateRideProps) => {
   const { isDarkMode } = useTheme();
   const [step, setStep] = useState(1);
+  
+  // Location states
   const [pickup, setPickup] = useState<Location | null>(null);
   const [dropoff, setDropoff] = useState<Location | null>(null);
-  const [cost, setCost] = useState("");
-  const [seats, setSeats] = useState("");
-  const [regPlate, setRegPlate] = useState(""); // <<-- new state for reg plate
-  const [date, setDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [searchResults, setSearchResults] = useState<Location[]>([]);
   const [pickupSearch, setPickupSearch] = useState("");
   const [dropoffSearch, setDropoffSearch] = useState("");
-  const [searching, setSearching] = useState("");
+  
+  // Ride details states
+  const [cost, setCost] = useState("");
+  const [seats, setSeats] = useState("");
+  const [regPlate, setRegPlate] = useState("");
+  
+  // Date and time states
+  const [date, setDate] = useState(new Date());
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(() => {
+    const futureDate = new Date();
+    futureDate.setMonth(futureDate.getMonth() + 3); // Default 3 months ahead
+    return futureDate;
+  });
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  
+  // Commuter journey states
   const [isCommuter, setIsCommuter] = useState(false);
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
-  const [frequency, setFrequency] = useState<
-    "weekly" | "fortnightly" | "monthly"
-  >("weekly");
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
+  const [frequency, setFrequency] = useState<"weekly" | "fortnightly" | "monthly">("weekly");
+  
+  // Search states
+  const [searchResults, setSearchResults] = useState<Location[]>([]);
+  const [searching, setSearching] = useState("");
+
+  // Update date with memoized callback to prevent unnecessary re-renders
+  const updateDate = useCallback((newDate: Date) => {
+    console.log(`Date updated: ${newDate.toLocaleString()}`);
+    setDate(newDate);
+  }, []);
 
   // Handle location selection from search results
   const handleLocationSelect = (location: Location) => {
@@ -69,8 +86,15 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
 
   // Handle navigation between steps
   const handleNext = () => {
-    if (step < 4) setStep(step + 1);
-    else handleCreateRide();
+    if (step < 4) {
+      if (step === 3) {
+        // Log date when moving to confirmation
+        console.log(`Moving to confirmation with date: ${date.toLocaleString()}`);
+      }
+      setStep(step + 1);
+    } else {
+      handleCreateRide();
+    }
   };
 
   const handleBack = () => {
@@ -78,7 +102,7 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
     else onClose();
   };
 
-  // Create a new ride object
+  // Create a new ride
   const handleCreateRide = async () => {
     try {
       // Validate registration plate if provided
@@ -89,6 +113,8 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
           return;
         }
       }
+      
+      // Prepare payload
       const payload = {
         AdvertisedPrice: parseFloat(cost),
         StartName: pickup?.name || "",
@@ -102,18 +128,21 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
         MaxPassengers: parseInt(seats, 10),
         JourneyStatusId: 1,
         RegPlate: regPlate,
-        Recurrance: isCommuter ? toCronString(frequency, selectedDays, date) : undefined,
-        RepeatUntil: isCommuter ? endDate.toISOString() : new Date(9999, 9, 9).toISOString(),
         BootWidth: 0,
         BootHeight: 0,
-        ...(isCommuter && {
-          RepeatUntil: endDate.toISOString(),
-        }),
       };
+      
+      // Add commuter-specific properties if applicable
+      if (isCommuter) {
+        payload.Recurrance = toCronString(frequency, selectedDays, date);
+        payload.RepeatUntil = endDate.toISOString();
+      } else {
+        payload.RepeatUntil = new Date(9999, 9, 9).toISOString();
+      }
 
+      console.log("Creating ride with payload:", payload);
       const result = await createJourney(payload);
-      console.log(result);
-
+      console.log("Journey created:", result);
       onClose();
     } catch (error) {
       console.error("Failed to create journey:", error);
@@ -121,11 +150,7 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
   };
 
   return (
-    <ThemedSafeAreaView 
-      className="flex-1"
-      style={{ flex: 1 }}
-      // ThemedSafeAreaView will set background based on theme.
-    >
+    <ThemedSafeAreaView className="flex-1" style={{ flex: 1 }}>
       <View className="flex-1">
         <View className="px-5 pt-8">
           <View className="flex-row items-center justify-between mb-6">
@@ -162,6 +187,7 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
               handleLocationSelect={handleLocationSelect}
             />
           )}
+          
           {step === 2 && (
             <CostAndSeatsStep
               isDarkMode={isDarkMode}
@@ -173,6 +199,7 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
               setRegPlate={setRegPlate}
             />
           )}
+          
           {step === 3 && (
             <DateTimeStep
               isDarkMode={isDarkMode}
@@ -183,7 +210,7 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
               selectedDays={selectedDays}
               setSelectedDays={setSelectedDays}
               date={date}
-              setDate={setDate}
+              setDate={updateDate}
               showDatePicker={showDatePicker}
               setShowDatePicker={setShowDatePicker}
               startDate={startDate}
@@ -192,6 +219,7 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
               setEndDate={setEndDate}
             />
           )}
+          
           {step === 4 && (
             <ConfirmationStep
               isDarkMode={isDarkMode}
@@ -207,7 +235,7 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
         {/* Next Button */}
         <View className="px-5 py-4">
           <TouchableOpacity
-            className="bg-blue-600 p-4 rounded-xl"
+            className={`bg-blue-600 p-4 rounded-xl ${(!pickup || !dropoff) ? "opacity-50" : ""}`}
             onPress={handleNext}
             disabled={!pickup || !dropoff}
           >
