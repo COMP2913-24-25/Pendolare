@@ -57,9 +57,12 @@ def test_db(db: Session = Depends(get_db)):
 
 @app.post("/PaymentSheet", tags=["Stripe"])
 def PaymentSheet(request: PaymentSheetRequest, db: Session = Depends(get_db)) -> PaymentSheetResponse:
-    
-    response = PaymentSheetCommand(logging.getLogger("PaymentMethods"), request.UserId, request.Amount, db).Execute()
+    configProvider.LoadStripeConfiguration(self.db)
+    secret = configProvider.StripeConfiguration.secret
 
+    response = PaymentSheetCommand(logging.getLogger("PaymentMethods"), request.UserId, request.Amount, secret).Execute()
+
+    
     if response.Status != "success":
         raise HTTPException(400, detail=response.Error)
     else:

@@ -8,21 +8,8 @@ def mock_logger():
     return MagicMock()
 
 @pytest.fixture
-def mock_db():
+def mock_secret():
     return MagicMock()
-
-@pytest.fixture
-def mock_stripe_configuration():
-    config = MagicMock()
-    config.secret = "stripe_secret_key"
-    config.publishable = "stripe_publishable_key"
-    return config
-
-@pytest.fixture
-def mock_config_provider(mock_stripe_configuration):
-    with patch('src.endpoints.PaymentMethodsCmd.configProvider') as mock_provider:
-        mock_provider.StripeConfiguration = mock_stripe_configuration
-        yield mock_provider
 
 @pytest.fixture
 def mock_stripe_customer():
@@ -56,15 +43,11 @@ def mock_stripe_customer():
         yield mock_stripe
 
 @pytest.fixture
-def payment_methods_command(mock_logger, mock_db, mock_config_provider, mock_stripe_customer):
-    return PaymentMethodsCommand(mock_logger, "user123", mock_db)
+def payment_methods_command(mock_logger, mock_secret, mock_stripe_customer):
+    return PaymentMethodsCommand(mock_logger, "user123", mock_secret)
 
-def test_execute_success(payment_methods_command, mock_stripe_customer, mock_config_provider):
+def test_execute_success(payment_methods_command, mock_stripe_customer):
     result = payment_methods_command.Execute()
-    
-    # Verify stripe API was configured correctly
-    mock_config_provider.LoadStripeConfiguration.assert_called_once_with(payment_methods_command.db)
-    assert mock_stripe_customer.api_key == mock_config_provider.StripeConfiguration.secret
     
     # Verify stripe customer methods were requested
     mock_stripe_customer.Customer.list_payment_methods.assert_called_once_with("user123")
