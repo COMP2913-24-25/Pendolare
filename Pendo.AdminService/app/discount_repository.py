@@ -54,9 +54,17 @@ class DiscountRepository:
             bool: True if the discount was deleted, False otherwise.
         """
         
-        discount_uuid = uuid.UUID(discount_id)
-        deleting_d = delete(Discounts).where(Discounts.DiscountID == discount_uuid)
-        to_execute = self.db_session.execute(deleting_d)
-        rows_deleted = to_execute.rowcount
-        self.db_session.commit()
-        return rows_deleted > 0
+        try:
+            discount_uuid = uuid.UUID(discount_id)
+            discount = self.db_session.query(Discounts).filter(Discounts.DiscountID == discount_uuid).first()
+
+            if discount:
+                self.db_session.delete(discount)
+                self.db_session.commit()
+                return True
+            else:
+                return False
+        except ValueError:
+            return False # if the uuid is invalid
+        except Exception:
+            return False
