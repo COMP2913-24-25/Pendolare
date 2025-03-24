@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', (event) => {
+    console.log('Chart.js loaded.');
     const ctx = document.getElementById('weeklyIncomeChart').getContext('2d');
     new Chart(ctx, {
         type: 'bar',
@@ -6,7 +7,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
             labels: window.chartLabels,
             datasets: [{
                 label: 'Revenue in £',
-                data: window.chartData,
+                data: [450, 500, 600, 700, 800, 463, 234],
                 borderWidth: 1
             }]
         },
