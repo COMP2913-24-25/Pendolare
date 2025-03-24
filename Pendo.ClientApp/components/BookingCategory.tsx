@@ -23,7 +23,7 @@ const BookingCategory = ({
 
   return (
     <TouchableOpacity
-      className={`p-4 mb-4 rounded-xl ${
+      className={`p-3 mb-4 rounded-xl ${
         isSelected
           ? isDarkMode
             ? "bg-blue-900"

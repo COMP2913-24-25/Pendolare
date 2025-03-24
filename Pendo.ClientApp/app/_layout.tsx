@@ -1,3 +1,4 @@
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ClerkLoaded, ClerkProvider } from "@clerk/clerk-expo";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
@@ -9,40 +10,47 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider, useTheme } from "@/context/ThemeContext";
+import ThemedView from "@/components/common/ThemedView";
 
 SplashScreen.preventAutoHideAsync();
 
 const publishableKey = process.env.EXPO_PUBLIC_PUBLISH_KEY;
 
+const Header = ({ className }: { className?: string }) => {
+  return (
+    <ThemedView className={`h-14 ${className}`}  />
+  );
+};
+
 function AppLayout() {
   const { isDarkMode } = useTheme();
-  
+
   return (
-    <View style={{ flex: 1, backgroundColor: isDarkMode ? '#121212' : '#ffffff' }}>
-      {/* StatusBar styling based on theme */}
-      <StatusBar 
-        style={isDarkMode ? "light" : "dark"} 
-        backgroundColor={isDarkMode ? "bg-slate-900" : "bg-general-500"}
-        translucent={true}
-      />
-      
-      <Stack 
-        screenOptions={{
-          headerStyle: {
-            backgroundColor: isDarkMode ? '#121212' : '#ffffff',
-          },
-          headerTintColor: isDarkMode ? '#ffffff' : '#000000',
-          contentStyle: {
-            backgroundColor: isDarkMode ? '#121212' : '#f5f5f5',
-          },
-          // Add top padding to account for translucent status bar
-        }}
-      >
-        <Stack.Screen name="index" />
-        <Stack.Screen name="auth" />
-        <Stack.Screen name="home" />
-      </Stack>
-    </View>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={{ flex: 1, backgroundColor: isDarkMode ? '#121212' : '#ffffff' }}>
+        {/* StatusBar styling based on theme */}
+        <StatusBar 
+          style={isDarkMode ? "light" : "dark"} 
+          backgroundColor={isDarkMode ? "bg-slate-900" : "bg-general-500"}
+          translucent={true}
+        />
+        <Stack 
+          screenOptions={{
+            headerStyle: {
+              backgroundColor: isDarkMode ? '#121212' : '#ffffff',
+            },
+            headerTintColor: isDarkMode ? '#ffffff' : '#000000',
+            contentStyle: {
+              backgroundColor: isDarkMode ? '#121212' : '#f5f5f5',
+            },
+          }}
+        >
+          <Stack.Screen name="index" options={{ headerShown: false }}/>
+          <Stack.Screen name="auth" options={{ headerShown: false }}/>
+          <Stack.Screen name="home" options={{ headerShown: false }}/>
+        </Stack>
+      </View>
+    </GestureHandlerRootView>
   );
 }
 
@@ -51,6 +59,9 @@ function AppLayout() {
   Main layout for the app
 */
 export default function RootLayout() {
+
+  const { isDarkMode } = useTheme();
+
   const [loaded] = useFonts({
     "Jakarta-Bold": require("../assets/fonts/PlusJakartaSans-Bold.ttf"),
     "Jakarta-ExtraBold": require("../assets/fonts/PlusJakartaSans-ExtraBold.ttf"),
@@ -77,6 +88,7 @@ export default function RootLayout() {
         <AuthProvider>
           <ClerkProvider publishableKey={publishableKey as string}>
             <ClerkLoaded>
+              <Header className={isDarkMode ? "bg-slate-900" : "bg-general-500"}/>
               <AppLayout />
             </ClerkLoaded>
           </ClerkProvider>

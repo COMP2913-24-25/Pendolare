@@ -8,6 +8,7 @@ import { API_BASE_URL } from "@/constants";
 export async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {},
+  forceJsonParse: boolean = false
 ): Promise<T> {
   const jwt = await getJWTToken();
 
@@ -16,7 +17,6 @@ export async function apiRequest<T>(
     ...(jwt ? { Authorization: `Bearer ${jwt}` } : {}),
     ...(options.headers || {}),
   };
-
 
   try {
 
@@ -27,12 +27,22 @@ export async function apiRequest<T>(
       headers,
     });
 
-    console.log(response);
+    let data = null;
 
-    const data = await response.json();
+    if (forceJsonParse) {
+      console.log("Forcing JSON parse");
+
+      data = JSON.parse(await response.text());
+
+      console.log(data);
+    }
+    else{
+      data = await response.json();
+      console.log(data);
+    }
 
     if (!response.ok) {
-      throw new Error(data.message || "API request failed");
+      throw new Error(data.message || `API request failed: ${response}`);
     }
 
     return data;

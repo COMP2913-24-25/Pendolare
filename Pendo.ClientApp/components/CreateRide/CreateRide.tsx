@@ -1,6 +1,5 @@
 import { FontAwesome5 } from "@expo/vector-icons";
-import axios from "axios";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { View, TouchableOpacity, ScrollView } from "react-native";
 import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
 
@@ -13,6 +12,10 @@ import StepIndicator from "./StepIndicator";
 import { Text } from "@/components/common/ThemedText";
 import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
+import { createJourney } from "@/services/journeyService";
+import { validateRegPlate } from "@/services/dvlaService";
+import { toCronString } from "@/utils/cronTools";
+import { searchLocations } from "@/services/locationService";
 
 interface Location {
   name: string;
@@ -31,62 +34,42 @@ interface CreateRideProps {
 const CreateRide = ({ onClose }: CreateRideProps) => {
   const { isDarkMode } = useTheme();
   const [step, setStep] = useState(1);
+  
+  // Location states
   const [pickup, setPickup] = useState<Location | null>(null);
   const [dropoff, setDropoff] = useState<Location | null>(null);
-  const [cost, setCost] = useState("");
-  const [seats, setSeats] = useState("");
-  const [date, setDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [searchResults, setSearchResults] = useState<Location[]>([]);
   const [pickupSearch, setPickupSearch] = useState("");
   const [dropoffSearch, setDropoffSearch] = useState("");
-  const [searching, setSearching] = useState("");
+  
+  // Ride details states
+  const [cost, setCost] = useState("");
+  const [seats, setSeats] = useState("");
+  const [regPlate, setRegPlate] = useState("");
+  
+  // Date and time states
+  const [date, setDate] = useState(new Date());
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(() => {
+    const futureDate = new Date();
+    futureDate.setMonth(futureDate.getMonth() + 3); // Default 3 months ahead
+    return futureDate;
+  });
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  
+  // Commuter journey states
   const [isCommuter, setIsCommuter] = useState(false);
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
-  const [frequency, setFrequency] = useState<
-    "weekly" | "fortnightly" | "monthly"
-  >("weekly");
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
+  const [frequency, setFrequency] = useState<"weekly" | "fortnightly" | "monthly">("weekly");
+  
+  // Search states
+  const [searchResults, setSearchResults] = useState<Location[]>([]);
+  const [searching, setSearching] = useState("");
 
-  // Search for locations using OpenRouteService API
-  // https://openrouteservice.org/dev/#/api-docs/geocode/search/get
-  const searchLocation = async (query: string, type: "pickup" | "dropoff") => {
-    if (query.length < 3) return;
-    setSearching(type);
-
-    try {
-      // Make a GET request to the OpenRouteService API with boundary coordinates
-      const response = await axios.get(
-        `https://api.openrouteservice.org/geocode/search`,
-        {
-          params: {
-            api_key: process.env.EXPO_PUBLIC_OSR_KEY,
-            text: query,
-            "boundary.rect.min_lat": "49.674",
-            "boundary.rect.max_lat": "61.061",
-            "boundary.rect.min_lon": "-8.178",
-            "boundary.rect.max_lon": "1.987",
-            // Limit search results to UK only
-            sources: "openstreetmap",
-          },
-        },
-      );
-
-      if (response.data.features) {
-        // Map the response data to a simplified location object
-        setSearchResults(
-          response.data.features.map((feature: any) => ({
-            name: feature.properties.label,
-            latitude: feature.geometry.coordinates[1],
-            longitude: feature.geometry.coordinates[0],
-          })),
-        );
-      }
-    } catch (error) {
-      console.error("Location search error:", error);
-    }
-  };
+  // Update date with memoized callback to prevent unnecessary re-renders
+  const updateDate = useCallback((newDate: Date) => {
+    console.log(`Date updated: ${newDate.toLocaleString()}`);
+    setDate(newDate);
+  }, []);
 
   // Handle location selection from search results
   const handleLocationSelect = (location: Location) => {
@@ -103,8 +86,15 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
 
   // Handle navigation between steps
   const handleNext = () => {
-    if (step < 4) setStep(step + 1);
-    else handleCreateRide();
+    if (step < 4) {
+      if (step === 3) {
+        // Log date when moving to confirmation
+        console.log(`Moving to confirmation with date: ${date.toLocaleString()}`);
+      }
+      setStep(step + 1);
+    } else {
+      handleCreateRide();
+    }
   };
 
   const handleBack = () => {
@@ -112,34 +102,55 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
     else onClose();
   };
 
-  // Create a new ride object
-  const handleCreateRide = () => {
-    const newRide = {
-      id: Date.now(),
-      driverName: "Alex McCall",
-      availableSeats: parseInt(seats, 10),
-      departureTime: date.toLocaleTimeString(),
-      destination: dropoff?.name || "Unknown",
-      price: `£${cost}`,
-      rating: 5.0,
-      pickup,
-      dropoff,
-      isCommuter,
-      frequency: isCommuter ? frequency : undefined,
-      repeatDays: isCommuter ? selectedDays : undefined,
-      startDate: isCommuter ? startDate : undefined,
-      endDate: isCommuter ? endDate : undefined,
-      time: isCommuter ? date.toLocaleTimeString() : undefined,
-    };
-    onClose();
+  // Create a new ride
+  const handleCreateRide = async () => {
+    try {
+      // Validate registration plate if provided
+      if (regPlate.trim()) {
+        const isPlateValid = await validateRegPlate(regPlate);
+        if (!isPlateValid) {
+          alert("Invalid registration plate. Please check and try again.");
+          return;
+        }
+      }
+      
+      // Prepare payload
+      const payload = {
+        AdvertisedPrice: parseFloat(cost),
+        StartName: pickup?.name || "",
+        StartLat: pickup?.latitude,
+        StartLong: pickup?.longitude,
+        EndName: dropoff?.name || "",
+        EndLat: dropoff?.latitude,
+        EndLong: dropoff?.longitude,
+        StartDate: date.toISOString(),
+        StartTime: date.toISOString(),
+        MaxPassengers: parseInt(seats, 10),
+        JourneyStatusId: 1,
+        RegPlate: regPlate,
+        BootWidth: 0,
+        BootHeight: 0,
+      };
+      
+      // Add commuter-specific properties if applicable
+      if (isCommuter) {
+        payload.Recurrance = toCronString(frequency, selectedDays, date);
+        payload.RepeatUntil = endDate.toISOString();
+      } else {
+        payload.RepeatUntil = new Date(9999, 9, 9).toISOString();
+      }
+
+      console.log("Creating ride with payload:", payload);
+      const result = await createJourney(payload);
+      console.log("Journey created:", result);
+      onClose();
+    } catch (error) {
+      console.error("Failed to create journey:", error);
+    }
   };
 
   return (
-    <ThemedSafeAreaView 
-      className="flex-1"
-      style={{ flex: 1 }}
-      // ThemedSafeAreaView will set background based on theme.
-    >
+    <ThemedSafeAreaView className="flex-1" style={{ flex: 1 }}>
       <View className="flex-1">
         <View className="px-5 pt-8">
           <View className="flex-row items-center justify-between mb-6">
@@ -172,10 +183,11 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
               searchResults={searchResults}
               setPickupSearch={setPickupSearch}
               setDropoffSearch={setDropoffSearch}
-              searchLocation={searchLocation}
+              searchLocation={(query, type) => searchLocations(query, type, setSearching, setSearchResults)}
               handleLocationSelect={handleLocationSelect}
             />
           )}
+          
           {step === 2 && (
             <CostAndSeatsStep
               isDarkMode={isDarkMode}
@@ -183,8 +195,11 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
               seats={seats}
               setCost={setCost}
               setSeats={setSeats}
+              regPlate={regPlate}
+              setRegPlate={setRegPlate}
             />
           )}
+          
           {step === 3 && (
             <DateTimeStep
               isDarkMode={isDarkMode}
@@ -195,7 +210,7 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
               selectedDays={selectedDays}
               setSelectedDays={setSelectedDays}
               date={date}
-              setDate={setDate}
+              setDate={updateDate}
               showDatePicker={showDatePicker}
               setShowDatePicker={setShowDatePicker}
               startDate={startDate}
@@ -204,6 +219,7 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
               setEndDate={setEndDate}
             />
           )}
+          
           {step === 4 && (
             <ConfirmationStep
               isDarkMode={isDarkMode}
@@ -219,7 +235,7 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
         {/* Next Button */}
         <View className="px-5 py-4">
           <TouchableOpacity
-            className="bg-blue-600 p-4 rounded-xl"
+            className={`bg-blue-600 p-4 rounded-xl ${(!pickup || !dropoff) ? "opacity-50" : ""}`}
             onPress={handleNext}
             disabled={!pickup || !dropoff}
           >
