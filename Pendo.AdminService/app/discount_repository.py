@@ -1,5 +1,6 @@
 from models import Discounts
 from sqlalchemy import delete
+import uuid
 
 class DiscountRepository:
     """
@@ -30,7 +31,8 @@ class DiscountRepository:
         discount = Discounts(WeeklyJourneys=weekly_journeys, DiscountPercentage=discount_percentage)
         self.db_session.add(discount)
         self.db_session.commit()
-        return discount.DiscountID
+        return str(discount.DiscountID)
+
     
     def GetDiscounts(self):
         """
@@ -52,7 +54,8 @@ class DiscountRepository:
             bool: True if the discount was deleted, False otherwise.
         """
         
-        deleting_d = delete(Discounts).where(Discounts.DiscountID == discount_id)
+        discount_uuid = uuid.UUID(discount_id)
+        deleting_d = delete(Discounts).where(Discounts.DiscountID == discount_uuid)
         to_execute = self.db_session.execute(deleting_d)
         rows_deleted = to_execute.rowcount
         self.db_session.commit()
