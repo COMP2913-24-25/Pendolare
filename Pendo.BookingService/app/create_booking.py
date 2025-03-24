@@ -83,10 +83,13 @@ class CreateBookingCommand:
             # Notify payment service of new booking
             if not self.payment_service_client.PendingBookingRequest(booking.BookingId):
                 self.response.status_code = status.HTTP_403_FORBIDDEN
+                self.booking_repository.DeleteBooking(booking)
                 raise Exception("Payment service failed to process booking. User balance insufficient.")
             
             self.booking_repository.UpdateBookingStatus(booking.BookingId, BookingStatus.Pending)
             self.logger.debug("Booking status updated to pending successfully.")
+            
+            self.booking_repository.MarkJourneyBooked(booking)
 
             email_data = generateEmailDataFromBooking(booking, user, journey, self.dvla_client.GetVehicleDetails(journey.RegPlate))
 
