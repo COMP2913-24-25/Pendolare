@@ -46,3 +46,22 @@ class AdminClient:
         else:
             self.logger.error(f"Failed to get booking fee: {response.status_code}")
             return "0.00%"
+
+    def GetDiscounts(self):
+        self.logger.info("Getting discounts")
+        response = requests.get(f'{self.base_url}/api/Admin/Discounts', headers=self._get_headers(), verify=True)
+        self.logger.info(f"Discounts response: {response.status_code}")
+        return response.json() if response.status_code == 200 else []
+
+    def CreateDiscount(self, weekly_journeys, discount_percentage):
+        self.logger.info("Creating discount")
+        payload = {"WeeklyJourneys": weekly_journeys, "DiscountPercentage": discount_percentage}
+        response = requests.post(f'{self.base_url}/api/Admin/CreateDiscount', json=payload, headers=self._get_headers(), verify=True)
+        self.logger.info(f"Create discount response: {response.status_code}")
+        return response.json() if response.status_code == 200 else None
+
+    def DeleteDiscount(self, discount_id):
+        self.logger.info("Deleting discount with id: %s", discount_id)
+        response = requests.delete(f'{self.base_url}/api/Admin/Discounts/{discount_id}', headers=self._get_headers(), verify=True)
+        self.logger.info("Delete discount response: %s", response.status_code)
+        return response.status_code == 200

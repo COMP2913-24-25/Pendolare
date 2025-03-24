@@ -86,6 +86,14 @@ def dashboard():
     rev_response = admin_client.GetWeeklyRevenue(start_of_week, end_of_week)
     rev_this_week = rev_response.get('total')
     
+    discounts = admin_client.GetDiscounts() 
+    app.logger.info("Discounts: %s", discounts)
+    
+    # Add dummy discount if none exist; includes a DiscountId field for deletion.
+    if not discounts:
+        discounts = [{'DiscountId': 'dummy', 'WeeklyJourneys': 3, 'DiscountPercentage': 5}]
+        app.logger.info("Using dummy discount: %s", discounts)
+    
     messaging_client = MessageClient(f"{api_url}/api/Message", app.logger, jwt=session.get('jwt'))
     user_conversations = messaging_client.get_user_conversations("00000000-0000-0000-0000-000000000000")
     
@@ -93,7 +101,8 @@ def dashboard():
                            booking_fee=booking_fee,
                            rev_this_week=rev_this_week,
                            revenue_date=start_of_week.strftime('%d %B %Y'),
-                           conversations=user_conversations)
+                           conversations=user_conversations,
+                           discounts=discounts)
 
 @app.route('/chat/conversation/<conversation_id>', methods=['GET'])
 def chat_conversation(conversation_id):
@@ -130,9 +139,37 @@ def update_booking_fee():
         flash("Failed to update booking fee.")
     return redirect(url_for('dashboard'))
 
-@app.route('/update_discount_offers', methods=['POST'])
-def update_discount_offers():
-    discounts = request.form.getlist('discounts')
+@app.route('/create_discount', methods=['GET', 'POST'])
+def create_discount():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    if request.method == 'POST':
+        weekly_journeys = request.form.get('weekly_journeys')
+        discount_percentage = request.form.get('discount_percentage')
+        app.logger.info("Attempting to create discount with weekly_journeys: %s, discount_percentage: %s", weekly_journeys, discount_percentage)
+        admin_client = AdminClient(api_url, app.logger, jwt=session.get('jwt'))
+        result = admin_client.CreateDiscount(weekly_journeys, discount_percentage)
+        if result:
+            app.logger.info("Discount created successfully: %s", result)
+            flash("Discount created successfully.")
+        else:
+            app.logger.error("Failed to create discount with weekly_journeys: %s, discount_percentage: %s", weekly_journeys, discount_percentage)
+            flash("Failed to create discount.")
+        return redirect(url_for('dashboard'))
+    return render_template('create_discount.html')
+
+@app.route('/delete_discount/<discount_id>', methods=['POST'])
+def delete_discount(discount_id):
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    app.logger.info("Attempting to delete discount with id: %s", discount_id)
+    admin_client = AdminClient(api_url, app.logger, jwt=session.get('jwt'))
+    success = admin_client.DeleteDiscount(discount_id)
+    if success:
+        app.logger.info("Discount deleted successfully: %s", discount_id)
+    else:
+        app.logger.error("Failed to delete discount: %s", discount_id)
+    flash("Discount deleted successfully." if success else "Failed to delete discount.")
     return redirect(url_for('dashboard'))
 
 @app.route('/ping')
