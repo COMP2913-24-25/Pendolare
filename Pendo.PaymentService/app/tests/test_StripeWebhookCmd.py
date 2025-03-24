@@ -2,7 +2,6 @@ import pytest
 from unittest.mock import MagicMock, patch
 from src.db.PendoDatabase import UserBalance
 from src.returns.PaymentReturns import StatusResponse
-from src.endpoints.StripeWebhookCmd import StripeWebhookCommand
 import uuid
 
 @pytest.fixture
@@ -33,9 +32,9 @@ def mock_transaction():
 def stripe_webhook_command(mock_logger, user_id, amount):
     # Use patch to mock the PaymentRepository class
     with patch('src.endpoints.StripeWebhookCmd.PaymentRepository') as MockRepo:
-        # Set up the mock to return itself when instantiated
         MockRepo.return_value = MagicMock()
-        # Create the command, which will use our mocked repo
+
+        from src.endpoints.StripeWebhookCmd import StripeWebhookCommand
         command = StripeWebhookCommand(mock_logger, user_id, amount)
         yield command
 
@@ -141,7 +140,7 @@ def test_webhook_constructor():
         mock_repo_instance = MagicMock()
         MockRepo.return_value = mock_repo_instance
         
-        # Create the command
+        from src.endpoints.StripeWebhookCmd import StripeWebhookCommand
         command = StripeWebhookCommand(logger, user_id, amount)
         
         # Assert
