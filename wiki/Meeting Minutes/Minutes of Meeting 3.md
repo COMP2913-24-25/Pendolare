@@ -1,8 +1,9 @@
+# Meeting Minutes
 ## Meeting Information
-**Meeting Date/Time:** 10/02/2025, 14:00
-**Meeting Purpose:** Start of Sprint 1
-**Meeting Location:** Helix Building
-**Note Taker:** Shay
+**Meeting Date/Time:** 10/03/2025, 14:00
+**Meeting Purpose:** Sprint Retrospective and Planning
+**Meeting Location:** Helix Meeting Room 4
+**Note Taker:** Alex
 ## Attendees
 People who attended:
 - Lara
@@ -10,39 +11,46 @@ People who attended:
 - James
 - Alex
 - Josh
-- Shay
 
 ## Agenda Items
-| **Item**                        | **Who** | **Notes** |
-| ------------------------------- | ------- | --------- |
-| Review tasks since last meeting |         |           |
-| Decide on frameworks            |         |           |
-| Allocate tasks                  |         |           |
-| Questions for Product Owner     |         |           |
-| Regular progress meetings       |         |           |
-| Go to product owner             |         |           |
+| **Item**                   | **Who** | **Notes** |
+| -------------------------- | ------- | --------- |
+| Retrospective, what went well?    |  James  |  See Retrospective Sprint 2 file  |
+| Review Last sprint tickets | All     |           |
+| Backlog review  | All  |           |
+| Realocate tasks | All  |           |
 
 ## Discussion Items
-| **Item**                        | **Who** | **Notes**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| ------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Review tasks since last meeting |         |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| Decide on frameworks            |         | UI; React Native with Expo. Web app for manager dashboard, mobile app for user<br><br>API gateway; Kong<br><br>Journey service, booking service: Flask + Python<br><br>Pytest for testing<br><br>Link in wiki - devguide<br><br>API routes: wiki/Api Routes - use API fiddle<br><br>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| Allocate tasks                  |         | Tailwind stylesheet for UI wireframes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| Questions for Product Owner     |         | Is the management fee global or per booking?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| Regular progress meetings       |         | Wednesdays 7pm and Fridays 3pm;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| Go to product owner             |         | Q: Can a passenger post an advert for a journey they want to go on?<br>A: No.<br><br>Q: Can passenger rate driver?<br>A: Strictly speaking there doesn't need to be any rating; Just some means of letting potential passengers know that a driver is trustworthy (e.g.: displaying what fraction of rides they have cancelled/not showed up to on the advert)<br><br>Q: When can user negotiate the ride price/location?<br>A: Before booking is paid/confirmed. Implications for Booking service (intermediate stage where booking is modified before payment is taken)*<br><br>*Think bartering system like eBay?<br><br>Q: Who foots the bill for discounts?<br>A: It is taken as a percentage from the driver revenue on commuter journeys; The manager gives discount options (e.g.: 5/10/15% off) for the driver to offer to passengers, rewarded with security of regular rider<br><br>Q: How is the fee decided?<br>A: The advertiser will be shown the percentage upon creating. Rate shouldn't change in between listing and payment<br><br>Q: Can two users book on to the same journey if room?<br>A: No.<br><br>Q: How are commuter journeys handled?<br>A: Commuter journeys are different to one-off journeys. They are not listed together.<br><br>Q: When does the user have to pay the driver for commuter bookings?<br>A: This is an option for the driver to configure - e.g.: either per journey or per week<br><br> |
+| **Item**   | **Who** | **Notes** |
+| -- | -- | -- |
+| Retrospective, what went well?     |         |   Discussed what went well, what didn't go well, and what to do next sprint. Highlights: Good progress on many services, make sure tickets and branches are being used correctly; focusing on a working protype demo |
+| Review Last sprint tickets |         | Any unclosed tickets discussed, either marked complete if finished or passed to next sprint backlog |
+| Realocate tasks |          | Josh to work on Client App integration, Catherine to work on Client App Journeys in second week; Lara to continue working on the Admin Service. Shay to work on testing, Alex to work on finishing payment service, James to work on Unit testing
 
-## Action Items
-| Done? | Item                      | Responsible | Due Date       |
-| ----- | ------------------------- | ----------- | -------------- |
-| No    | Message service flowchart | Lara        | **10/02/2025** |
-| Yes   | Journey flowchart         | Catherine   | 10/02/2025     |
-| Yes   | Booking flowchart         | Shay        | **10/02/2025** |
-| Yes   | Research technologies     | All         | 10/02/2025     |
-| Yes   | Look at UI technologies   | Alex, Josh  | 10/02/2025     |
-| No    | API routes                | All         | **10/02/2025** |
+# Sprint 2 Retro
 
+## What went well
+* Journey service complete 👍👍👍
+* All journey endpoints completed 👍👍
+* Booking service done bar payment integration 👍👍
+* Admin Service returning results!!! Getting weekly revenue, available/cancelled journeys, users who need discount 👍
+* Client app in a place where someone else can pick it up 👍
+* DB table, endpoints, requests and responses finalised for payment 👍
+
+## What could we improve
+* Integrations not in the state we aimed for 👍👍👍👍
+* Lots of tickets not updated, no branches linked 👍👍👍👍
+* Too much losing sight of tickets, not focusing on right things 👍👍👍👍
+* azure is annoying 
+
+## Actions for next sprint
+* Full client - api integration 👍👍👍👍👍
+* Unit tests and wiki / specification across services for consistancy 👍👍👍👍👍
+* **Josh to add test running back into workflows** 👍👍👍
+* Tests for the journey service need more work 👍
+* Update tickets and link branches 👍
+* More tests for admin service on different types of data  
 
 ## Other Notes & Information
-
-==**Next progress meeting wednesday 3pm**==
+==**Next meeting Wednesday 19:00**==
+Stand up and discuss progress
