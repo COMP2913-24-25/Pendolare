@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Modal,
   ScrollView,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -17,6 +18,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { USER_FIRST_NAME_KEY } from "@/services/authService";
 import * as SecureStore from "expo-secure-store";
 import { getBookings } from "@/services/bookingService";
+import RideConfirmationCard from "@/components/RideView/RideConfirmationCard";
 
 /*
   Home
@@ -31,6 +33,7 @@ const Home = () => {
 
   const [upcomingRides, setUpcomingRides] = useState<Ride[]>([]);
   const [pastRides, setPastRides] = useState<Ride[]>([]);
+  const [pendingCompletionRides, setPendingCompletionRides] = useState<Ride[]>([]);
   const [cancelledRides, setCancelledRides] = useState<Ride[]>([]);
   const [nextRide, setNextRide] = useState<Ride | null>(null);
   const [userFirstName, setUserFirstName] = useState<string | null>(null);
@@ -43,47 +46,49 @@ const Home = () => {
     fetchUserFirstName();
   }, []);
 
+  const fetchBookings = async () => {
+    try {
+      const response = await getBookings();
+      
+      // Process the response to transform the bookings into Ride objects
+      const allRides: Ride[] = response.bookings.map((booking: any) => ({
+        BookingId: booking.Booking.BookingId,
+        RideTime: new Date(booking.Booking.RideTime),
+        Status: booking.BookingStatus.Status,
+        DriverName: booking.Journey.User.FirstName,
+        DriverId: booking.Journey.User.UserId,
+        Price: booking.Journey.Price,
+        Pickup: {
+          latitude: booking.Journey.StartLat,
+          longitude: booking.Journey.StartLong,
+          name: booking.Journey.StartName
+        },
+        Dropoff: {
+          latitude: booking.Journey.EndLat,
+          longitude: booking.Journey.EndLong,
+          name: booking.Journey.EndName
+        }
+      }));
+      
+      // Split the rides into upcoming and past based on the current time
+      const cancelled = allRides.filter(ride => ride.Status === "Cancelled");
+      const upcoming = allRides.filter(ride => ride.RideTime.getTime() > Date.now() && !cancelled.includes(ride));
+      const past = allRides.filter(ride => ride.RideTime.getTime() <= Date.now());
+      const pendingCompletion = past.filter(r => r.Status === "PendingCompletion" || r.Status === "Confirmed");
+      const next = upcoming.length > 0 ? upcoming[0] : null;
+
+      // Update state with the retrieved rides
+      setUpcomingRides(upcoming);
+      setPastRides(past);
+      setCancelledRides(cancelled);
+      setPendingCompletionRides(pendingCompletion);
+      setNextRide(next);
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+    }
+  };
+
   useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        const response = await getBookings();
-        
-        // Process the response to transform the bookings into Ride objects
-        const allRides: Ride[] = response.bookings.map((booking: any) => ({
-          BookingId: booking.Booking.BookingId,
-          RideTime: new Date(booking.Booking.RideTime),
-          Status: booking.BookingStatus.Status,
-          DriverName: booking.Journey.User.FirstName,
-          DriverId: booking.Journey.User.UserId,
-          Price: booking.Journey.Price,
-          Pickup: {
-            latitude: booking.Journey.StartLat,
-            longitude: booking.Journey.StartLong,
-            name: booking.Journey.StartName
-          },
-          Dropoff: {
-            latitude: booking.Journey.EndLat,
-            longitude: booking.Journey.EndLong,
-            name: booking.Journey.EndName
-          }
-        }));
-        
-        // Split the rides into upcoming and past based on the current time
-        const cancelled = allRides.filter(ride => ride.Status === "Cancelled");
-        const upcoming = allRides.filter(ride => ride.RideTime.getTime() > Date.now() && !cancelled.includes(ride));
-        const past = allRides.filter(ride => ride.RideTime.getTime() <= Date.now());
-        const next = upcoming.length > 0 ? upcoming[0] : null;
-
-        // Update state with the retrieved rides
-        setUpcomingRides(upcoming);
-        setPastRides(past);
-        setCancelledRides(cancelled);
-        setNextRide(next);
-      } catch (error) {
-        console.error('Error fetching bookings:', error);
-      }
-    };
-
     fetchBookings();
   }, []);
 
@@ -121,6 +126,15 @@ const Home = () => {
               />
             </TouchableOpacity>
           </View>
+
+          {(pendingCompletionRides?.length > 0 && 
+            <RideConfirmationCard ride={pendingCompletionRides[0]} onConfirmComplete={async () => {
+              Alert.alert("Ride Completed", "Thank you for confirming the ride completion!");
+              fetchBookings();
+            }} onConfirmIncomplete={() => {
+              Alert.alert("Ride Incomplete", "Please contact our support team to resolve this issue.");
+              fetchBookings();
+            }} />)}
 
           {/* Map Section */}
           <Text

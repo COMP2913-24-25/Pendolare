@@ -109,6 +109,18 @@ export default function Layout() {
           }}
         />
 
+        {/* My listings Tab */}
+        <Tabs.Screen
+          name="mylistings"
+          options={{
+            title: "",
+            tabBarIcon: ({ focused }: { focused: boolean }) => (
+              <TabIcon name={icons.list} focused={focused} />
+            ),
+            headerShown: false,
+          }}
+        />
+
         {/* Chat Tab */}
         <Tabs.Screen
           name="chat"
