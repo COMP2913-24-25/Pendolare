@@ -8,7 +8,8 @@ env_path = find_dotenv('../configuration/.env')
 load_dotenv(env_path)
 environment = os.getenv("ENV", "Production")
 
-configPath = f"/code/src/configuration/appsettings.{environment}.json"
+# raise Exception(os.listdir())
+configPath = f"src/configuration/appsettings.{environment}.json"
 configProvider = ConfigurationProvider(configPath)
 
 engine = create_engine(configProvider.database.getDbUrl())
