@@ -17,8 +17,9 @@ import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { USER_FIRST_NAME_KEY } from "@/services/authService";
 import * as SecureStore from "expo-secure-store";
-import { getBookings } from "@/services/bookingService";
+import { getBookings, completeBooking } from "@/services/bookingService";
 import RideConfirmationCard from "@/components/RideView/RideConfirmationCard";
+import DriverPickupConfirmationCard from "@/components/RideView/DriverPickupConfirmationCard";
 
 /*
   Home
@@ -129,11 +130,16 @@ const Home = () => {
 
           {(pendingCompletionRides?.length > 0 && 
             <RideConfirmationCard ride={pendingCompletionRides[0]} onConfirmComplete={async () => {
-              Alert.alert("Ride Completed", "Thank you for confirming the ride completion!");
+              await completeBooking(pendingCompletionRides[0].BookingId, true);
               fetchBookings();
             }} onConfirmIncomplete={() => {
-              Alert.alert("Ride Incomplete", "Please contact our support team to resolve this issue.");
-              fetchBookings();
+              Alert.alert("Ride Incomplete", "Are you sure you want to mark this ride as incomplete?", [
+                { text: "Cancel", onPress: () => {} },
+                { text: "Confirm", onPress: async () => {
+                  await completeBooking(pendingCompletionRides[0].BookingId, false);
+                  fetchBookings();
+                }}
+              ]);
             }} />)}
 
           {/* Map Section */}
@@ -142,14 +148,17 @@ const Home = () => {
           >
             Your current location
           </Text>
-          <View className="h-[200px] border-2 border-gray-300 rounded-lg overflow-hidden">
+          <View className="h-[200px] border-2 border-gray-300 rounded-lg overflow-hidden mb-2">
             <Map pickup={null} dropoff={null} />
           </View>
+
+          {/* Driver Pickup Confirmation Section - needs to be done conditonally properly once endpoints are redployed.*/}
+          {(nextRide == null && <DriverPickupConfirmationCard passenger={null} onConfirmArrival={() => {}} />)}
 
           {/* Next Journey Section */}
           <View className="mt-2">
             <Text
-              className={`text-xl font-JakartaBold mt-2 ${isDarkMode ? "text-white" : "text-black"}`}
+              className={`text-xl font-JakartaBold my-2 ${isDarkMode ? "text-white" : "text-black"}`}
             >
               Upcoming Journeys
             </Text>

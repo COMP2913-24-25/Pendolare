@@ -255,14 +255,14 @@ export async function confirmAtPickup(bookingId: string) : Promise<BookingRespon
   }
 }
 
-export async function completeBooking(completed: boolean) : Promise<BookingResponse> {
+export async function completeBooking(bookingId: string, completed: boolean) : Promise<BookingResponse> {
   try {
     console.log("Completing booking");
 
     const response = await apiRequest<BookingResponse>(
-      BOOKING_ENDPOINTS.COMPLETE_BOOKING,
+      `${BOOKING_ENDPOINTS.COMPLETE_BOOKING}/${bookingId}`,
       {
-        method: "POST",
+        method: "PUT",
         body: JSON.stringify({ Completed: completed }),
       });
 
