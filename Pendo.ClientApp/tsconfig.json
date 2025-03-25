@@ -1,0 +1,16 @@
+// filepath: /c:/Users/Josh Mundray/OneDrive/Documents/GitHub/software-engineering-project-team-2/Pendo.ClientApp/tsconfig.json
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "jsx": "react-native",
+    "strict": true,
+    "baseUrl": ".",
+    "esModuleInterop": true,
+    "paths": {
+      "@/*": ["./*"]
+    },
+    "lib": ["dom", "es2015"]
+  },
+  
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
+}

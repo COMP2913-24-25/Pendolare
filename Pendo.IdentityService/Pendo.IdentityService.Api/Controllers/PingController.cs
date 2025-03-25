@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Pendo.IdentityService.Api.Controllers;
 
 [ApiController]
-[Route("api/Ping")]
+[Route("api/Identity/Ping")]
 [Consumes(Constants.AppJson)]
 [Produces(Constants.AppJson)]
 public class PingController : ControllerBase

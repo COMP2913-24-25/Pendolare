@@ -26,6 +26,7 @@ def setup_dummy_booking(ammendments):
     
     dummy_journey = MagicMock(spec=Journey)
     dummy_journey.UserId = 1
+    dummy_journey.User_ = 1
     dummy_journey.StartName = 'Original Start'
     dummy_journey.StartLong = 0.0
     dummy_journey.StartLat = 0.0
@@ -39,6 +40,7 @@ def setup_dummy_booking(ammendments):
     dummy_booking = MagicMock(spec=Booking)
     dummy_booking.BookingId = 1
     dummy_booking.UserId = 1
+    dummy_booking.User_ = 1
     dummy_booking.FeeMargin = 5
     dummy_booking.RideTime = '2025-03-02T09:00:00'
     dummy_booking.BookingStatusId = 1
@@ -72,27 +74,28 @@ def test_get_bookings_for_user_no_ammendment(booking_repository):
     expected = [{
         "Booking": {
             "BookingId": 1,
-            "UserId": 1,
+            "User": 1,
             "FeeMargin": 5,
             "RideTime": '2025-03-02T09:00:00'
         },
         "BookingStatus": {
             "StatusId": 1,
-            "Status": dummy_booking.BookingStatus_.Status,
-            "Description": dummy_booking.BookingStatus_.Description
+            "Status": 'Confirmed',
+            "Description": 'Booking is confirmed'
         },
         "Journey": {
             "JourneyId": 1,
-            "UserId": dummy_booking.Journey_.UserId,
-            "StartName": dummy_booking.Journey_.StartName,
-            "StartLong": dummy_booking.Journey_.StartLong,
-            "StartLat": dummy_booking.Journey_.StartLat,
-            "EndName": dummy_booking.Journey_.EndName,
-            "EndLong": dummy_booking.Journey_.EndLong,
-            "EndLat": dummy_booking.Journey_.EndLat,
-            "Price": dummy_booking.Journey_.AdvertisedPrice,
-            "JourneyStatusId": dummy_booking.Journey_.JourneyStatusId,
-            "JourneyType": dummy_booking.Journey_.JourneyType
+            "User": 1,
+            "StartTime": '2025-03-02T09:00:00',
+            "StartName": 'Original Start',
+            "StartLong": 0.0,
+            "StartLat": 0.0,
+            "EndName": 'Original End',
+            "EndLong": 0.0,
+            "EndLat": 0.0,
+            "Price": 50,
+            "JourneyStatusId": 2,
+            "JourneyType": 'RoundTrip'
         }
     }]
 
@@ -112,6 +115,8 @@ def test_get_bookings_for_user_single_ammendment(booking_repository):
         proposed_price=75
     )
     dummy_booking = setup_dummy_booking([ammendment])
+
+    dummy_booking.RideTime = '2025-03-02T09:00:00'
     mock_query = MagicMock()
     mock_filter = MagicMock()
     mock_options = MagicMock()
@@ -125,8 +130,9 @@ def test_get_bookings_for_user_single_ammendment(booking_repository):
     expected = [{
         "Booking": {
             "BookingId": 1,
-            "UserId": 1,
+            "User": 1,
             "FeeMargin": 5,
+            # RideTime should now reflect the amendment value:
             "RideTime": "2025-03-02T11:00:00"
         },
         "BookingStatus": {
@@ -136,7 +142,8 @@ def test_get_bookings_for_user_single_ammendment(booking_repository):
         },
         "Journey": {
             "JourneyId": 1,
-            "UserId": 1,
+            "User": 1,
+            "StartTime": "2025-03-02T11:00:00",
             "StartName": "Ammended Start",
             "StartLong": 11.1,
             "StartLat": 22.2,
@@ -176,6 +183,8 @@ def test_get_bookings_for_user_multiple_ammendments(booking_repository):
         proposed_price=80
     )
     dummy_booking = setup_dummy_booking([later_ammendment, earlier_ammendment])
+    # Ensure that the latest amendment takes effect:
+    dummy_booking.RideTime = '2025-03-02T09:00:00'
     mock_query = MagicMock()
     mock_filter = MagicMock()
     mock_options = MagicMock()
@@ -189,7 +198,7 @@ def test_get_bookings_for_user_multiple_ammendments(booking_repository):
     expected = [{
         "Booking": {
             "BookingId": 1,
-            "UserId": 1,
+            "User": 1,
             "FeeMargin": 5,
             "RideTime": "2025-03-02T12:00:00"
         },
@@ -200,7 +209,8 @@ def test_get_bookings_for_user_multiple_ammendments(booking_repository):
         },
         "Journey": {
             "JourneyId": 1,
-            "UserId": 1,
+            "User": 1,
+            "StartTime": "2025-03-02T12:00:00",
             "StartName": "Late Start",
             "StartLong": 15.5,
             "StartLat": 25.5,
@@ -279,3 +289,49 @@ def test_get_booking_ammendment(booking_repository, mock_db_session):
     mock_db_session.query.assert_any_call(Booking)
     mock_db_session.query.assert_any_call(User)
     mock_db_session.query.assert_any_call(Journey)
+
+def test_calculate_driver_rating_no_bookings(booking_repository, mock_db_session):
+    mock_db_session.query.return_value.join.return_value.filter.return_value.count.side_effect = [0, 0]
+    mock_db_session.query.return_value.get.return_value = MagicMock(UserRating=None)
+
+    booking_repository.CalculateDriverRating(1)
+
+    mock_db_session.query.assert_any_call(Booking)
+    assert mock_db_session.query.return_value.join.return_value.filter.return_value.count.call_count == 2
+    assert mock_db_session.query.return_value.get.return_value.UserRating == -1.0
+    mock_db_session.commit.assert_called_once()
+
+def test_calculate_driver_rating_only_pending(booking_repository, mock_db_session):
+    mock_db_session.query.return_value.join.return_value.filter.return_value.count.side_effect = [3, 0]
+    mock_db_session.query.return_value.get.return_value = MagicMock(UserRating=None)
+
+    booking_repository.CalculateDriverRating(1)
+
+    assert mock_db_session.query.return_value.get.return_value.UserRating == 0.0
+    mock_db_session.commit.assert_called_once()
+
+def test_calculate_driver_rating_only_completed(booking_repository, mock_db_session):
+    mock_db_session.query.return_value.join.return_value.filter.return_value.count.side_effect = [0, 5]
+    mock_db_session.query.return_value.get.return_value = MagicMock(UserRating=None)
+
+    booking_repository.CalculateDriverRating(1)
+
+    assert mock_db_session.query.return_value.get.return_value.UserRating == 1.0
+    mock_db_session.commit.assert_called_once()
+
+def test_calculate_driver_rating_mixed_bookings(booking_repository, mock_db_session):
+    mock_db_session.query.return_value.join.return_value.filter.return_value.count.side_effect = [2, 8]
+    mock_db_session.query.return_value.get.return_value = MagicMock(UserRating=None)
+
+    booking_repository.CalculateDriverRating(1)
+
+    assert mock_db_session.query.return_value.get.return_value.UserRating == 0.8
+    mock_db_session.commit.assert_called_once()
+
+def test_calculate_driver_rating_driver_not_found(booking_repository, mock_db_session):
+    mock_db_session.query.return_value.get.return_value = None
+
+    with pytest.raises(Exception, match="Driver 1 not found"):
+        booking_repository.CalculateDriverRating(1)
+
+    mock_db_session.commit.assert_not_called()

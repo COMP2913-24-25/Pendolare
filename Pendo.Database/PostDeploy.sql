@@ -22,7 +22,11 @@ MERGE INTO [booking].[BookingStatus] AS target
 USING (VALUES 
     ('Pending', 'The booking has been created but not finalised.'),
     ('Confirmed', 'The booking is confirmed.'),
-    ('Cancelled', 'The booking has been cancelled.')
+    ('Cancelled', 'The booking has been cancelled.'),
+    ('PendingCompletion', 'The booking should have been completed but is pending completion.'),
+    ('Completed', 'The booking has been verified completed.'),
+    ('NotCompleted', 'The booking has been flagged as not fulfilled.'),
+    ('PrePending', 'The booking is about to be made pending, however is waiting for response from payment service.')
 ) AS source (Status, Description)
 ON target.Status = source.Status
 WHEN NOT MATCHED THEN
@@ -97,7 +101,8 @@ DECLARE @BookingEmailConfiguration NVARCHAR(MAX) = '
     "fromEmail": "pendolare-dev@clsolutions.dev",
     "pendingTemplateId": "d-f8a5d7c50b4a489ca2ecdc2c333e9b57",
     "confirmedTemplateId": "d-0cd496b0ec5c4aaca9b72449dcb9d1be",
-    "cancelledTemplateId": "d-fd645e276ceb4cafa14dae1d678b5b93"
+    "cancelledTemplateId": "d-fd645e276ceb4cafa14dae1d678b5b93",
+    "arrivalTemplateId": "d-d22b4b959aa0490ba8864716d45de8f5"
 }'
 
 DECLARE @PaymentEmailConfiguration NVARCHAR(MAX) = '
@@ -138,13 +143,14 @@ GO
 -- As requested for Josh for admin support request messsage user
 DECLARE @AdminId UNIQUEIDENTIFIER = '00000000-0000-0000-0000-000000000000'
 
-INSERT INTO [identity].[User]
-(
-    UserId,
-    Email,
-    FirstName,
-    LastName,
-    UserTypeId
-)
-VALUES
-( @AdminId, 'Pendalore.Admin.Support@clsolutions.dev', 'Support', 'Admin', 1)
+MERGE INTO [identity].[User] as target
+USING (
+    VALUES
+        (@AdminId, 'Pendolare.Admin.Support@clsolutions.dev', 'Support', 'Admin', 1)
+) AS source ([UserId], [Email], [FirstName], [LastName], [UserTypeId])
+ON target.[UserId] = source.[UserId]
+WHEN NOT MATCHED THEN
+    INSERT ([UserId], [Email], [FirstName], [LastName], [UserTypeId])
+    VALUES (source.[UserId], source.[Email], source.[FirstName], source.[LastName], source.[UserTypeId]);
+
+GO
