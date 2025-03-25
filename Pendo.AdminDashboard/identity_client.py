@@ -5,9 +5,18 @@ class IdentityClient:
     IdentityClient is a class that interacts with the Identity API.
     """
     
-    def __init__(self, base_url, logger):
+    def __init__(self, base_url, logger, jwt=None):
         self.base_url = base_url
         self.logger = logger
+        self.jwt = jwt
+
+    def _get_headers(self):
+        headers = {}
+        if self.jwt:
+            token = f"Bearer {self.jwt}"
+            headers["Authorization"] = token
+            self.logger.debug(f"JWT header: {token}")
+        return headers
 
     def RequestOtp(self, email):
         """
@@ -20,7 +29,12 @@ class IdentityClient:
         self.logger.info(f'Requesting OTP for {email}')
         self.logger.debug(f'Requesting OTP with payload: {identityRequest}')
 
-        response = requests.post(f'{self.base_url}/api/Identity/RequestOtp', json=identityRequest, verify=True)
+        response = requests.post(
+            f'{self.base_url}/api/Identity/RequestOtp',
+            json=identityRequest,
+            headers=self._get_headers(),
+            verify=True
+        )
 
         self.logger.info(f'Received response from Identity API: {response.status_code}')
         self.logger.debug(f'Response payload: {response.text}')
@@ -38,7 +52,12 @@ class IdentityClient:
         self.logger.info(f'Verifying OTP for {email}')
         self.logger.debug(f'Verifying OTP with payload: {request}')
 
-        response = requests.post(f'{self.base_url}/api/Identity/VerifyOtp', json=request, verify=True)
+        response = requests.post(
+            f'{self.base_url}/api/Identity/VerifyOtp',
+            json=request,
+            headers=self._get_headers(),
+            verify=True
+        )
 
         self.logger.info(f'Received response from Identity API: {response.status_code}')
         self.logger.debug(f'Response payload: {response.text}')
@@ -51,7 +70,11 @@ class IdentityClient:
         """
         self.logger.info('Pinging Identity API')
 
-        response = requests.get(f'{self.base_url}/api/Ping', verify=True)
+        response = requests.get(
+            f'{self.base_url}/api/Ping',
+            headers=self._get_headers(),
+            verify=True
+        )
 
         self.logger.info(f'Received response from Identity API: {response.status_code}')
         self.logger.debug(f'Response payload: {response.text}')
