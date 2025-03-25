@@ -110,12 +110,13 @@ export async function createBooking(
  * Fetch all bookings for the current user
  * Note: The UserId is automatically added by the Kong gateway
  */
-export async function getBookings(): Promise<GetBookingsResponse> {
+export async function getBookings(driverView: boolean = false): Promise<GetBookingsResponse> {
   try {
     const response = await apiRequest<BookingDetails[]>(
       BOOKING_ENDPOINTS.GET_BOOKINGS,
       {
         method: "POST",
+        body: JSON.stringify({ DriverView: driverView }),
       },
       true
     );

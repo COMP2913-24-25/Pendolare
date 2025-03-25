@@ -174,7 +174,7 @@ const Home = () => {
           {/* View All Journeys Button */}
           <TouchableOpacity
             onPress={() => setShowAllRides(true)}
-            className="mt-4 bg-blue-600 py-3 rounded-xl"
+            className="mt-4 mb-20 bg-blue-600 py-3 rounded-xl"
           >
             <Text className="text-white text-center font-JakartaBold">
               View All Upcoming Journeys
