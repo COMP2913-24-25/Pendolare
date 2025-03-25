@@ -72,9 +72,7 @@ class GetWeeklyRevenueCommand:
 
             if week_number not in weekly_revenue:
                 weekly_revenue[week_number] = 0
-
             weekly_revenue[week_number] += booking_fee
-
         return weekly_revenue
     
     def get_labels(self, weekly_revenue):
