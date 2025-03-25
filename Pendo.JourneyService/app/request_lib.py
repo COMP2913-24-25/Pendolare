@@ -8,6 +8,7 @@ class GetJourneysRequest(BaseModel):
     BootHeight: Optional[float] = 0
     BootWidth: Optional[float] = 0
     StartDate: Optional[datetime.datetime] = None
+    EndDate: Optional[datetime.datetime] = None
     JourneyType: Optional[int] = 0
     MaxPrice: Optional[float] = 0
     NumPassengers: Optional[int] = 0
@@ -17,6 +18,7 @@ class GetJourneysRequest(BaseModel):
     EndLat: Optional[float] = 0
     EndLong: Optional[float] = 0
     SortByPrice: Optional[str] = None
+    DriverView: Optional[bool] = False
 
 class CreateJourneyRequest(BaseModel):
     UserId: UUID
