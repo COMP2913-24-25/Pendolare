@@ -6,13 +6,31 @@ from models import Journey, Booking
 from typing import List, Dict
 
 class FrequentUsersCommand:
+    """
+    Command to retrieve frequent users based on their booking history.
+    """
     def __init__(self, db_session: Session, response):
+        """
+        Initializes the FrequentUsersCommand.
+
+        Args:
+            db_session (Session): SQLAlchemy database session.
+            response (Response): FastAPI response object.
+        """
         self.db_session = db_session
         self.response = response
 
     def execute(self):
-        # 7 days??
         try:
+            """
+        Executes the command to retrieve frequent users who have booked more than 4 journeys in the last 7 days.
+
+        Returns:
+            Dict[str, List[Dict[str, str]]]: A dictionary containing a list of frequent users with their user IDs and journey counts.
+
+        Raises:
+            Exception: If an error occurs during the database query or processing.
+        """
             current_date = datetime.now(timezone.utc)
 
             seven_days_ago = current_date - timedelta(days=7)
