@@ -17,5 +17,6 @@ __pycache__
 Pendo.BookingService/app/.env
 Pendo.BookingService/pyvenv.cfg
 Pendo.BookingService.log
-Pendo.AdminService/.venv-admin
-Pendo.AdminService/venv
+venv/
+.env/
+.venv/

@@ -17,7 +17,7 @@ class DiscountRepository:
         self.db_session = db_session
 
     def CreateDiscount(self, weekly_journeys: int, discount_percentage: float):
-        """
+         """
         Creates a new discount.
 
         Args:
@@ -27,13 +27,16 @@ class DiscountRepository:
         Returns:
             UUID: The ID of the created discount.
         """
-
-        discount = Discounts(WeeklyJourneys=weekly_journeys, DiscountPercentage=discount_percentage)
-        self.db_session.add(discount)
-        self.db_session.commit()
-        return str(discount.DiscountID)
-
-    
+        try:
+            discount = Discounts(WeeklyJourneys=weekly_journeys, DiscountPercentage=discount_percentage)
+            self.db_session.add(discount)
+            self.db_session.commit()
+            return discount.DiscountID
+        except SQLAlchemyError as e:
+            self.db_session.rollback()
+            self.logger.error("Error creating discount: %s", e)
+            raise e
+            
     def GetDiscounts(self):
         """
         Retrieves all discounts.
