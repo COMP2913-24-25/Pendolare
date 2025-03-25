@@ -41,7 +41,7 @@ class GetWeeklyRevenueCommand:
                 Booking.RideTime >= datetime.strptime(self.request.StartDate, "%Y-%m-%d"),
                 Booking.RideTime <= datetime.strptime(self.request.EndDate, "%Y-%m-%d")
             ).all()
-
+            
             weekly_revenue_data = self.calculate_management_revenue(bookings, self.request.StartDate)
 
             labels, data, total = self.get_labels(weekly_revenue_data)
@@ -59,15 +59,22 @@ class GetWeeklyRevenueCommand:
     
     def calculate_management_revenue(self, bookings, start_date_str):
         weekly_revenue = {}
-        for booking, status, advertised_price, proposed_price in bookings:
+
+        for booking in bookings:
+            # Unpack the tuple elements
+            booking_obj, status, advertised_price, proposed_price = booking
+            
+            # Use proposed_price if available, otherwise fall-back to advertised_price
             total_cost = proposed_price if proposed_price is not None else advertised_price
-            booking_fee = float(total_cost) * (booking.FeeMargin / 100)
-            week_number = self.calculate_week_number(booking.RideTime, start_date_str)
+
+            booking_fee = float(total_cost) * float(booking_obj.FeeMargin) / 100
+            week_number = self.calculate_week_number(booking_obj.RideTime, start_date_str)
+
             if week_number not in weekly_revenue:
                 weekly_revenue[week_number] = 0
             weekly_revenue[week_number] += booking_fee
         return weekly_revenue
-        
+    
     def get_labels(self, weekly_revenue):
         labels = []
         data = []

@@ -1,24 +1,32 @@
 # Pendo.AdminService
 
-Brief description of what this specific service does and its role in the Pendolare system.
+The Pendo Admin Service provides administrative functionalities for the Pendolare system, including managing discounts, retrieving journey analytics, and configuring booking fees.
 
 ## Overview
 
-Description of the service's main responsibilities and core functionalities.
-
+This service handles key administrative tasks such as:
+- Managing discount configurations for users.
+- Providing analytics for journeys.
+- Configuring and updating booking fees.
+  
 ### Features
-- Key feature 1
-- Key feature 2
-- Key feature 3
+- Discount management: Create, retrieve, and delete discounts.
+- Journey analytics: Retrieve data on available, booked, and cancelled journeys.
+- Booking fee configuration: Retrieve and update the booking fee margin.
+- Weekly revenue reporting: Generate weekly revenue reports for management.
+- Frequent user analytics: Identify users with frequent bookings.
 
 ## Tech Stack
-- Language/Framework: [e.g., Node.js, Java, Python]
-- Other significant technologies
+- Language/Framework: Python, FastAPI
+- Database: MSSQL (Production), SQLite (Testing)
+- ORM: SQLAlchemy, Pydantic for configuration
+- Testing Framework: Pytest
 
 ## Prerequisites
-- Required software/tools with versions
-- Environment dependencies
-- External service dependencies
+- Python 3.12 or higher
+- Docker (for deployment)
+- MSSQL Server (for production)
+- `requirements.txt` dependencies
 
 ## Getting Started
 
@@ -38,7 +46,7 @@ pip install -r requirements.txt
 ```
 
 ### Configuration
-todo
+Configuration is managed through appsettings.development.json for development and environment variables for production. Database connection information is retrieved from this JSON file or environment variables.
 
 ### Running the Service
 ```bash
@@ -58,21 +66,29 @@ pytest
 ## API Documentation
 
 ### Endpoints
-- `GET /api/v1/resource` - Description
-- `POST /api/v1/resource` - Description
-- `PUT /api/v1/resource/:id` - Description
-- `DELETE /api/v1/resource/:id` - Description
+- `GET /HealthCheck` - Returns the service's health status.
+- `PATCH /UpdateBookingFee` -  Updates the booking fee margin. Requires UpdateBookingFeeRequest in the request body.
+- `GET /GetBookingFee` - Retrieves the current booking fee margin.
+- `GET /GetWeeklyRevenue` - Retrieves weekly revenue data. Requires GetWeeklyRevenueQuery parameters in the query string (StartDate, EndDate).
+- `GET /JourneyAnalytics` - Retrieves analytics on available, booked, and cancelled journeys.
+- `GET /FrequentUsers` - Retrieves a list of users with frequent bookings.
+- `POST /CreateDiscount` - Creates a new discount. Requires CreateDiscountRequest in the request body (WeeklyJourneys, DiscountPercentage).
+- `GET /Discounts` - Retrieves all discounts.
+- `DELETE /Discounts/{discount_id}` - Deletes a discount rule by its ID.
 
 ## Monitoring and Logging
-- Metrics collection
-- Log locations
-- Monitoring tools used
+The service logs critical events and metrics. Container logs can be accessed through
+
+```bash
+docker logs Pendo.AdminService
+```
 
 ## Deployment
-- Deployment process
-- Required environment variables
-- Infrastructure dependencies
+Deploy the service using Docker with the provided Dockerfile and shell scripts:
 
+./runDatabase.sh for the database.
+./runAdminService.sh for the application.
+- Ensure MSSQL Server is running and accessible.
 
 ## Contact
-- User responsible: [Leeds Username]
+- User responsible: Lara Glenn @sc23lfg

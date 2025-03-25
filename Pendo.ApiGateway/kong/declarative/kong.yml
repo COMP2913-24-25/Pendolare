@@ -1,0 +1,352 @@
+_format_version: "2.1"
+_transform: true
+
+services:
+  - name: identity-service
+    url: http://host.docker.internal:9003
+    protocol: http
+    # Identity endpoints remain open (no security applied globally)
+    routes:
+      - name: identity-request-otp
+        protocols: [http, https]
+        paths: [/api/Identity/RequestOtp]
+        strip_path: false
+        preserve_host: false
+        methods: [POST, OPTIONS]
+        plugins:
+          - name: request-transformer
+            config:
+              remove:
+                headers: ["Authorization"]
+      - name: identity-verify-otp
+        protocols: [http, https]
+        paths: [/api/Identity/VerifyOtp]
+        strip_path: false
+        preserve_host: false
+        methods: [POST, OPTIONS]
+        plugins:
+          - name: request-transformer
+            config:
+              remove:
+                headers: ["Authorization"]
+      - name: identity-ping
+        protocols: [http, https]
+        paths: [/api/Identity/Ping]
+        strip_path: false
+        preserve_host: false
+        methods: [GET, OPTIONS]
+        plugins:
+          - name: request-transformer
+            config:
+              remove:
+                headers: ["Authorization"]
+      - name: identity-update-user
+        protocols: [http, https]
+        paths: [/api/Identity/UpdateUser]
+        strip_path: false
+        preserve_host: false
+        methods: [PATCH, OPTIONS]
+        # Secure this sensitive endpoint
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [authenticated, manager]
+
+  - name: payment-service
+    url: https://payment-service.greensand-8499b34e.uksouth.azurecontainerapps.io
+    protocol: https
+    # ...waiting for routes...
+
+  - name: booking-service
+    url: http://host.docker.internal:9004
+    protocol: http
+    routes:
+      - name: booking-health-check
+        protocols: [http, https]
+        paths: [/api/Booking/HealthCheck]
+        strip_path: false
+        preserve_host: false
+        methods: [GET, OPTIONS]
+        # Health check allows anonymous requests using a valid consumer.
+        plugins:
+          - name: jwt
+            config:
+              anonymous: "anonymous-consumer"
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [anonymous, authenticated, manager]
+      - name: booking-get-bookings
+        protocols: [http, https]
+        paths: [/api/Booking/GetBookings]
+        strip_path: false
+        preserve_host: false
+        methods: [POST, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [authenticated, manager]
+      - name: booking-create-booking
+        protocols: [http, https]
+        paths: [/api/Booking/CreateBooking]
+        strip_path: false
+        preserve_host: false
+        methods: [POST, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [authenticated, manager]
+      - name: booking-add-amendment
+        protocols: [http, https]
+        paths: [/api/Booking/AddBookingAmmendment]
+        strip_path: false
+        preserve_host: false
+        methods: [POST, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [authenticated, manager]
+      - name: booking-approve-amendment
+        protocols: [http, https]
+        paths:
+          - /api/Booking/ApproveBookingAmmendment
+          - /api/Booking/ApproveBookingAmmendment/.*
+        strip_path: false
+        preserve_host: false
+        methods: [PUT, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [authenticated, manager]
+      - name: booking-approve-booking
+        protocols: [http, https]
+        paths:
+          - /api/Booking/ApproveBooking
+          - /api/Booking/ApproveBooking/.*
+        strip_path: false
+        preserve_host: false
+        methods: [PUT, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [authenticated, manager]
+
+  - name: journey-service
+    url: https://journey-service.greensand-8499b34e.uksouth.azurecontainerapps.io
+    protocol: https
+    # ...waiting routes...
+
+  - name: admin-api
+    url: http://127.0.0.1:8001
+    routes:
+      - name: admin-api-route
+        protocols: [http, https]
+        paths: [/admin-api]
+        strip_path: true
+        methods: [GET, POST, PUT, DELETE, PATCH]
+    # Typically admin API is secured externally
+
+  - name: message-service
+    url: http://host.docker.internal:9011
+    protocol: http
+    routes:
+      - name: message-health-check
+        protocols: [http, https]
+        paths: [/api/Message/HealthCheck]
+        strip_path: false
+        preserve_host: false
+        methods: [GET, OPTIONS]
+        plugins:
+          - name: jwt
+            config:
+              anonymous: "anonymous-consumer"
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [anonymous, authenticated, manager]
+      - name: message-user-conversation
+        protocols: [http, https]
+        paths:
+          - /api/Message/UserConversation
+          - /api/Message/UserConversation/.*
+        strip_path: false
+        preserve_host: false
+        methods: [GET, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [authenticated, manager]
+      - name: message-create-conversation
+        protocols: [http, https]
+        paths: [/api/Message/CreateConversation]
+        strip_path: false
+        preserve_host: false
+        methods: [POST, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [authenticated, manager]
+
+  - name: admin-service
+    url: http://host.docker.internal:9005
+    protocol: http
+    routes:
+      - name: admin-health-check
+        protocols: [http, https]
+        paths: [/api/Admin/HealthCheck]
+        strip_path: false
+        preserve_host: false
+        methods: [GET, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [manager]
+      - name: admin-update-booking-fee
+        protocols: [http, https]
+        paths:
+          - /api/Admin/UpdateBookingFee
+          - /api/Admin/UpdateBookingFee/.*
+        strip_path: false
+        preserve_host: false
+        methods: [PATCH, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [manager]
+      - name: get-booking-fee
+        protocols: [http, https]
+        paths:
+          - /api/Admin/GetBookingFee
+          - /api/Admin/GetBookingFee/.*
+        strip_path: false
+        preserve_host: false
+        methods: [GET, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [manager]
+      - name: get-weekly-revenue
+        protocols: [http, https]
+        paths:
+          - /api/Admin/GetWeeklyRevenue
+          - /api/Admin/GetWeeklyRevenue/.*
+        strip_path: false
+        preserve_host: false
+        methods: [GET, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [anonymous, authenticated, manager]  
+      - name: journey-analytics
+        protocols: [http, https]
+        paths:
+          - /api/Admin/JourneyAnalytics
+          - /api/Admin/JourneyAnalytics/.*
+        strip_path: false
+        preserve_host: false
+        methods: [GET, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [manager]
+      - name: frequent-users
+        protocols: [http, https]
+        paths:
+          - /api/Admin/FrequentUsers
+          - /api/Admin/FrequentUsers/.*
+        strip_path: false
+        preserve_host: false
+        methods: [GET, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [manager]
+
+consumers:
+  - username: anonymous-consumer
+    acls:
+      - group: anonymous
+  - username: Pendo.IdentityService
+    jwt_secrets:
+      - key: Pendo.IdentityService
+        secret: [[redacted]]
+        algorithm: HS256
+
+plugins:
+  - name: cors
+    config:
+      origins: ["*"]
+      methods: [GET, POST, PUT, DELETE, OPTIONS]
+      headers: [Accept, Authorization, Content-Type, Origin, X-Requested-With, Upgrade, Connection]
+      exposed_headers: [Authorization]
+      credentials: true
+      max_age: 3600
+      preflight_continue: false
+
+  - name: response-transformer
+    config:
+      add:
+        headers:
+          - "Access-Control-Allow-Origin: *"
+          - "Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS"
+          - "Access-Control-Allow-Headers: Accept, Authorization, Content-Type, Origin, X-Requested-With"
+
+  - name: rate-limiting
+    config:
+      second: 5
+      minute: 300
+      hour: 18000
+      policy: local
+      hide_client_headers: false
+      redis_timeout: 2000
+      fault_tolerant: true
+
+  - name: jwt
+    config:
+      uri_param_names: [jwt]
+      cookie_names: []
+      header_names: [Authorization]
+      claims_to_verify: [exp]
+      key_claim_name: iss
+      secret_is_base64: false
+      run_on_preflight: false
+      anonymous: "anonymous-consumer"
+
+  - name: acl
+    config:
+      hide_groups_header: true
+      allow: [anonymous, authenticated, manager]
+
+  - name: jwt-custom-claims
+    config:
+      require_admin_for_analytics: true
+      add_user_info_headers: true
+      map_user_type_to_acl: true

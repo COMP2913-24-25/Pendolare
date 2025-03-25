@@ -20,7 +20,7 @@ configuration_provider = ConfigurationProvider()
 app = FastAPI(
     title="Pendo.AdminService.Api", 
     version="1.0.0",
-    root_path="/api")
+    root_path="/api/Admin")
 
 
 @app.get("/")
@@ -71,9 +71,9 @@ def get_discounts(db_session: Session = Depends(get_db)):
         return [{"DiscountId": str(discount.DiscountID),
                  "WeeklyJourneys": discount.WeeklyJourneys,
                  "DiscountPercentage": discount.DiscountPercentage
-            }
-            for discount in discounts
-        ]
+                 }
+                for discount in discounts
+               ] 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
@@ -84,13 +84,9 @@ def delete_discount(discount_id: str, db_session: Session = Depends(get_db)):
         deleted = repository.DeleteDiscount(discount_id)
         if not deleted:
             raise HTTPException(status_code=404, detail="Discount is not found")
-
         return {
             "Status": "Success",
             "Message": "Discount was deleted successfully"
         }
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-

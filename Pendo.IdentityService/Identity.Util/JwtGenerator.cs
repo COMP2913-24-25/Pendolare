@@ -19,7 +19,7 @@ public class JwtGenerator : IJwtGenerator
         _dateTimeProvider = dateTimeProvider;
     }
 
-    public string GenerateJwt(string userEmail, bool isManager)
+    public string GenerateJwt(Guid userId, string userEmail, bool isManager)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.SecretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -28,7 +28,7 @@ public class JwtGenerator : IJwtGenerator
         {
             Issuer = _config.Issuer,
             Audience = isManager ? _config.ManagerAudience : _config.AppAudience,
-            Claims = GetClaims(userEmail, isManager),
+            Claims = GetClaims(userId, userEmail, isManager),
             Expires = _dateTimeProvider.UtcNow().AddMinutes(_config.ExpiresInMinutes),
             SigningCredentials = credentials
         };
@@ -37,9 +37,10 @@ public class JwtGenerator : IJwtGenerator
         return handler.CreateToken(tokenDescriptor);
     }
 
-    private Dictionary<string, object> GetClaims(string userEmail, bool isManager) 
+    private Dictionary<string, object> GetClaims(Guid userId, string userEmail, bool isManager) 
         => new()
         {
+                { ClaimTypes.NameIdentifier, userId },
                 { ClaimTypes.Name, userEmail },
                 { Constants.UserTypeClaim, isManager ? Constants.Manager : Constants.User },
                 { JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString() }

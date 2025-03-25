@@ -1,82 +1,86 @@
-# Client App
+# Pendolare Client App
 
-Brief description of what this specific service does and its role in the Pendolare system.
+Pendolare is a mobile client application allowing for interaction between the user and the various services. This client app is built using React Native and Expo, and leverages modern UI theming and a WebSocket-based messaging service to deliver real-time chat functionality.
 
 ## Overview
 
-Description of the service's main responsibilities and core functionalities.
+The Pendolare Client App provides the following core functionalities:
+- View available journeys in real time.
+- Create and manage their own journeys.
+- Book rides on available journeys, enabling efficient shared transportation.
+- Real-time chat between users, drivers, and support agents.
+- Profile management with dynamic theming.
+- Integration with in-house & external services via APIs.
 
-### Features
-- Key feature 1
-- Key feature 2
-- Key feature 3
+## CURRENT Features
+
+- **Real-time Messaging:** Communicate instantly via WebSocket with message delivery and status indicators.
+- **Theming Support:** Automatic dark/light mode support based on user preferences.
+- **Profile Management:** View and update your profile information.
+- **Support Chat:** Easily contact support when you need help.
+- **"Responsive" (WIP) Design:** Built with Tailwind CSS for consistent styling across devices.
 
 ## Tech Stack
-- Language/Framework: [e.g., Node.js, Java, Python]
-- Other significant technologies
+
+- **Framework:** React Native with Expo
+- **Navigation:** Expo Router
+- **State Management:** React hooks and context API
+- **Styling:** Tailwind CSS & NativeWind
+- **Authentication:** Clerk
+- **Real-time Communication:** WebSocket
 
 ## Prerequisites
-- Required software/tools with versions
-- Environment dependencies
-- External service dependencies
+
+- Node.js (v14 or higher)
+- npm or yarn
+- Expo CLI
+- A supported mobile device or simulator
 
 ## Getting Started
 
 ### Installation
+
 ```bash
 # Clone the repository
 git clone [repository-url]
 
-# Navigate to service directory
-cd [service-name]
+# Navigate to the project directory
+cd Pendo.ClientApp
 
 # Install dependencies
-npm install  # or equivalent command
+npm install
 ```
 
 ### Configuration
-1. Copy `.env.example` to `.env`
+
+1. Copy the provided `.env` file or create your own based on `.env.example`.
 2. Update environment variables:
-   - `DATABASE_URL`
-   - `SERVICE_PORT`
-   - `OTHER_REQUIRED_VARS`
+   - `EXPO_PUBLIC_PUBLISH_KEY`
+   - `EXPO_PUBLIC_OSR_KEY`
+   - `CLERK_SECRET_KEY`
+   - Additional configuration as required by your environment.
 
-### Running the Service
+### Running the App
+
 ```bash
-# Development mode
-npm run dev  # or equivalent command
+# For development mode
+npm run start
 
-# Production mode
-npm run start  # or equivalent command
+# For tunnel mode (if required)
+npm run start-tunnel
 ```
-
-### Testing
-```bash
-# Run unit tests
-npm run test  # or equivalent command
-
-# Run integration tests
-npm run test:integration  # or equivalent command
-```
-
-## API Documentation
-
-### Endpoints
-- `GET /api/v1/resource` - Description
-- `POST /api/v1/resource` - Description
-- `PUT /api/v1/resource/:id` - Description
-- `DELETE /api/v1/resource/:id` - Description
-
-## Monitoring and Logging
-- Metrics collection
-- Log locations
-- Monitoring tools used
 
 ## Deployment
-- Deployment process
-- Required environment variables
-- Infrastructure dependencies
 
+- Build the app using Expo build or EAS.
+- Ensure all environment variables are set in the production environment.
+- Monitor application logs and user feedback for iterative improvements.
 
-## Contact
-- User responsible: [Leeds Username]
+## Testing
+
+- N/A
+  
+## Monitoring and Logging
+
+- Application metrics are collected and logged.
+- For performance and error tracking, suitable monitoring tools are integrated.
