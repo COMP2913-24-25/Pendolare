@@ -244,11 +244,7 @@ class BookingAmmendment(Base):
 
 class Discounts(Base):
     __tablename__ = 'Discounts'
-    __table_args__ = (
-        {'schema': 'payment'},
-        
-    )
-    __table_args__ = {'schema': 'payment'}
+    __table_args__ = {'schema': 'payment'}  # use a single, clear __table_args__ declaration
     DiscountID: Mapped[Uuid] = mapped_column(Uuid, primary_key=True, server_default=text('(newsequentialid())'))
     WeeklyJourneys: Mapped[int] = mapped_column(Integer, nullable=False)
     DiscountPercentage: Mapped[float] = mapped_column(Float, nullable=False)
