@@ -15,19 +15,24 @@ class BookingRepository():
         """
         self.db_session = next(get_db())
 
-    def GetBookingsForUser(self, user_id, booking_id = None):
+    def GetBookingsForUser(self, user_id, booking_id = None, driver_view = False):
         """
         GetBookingsForUser method returns all the bookings for a specific user.
         :param user_id: Id of the user.
         :return: List of bookings for the user, along with journey (altered by any ammendments) and booking status.
         """
-        filter = Booking.UserId == user_id, Booking.BookingStatusId != BookingStatus.PrePending
+        filters = [Booking.BookingStatusId != BookingStatus.PrePending]
         if booking_id:
-            filter = filter + (Booking.BookingId == booking_id)
+            filters.append(Booking.BookingId == booking_id)
+
+        if not driver_view:
+            filters.append(Booking.UserId == user_id)
+        else:
+            filters.append(Journey.UserId == user_id)
 
         return_dto = []
         bookings = self.db_session.query(Booking)\
-            .filter(*filter)\
+            .filter(*filters)\
             .options(
                 joinedload(Booking.BookingStatus_),
                 joinedload(Booking.User_),
