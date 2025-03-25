@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 import requests
 from datetime import timedelta, datetime
 from identity_client import IdentityClient
 from admin_client import AdminClient
+from message_client import MessageClient
 
 app = Flask(__name__)
 app.secret_key = 'reallyStrongPwd123'
@@ -35,7 +36,6 @@ def login():
     if request.method == 'POST':
         email = request.form['email']
         response = IdentityClient(api_url, app.logger).RequestOtp(email)
-
         if response.status_code == 200:
             session['email'] = email
             return redirect(url_for('verify_otp'))
@@ -48,13 +48,12 @@ def verify_otp():
     if request.method == 'POST':
         session.get('email')
         otp = request.form['otp']
-
         response = IdentityClient(api_url, app.logger).VerifyOtp(session['email'], otp)
-
         if response.status_code == 200:
             data = response.json()
             if data.get('isManager'):
                 session['logged_in'] = True
+                session['jwt'] = data.get('jwt')
                 session['last_activity'] = datetime.utcnow().replace(tzinfo=None)
                 return redirect(url_for('dashboard'))
             else:
@@ -77,29 +76,120 @@ def dashboard():
         booking_fee = request.form['booking_fee']
         return redirect(url_for('dashboard'))
     
-    booking_fee = 5
+    admin_client = AdminClient(api_url, app.logger, jwt=session.get('jwt'))
+    booking_fee = admin_client.GetBookingFee()
+    print("Booking fee:", booking_fee)
 
     now = datetime.utcnow()
-    start_of_week = now - timedelta(days=now.weekday())
-    end_of_week = now
+    start_of_week = now - timedelta(days=7)
+    print("Start of week:", start_of_week)
+    rev_response = admin_client.GetWeeklyRevenue(start_of_week, now)
+    
+    rev_this_week = rev_response.get('total')
 
-    weekly_revenue = AdminClient(api_url, app.logger).GetWeeklyRevenue(start_of_week, end_of_week).json()
-    customer_disputes = [
-        {'username': 'user1', 'message': 'Dispute message 1'},
-        {'username': 'user2', 'message': 'Dispute message 2'},
-        {'username': 'user3', 'message': 'Lorem ipsum dorlor sit amet, consectetur adipiscing elit. Nullam'},
-    ]
-    return render_template('dashboard.html', booking_fee=booking_fee, weekly_revenue=weekly_revenue, revenue_date=start_of_week.strftime('%d %B %Y'), customer_disputes=customer_disputes)
+    five_weeks_ago = start_of_week - timedelta(weeks=5)
+    revenue_response = admin_client.GetWeeklyRevenue(five_weeks_ago, now)
+    
+    expected_labels = [(five_weeks_ago + timedelta(weeks=i)).strftime('%d %B %Y') for i in range(6)]
+    api_labels = revenue_response.get('labels', [])
+    api_data = revenue_response.get('data', [])
 
-@app.route('/chat/<username>')
-def chat(username):
-    return f"Chat with {username}"
+    chartData = [0] * len(expected_labels)
+    for label, data in zip(api_labels, api_data):
+        try:
+            week_num = int(label.split()[-1])
+            index = week_num - 1
+            if 0 <= index < len(chartData):
+                chartData[index] = data
+        except ValueError:
+            pass
+
+    chartLabels = expected_labels
+    
+    discounts = admin_client.GetDiscounts()
+    if discounts:
+        for discount in discounts:
+            discount['DiscountPercentage'] = discount.get('DiscountPercentage', 0) * 100
+    app.logger.info("Discounts: %s", discounts)
+    
+    messaging_client = MessageClient(f"{api_url}/api/Message", app.logger, jwt=session.get('jwt'))
+    user_conversations = messaging_client.get_user_conversations("00000000-0000-0000-0000-000000000000")
+    
+    return render_template('dashboard.html',
+                           booking_fee=booking_fee,
+                           rev_this_week=rev_this_week,
+                           revenue_date=start_of_week.strftime('%d %B %Y'),
+                           conversations=user_conversations,
+                           discounts=discounts,
+                           chartData=chartData,
+                           chartLabels=chartLabels)
+
+@app.route('/chat/conversation/<conversation_id>', methods=['GET'])
+def chat_conversation(conversation_id):
+    messaging_client = MessageClient(f"{api_url}/api/Message", app.logger, jwt=session.get('jwt'))
+    conv_response = messaging_client.join_conversation("00000000-0000-0000-0000-000000000000", conversation_id)
+    app.logger.info(f"Join conversation returned: {conv_response}")
+    print("conv_response:", conv_response)
+    return render_template('chat.html',
+                           conversation_id=conversation_id,
+                           conversation=conv_response)
+
+@app.route('/chat/send', methods=['POST'])
+def chat_send():
+    data = request.get_json()
+    sender = data.get('sender')
+    conversation_id = data.get('conversation_id')
+    content = data.get('content')
+    timestamp = data.get('timestamp')
+    
+    messaging_client = MessageClient(f"{api_url}/api/Message", app.logger, jwt=session.get('jwt'))
+    if not messaging_client.ws or messaging_client.ws.closed:
+        messaging_client.join_conversation("00000000-0000-0000-0000-000000000000", conversation_id)
+    
+    response = messaging_client.send_chat_message(sender, conversation_id, content, timestamp)
+    return jsonify(response)
 
 @app.route('/update_booking_fee', methods=['POST'])
 def update_booking_fee():
     booking_fee = request.form['booking_fee']
+    response = AdminClient(api_url, app.logger, jwt=session.get('jwt')).UpdateBookingFee(booking_fee)
+    if response.status_code == 200:
+        flash("Booking fee updated successfully.")
+    else:
+        flash("Failed to update booking fee.")
+    return redirect(url_for('dashboard'))
 
-    # update the booking fee the database through analytics service
+@app.route('/create_discount', methods=['GET', 'POST'])
+def create_discount():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    if request.method == 'POST':
+        weekly_journeys = request.form.get('weekly_journeys')
+        discount_percentage = request.form.get('discount_percentage')
+        app.logger.info("Attempting to create discount with weekly_journeys: %s, discount_percentage: %s", weekly_journeys, discount_percentage)
+        admin_client = AdminClient(api_url, app.logger, jwt=session.get('jwt'))
+        result = admin_client.CreateDiscount(weekly_journeys, discount_percentage)
+        if result:
+            app.logger.info("Discount created successfully: %s", result)
+            flash("Discount created successfully.")
+        else:
+            app.logger.error("Failed to create discount with weekly_journeys: %s, discount_percentage: %s", weekly_journeys, discount_percentage)
+            flash("Failed to create discount.")
+        return redirect(url_for('dashboard'))
+    return render_template('create_discount.html')
+
+@app.route('/delete_discount/<discount_id>', methods=['POST', 'DELETE'])
+def delete_discount(discount_id):
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    app.logger.info("Attempting to delete discount with id: %s", discount_id)
+    admin_client = AdminClient(api_url, app.logger, jwt=session.get('jwt'))
+    success = admin_client.DeleteDiscount(discount_id)
+    if success:
+        app.logger.info("Discount deleted successfully: %s", discount_id)
+    else:
+        app.logger.error("Failed to delete discount: %s", discount_id)
+    flash("Discount deleted successfully." if success else "Failed to delete discount.")
     return redirect(url_for('dashboard'))
 
 @app.route('/ping')
