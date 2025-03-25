@@ -17,21 +17,17 @@ class DiscountRepository:
         self.db_session = db_session
 
     def CreateDiscount(self, weekly_journeys: int, discount_percentage: float):
-        """
-        Creates a new discount.
-
-        Args:
-            weekly_journeys (int): The number of weekly journeys required for the discount.
-            discount_percentage (float): The discount percentage.
-
-        Returns:
-            UUID: The ID of the created discount.
-        """
-
-        discount = Discounts(WeeklyJourneys=weekly_journeys, DiscountPercentage=discount_percentage)
-        self.db_session.add(discount)
-        self.db_session.commit()
-        return str(discount.DiscountID)
+        # Convert percentage to fraction as required by the CHECK constraint
+        discount_percentage_decimal = discount_percentage / 100.0
+        try:
+            discount = Discounts(WeeklyJourneys=weekly_journeys, DiscountPercentage=discount_percentage_decimal)
+            self.db_session.add(discount)
+            self.db_session.commit()
+            return str(discount.DiscountID)
+        except SQLAlchemyError as e:
+            self.db_session.rollback()
+            self.logger.error("Error creating discount: %s", e)
+            raise e
 
     
     def GetDiscounts(self):
