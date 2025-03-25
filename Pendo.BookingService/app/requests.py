@@ -5,6 +5,7 @@ from datetime import datetime
 
 class GetBookingsRequest(BaseModel):
     UserId: UUID
+    DriverView: bool = False
 
 class AddBookingAmmendmentRequest(BaseModel):
     UserId: UUID
