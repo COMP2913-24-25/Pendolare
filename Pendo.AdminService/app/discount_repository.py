@@ -15,10 +15,15 @@ class DiscountRepository:
         self.db_session = db_session
 
     def CreateDiscount(self, weekly_journeys: int, discount_percentage: float):
-        discount = Discounts(WeeklyJourneys=weekly_journeys, DiscountPercentage=discount_percentage)
-        self.db_session.add(discount)
-        self.db_session.commit()
-        return discount.DiscountID
+        try:
+            discount = Discounts(WeeklyJourneys=weekly_journeys, DiscountPercentage=discount_percentage)
+            self.db_session.add(discount)
+            self.db_session.commit()
+            return discount.DiscountID
+        except SQLAlchemyError as e:
+            self.db_session.rollback()
+            self.logger.error("Error creating discount: %s", e)
+            raise e
     
     def GetDiscounts(self):
         return self.db_session.query(Discounts).all()
