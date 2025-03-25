@@ -12,7 +12,7 @@ class ViewBalanceCommand:
         Constructor for ViewBalanceCommand class.
         :param UserId: Id for requested user balance
         """
-        self.Payment_Repository = PaymentRepository()
+        self.PaymentRepository = PaymentRepository()
         self.logger = logger
         self.UserId = UserId
 
@@ -22,17 +22,17 @@ class ViewBalanceCommand:
         :return: both balances of the user.
         """
         try:
-            user = self.Payment_Repository.GetUser(self.UserId)
+            user = self.PaymentRepository.GetUser(self.UserId)
             if user is None:
                 raise Exception("User not found")
 
             self.logger.info("Got user", user)
             
-            userBalance = self.Payment_Repository.GetUserBalance(self.UserId)
+            userBalance = self.PaymentRepository.GetUserBalance(self.UserId)
             if userBalance is None:
                 newBalanceSheet = UserBalance(UserId = self.UserId)
-                self.Payment_Repository.CreateUserBalance(newBalanceSheet)
-                userBalance = self.Payment_Repository.GetUserBalance(self.UserId)
+                self.PaymentRepository.CreateUserBalance(newBalanceSheet)
+                userBalance = self.PaymentRepository.GetUserBalance(self.UserId)
 
             return ViewBalanceResponse(Status="success", NonPending=userBalance.NonPending, Pending=userBalance.Pending)
 

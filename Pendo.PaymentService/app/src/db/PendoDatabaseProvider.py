@@ -8,7 +8,6 @@ env_path = find_dotenv('../configuration/.env')
 load_dotenv(env_path)
 environment = os.getenv("ENV", "Production")
 
-# raise Exception(os.listdir())
 configPath = f"src/configuration/appsettings.{environment}.json"
 configProvider = ConfigurationProvider(configPath)
 

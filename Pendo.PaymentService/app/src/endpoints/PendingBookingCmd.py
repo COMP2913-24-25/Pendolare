@@ -1,5 +1,5 @@
 from ..db.PaymentRepository import PaymentRepository
-from ..db.PendoDatabase import Transaction
+from ..db.PendoDatabase import Transaction, UserBalance
 from ..returns.PaymentReturns import StatusResponse, PaymentMethodResponse
 from .ViewBalanceCmd import ViewBalanceCommand
 import datetime
