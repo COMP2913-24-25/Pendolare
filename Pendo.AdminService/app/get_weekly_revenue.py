@@ -6,21 +6,10 @@ from sqlalchemy import and_
 
 from models import Booking, BookingStatus, Journey, BookingAmmendment
 
+# Get weekly revenue for maangement
 class GetWeeklyRevenueCommand:
-    """
-    Command to retrieve weekly revenue data for management.
-    """
 
     def __init__(self, db_session, request, response, configuration_provider):
-        """
-        Initializes the GetWeeklyRevenueCommand.
-
-        Args:
-            db_session (Session): SQLAlchemy database session.
-            request: FastAPI request object containing start and end dates.
-            response (Response): FastAPI response object.
-            configuration_provider (ConfigurationProvider): Provider for accessing configuration values.
-        """
         self.db_session = db_session
         self.booking_repo = BookingRepository(db_session)
         self.configuration_provider = configuration_provider
@@ -29,13 +18,7 @@ class GetWeeklyRevenueCommand:
 
     def Execute(self):
         """
-        Executes the command to retrieve weekly revenue data.
-
-        Returns:
-            GetWeeklyRevenueResponse: An object containing labels, data, currency, and total revenue.
-
-        Raises:
-            Exception: If an error occurs during database query or processing.
+        Get the weekly revenue from the database.
         """
         try:
             bookings = self.db_session.query(
@@ -58,7 +41,7 @@ class GetWeeklyRevenueCommand:
                 Booking.RideTime >= datetime.strptime(self.request.StartDate, "%Y-%m-%d"),
                 Booking.RideTime <= datetime.strptime(self.request.EndDate, "%Y-%m-%d")
             ).all()
-
+            
             weekly_revenue_data = self.calculate_management_revenue(bookings, self.request.StartDate)
 
             labels, data, total = self.get_labels(weekly_revenue_data)
@@ -71,39 +54,21 @@ class GetWeeklyRevenueCommand:
             return {"Error": str(e)}
         
     def calculate_week_number(self, booking_date, start_date_str):
-        """
-        Calculates the week number for a given booking date relative to a start date.
-
-        Args:
-            booking_date (datetime): The booking date.
-            start_date_str (str): The start date as a string in "%Y-%m-%d" format.
-
-        Returns:
-            int: The week number.
-        """
         start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
         return ((booking_date.date() - start_date).days // 7) + 1
     
     def calculate_management_revenue(self, bookings, start_date_str):
-        """
-        Calculates the weekly revenue data.
-
-        Args:
-            bookings (List[Tuple]): List of booking tuples containing booking information.
-            start_date_str (str): The start date as a string in "%Y-%m-%d" format.
-
-        Returns:
-            Dict[int, float]: A dictionary containing weekly revenue data.
-        """
         weekly_revenue = {}
 
         for booking in bookings:
-            # Calculate TotalCost based on proposed price
-            total_cost = booking.BookingAmmendment[-1].ProposedPrice if len(booking.BookingAmmendment) != 0 else booking.Journey_.AdvertisedPrice
+            # Unpack the tuple elements
+            booking_obj, status, advertised_price, proposed_price = booking
+            
+            # Use proposed_price if available, otherwise fall-back to advertised_price
+            total_cost = proposed_price if proposed_price is not None else advertised_price
 
-            booking_fee = float(total_cost) * (booking.FeeMargin / 100)
-
-            week_number = self.calculate_week_number(booking.RideTime, start_date_str)
+            booking_fee = float(total_cost) * float(booking_obj.FeeMargin) / 100
+            week_number = self.calculate_week_number(booking_obj.RideTime, start_date_str)
 
             if week_number not in weekly_revenue:
                 weekly_revenue[week_number] = 0
@@ -111,17 +76,8 @@ class GetWeeklyRevenueCommand:
             weekly_revenue[week_number] += booking_fee
 
         return weekly_revenue
-        
+    
     def get_labels(self, weekly_revenue):
-        """
-        Generates labels and data for the weekly revenue chart.
-
-        Args:
-            weekly_revenue (Dict[int, float]): Dictionary containing weekly revenue data.
-
-        Returns:
-            Tuple[List[str], List[float], float]: A tuple containing labels, data, and total revenue.
-        """
         labels = []
         data = []
         total = sum(weekly_revenue.values())
