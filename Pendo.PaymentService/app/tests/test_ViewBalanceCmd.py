@@ -1,7 +1,29 @@
-# import pytest
-# from unittest.mock import MagicMock, patch
-# from src.db.PaymentRepository import PaymentRepository
-# from src.db.PendoDatabase import UserBalance
+import pytest
+from unittest.mock import Mock, MagicMock
+from src.endpoints.ViewBalanceCmd import ViewBalanceCommand
+from src.db.PaymentRepository import UserBalance
+import uuid
+
+@pytest.fixture
+def mock_request():
+    request = MagicMock(UserId = uuid.uuid4())
+    return request
+
+@pytest.fixture
+def mock_logger():
+    return Mock()
+
+@pytest.fixture
+def mock_payment_repository():
+    return Mock()
+
+@pytest.fixture
+def get_bookings_command(mock_request, mock_logger, mock_payment_repository):
+    command = GetBookingsCommand(mock_request, mock_logger)
+    command.Payment_Repository = mock_payment_repository
+    return command
+
+
 # from src.returns.PaymentReturns import ViewBalanceResponse, StatusResponse
 # from src.endpoints.ViewBalanceCmd import ViewBalanceCommand
 # import uuid
