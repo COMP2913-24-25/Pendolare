@@ -15,8 +15,10 @@ class FilterJourneys:
     def apply_filters(self):
         filters = []
 
-        # Don't show the user their own journeys!
-        filters.append(Journey.UserId != self.request.UserId)
+        if self.request.DriverView:
+            filters.append(Journey.UserId == self.request.UserId)
+        else: 
+            filters.append(Journey.UserId != self.request.UserId)
 
         if self.request.MaxPrice is not None and self.request.MaxPrice > 0:
             filters.append(Journey.AdvertisedPrice <= self.request.MaxPrice)
@@ -37,7 +39,10 @@ class FilterJourneys:
             filters.append(Journey.MaxPassengers >= self.request.NumPassengers)
 
         if self.request.StartDate is not None:
-            filters.append(and_(Journey.StartDate >= self.request.StartDate, Journey.StartDate < (self.request.StartDate + timedelta(days=1))))
+            filters.append(Journey.StartDate >= self.request.StartDate)
+        
+        if self.request.EndDate is not None:
+            filters.append(Journey.StartDate <= self.request.EndDate)
 
         if self.request.StartLat and self.request.StartLong:
             lat_diff = self.request.DistanceRadius / 111.0
@@ -60,6 +65,5 @@ class FilterJourneys:
             )
 
         filters.append(Journey.JourneyStatusId == 1)
-
 
         return filters
