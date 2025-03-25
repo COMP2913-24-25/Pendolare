@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
             labels: window.chartLabels,
             datasets: [{
                 label: 'Revenue in £',
-                data: [450, 500, 600, 700, 800, 463, 234],
+                data: window.chartData,
                 borderWidth: 1
             }]
         },

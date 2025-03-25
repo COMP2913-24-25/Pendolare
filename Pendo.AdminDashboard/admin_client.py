@@ -32,8 +32,6 @@ class AdminClient:
     def UpdateBookingFee(self, fee):
         self.logger.info("Updating booking fee")
         payload = {"FeeMargin": float(fee) / 100.0}
-        # Print payload with extra spacing for clarity
-        self.logger.debug("Payload for UpdateBookingFee: \n%s\n", payload)
         response = requests.patch(f'{self.base_url}/api/Admin/UpdateBookingFee', json=payload, headers=self._get_headers(), verify=True)
         self.logger.info(f"Update booking fee response: {response.status_code}")
         return response
@@ -58,8 +56,6 @@ class AdminClient:
     def CreateDiscount(self, weekly_journeys, discount_percentage):
         self.logger.info("Creating discount")
         payload = {"WeeklyJourneys": weekly_journeys, "DiscountPercentage": discount_percentage}
-        # Print payload with extra spacing for clarity
-        self.logger.debug("Payload for CreateDiscount: \n%s\n", payload)
         response = requests.post(f'{self.base_url}/api/Admin/CreateDiscount', json=payload, headers=self._get_headers(), verify=True)
         self.logger.info(f"Create discount response: {response.status_code}")
         return response.json() if response.status_code == 200 else None
