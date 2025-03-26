@@ -220,6 +220,33 @@ export async function isNewUser(): Promise<boolean> {
 }
 
 /*
+  Get the current user ID from JWT token
+*/
+export async function getCurrentUserId(): Promise<string | null> {
+  try {
+    const token = await getJWTToken();
+    if (!token) {
+      return null;
+    }
+
+    // JWT structure: header.payload.signature
+    const parts = token.split('.');
+    if (parts.length === 3) {
+      const payload = JSON.parse(atob(parts[1]));
+      // Extract user ID from the name identifier claim
+      const userId = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
+      if (userId) {
+        return userId;
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error("Failed to extract user ID from JWT:", error);
+    return null;
+  }
+}
+
+/*
   Log out by clearing the secure storage
 */
 export async function logout(): Promise<void> {
