@@ -17,8 +17,7 @@ class DiscountRepository:
         self.db_session = db_session
 
     def CreateDiscount(self, weekly_journeys: int, discount_percentage: float):
-        # Convert percentage to fraction as required by the CHECK constraint
-        discount_percentage_decimal = discount_percentage / 100.0
+        discount_percentage_decimal = discount_percentage / 100.0 # convert percentage to decimal
         try:
             discount = Discounts(WeeklyJourneys=weekly_journeys, DiscountPercentage=discount_percentage_decimal)
             self.db_session.add(discount)
