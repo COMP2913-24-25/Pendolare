@@ -26,6 +26,7 @@ class ApproveBookingAmmendmentRequest(BaseModel):
     UserId: UUID
     DriverApproval: bool = False
     PassengerApproval: bool = False
+    CancellationRequest: bool = False
 
 class ApproveBookingRequest(BaseModel):
     UserId: UUID
