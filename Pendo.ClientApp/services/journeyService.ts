@@ -66,7 +66,7 @@ export interface GetJourneysRequest {
     SortByPrice?: string;
 }
 
-export async function getJourneys(filters?: GetJourneysRequest): Promise<GetJourneyResponse> {
+export async function getJourneys(filters?: GetJourneysRequest, driverView: boolean = false): Promise<GetJourneyResponse> {
     try {
         console.log("Getting journeys with filters:", filters);
         const response = await apiRequest<any>(

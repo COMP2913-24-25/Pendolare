@@ -5,8 +5,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useEffect } from "react";
 import UpcomingRide from "@/components/RideView/UpcomingRide";
 import { Ride } from "@/constants";
+import DriverRideCard from "@/components/RideView/DriverRideCard";
 
 import { getBookings } from "@/services/bookingService";
+import { getJourneys } from "@/services/journeyService";
 
 /*
   MyListings
@@ -19,49 +21,54 @@ const MyListings = () => {
   const [advertisedJourneys, setAdvertisedJourneys] = useState<any[]>([]);
   const [pastJourneys, setPastJourneys] = useState<any[]>([]);
 
-    const fetchBookings = async () => {
-      try {
-        const response = await getBookings(true);
-        
-        // Process the response to transform the bookings into Ride objects
-        const allRides: Ride[] = response.bookings.map((booking: any) => ({
-          BookingId: booking.Booking.BookingId,
-          JourneyId: booking.Journey.JourneyId,
-          RideTime: new Date(booking.Booking.RideTime),
-          Status: booking.BookingStatus.Status,
-          DriverName: booking.Journey.User.FirstName,
-          DriverId: booking.Journey.User.UserId,
-          Price: booking.Journey.Price,
-          Pickup: {
-            latitude: booking.Journey.StartLat,
-            longitude: booking.Journey.StartLong,
-            name: booking.Journey.StartName
-          },
-          Dropoff: {
-            latitude: booking.Journey.EndLat,
-            longitude: booking.Journey.EndLong,
-            name: booking.Journey.EndName
-          }
-        }));
+  const fetchBookings = async () => {
+    try {
+      const response = await getBookings(true);
+      
+      // Process the response to transform the bookings into Ride objects
+      const allRides: Ride[] = response.bookings.map((booking: any) => ({
+        BookingId: booking.Booking.BookingId,
+        JourneyId: booking.Journey.JourneyId,
+        RideTime: new Date(booking.Booking.RideTime),
+        Status: booking.BookingStatus.Status,
+        DriverName: booking.Journey.User.FirstName,
+        PassengerName: booking.Booking.User.FirstName,
+        DriverId: booking.Journey.User.UserId,
+        Price: booking.Journey.Price,
+        Pickup: {
+          latitude: booking.Journey.StartLat,
+          longitude: booking.Journey.StartLong,
+          name: booking.Journey.StartName
+        },
+        Dropoff: {
+          latitude: booking.Journey.EndLat,
+          longitude: booking.Journey.EndLong,
+          name: booking.Journey.EndName
+        }
+      }));
 
-        const timeSorter = (a : any, b : any) => b.RideTime.getTime() - a.RideTime.getTime();
+      allRides.forEach(ride => console.log(ride.DriverId));
 
-        const cancelled = allRides.filter(ride => ride.Status === "Cancelled");
-        const upcoming = allRides.filter(ride => ride.RideTime.getTime() > Date.now() && !cancelled.includes(ride))
-          .sort(timeSorter);
+      const cancelled = allRides.filter(ride => ride.Status === "Cancelled");
+      const upcoming = allRides.filter(ride => ride.RideTime.getTime() > Date.now() && !cancelled.includes(ride))
+        .sort((a, b) => a.RideTime.getTime() - b.RideTime.getTime());
 
-        const past = allRides
-          .filter(ride => ride.RideTime.getTime() <= Date.now())
-          .concat(cancelled)
-          .sort(timeSorter);
-  
-        //  Update state with the retrieved rides
-        setBookedJourneys(upcoming);
-        setPastJourneys(past);
-      } catch (error) {
-        console.error('Error fetching bookings:', error);
-      }
-    };
+      const past = allRides
+        .filter(ride => ride.RideTime.getTime() <= Date.now())
+        .concat(cancelled)
+        .sort((a, b) => b.RideTime.getTime() - a.RideTime.getTime());
+
+      //  Update state with the retrieved rides
+      setBookedJourneys(upcoming);
+      setPastJourneys(past);
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+    }
+  };
+
+  const fetchJourneys = async () => {
+    const response = await getJourneys(undefined, true);
+  };
 
   useEffect(() => {
     fetchBookings();
@@ -82,7 +89,7 @@ const MyListings = () => {
 
         {/* Tabs */}
         <View
-          className={`flex-row rounded-xl p-1 mb-4 ${
+          className={`flex-row rounded-xl p-1 ${
             isDarkMode ? "bg-slate-800" : "bg-gray-100"
           }`}
         >
@@ -159,12 +166,12 @@ const MyListings = () => {
           {currentTab === "Booked" &&
             (bookedJourneys.length > 0 ? (
               bookedJourneys.map((journey, index) => (
-                <View key={index} className="mb-4">
-                  <UpcomingRide ride={journey} />
+                <View key={index}>
+                  <DriverRideCard ride={journey} />
                 </View>
               ))
             ) : (
-              <View className="bg-white rounded-lg p-4 shadow-md">
+              <View className="bg-white rounded-lg p-4 shadow-md mt-4">
                 <Text className="text-gray-500">No booked journeys found</Text>
               </View>
             ))}
@@ -173,11 +180,11 @@ const MyListings = () => {
             (advertisedJourneys.length > 0 ? (
               advertisedJourneys.map((journey, index) => (
                 <View key={index} className="mb-4">
-                  <UpcomingRide ride={journey} />
+                  <DriverRideCard ride={journey} />
                 </View>
               ))
             ) : (
-              <View className="bg-white rounded-lg p-4 shadow-md">
+              <View className="bg-white rounded-lg p-4 shadow-md mt-4">
                 <Text className="text-gray-500">
                   No advertised journeys found
                 </Text>
@@ -187,12 +194,12 @@ const MyListings = () => {
           {currentTab === "Past" &&
             (pastJourneys.length > 0 ? (
               pastJourneys.map((journey, index) => (
-                <View key={index} className="mb-4">
-                  <UpcomingRide ride={journey} />
+                <View key={index}>
+                  <DriverRideCard ride={journey} />
                 </View>
               ))
             ) : (
-              <View className="bg-white rounded-lg p-4 shadow-md">
+              <View className="bg-white rounded-lg p-4 shadow-md mt-4">
                 <Text className="text-gray-500">No past journeys found</Text>
               </View>
             ))}

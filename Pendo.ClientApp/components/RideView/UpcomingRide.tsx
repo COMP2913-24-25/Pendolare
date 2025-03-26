@@ -13,7 +13,7 @@ import { Ride } from "@/constants";
 import { cancelBooking } from "@/services/bookingService";
 
 interface UpcomingRideProps {
-  ride : Ride
+  ride : Ride;
 }
 
 /*
