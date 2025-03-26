@@ -7,14 +7,14 @@
 FROM python:3.12-slim
 EXPOSE 5004
 
-WORKDIR /code
+WORKDIR /app
 
-COPY ./requirements.txt /code/requirements.txt
+COPY ./requirements.txt /app/requirements.txt
 
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
-COPY ./app /code
+COPY ./app /app
 
 # RUN sqlacodegen_v2 --schema identity,payment,shared  mssql+pymssql://SA:reallyStrongPwd123@172.17.0.3:1433/Pendo.Database > /code/app/src/PendoDatabase.py
 
-CMD ["fastapi", "run", "/code/src/PaymentService.py", "--port", "5004"]
+CMD ["fastapi", "run", "/app/src/PaymentService.py", "--port", "5004"]
