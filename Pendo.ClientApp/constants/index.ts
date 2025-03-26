@@ -100,6 +100,14 @@ export const JOURNEY_ENDPOINTS = {
   ADJUST_PRICE: "/Journey/AdjustPrice",
 };
 
+// Payment endpoints
+export const PAYMENT_ENDPOINTS = {
+  VIEW_BALANCE: "/PaymentService/ViewBalance",
+  PAYMENT_SHEET: "/PaymentService/PaymentSheet",
+  CREATE_PAYOUT: "/PaymentService/CreatePayout",
+  PAYMENT_METHODS: "/PaymentService/PaymentMethods",
+};
+
 export const MESSAGE_API_BASE_URL = "wss://pendo-message.clsolutions.dev/ws";
 
 // Message endpoints
