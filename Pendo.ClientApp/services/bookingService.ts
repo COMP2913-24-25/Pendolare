@@ -238,7 +238,7 @@ export async function confirmAtPickup(bookingId: string) : Promise<BookingRespon
     const response = await apiRequest<BookingResponse>(
       `${BOOKING_ENDPOINTS.CONFIRM_AT_PICKUP}/${bookingId}`,
       {
-        method: "POST",
+        method: "PUT",
         body: JSON.stringify({})
       });
 
