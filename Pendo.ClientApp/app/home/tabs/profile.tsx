@@ -11,17 +11,23 @@ import ThemedButton from "@/components/common/ThemedButton";
 import { USER_FIRST_NAME_KEY, USER_LAST_NAME_KEY, USER_RATING_KEY } from "@/services/authService";
 import * as SecureStore from "expo-secure-store";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Rating } from "react-native-ratings";
 import { getUser as apiGetUser, updateUser as apiUpdateUser } from "@/services/authService";
 import { useTheme } from "@/context/ThemeContext";
 import { ViewBalance } from "@/services/paymentService";
+import StripeModal from "@/components/TopUpModel"
 
 const Profile = () => {
 
   //Refresh in the background when we load in
   apiGetUser();
-  ViewBalance();
+  useEffect(() => {
+    // Fetch the balance sheet and update state
+    ViewBalance().then((result) => {
+      setBalanceSheet(result);
+    });
+  }, []); 
 
   const { isDarkMode } = useTheme();
 
@@ -33,16 +39,11 @@ const Profile = () => {
     };
   };
 
-  const getBalanceSheet = () => {
-    return {
-      Pending: SecureStore.getItem(USER_PENDING_BALANCE) ?? -99,
-      Non-Pending: SecureStore.getItem(USER_NON_PENDING_BALANCE) ?? -99
-    };
-  };
-
   const originalUser = getUser();
 
   const [user, setUser] = useState(getUser());
+  const [balanceSheet, setBalanceSheet] = useState({ NonPending: 0.00 , Pending: 0.00});
+  const [modalVisible, setModalVisible] = useState(false);
 
   const updateUser = (newUser : { firstName: string; lastName: string, rating: string}) => {
     if (newUser.firstName.length > 30 || newUser.lastName.length > 30) {
@@ -132,7 +133,7 @@ const Profile = () => {
         <ThemedView className={cardStyle} style={{ marginTop: 25 }}>
           <ThemedInputField
             label="Pending Balance"
-            value="£69.42"
+            value={"£" + balanceSheet.Pending.toString()}
             editable={false}
             containerStyle="mb-4"
             // onChangeText={(text) => updateUser({...user, firstName: text})}
@@ -142,7 +143,7 @@ const Profile = () => {
           </Text>
           <ThemedInputField
             label="Non-Pending Balance"
-            value="£99.69"
+            value={"£" + balanceSheet.NonPending.toString()}
             editable={false}
             containerStyle="mb-4"
             // onChangeText={(text) => updateUser({...user, lastName: text})}
@@ -154,14 +155,21 @@ const Profile = () => {
         <ThemedButton
             title="Top Up Balance"
             style={{ marginVertical: 25 }}
+            onPress={() => setModalVisible(true)}
           />
           <ThemedButton
             title="Request Payout"
             style={{ paddingVertical: 25 }}
           />
 
+          <StripeModal
+                visible={modalVisible}
+                onClose={() => setModalVisible(false)}
+              />
+
       </ScrollView>
     </ThemedSafeAreaView>
+
   );
 };
 
