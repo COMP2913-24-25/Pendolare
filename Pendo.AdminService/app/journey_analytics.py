@@ -13,43 +13,38 @@ class JourneyAnalyticsCommand:
 
         def execute(self):
             try:
-                #Retrieve all journeys from Journey table
-                journeys = self.db_session.query(Journey).all()
-                # List of dictionaries that will store information about individual journeys
-                journey_data: List[Dict] = []
-                # Two counters are initialinitialised to store number of available journeys and cancelled journeys
-                available_count = 0  
-                cancelled_count = 0
+                results = self.db_session.query(
+                    Journey, 
+                    Booking, 
+                    BookingStatus
+                ).outerjoin(
+                    Booking, Journey.JourneyId == Booking.JourneyId
+                ).outerjoin(
+                    BookingStatus, Booking.BookingStatusId == BookingStatus.BookingStatusId
+                ).all()
+
+                journey_flags = {}
+                for journey, booking, status in results:
+                    if journey.JourneyId not in journey_flags:
+                        journey_flags[journey.JourneyId] = {"booked": False, "cancelled": False}
+                    if status:
+                        status_lower = status.Status.lower()
+                        if status_lower == "booked":
+                            journey_flags[journey.JourneyId]["booked"] = True
+                        elif status_lower == "cancelled":
+                            journey_flags[journey.JourneyId]["cancelled"] = True
+
+                available_count = 0
                 booked_count = 0
+                cancelled_count = 0
 
-                # Iterates through all journeys to find available journeys 
-                for journey in journeys:
-                    bookings = self.db_session.query(Booking).filter(Booking.JourneyId == journey.JourneyId).all()
-
-                    booking_statuses = []
-                    is_available = True
-                    is_booked = False
-                    is_cancelled = False
-                    # If there is a booking associated with a journey then loop through booking details to see if booked or cancelled 
-                    for booking in bookings:
-                        booking_status = self.db_session.query(BookingStatus).filter(BookingStatus.BookingStatusId == booking.BookingStatusId).first()
-                        if booking_status:
-                            booking_statuses.append(booking_status.Status)
-                            if booking_status.Status.lower() == "booked":
-                                is_available = False  
-                                is_booked = True
-                            if booking_status.Status.lower() == "cancelled":
-                                is_cancelled = True
-                                is_available = False  
-
-                    if is_booked:
+                for flags in journey_flags.values():
+                    if flags["booked"]:
                         booked_count += 1
-                    if is_cancelled:
+                    if flags["cancelled"]:
                         cancelled_count += 1
-                    if is_available and not is_booked and not is_cancelled:
+                    if not flags["booked"] and not flags["cancelled"]:
                         available_count += 1
-                    
-                    
 
                 return {
                 "available_journeys": available_count,
