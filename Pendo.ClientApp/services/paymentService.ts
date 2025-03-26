@@ -4,8 +4,12 @@ import { apiRequest } from "./apiClient";
 
 import { PAYMENT_ENDPOINTS } from "@/constants";
 
+
+export const USER_PENDING_BALANCE = "userPendingBalance";
+export const USER_NON_PENDING_BALANCE = "userNonPendingBalance";
+
 export interface BalanceSheet {
-  UserId: string;
+  Status: string;
   Pending: number | 0.00;
   NonPending: number | 0.00;
 }
@@ -26,12 +30,16 @@ export async function ViewBalance(): Promise<BalanceSheet> {
       true
     );
 
+    if (response.Status) {
+        await SecureStore.setItemAsync(USER_PENDING_BALANCE, response.Pending.toString());
+        await SecureStore.setItemAsync(USER_NON_PENDING_BALANCE, response.NonPending.toString());
+    }
     return response;
-    
+
   } catch (error) {
     console.error("View Balance error:", error);
     return {
-        UserId: "NONE",
+        Status: "fail",
         Pending: -99,
         NonPending: -99
     };
