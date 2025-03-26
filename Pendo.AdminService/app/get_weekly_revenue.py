@@ -41,7 +41,10 @@ class GetWeeklyRevenueCommand:
                 Booking.RideTime >= datetime.strptime(self.request.StartDate, "%Y-%m-%d"),
                 Booking.RideTime <= datetime.strptime(self.request.EndDate, "%Y-%m-%d")
             ).all()
-            
+
+            print("bookings")
+            print(bookings)
+
             weekly_revenue_data = self.calculate_management_revenue(bookings, self.request.StartDate)
 
             labels, data, total = self.get_labels(weekly_revenue_data)
@@ -72,7 +75,9 @@ class GetWeeklyRevenueCommand:
 
             if week_number not in weekly_revenue:
                 weekly_revenue[week_number] = 0
+
             weekly_revenue[week_number] += booking_fee
+
         return weekly_revenue
     
     def get_labels(self, weekly_revenue):
