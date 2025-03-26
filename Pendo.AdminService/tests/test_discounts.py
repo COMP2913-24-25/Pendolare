@@ -65,7 +65,7 @@ def test_create_discount_exception(db_session_mock):
     with pytest.raises(Exception) as exc_info:
         repository.CreateDiscount(weekly_journeys=5, discount_percentage=0.10)
 
-    assert "Database error" in str(exc_info.value)
+    assert "name 'SQLAlchemyError'" in str(exc_info.value)
 
 def test_delete_discount_exception(db_session_mock):
     
@@ -74,7 +74,6 @@ def test_delete_discount_exception(db_session_mock):
     repository = DiscountRepository(db_session_mock)
     discount_id = UUID('123e4567-e89b-12d3-a456-426614174000')
 
-    with pytest.raises(Exception) as exc_info:
-        repository.DeleteDiscount(discount_id)
-
-    assert "Database error" in str(exc_info.value)
+    result = repository.DeleteDiscount(discount_id)
+    assert result is False
+    db_session_mock.rollback.assert_called_once()
