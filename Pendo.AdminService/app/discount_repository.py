@@ -63,4 +63,5 @@ class DiscountRepository:
         except ValueError:
             return False # if the uuid is invalid
         except Exception:
+            self.db_session.rollback()
             return False
