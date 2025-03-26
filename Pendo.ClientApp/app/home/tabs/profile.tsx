@@ -21,6 +21,7 @@ const Profile = () => {
 
   //Refresh in the background when we load in
   apiGetUser();
+  ViewBalance();
 
   const { isDarkMode } = useTheme();
 
@@ -29,6 +30,13 @@ const Profile = () => {
       firstName: SecureStore.getItem(USER_FIRST_NAME_KEY) ?? "No first name set!",
       lastName: SecureStore.getItem(USER_LAST_NAME_KEY) ?? "No last name set!",
       rating: SecureStore.getItem(USER_RATING_KEY) ?? "N/A"
+    };
+  };
+
+  const getBalanceSheet = () => {
+    return {
+      Pending: SecureStore.getItem(USER_PENDING_BALANCE) ?? -99,
+      Non-Pending: SecureStore.getItem(USER_NON_PENDING_BALANCE) ?? -99
     };
   };
 
@@ -45,51 +53,7 @@ const Profile = () => {
 
   const cardStyle = `${isDarkMode ? "bg-dark" : "bg_white"} rounded-lg shadow-sm px-5 py-3`;
 
-      const userBalance = async () => {
-        try {
-          const response = await ViewBalance(true);
-          
-          // Process the response to transform the bookings into Ride objects
-          const allRides: Ride[] = response.bookings.map((booking: any) => ({
-            BookingId: booking.Booking.BookingId,
-            JourneyId: booking.Journey.JourneyId,
-            RideTime: new Date(booking.Booking.RideTime),
-            Status: booking.BookingStatus.Status,
-            DriverName: booking.Journey.User.FirstName,
-            DriverId: booking.Journey.User.UserId,
-            Price: booking.Journey.Price,
-            Pickup: {
-              latitude: booking.Journey.StartLat,
-              longitude: booking.Journey.StartLong,
-              name: booking.Journey.StartName
-            },
-            Dropoff: {
-              latitude: booking.Journey.EndLat,
-              longitude: booking.Journey.EndLong,
-              name: booking.Journey.EndName
-            }
-          }));
   
-          const timeSorter = (a : any, b : any) => b.RideTime.getTime() - a.RideTime.getTime();
-  
-          const cancelled = allRides.filter(ride => ride.Status === "Cancelled");
-          const upcoming = allRides.filter(ride => ride.RideTime.getTime() > Date.now() && !cancelled.includes(ride))
-            .sort(timeSorter);
-  
-          const past = allRides
-            .filter(ride => ride.RideTime.getTime() <= Date.now())
-            .concat(cancelled)
-            .sort(timeSorter);
-    
-          //  Update state with the retrieved rides
-          setBookedJourneys(upcoming);
-          setPastJourneys(past);
-        } catch (error) {
-          console.error('Error fetching bookings:', error);
-        }
-      };
-
-
 
   return (
     <ThemedSafeAreaView className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-general-500"}`}>
