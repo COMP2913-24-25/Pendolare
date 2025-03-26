@@ -47,7 +47,7 @@ export const fetchPaymentSheetParams = async () => {
             PAYMENT_ENDPOINTS.PAYMENT_SHEET,
             {
                 method: "POST",
-                body: JSON.stringify({Amount: 10}),
+                body: JSON.stringify({Amount: 11.50}),
             },
             true
         );
