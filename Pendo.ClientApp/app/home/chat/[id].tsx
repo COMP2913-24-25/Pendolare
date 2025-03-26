@@ -16,6 +16,9 @@ import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 import { messageService, ChatMessage, getUserConversations, createConversation } from "@/services/messageService";
 import { formatTimestamp } from "@/utils/formatTime";
+import { useAuth } from "@/context/AuthContext";
+import * as SecureStore from "expo-secure-store";
+import { getJWTToken, getCurrentUserId } from "@/services/authService";
 
 /*
   Helper function to generate unique message IDs internally for categorisation
@@ -39,14 +42,43 @@ const ChatDetail = () => {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [hasSetChatVars, setHasSetChatVars] = useState(false);
+  const { user } = useAuth(); // Get the current authenticated user
+  const [currentUserId, setCurrentUserId] = useState<string>("");
   const scrollViewRef = useRef<RNScrollView>(null);
   const inputRef = useRef<TextInput>(null);
   const lastSentMessageRef = useRef<string>("");
+
+  // Ensure we have a current user ID
+  useEffect(() => {
+    const getUserId = async () => {
+      // Try to get user ID from auth context first
+      if (user?.id) {
+        setCurrentUserId(user.id);
+        return;
+      }
+
+      // Fallback: Get user ID from auth service
+      try {
+        const userId = await getCurrentUserId();
+        if (userId) {
+          console.log("Retrieved user ID:", userId);
+          setCurrentUserId(userId);
+        }
+      } catch (error) {
+        console.error("Failed to get user ID:", error);
+      }
+    };
+
+    getUserId();
+  }, [user]);
 
   /*
     Fetch chat details on initial load
   */
   useEffect(() => {
+    // Skip if we don't have a user ID yet
+    if (!currentUserId) return;
+    
     async function fetchChat() {
       try {
         // Fetch conversation details from API
@@ -74,10 +106,11 @@ const ChatDetail = () => {
           const userName : any = typeof name === "undefined" ? id.toString() : name as string;
 
           try {
+            // Create new conversation
             const response = await createConversation({
               ConversationType: "direct",
               name: `Chat with ${userName}.`,
-              participants: [ id.toString() ] // Driver ID
+              participants: [ id.toString() ]
             });
             console.log("Conversation created:", response);
 
@@ -89,8 +122,8 @@ const ChatDetail = () => {
               title: response.Name,
               lastMessage: "",
               timestamp: new Date().getTime(),
-              UserId: id.toString()
-            });  // pass conversation response
+              UserId: currentUserId // Use the current user ID
+            });  
 
             return;
             
@@ -106,18 +139,17 @@ const ChatDetail = () => {
       }
     }
     fetchChat();
-  }, [id]);
+  }, [id, currentUserId]);
 
   useEffect(() => {
     console.log("Chat updated:", chat);
-    if (chat && messageService) {
+    // Only proceed if we have both a chat and a current user ID
+    if (chat && messageService && currentUserId) {
       messageService.setConversationId(chat.id);
-      // Set user id from normalised conversation response
-      // User ID is typically stamped when passing through the gateway 
-      // However, non REST API calls bypass this and require manual setting
+      console.log("Outputting chat" + JSON.stringify(chat));
       if (hasSetChatVars) {
-        console.log("Setting user ID:", chat.UserId);
-        messageService.setUserId(chat.UserId);
+        console.log("Setting user ID:", currentUserId);
+        messageService.setUserId(currentUserId);
 
         console.log("Setting conversation ID:", chat.ConversationId);
         messageService.setConversationId(chat.ConversationId);
@@ -127,11 +159,9 @@ const ChatDetail = () => {
     // Clear messages when switching chats
     setMessages([]);
     setIsLoadingHistory(false);
-  }, [chat?.UserId, chat?.ConversationId]);
+  }, [chat?.id, chat?.ConversationId, currentUserId]);
 
-  /*
-    Set up WebSocket event listeners
-  */
+  // Handle connection events
   useEffect(() => {
     // Handle connection events
     messageService.on("connected", () => {
@@ -159,7 +189,6 @@ const ChatDetail = () => {
     messageService.on("error", (error) => {
       setConnectionError(`Connection error: ${error}`);
       setIsConnecting(false);
-      setIsLoadingHistory(false);
     });
 
     // Handle message history loaded event
@@ -167,10 +196,8 @@ const ChatDetail = () => {
       console.log("History loaded:", historyMessages.length, "messages");
       setIsLoadingHistory(false);
 
-      /*
-        Merge new messages with existing messages
-        Only add messages that are not already in the list
-      */
+      // Merge new messages with existing messages
+      // Only add messages that are not already in the list
       setMessages((prevMessages: any[]) => {
         // Create a set of existing message IDs for comparison
         const existingIds = new Set(prevMessages.map((m) => m.id));
@@ -193,13 +220,11 @@ const ChatDetail = () => {
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: false });
       }, 100);
-
     });
 
     // Handle incoming messages
     messageService.on("message", (message) => {
       // Handle user message sent event
-
       if (message.type === "conversation_joined") {
         console.log("Initial message:", initialMessage);
 
@@ -207,6 +232,7 @@ const ChatDetail = () => {
           setNewMessage(initialMessage as string);
           sendMessage();
         }
+        return;
       }
 
       if (message.type === "user_message_sent") {
@@ -215,7 +241,6 @@ const ChatDetail = () => {
         }
         // Add user message to list
         setMessages((prev) => [...prev, { ...message, sender: "user", status: "sent" }]);
-
         lastSentMessageRef.current = "";
         return;
       }
@@ -225,10 +250,8 @@ const ChatDetail = () => {
         // Determine sender based on user ID 
         const sender = message.from === chat?.UserId ? "user" : "other";
         
-        /*
-          Update message status based on sender
-          If the message is from the user, update the status to "sent"
-        */
+        // Update message status based on sender
+        // If the message is from the user, update the status to "sent"
         setMessages((prev: any[]) => {
           if (sender === "user") {
             const idx = prev.findIndex((m: { status: string; content: string | undefined; }) => m.status === "sending" && m.content === message.content);
@@ -284,16 +307,16 @@ const ChatDetail = () => {
   useEffect(() => {
     if (messages.length > 0 && !isLoadingHistory) {
       scrollViewRef.current?.scrollToEnd({ animated: false });
-    }
+    }  
   }, [messages.length, isLoadingHistory]);
 
   /*
     Send a message to the chat
-  */  
+  */
   const sendMessage = () => {
     if (!newMessage.trim() || !isConnected) return;
 
-    // Store last sent message before sending removing unnecessary whitespace
+    // Store last sent message before sending
     lastSentMessageRef.current = newMessage.trim();
 
     const success = messageService.sendMessage(newMessage.trim());
@@ -357,8 +380,8 @@ const ChatDetail = () => {
                 isUser
                   ? "text-blue-200"
                   : isDarkMode
-                    ? "text-gray-400"
-                    : "text-gray-500"
+                  ? "text-gray-400"
+                  : "text-gray-500"
               }`}
             >
               {formatTimestamp(new Date(message.timestamp).getTime())}
@@ -369,16 +392,15 @@ const ChatDetail = () => {
     );
   };
 
+  /* 
+    Note: Styling and class names are derived from Tailwind CSS docs
+    https://tailwindcss.com/docs/
+    Additional design elements have been generated using Figma -> React Native (Tailwind)
+    https://www.figma.com/community/plugin/821138713091291738/figma-react-native
+    https://www.figma.com/community/plugin/1283055580669946018/tailwind-react-code-generator-by-pagesloft
+    KeyboardAvoidingView derived from: https://reactnative.dev/docs/keyboardavoidingview
+  */
   return (
-    /* 
-      Note: Styling and class names are derived from Tailwind CSS docs
-      https://tailwindcss.com/docs/
-      Additional design elements have been generated using Figma -> React Native (Tailwind)
-      https://www.figma.com/community/plugin/821138713091291738/figma-react-native
-      https://www.figma.com/community/plugin/1283055580669946018/tailwind-react-code-generator-by-pagesloft
-    */
-
-    // KeyboardAvoidingView derived from: https://reactnative.dev/docs/keyboardavoidingview
     <ThemedSafeAreaView
       className={isDarkMode ? "flex-1 bg-slate-900" : "flex-1 bg-white"}
     >
@@ -424,7 +446,6 @@ const ChatDetail = () => {
             )}
       
             <RNScrollView ref={scrollViewRef} className="flex-1 px-4" contentContainerStyle={{ paddingVertical: 20 }}>
-
               {/* History loading indicator */}
               {isLoadingHistory && (
                 <View className="flex-row justify-center mb-4">
