@@ -24,7 +24,12 @@ class JourneyAnalyticsCommand:
                 ).all()
 
                 journey_flags = {}
-                for journey, booking, booking_status in results:
+                for record in results:
+                    if isinstance(record, tuple):
+                        journey, booking, booking_status = record
+                    else:
+                        journey, booking, booking_status = record, None, None
+
                     if journey.JourneyId not in journey_flags:
                         journey_flags[journey.JourneyId] = {"booked": False, "cancelled": False}
                     if booking_status:
@@ -47,10 +52,10 @@ class JourneyAnalyticsCommand:
                         available_count += 1
 
                 return {
-                "available_journeys": available_count,
-                "cancelled_journeys": cancelled_count,
-                "booked_journeys": booked_count
-            }
+                    "available_journeys": available_count,
+                    "cancelled_journeys": cancelled_count,
+                    "booked_journeys": booked_count
+                }
             except Exception as e:
                 self.response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
                 return {"Error": str(e)}
