@@ -36,7 +36,7 @@ def test_delete_discount(db_session_mock):
     db_session_mock.commit = MagicMock()
 
     repository = DiscountRepository(db_session_mock)
-    discount_id = UUID('123e4567-e89b-12d3-a456-426614174000')
+    discount_id = '123e4567-e89b-12d3-a456-426614174000'
 
     deleted = repository.DeleteDiscount(discount_id)
 
@@ -51,7 +51,7 @@ def test_delete_discount_not_found(db_session_mock):
     db_session_mock.commit = MagicMock()
 
     repository = DiscountRepository(db_session_mock)
-    discount_id = UUID('123e4567-e89b-12d3-a456-426614174000')
+    discount_id = '123e4567-e89b-12d3-a456-426614174000'
 
     deleted = repository.DeleteDiscount(discount_id)
 
@@ -76,7 +76,7 @@ def test_delete_discount_exception(db_session_mock):
     db_session_mock.query.side_effect = Exception("Database error")
     db_session_mock.rollback = MagicMock()
     repository = DiscountRepository(db_session_mock)
-    discount_id = UUID('123e4567-e89b-12d3-a456-426614174000')
+    discount_id = '123e4567-e89b-12d3-a456-426614174000'
 
     result = repository.DeleteDiscount(discount_id)
     assert result is False
