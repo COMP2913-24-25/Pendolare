@@ -4,6 +4,7 @@ export interface Ride {
   Status: string;
   DriverName: string;
   DriverId: string;
+  PassengerName: string;
   Price: number;
   Pickup : {
     latitude: number;

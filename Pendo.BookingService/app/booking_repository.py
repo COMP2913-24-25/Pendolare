@@ -32,6 +32,7 @@ class BookingRepository():
 
         return_dto = []
         bookings = self.db_session.query(Booking)\
+            .join(Booking.Journey_)\
             .filter(*filters)\
             .options(
                 joinedload(Booking.BookingStatus_),
