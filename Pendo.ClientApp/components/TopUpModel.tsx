@@ -32,12 +32,12 @@ const StripeModal = ({ visible, onClose }: BlankModalProps) => {
     }, [])
 
     const initalisePaymentSheet = async () => {
-        const {paymentIntent, ephemeralKey, customer} = await fetchPaymentSheetParams();
-
+        const {PaymentIntent, EphemeralKey, CustomerId} = await fetchPaymentSheetParams();
+        
         const {error} = await initPaymentSheet({
-            customerId: customer, 
-            customerEphemeralKeySecret: ephemeralKey,
-            paymentIntentClientSecret: paymentIntent,
+            customerId: CustomerId, 
+            customerEphemeralKeySecret: EphemeralKey,
+            paymentIntentClientSecret: PaymentIntent,
             merchantDisplayName: "Pendolare",
             allowsDelayedPaymentMethods: true
             
