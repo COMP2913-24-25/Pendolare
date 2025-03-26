@@ -17,9 +17,11 @@ class AddBookingAmmendmentCommand:
             self.logger.debug(f"Adding booking amendment for booking {self.request.BookingId}: {self.request}")
             self._assertBookingExists()
 
-            if self.request.StartTime is not None and self.request.StartTime < datetime.now():
-                self.response.status_code = status.HTTP_400_BAD_REQUEST
-                raise Exception("Start time cannot be in the past")
+            # Only validate start time if this is not a cancellation request
+            if not self.request.CancellationRequest and self.request.StartTime is not None:
+                if self.request.StartTime < datetime.now():
+                    self.response.status_code = status.HTTP_400_BAD_REQUEST
+                    raise Exception("Start time cannot be in the past")
 
             bookingAmendment = self._createBookingAmendment()
             self.booking_repository.AddBookingAmmendment(bookingAmendment)
