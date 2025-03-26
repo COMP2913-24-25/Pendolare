@@ -1,12 +1,6 @@
-import * as SecureStore from "expo-secure-store";
-
 import { apiRequest } from "./apiClient";
 
 import { PAYMENT_ENDPOINTS } from "@/constants";
-
-
-export const USER_PENDING_BALANCE = "userPendingBalance";
-export const USER_NON_PENDING_BALANCE = "userNonPendingBalance";
 
 export interface BalanceSheet {
   Status: string;
@@ -14,7 +8,13 @@ export interface BalanceSheet {
   NonPending: number | 0.00;
 }
 
-
+export interface PaymentSheetResponse {
+    Status: string,
+    PaymentIntent: string,
+    EphemeralKey: string,
+    CustomerId: string,
+    PublishableKey: string
+}
 /*
  * Get PaymentSheet
  * Note: The UserId is automatically added by the Kong gateway
@@ -30,10 +30,6 @@ export async function ViewBalance(): Promise<BalanceSheet> {
       true
     );
 
-    if (response.Status) {
-        await SecureStore.setItemAsync(USER_PENDING_BALANCE, response.Pending.toString());
-        await SecureStore.setItemAsync(USER_NON_PENDING_BALANCE, response.NonPending.toString());
-    }
     return response;
 
   } catch (error) {
@@ -45,3 +41,22 @@ export async function ViewBalance(): Promise<BalanceSheet> {
     };
   }
 }
+
+export const fetchPaymentSheetParams = async () => {
+        const response = await apiRequest<PaymentSheetResponse>(
+            PAYMENT_ENDPOINTS.PAYMENT_SHEET,
+            {
+                method: "POST",
+                body: JSON.stringify({Amount: 10}),
+            },
+            true
+        );
+
+        const {PaymentIntent, EphemeralKey, CustomerId} = await response
+
+        return {
+            PaymentIntent, 
+            EphemeralKey,
+            CustomerId
+        }
+} 
