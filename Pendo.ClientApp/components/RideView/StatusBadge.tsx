@@ -14,6 +14,14 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ statusText }) => {
   let iconColor = "#6B7280";
 
   switch (statusText) {
+
+    case "Advertised":
+      badgeStyle = "bg-blue-100";
+      textStyle = "text-blue-800";
+      iconName = "bullhorn";
+      iconColor = "#3B82F6";
+      break;
+
     case "Pending":
       badgeStyle = "bg-yellow-100";
       textStyle = "text-yellow-800";

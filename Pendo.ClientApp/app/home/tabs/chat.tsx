@@ -18,6 +18,7 @@ interface Conversation {
   lastMessage: string;
   timestamp: number;
   unread: number;
+  userId: string;
 }
 
 /*
@@ -53,10 +54,13 @@ const Chat = () => {
         ...conv,
         type: conv.Type ? conv.Type.toLowerCase() : conv.type,
         id: conv.id || conv.ConversationId,
+        userId: conv.UserId,
         title: conv.Name,
         lastMessage: conv.lastMessage || "",
         timestamp: new Date(conv.CreateDate).getTime(),
       }));
+
+      normalisedConversations.forEach((conv) => {console.log(conv.userId)});
 
       console.log("normalised conversations:", normalisedConversations);
       setConversations(normalisedConversations);
@@ -65,9 +69,11 @@ const Chat = () => {
     }
   };
 
-  useEffect(() => {
-    fetchConversations();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchConversations();
+    }, [])
+  );
 
   /*
     Handle Support Category
@@ -83,8 +89,8 @@ const Chat = () => {
     Handle Chat Press
     Navigate to the chat screen when a chat is pressed
   */
-  const handleChatPress = (chatId: string) => {
-    router.push(`/home/chat/${chatId}`);
+  const handleChatPress = (userId: string) => {
+    router.push(`/home/chat/${userId}`);
   };
 
   // Add focus effect to refresh data when tab becomes active
@@ -132,7 +138,7 @@ const Chat = () => {
                   lastMessage={chat.lastMessage}
                   timestamp={chat.timestamp}
                   unread={chat.unread}
-                  onPress={() => handleChatPress(chat.id)}
+                  onPress={() => handleChatPress(chat.userId)}
                 />
               );
             })}

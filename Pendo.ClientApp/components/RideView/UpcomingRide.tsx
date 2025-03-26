@@ -53,7 +53,7 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
 
   const handleCancel = async (reason: string) => {
     try {
-      await cancelBooking(ride.BookingId, reason); // Replace with actual API call
+      await cancelBooking(ride.BookingId, reason);
 
       setShowCancelModal(false);
       await new Promise((resolve) => setTimeout(resolve, 100));
