@@ -29,6 +29,15 @@ class PaymentRepository():
         :return: User object.
         """
         return self.db_session.query(User).get(user_id)
+
+    def GetUserType(self, user_id, booking_id):
+
+        if self.db_session.query(Booking).filter(Booking.UserId == user_id, Booking.BookingId == booking_id).exists():
+            UserType = "Passenger"
+        else:
+            UserType = "Driver"
+
+        return UserType
     
     def GetBookingById(self, booking_id):
         """
@@ -89,11 +98,11 @@ class PaymentRepository():
         self.db_session.add(transaction)
         self.db_session.commit()
 
-    def GetTransaction(self, user_id = None, amount = None, status = None, typeof = None):
+    def GetTransaction(self, user_id = None, booking_id = None, amount = None, status = None, typeof = None):
         """
         GetTransaction searches the db for a speicifc transaction log given the appropiate parameters
         """
-        return self.db_session.query(Transaction).filter(Transaction.UserId == user_id, Transaction.Value == amount, Transaction.TransactionStatusId == status, Transaction.TransactionTypeId == typeof).first()
+        return self.db_session.query(Transaction).filter(Transaction.UserId == user_id, Transaction.BookingId == booking_id, Transaction.Value == amount, Transaction.TransactionStatusId == status, Transaction.TransactionTypeId == typeof).first()
 
     def UpdateTransaction(self, transaction_id, amount, typeof, status):
         """

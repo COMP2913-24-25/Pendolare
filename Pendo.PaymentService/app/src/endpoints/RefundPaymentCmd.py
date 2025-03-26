@@ -1,7 +1,7 @@
 from ..db.PaymentRepository import PaymentRepository
 from ..db.PendoDatabase import Transaction, UserBalance
 from ..returns.PaymentReturns import StatusResponse
-import datetime
+from datetime import datetime, timedelta
 
 class RefundPaymentCommand:
     """
@@ -42,11 +42,111 @@ class RefundPaymentCommand:
                 # JourneyTime: datetime
 
             # see PendingBookingCmd for useful examples!
+
+            # check if the id is the driver or passenger.
+
+            UserType = self.PaymentRepository.GetUserType(self.CancelledById, self.BookingId)
+
+
+            DriverId = self.PaymentRepository.GetBookingById(self.booking_id).journey_.UserId
+
+            PassengerId = self.PaymentRepository.GetBookingById(self.booking_id).UserId
+
+            TransactionId = self.GetTransaction(DriverId, bookingId, None, None, None)
+
+            AdminFee = self.PaymentRepository.GetBookingById(self.booking_id).FeeMargin
+
+            
+
+            #Need to make this the right price (may be different from the latest agreed price! and includes a deduction of the admin fee)
+            #Fee is the FeeMargin in Booking table
+
+            self.PaymentRepository.UpdatePendingBalance(DriverId, -1 * LatestPrice)
+
+
+            #Create transaction
+
+            transaction = Transaction(
+                        UserId = DriverId, 
+                        Value = float(LatestPrice),
+                        CurrencyCode = "gbp",
+                        TransactionStatusId = 1,
+                        TransactionTypeId = 1,
+                        CreateDate = datetime.datetime.now(),
+                        UpdateDate = datetime.datetime.now()
+                    )
+
+            self.PaymentRepository.CreateTransaction(transaction)
+
             
             # reduce driver pending - undo the pendingaddition by it's whole amount
                 # this value will be stored as a pending addition type in relation to the bookingid and userid in the transaction table
                 # (may be different from the latest agreed price! and includes a deduction of the admin fee)
                 # record reduction in transaction table
+
+
+            if UserType == "Passenger":
+                TimeDifference = JourneyTime - CancellationTime
+                if TimeDifference > timedelta(minutes=15):
+                    #Do nothing?
+
+                    print("Cancellation more than 15 minutes before journey time")
+                else:
+                    RefundableAmount = LatestPrice * 0.75
+                    
+                    #Transaction updated
+
+                    self.PaymentRepository.UpdateNonPendingBalance(PassengerId, -1 * RefundableAmount)
+
+                    transaction = Transaction(
+                        UserId = PassengerId, 
+                        Value = float(RefundableAmount),
+                        CurrencyCode = "gbp",
+                        TransactionStatusId = 1,
+                        TransactionTypeId = 3,
+                        CreateDate = datetime.datetime.now(),
+                        UpdateDate = datetime.datetime.now()
+                    )
+
+                    self.PaymentRepository.CreateTransaction(transaction)
+
+                    NewPrice = 0.75 * LatestPrice
+                    Margin = round(AdminFee * NewPrice, 2)
+                    Price = NewPrice - Margin
+
+                    self.PaymentRepository.UpdateNonPendingBalance(DriverId, Price)
+
+                    transaction = Transaction(
+                        UserId = DriverId, 
+                        Value = float(Price),
+                        CurrencyCode = "gbp",
+                        TransactionStatusId = 1,
+                        TransactionTypeId = 2,
+                        CreateDate = datetime.datetime.now(),
+                        UpdateDate = datetime.datetime.now()
+                    )
+
+                    self.PaymentRepository.CreateTransaction(transaction)
+
+
+                    #UpdatedPassengerNonPendingBalance = self.GetUserBalance(PassengerId).NonPending
+
+                    #self.CreateTransaction(TransactionId, -1 * RefundableAmount, NonPendingAddition, Finalised)
+
+                    ##self.UpdateNonPendingBalance(DriverId, RefundableAmount + AdminFee)
+
+                    #UpdatedDriverPendingBalance = self.GetUserBalance(DriverId).NonPending
+
+                    ##self.UpdateTransaction(TransactionId, RefundableAmount + AdminFee, NonPendingAddition, Finalised)
+
+
+
+
+
+
+                   
+
+
                 
             # if passenger cancelled
 
