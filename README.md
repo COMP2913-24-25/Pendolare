@@ -43,7 +43,7 @@ For detailed setup instructions and documentation for each service, please visit
 ## Contributors
 
 - Alexander McCall (@sc23am3) - Payment Service & Client App
-- Catherine Weightman (@sc23c2w) - Journey Service  
+- Catherine Weightman (@sc23c2w) - Journey Service & Payment Service
 - James Kinley (@jameskinley) - Identity Service, Booking Service & Client App
 - Josh Mundray (@sc232jm) - API Gateway, Message Service & Client App
 - Lara Glenn (@lara-glenn) - Admin Service
