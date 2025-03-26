@@ -8,6 +8,7 @@ import UpcomingRideCard from "./UpcomingRideCard";
 
 interface DriverRideCardProps {
   ride: any;
+  journeyView?: boolean;
 }
 
 /*
@@ -15,9 +16,20 @@ interface DriverRideCardProps {
     Component for an upcoming ride from the driver's perspective.
     This version removes ride cancellation and completion functionality.
 */
-const DriverRideCard = ({ ride }: DriverRideCardProps) => {
+const DriverRideCard = ({ ride, journeyView = false }: DriverRideCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
   const insets = useSafeAreaInsets();
+
+  const handleContactPassenger = async () => {
+    try {
+      setShowDetails(false);
+      // Small delay to allow modal to start closing
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      router.push(`/home/chat/${ride.PassengerId}?name=${ride.PassengerName}`);
+    } catch (error) {
+      console.error("Error navigating to chat:", error);
+    }
+  };
 
   // Ensure consistent top spacing
   insets.top = 0;
@@ -25,6 +37,17 @@ const DriverRideCard = ({ ride }: DriverRideCardProps) => {
   return (
     <View style={{ paddingTop: insets.top > 0 ? insets.top : 20 }}>
       <UpcomingRideCard ride={ride} onPress={() => setShowDetails(true)} />
+      <UpcomingRideDetailsModal
+        visible={showDetails}
+        ride={ride}
+        onClose={() => setShowDetails(false)}
+        onCancel={() => {}}
+        onContactDriver={() => handleContactPassenger()}
+        onComplete={() => {}}
+        isPastRide={false}
+        driverView={true}
+        journeyView={journeyView}
+      />
     </View>
   );
 };

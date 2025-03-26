@@ -17,6 +17,8 @@ interface UpcomingRideDetailsModalProps {
   onCancel: () => void;
   onComplete: () => void;
   isPastRide: boolean;
+  driverView?: boolean;
+  journeyView?: boolean;
   children?: React.ReactNode;
 }
 
@@ -32,6 +34,8 @@ const UpcomingRideDetailsModal = ({
   onCancel,
   onComplete,
   isPastRide,
+  driverView = false,
+  journeyView = false,
   children,
 }: UpcomingRideDetailsModalProps) => {
   const { isDarkMode } = useTheme();
@@ -82,13 +86,13 @@ const UpcomingRideDetailsModal = ({
             </View>
           </View>
 
-          <View className="flex-row gap-4">
+          {!journeyView && <View className="flex-row gap-4">
             <TouchableOpacity
               onPress={onContactDriver}
               className="flex-1 bg-blue-600 p-4 rounded-xl"
             >
               <Text className="text-white text-center font-JakartaBold">
-                Contact Driver
+                {driverView ? "Contact Passenger" : "Contact Driver"}
               </Text>
             </TouchableOpacity>
 
@@ -111,7 +115,7 @@ const UpcomingRideDetailsModal = ({
                 </Text>
               </TouchableOpacity>
             )}
-          </View>
+          </View>}
         </View>
       </View>
       {children}

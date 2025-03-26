@@ -223,6 +223,8 @@ const ChatDetail = () => {
       // Handle incoming chat messages
       if (message.type === "chat" && message.content) {
         // Determine sender based on user ID 
+        console.log("Chat user id: ", chat?.UserId);
+        console.log("Chat message from: ", message.from);
         const sender = message.from === chat?.UserId ? "user" : "other";
         
         /*
@@ -310,6 +312,7 @@ const ChatDetail = () => {
     Component for rendering chat messages
   */
   const MessageBubble = ({ message }: { message: ChatMessage }) => {
+    console.log(message);
     const isUser = message.sender === "user";
     const isSystem = message.sender === "system";
 
