@@ -29,32 +29,36 @@ def test_get_discounts(db_session_mock):
     assert discounts[1].DiscountID == UUID('123e4567-e89b-12d3-a456-426614174001')
 
 def test_delete_discount(db_session_mock):
-   
-    db_session_mock.execute = MagicMock()
-    db_session_mock.execute.return_value.rowcount = 1
+    # Configure query to return a discount object
+    discount_obj = MagicMock()
+    db_session_mock.query.return_value.filter.return_value.first.return_value = discount_obj
+    db_session_mock.delete = MagicMock()
     db_session_mock.commit = MagicMock()
+
     repository = DiscountRepository(db_session_mock)
     discount_id = UUID('123e4567-e89b-12d3-a456-426614174000')
 
     deleted = repository.DeleteDiscount(discount_id)
 
     assert deleted is True
-    db_session_mock.execute.assert_called_once()
+    db_session_mock.delete.assert_called_once_with(discount_obj)
     db_session_mock.commit.assert_called_once()
 
 def test_delete_discount_not_found(db_session_mock):
-    
-    db_session_mock.execute = MagicMock()
-    db_session_mock.execute.return_value.rowcount = 0
+    # Configure query to return None (discount not found)
+    db_session_mock.query.return_value.filter.return_value.first.return_value = None
+    db_session_mock.delete = MagicMock()
     db_session_mock.commit = MagicMock()
+
     repository = DiscountRepository(db_session_mock)
     discount_id = UUID('123e4567-e89b-12d3-a456-426614174000')
 
     deleted = repository.DeleteDiscount(discount_id)
 
     assert deleted is False
-    db_session_mock.execute.assert_called_once()
-    db_session_mock.commit.assert_called_once()
+    # Ensure delete and commit are not called when discount is not found
+    db_session_mock.delete.assert_not_called()
+    db_session_mock.commit.assert_not_called()
 
 def test_create_discount_exception(db_session_mock):
  
@@ -68,8 +72,8 @@ def test_create_discount_exception(db_session_mock):
     assert "name 'SQLAlchemyError'" in str(exc_info.value)
 
 def test_delete_discount_exception(db_session_mock):
-    
-    db_session_mock.execute = MagicMock(side_effect=Exception("Database error"))
+    # Simulate exception during query
+    db_session_mock.query.side_effect = Exception("Database error")
     db_session_mock.rollback = MagicMock()
     repository = DiscountRepository(db_session_mock)
     discount_id = UUID('123e4567-e89b-12d3-a456-426614174000')
