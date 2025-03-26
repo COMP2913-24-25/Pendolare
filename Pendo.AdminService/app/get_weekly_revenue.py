@@ -1,3 +1,4 @@
+import logging
 from booking_repository import BookingRepository
 from response_lib import GetWeeklyRevenueResponse
 from fastapi import status
@@ -6,7 +7,8 @@ from sqlalchemy import and_
 
 from models import Booking, BookingStatus, Journey, BookingAmmendment
 
-# Get weekly revenue for maangement
+logger = logging.getLogger(__name__)
+
 class GetWeeklyRevenueCommand:
 
     def __init__(self, db_session, request, response, configuration_provider):
@@ -42,8 +44,7 @@ class GetWeeklyRevenueCommand:
                 Booking.RideTime <= datetime.strptime(self.request.EndDate, "%Y-%m-%d")
             ).all()
 
-            print("bookings")
-            print(bookings)
+            logger.info("Bookings: %s", bookings)
 
             weekly_revenue_data = self.calculate_management_revenue(bookings, self.request.StartDate)
 
@@ -53,6 +54,7 @@ class GetWeeklyRevenueCommand:
             return GetWeeklyRevenueResponse(labels=labels, data=data, currency=currency, total=f"{currency}{float(total):.2f}")
 
         except Exception as e:
+            logger.exception("Error in GetWeeklyRevenueCommand Execute method")
             self.response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
             return {"Error": str(e)}
         
