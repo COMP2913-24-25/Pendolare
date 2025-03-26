@@ -2,6 +2,7 @@ from .PendoDatabase import *
 from sqlalchemy.orm import joinedload, with_loader_criteria
 import datetime
 from .PendoDatabaseProvider import get_db
+from decimal import Decimal
 
 class PaymentRepository():
     """
@@ -64,7 +65,7 @@ class PaymentRepository():
         if BalanceSheet is None:
             raise Exception("Balance Sheet not found for user")
 
-        BalanceSheet.Pending += amount
+        BalanceSheet.Pending += Decimal(amount)
 
         self.db_session.commit()
 
@@ -79,7 +80,7 @@ class PaymentRepository():
         if BalanceSheet is None:
             raise Exception("Balance Sheet not found for user")
         
-        BalanceSheet.NonPending += amount
+        BalanceSheet.NonPending += Decimal(amount)
         self.db_session.commit()
 
     def CreateTransaction(self, transaction):
@@ -89,12 +90,12 @@ class PaymentRepository():
         self.db_session.add(transaction)
         self.db_session.commit()
 
-    def GetTransaction(self, user_id = None, amount = None, status = None, typeof = None):
+    def GetTransaction(self, user_id = None, booking_id = None, amount = None, status = None, typeof = None):
         """
         GetTransaction searches the db for a speicifc transaction log given the appropiate parameters
         """
-        return self.db_session.query(Transaction).filter(Transaction.UserId == user_id, Transaction.Value == amount, Transaction.TransactionStatusId == status, Transaction.TransactionTypeId == typeof).first()
-
+        return self.db_session.query(Transaction).filter(Transaction.UserId == user_id, Transaction.BookingId == booking_id, Transaction.Value == amount, Transaction.TransactionStatusId == status, Transaction.TransactionTypeId == typeof).first()
+        
     def UpdateTransaction(self, transaction_id, amount, typeof, status):
         """
         UpdateTransaction allows for an update to an existing transaction
