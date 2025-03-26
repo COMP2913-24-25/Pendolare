@@ -1,6 +1,7 @@
 import { FontAwesome5 } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { ScrollView, Image, Alert } from "react-native";
+import { useState, useCallback } from "react";
 
 import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
 import ThemedView from "@/components/common/ThemedView";
@@ -11,7 +12,6 @@ import ThemedButton from "@/components/common/ThemedButton";
 import { USER_FIRST_NAME_KEY, USER_LAST_NAME_KEY, USER_RATING_KEY } from "@/services/authService";
 import * as SecureStore from "expo-secure-store";
 
-import { useState } from "react";
 import { Rating } from "react-native-ratings";
 import { getUser as apiGetUser, updateUser as apiUpdateUser } from "@/services/authService";
 import { useTheme } from "@/context/ThemeContext";
@@ -43,6 +43,21 @@ const Profile = () => {
   };
 
   const cardStyle = `${isDarkMode ? "bg-dark" : "bg_white"} rounded-lg shadow-sm px-5 py-3`;
+
+  // Add focus effect to refresh user data when tab becomes active
+  useFocusEffect(
+    useCallback(() => {
+      console.log("Profile tab focused - refreshing user data");
+      const refreshUserData = async () => {
+        await apiGetUser();
+        setUser(getUser());
+      };
+      refreshUserData();
+      return () => {
+        // Cleanup if needed
+      };
+    }, [])
+  );
 
   return (
     <ThemedSafeAreaView className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-general-500"}`}>

@@ -16,6 +16,7 @@ export interface ChatMessage {
   timestamp: string;
   sender?: string;
   status?: "sending" | "sent" | "delivered";
+  amendmentId?: string;
 }
 
 interface CreateConversationRequest {
@@ -133,6 +134,29 @@ class MessageService {
           message = JSON.parse(dataStr);
           if (isEcho) {
             message.isEcho = true;
+          }
+
+          // Special handling for booking amendments 
+          if (message.type === "booking_amendment" || message.amendmentId) {
+            console.log("Received booking amendment message:", message);
+            
+            // Ensure type is set correctly
+            message.type = "booking_amendment";
+            
+            // Make sure amendmentId is preserved
+            if (message.amendmentId && typeof message.content === 'string') {
+              try {
+                // Try to parse content if it's a string
+                const parsedContent = JSON.parse(message.content);
+                
+                // If parsed content already has BookingId, use it directly
+                if (parsedContent.BookingId) {
+                  message.content = parsedContent;
+                }
+              } catch (e) {
+                console.error("Error parsing amendment content:", e);
+              }
+            }
           }
 
           // Handle history response messages
@@ -283,18 +307,40 @@ class MessageService {
       return false;
     }
 
-    const message = {
-      type: "chat",
-      from: this.userId,
-      conversation_id: this.conversationId,
-      content: content,
-      timestamp: new Date().toISOString(),
-    };
+    // Check if this is a booking amendment message
+    let message = null;
+    try {
+      const parsedContent = JSON.parse(content);
+      
+      // If this is a booking amendment, use the original structure
+      if (parsedContent.type === "booking_amendment") {
+        message = parsedContent;
+      } else {
+        // Regular message
+        message = {
+          type: "chat",
+          from: this.userId,
+          conversation_id: this.conversationId,
+          content: content,
+          timestamp: new Date().toISOString()
+        };
+      }
+    } catch (e) {
+      // Not JSON, treat as regular chat message
+      message = {
+        type: "chat",
+        from: this.userId,
+        conversation_id: this.conversationId,
+        content: content,
+        timestamp: new Date().toISOString()
+      };
+    }
 
     // Send the message
     try {
-      this.ws.send(JSON.stringify(message));
-      console.log("Message sent:", content);
+      const messageStr = JSON.stringify(message);
+      console.log("Sending message:", messageStr);
+      this.ws.send(messageStr);
       return true;
     } catch (error) {
       console.error("Error sending message:", error);
