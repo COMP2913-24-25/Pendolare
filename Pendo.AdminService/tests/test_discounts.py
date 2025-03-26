@@ -17,8 +17,8 @@ def test_create_discount(db_session_mock):
 
 def test_get_discounts(db_session_mock):
     
-    discount1_mock = MagicMock(Discounts, DiscountID=UUID('123e4567-e89b-12d3-a456-426614174000'), WeeklyJourneys=5, DiscountPercentage=0.10)
-    discount2_mock = MagicMock(Discounts, DiscountID=UUID('123e4567-e89b-12d3-a456-426614174001'), WeeklyJourneys=10, DiscountPercentage=0.20)
+    discount1_mock = MagicMock(Discounts, DiscountID=UUID('123e4567-e89b-12d3-a456-426614174000'), WeeklyJourneys=5, DiscountPercentage=10)
+    discount2_mock = MagicMock(Discounts, DiscountID=UUID('123e4567-e89b-12d3-a456-426614174001'), WeeklyJourneys=10, DiscountPercentage=20)
     db_session_mock.query().all.return_value = [discount1_mock, discount2_mock]
     repository = DiscountRepository(db_session_mock)
 
