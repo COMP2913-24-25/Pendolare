@@ -1,3 +1,5 @@
+import logging
+import sys
 from typing import Annotated
 from fastapi import FastAPI, HTTPException, Depends, Response, status, Query
 from configuration_provider import ConfigurationProvider
@@ -16,6 +18,12 @@ from discount_repository import DiscountRepository
 from models import Discounts
 
 configuration_provider = ConfigurationProvider()
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    stream=sys.stdout,
+    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+)
 
 app = FastAPI(
     title="Pendo.AdminService.Api", 
