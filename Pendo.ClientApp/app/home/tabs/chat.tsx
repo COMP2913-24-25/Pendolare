@@ -1,5 +1,5 @@
 import { FontAwesome5 } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useState, useEffect } from "react";
 import { ScrollView, View, TouchableOpacity } from "react-native";
 
@@ -10,6 +10,7 @@ import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
 import { getUserConversations } from "@/services/messageService";
+import { useCallback } from "react";
 
 interface Conversation {
   id: string;
@@ -18,6 +19,7 @@ interface Conversation {
   lastMessage: string;
   timestamp: number;
   unread: number;
+  userId: string;
 }
 
 /*
@@ -53,10 +55,13 @@ const Chat = () => {
         ...conv,
         type: conv.Type ? conv.Type.toLowerCase() : conv.type,
         id: conv.id || conv.ConversationId,
+        userId: conv.UserId,
         title: conv.Name,
         lastMessage: conv.lastMessage || "",
         timestamp: new Date(conv.CreateDate).getTime(),
       }));
+
+      normalisedConversations.forEach((conv) => {console.log(conv.userId)});
 
       console.log("normalised conversations:", normalisedConversations);
       setConversations(normalisedConversations);
@@ -65,9 +70,11 @@ const Chat = () => {
     }
   };
 
-  useEffect(() => {
-    fetchConversations();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchConversations();
+    }, [])
+  );
 
   /*
     Handle Support Category
@@ -83,8 +90,8 @@ const Chat = () => {
     Handle Chat Press
     Navigate to the chat screen when a chat is pressed
   */
-  const handleChatPress = (chatId: string) => {
-    router.push(`/home/chat/${chatId}`);
+  const handleChatPress = (userId: string) => {
+    router.push(`/home/chat/${userId}`);
   };
 
   return (
@@ -121,7 +128,7 @@ const Chat = () => {
                   lastMessage={chat.lastMessage}
                   timestamp={chat.timestamp}
                   unread={chat.unread}
-                  onPress={() => handleChatPress(chat.id)}
+                  onPress={() => handleChatPress(chat.userId)}
                 />
               );
             })}

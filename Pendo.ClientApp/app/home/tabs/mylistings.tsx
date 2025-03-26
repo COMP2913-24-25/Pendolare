@@ -8,7 +8,7 @@ import { Ride } from "@/constants";
 import DriverRideCard from "@/components/RideView/DriverRideCard";
 
 import { getBookings } from "@/services/bookingService";
-import { getJourneys } from "@/services/journeyService";
+import { getJourneys, JourneyDetails } from "@/services/journeyService";
 
 /*
   MyListings
@@ -32,6 +32,7 @@ const MyListings = () => {
         RideTime: new Date(booking.Booking.RideTime),
         Status: booking.BookingStatus.Status,
         DriverName: booking.Journey.User.FirstName,
+        PassengerId: booking.Booking.User.UserId,
         PassengerName: booking.Booking.User.FirstName,
         DriverId: booking.Journey.User.UserId,
         Price: booking.Journey.Price,
@@ -46,8 +47,6 @@ const MyListings = () => {
           name: booking.Journey.EndName
         }
       }));
-
-      allRides.forEach(ride => console.log(ride.DriverId));
 
       const cancelled = allRides.filter(ride => ride.Status === "Cancelled");
       const upcoming = allRides.filter(ride => ride.RideTime.getTime() > Date.now() && !cancelled.includes(ride))
@@ -67,10 +66,39 @@ const MyListings = () => {
   };
 
   const fetchJourneys = async () => {
-    const response = await getJourneys(undefined, true);
+    const response = await getJourneys({ 
+      StartDate: new Date().toISOString(), 
+      DriverView: true});
+
+    console.log(`Fetched ${response.journeys.length} journeys`);
+    console.log(response.journeys);
+
+    const journeys : Ride[] = response.journeys.map((journey: JourneyDetails) => ({
+      BookingId: "N/A",
+      Status: "Advertised",
+      PassengerName: "N/A",
+      JourneyId: journey.JourneyId,
+      DriverId: journey.UserId,
+      DriverName: journey.User_.FirstName,
+      RideTime: new Date(journey.StartDate),
+      Price: journey.AdvertisedPrice,
+      Pickup: {
+        latitude: journey.StartLat,
+        longitude: journey.StartLong,
+        name: journey.StartName
+      },
+      Dropoff: {
+        latitude: journey.EndLat,
+        longitude: journey.EndLong,
+        name: journey.EndName
+      }
+    }));
+
+    setAdvertisedJourneys(journeys.sort((a, b) => a.RideTime.getTime() - b.RideTime.getTime()));
   };
 
   useEffect(() => {
+    fetchJourneys();
     fetchBookings();
   }, []);
 
@@ -162,7 +190,7 @@ const MyListings = () => {
         </View>
 
         {/* Journey List */}
-        <View>
+        <View className="mb-20">
           {currentTab === "Booked" &&
             (bookedJourneys.length > 0 ? (
               bookedJourneys.map((journey, index) => (
@@ -179,8 +207,8 @@ const MyListings = () => {
           {currentTab === "Advertised" &&
             (advertisedJourneys.length > 0 ? (
               advertisedJourneys.map((journey, index) => (
-                <View key={index} className="mb-4">
-                  <DriverRideCard ride={journey} />
+                <View key={index}>
+                  <DriverRideCard ride={journey} journeyView={true} />
                 </View>
               ))
             ) : (
@@ -195,7 +223,7 @@ const MyListings = () => {
             (pastJourneys.length > 0 ? (
               pastJourneys.map((journey, index) => (
                 <View key={index}>
-                  <DriverRideCard ride={journey} />
+                  <DriverRideCard ride={journey} journeyView={true} />
                 </View>
               ))
             ) : (
