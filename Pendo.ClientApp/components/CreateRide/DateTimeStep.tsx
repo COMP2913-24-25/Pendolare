@@ -117,43 +117,50 @@ const DateTimeStep = (props: DateTimeStepProps) => {
 
   // Handle date selection
   const handleDateChange = (event: any, selectedDate?: Date) => {
-    // Close picker on Android
-    if (Platform.OS !== "ios") {
+    try {
+      // Always hide the date picker on Android after a selection or cancellation
+      if (Platform.OS === 'android') {
+        setShowDatePicker(false);
+      }
+      
+      // If no date selected (user cancelled), just return
+      if (!selectedDate) return;
+      
+      // Handle different date picker modes
+      switch (currentPicker) {
+        case "regular":
+          // For non-commuter journey, set the full date+time
+          const newDate = new Date(selectedDate);
+          console.log(`Setting regular date to: ${newDate.toLocaleString()}`);
+          setDate(newDate);
+          break;
+          
+        case "start":
+          console.log(`Setting start date to: ${selectedDate.toLocaleString()}`);
+          setStartDate(selectedDate);
+          break;
+          
+        case "end":
+          console.log(`Setting end date to: ${selectedDate.toLocaleString()}`);
+          setEndDate(selectedDate);
+          break;
+          
+        case "time":
+          // For commuter journey - update only time part
+          const newTimeDate = new Date(date);
+          newTimeDate.setHours(selectedDate.getHours());
+          newTimeDate.setMinutes(selectedDate.getMinutes());
+          console.log(`Setting time to: ${newTimeDate.toLocaleString()}`);
+          setDate(newTimeDate);
+          break;
+      }
+    } catch (error) {
+      // If any error occurs during the date picker handling, ensure it's hidden
+      console.error("Error in date picker:", error);
       setShowDatePicker(false);
     }
-
-    if (!selectedDate) return;
-
-    // Handle different date picker modes
-    switch (currentPicker) {
-      case "regular":
-        // For non-commuter journey, set the full date+time
-        const newDate = new Date(selectedDate);
-        console.log(`Setting regular date to: ${newDate.toLocaleString()}`);
-        setDate(newDate);
-        break;
-        
-      case "start":
-        console.log(`Setting start date to: ${selectedDate.toLocaleString()}`);
-        setStartDate(selectedDate);
-        break;
-        
-      case "end":
-        console.log(`Setting end date to: ${selectedDate.toLocaleString()}`);
-        setEndDate(selectedDate);
-        break;
-        
-      case "time":
-        // For commuter journey - update only time part
-        const newTimeDate = new Date(date);
-        newTimeDate.setHours(selectedDate.getHours());
-        newTimeDate.setMinutes(selectedDate.getMinutes());
-        console.log(`Setting time to: ${newTimeDate.toLocaleString()}`);
-        setDate(newTimeDate);
-        break;
-    }
   };
-
+  
   // Close date picker (iOS only)
   const closePicker = () => {
     setShowDatePicker(false);
@@ -315,35 +322,56 @@ const DateTimeStep = (props: DateTimeStepProps) => {
         </TouchableOpacity>
       )}
 
-      {/* Date Time Picker */}
+      {/* Date Time Picker - Only create the component when it's needed */}
       {showDatePicker && (
         <View>
-          <DateTimePicker
-            testID="dateTimePicker"
-            value={
-              currentPicker === "regular"
-                ? date
-                : currentPicker === "start"
-                ? startDate
-                : currentPicker === "end"
-                ? endDate
-                : date
-            }
-            mode={pickerMode}
-            is24Hour={true}
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={handleDateChange}
-            minimumDate={currentPicker === "end" ? startDate : undefined}
-          />
-          
-          {/* Done button for iOS */}
-          {Platform.OS === "ios" && (
-            <TouchableOpacity
-              onPress={closePicker}
-              className="mt-2 p-2 bg-blue-600 rounded-lg"
-            >
-              <Text className="text-white text-center">Done</Text>
-            </TouchableOpacity>
+          {Platform.OS === 'android' ? (
+            // On Android, create a fresh instance every time to avoid dismiss errors
+            <DateTimePicker
+              key={`picker-${currentPicker}-${Date.now()}`} // Force re-creation of component
+              testID="dateTimePicker"
+              value={
+                currentPicker === "regular"
+                  ? date
+                  : currentPicker === "start"
+                  ? startDate
+                  : currentPicker === "end"
+                  ? endDate
+                  : date
+              }
+              mode={pickerMode}
+              is24Hour={true}
+              display="default"
+              onChange={handleDateChange}
+              minimumDate={currentPicker === "end" ? startDate : undefined}
+            />
+          ) : (
+            // iOS picker works fine with the standard approach
+            <>
+              <DateTimePicker
+                testID="dateTimePicker"
+                value={
+                  currentPicker === "regular"
+                    ? date
+                    : currentPicker === "start"
+                    ? startDate
+                    : currentPicker === "end"
+                    ? endDate
+                    : date
+                }
+                mode={pickerMode}
+                is24Hour={true}
+                display="spinner"
+                onChange={handleDateChange}
+                minimumDate={currentPicker === "end" ? startDate : undefined}
+              />
+              <TouchableOpacity
+                onPress={closePicker}
+                className="mt-2 p-2 bg-blue-600 rounded-lg"
+              >
+                <Text className="text-white text-center">Done</Text>
+              </TouchableOpacity>
+            </>
           )}
         </View>
       )}

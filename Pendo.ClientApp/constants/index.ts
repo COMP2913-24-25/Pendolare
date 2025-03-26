@@ -84,13 +84,13 @@ export const AUTH_ENDPOINTS = {
 
 // Booking endpoints
 export const BOOKING_ENDPOINTS = {
-  CREATE_BOOKING: "/Booking/CreateBooking",
   GET_BOOKINGS: "/Booking/GetBookings",
+  CREATE_BOOKING: "/Booking/CreateBooking",
   ADD_BOOKING_AMMENDMENT: "/Booking/AddBookingAmmendment",
   APPROVE_BOOKING_AMMENDMENT: "/Booking/ApproveBookingAmmendment",
   APPROVE_BOOKING: "/Booking/ApproveBooking",
   CONFIRM_AT_PICKUP: "/Booking/ConfirmAtPickup",
-  COMPLETE_BOOKING: "/Booking/CompleteBooking"
+  COMPLETE_BOOKING: "/Booking/CompleteBooking",
 };
 
 // Journey endpoints
