@@ -151,17 +151,16 @@ const Profile = () => {
           <Text style={{ fontSize: 14, color: "#888", marginBottom: 4 }}>
             The value you can use to book journeys. Add to it by becoming a driver or via the button below
           </Text>
-        </ThemedView>
-        <ThemedButton
+          <ThemedButton
             title="Top Up Balance"
-            style={{ marginVertical: 25 }}
+            style={{ marginVertical: 30 }}
             onPress={() => setModalVisible(true)}
           />
           <ThemedButton
             title="Request Payout"
-            style={{ paddingVertical: 25 }}
+            style={{ paddingVertical: 30 }}
           />
-
+        </ThemedView>
           <StripeModal
                 visible={modalVisible}
                 onClose={() => setModalVisible(false)}
