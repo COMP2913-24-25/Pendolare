@@ -5,8 +5,14 @@ from types import SimpleNamespace
 from app.get_weekly_revenue import GetWeeklyRevenueCommand
 
 class FakeQuery:
-    def __init__(self, result):
-        self.result = result
+    def __init__(self, bookings):
+        # Create tuple: (booking, "Approved", advertised_price, proposed_price)
+        self.bookings_tuples = [
+            (booking, "Approved",
+             booking.Journey_.AdvertisedPrice,
+             booking.BookingAmmendment[0].ProposedPrice if booking.BookingAmmendment else None)
+            for booking in bookings
+        ]
     def join(self, *args, **kwargs):
         return self
     def outerjoin(self, *args, **kwargs):
@@ -14,13 +20,13 @@ class FakeQuery:
     def filter(self, *args, **kwargs):
         return self
     def all(self):
-        return self.result
+        return self.bookings_tuples
 
 class FakeDBSession:
-    def __init__(self, result):
-        self.result = result
+    def __init__(self, bookings):
+        self.bookings = bookings
     def query(self, *args, **kwargs):
-        return FakeQuery(self.result)
+        return FakeQuery(self.bookings)
 
 class FakeDBSessionException:
     def query(self, *args, **kwargs):
