@@ -24,14 +24,14 @@ class JourneyAnalyticsCommand:
                 ).all()
 
                 journey_flags = {}
-                for journey, booking, status in results:
+                for journey, booking, booking_status in results:
                     if journey.JourneyId not in journey_flags:
                         journey_flags[journey.JourneyId] = {"booked": False, "cancelled": False}
-                    if status:
-                        status_lower = status.Status.lower()
-                        if status_lower == "booked":
+                    if booking_status:
+                        booking_status_lower = booking_status.Status.lower()
+                        if booking_status_lower == "booked":
                             journey_flags[journey.JourneyId]["booked"] = True
-                        elif status_lower == "cancelled":
+                        elif booking_status_lower == "cancelled":
                             journey_flags[journey.JourneyId]["cancelled"] = True
 
                 available_count = 0
