@@ -20,7 +20,7 @@ class PaymentRepository():
         :param user_id: Id of the user.
         :return UserBalance object.
         """
-        return self.db_session.query(UserBalance).filter_by(UserId=user_id).one_or_none()
+        return self.db_session.query(UserBalance).filter(UserBalance.UserId == user_id).one_or_none()
     
     def GetUser(self, user_id):
         """
@@ -41,8 +41,8 @@ class PaymentRepository():
                 .options(
                     joinedload(Booking.BookingStatus_),
                     joinedload(Booking.Journey_),
-                    joinedload(Booking.BookingAmmendment),
-                    with_loader_criteria(BookingAmmendment, BookingAmmendment.DriverApproval and BookingAmmendment.PassengerApproval))\
+                    joinedload(Booking.BookingAmmendment, innerjoin=False),
+                    with_loader_criteria(BookingAmmendment, (BookingAmmendment.DriverApproval & BookingAmmendment.PassengerApproval)))\
                 .first()
     
     def CreateUserBalance(self, balance):
