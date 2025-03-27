@@ -6,7 +6,7 @@ from .statuses.booking_statii import BookingStatus
 
 class ApproveBookingCommand:
 
-    def __init__(self, booking_id, request, response, logger, email_sender, dvla_client):
+    def __init__(self, booking_id, request : ApproveBookingRequest, response, logger, email_sender, dvla_client):
         self.booking_id = booking_id
         self.request = request
         self.response = response
