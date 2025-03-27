@@ -15,6 +15,15 @@ class BookingRepository():
         """
         self.db_session = next(get_db())
 
+    def __del__(self):
+        """
+        Destructor for BookingRepository class.
+        
+        Disposes the database session.
+        Needed to prevent https://docs.sqlalchemy.org/en/20/errors.html#error-3o7r
+        """
+        self.db_session.close()
+
     def GetBookingsForUser(self, user_id, booking_id = None, driver_view = False):
         """
         GetBookingsForUser method returns all the bookings for a specific user.
