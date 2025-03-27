@@ -1,7 +1,6 @@
 import { FontAwesome5 } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 
-import { ScrollView, Image, Alert } from "react-native";
 import { ScrollView, Image, Alert, TouchableOpacity } from "react-native";
 
 import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
