@@ -2,7 +2,9 @@ import { View, TouchableOpacity, ScrollView } from "react-native";
 import { Text } from "@/components/common/ThemedText";
 import { useTheme } from "@/context/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useFocusEffect } from "expo-router";
+
 import UpcomingRide from "@/components/RideView/UpcomingRide";
 import { Ride } from "@/constants";
 import DriverRideCard from "@/components/RideView/DriverRideCard";
@@ -101,6 +103,18 @@ const MyListings = () => {
     fetchJourneys();
     fetchBookings();
   }, []);
+
+  // Add focus effect to refresh data when tab becomes active
+  useFocusEffect(
+    useCallback(() => {
+      console.log("My Listings tab focused - refreshing data");
+      fetchBookings();
+      fetchJourneys();
+      return () => {
+        // Cleanup if needed
+      };
+    }, [])
+  );
 
   return (
     <SafeAreaView

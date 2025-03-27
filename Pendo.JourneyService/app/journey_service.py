@@ -4,7 +4,7 @@ from uuid import UUID
 from .request_lib import GetJourneysRequest, CreateJourneyRequest, AdjustPriceRequest
 from .journey_repository import JourneyRepository
 
-from fastapi import Depends, FastAPI, Response
+from fastapi import Depends, HTTPException, FastAPI, Response
 from sqlalchemy import  asc, desc
 from sqlalchemy.orm import Session
 
@@ -14,7 +14,7 @@ from sqlalchemy.sql import and_
 from .PendoDatabase import Journey
 from .parameter_filtering import FilterJourneys
 from .parameter_checking import CheckJourneyData
-from .PendoDatabaseProvider import get_db
+from .PendoDatabaseProvider import get_db, text
 
 
 
@@ -35,6 +35,17 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 logger.info("Starting Pendo.JourneyService.Api")
+
+@app.get("/HealthCheck", tags=["HealthCheck"])
+def test_db(db: Session = Depends(get_db)):
+    logger.info("Testing DB connection...")
+    try:
+        db.execute(text("SELECT 1"))
+        logger.info("DB connection successful")
+        return {"db_connection": "successful"}
+    except Exception as e:
+        logger.error(f"DB connection failed. Error: {str(e)}")
+        raise HTTPException(500, detail="DB connection failed.")
 
 @app.post("/CreateJourney")
 def create_journey(JourneyParam: CreateJourneyRequest, db: Session = Depends(get_db)):

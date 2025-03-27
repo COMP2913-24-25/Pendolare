@@ -1,6 +1,6 @@
 import { FontAwesome5 } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ScrollView, View, TouchableOpacity } from "react-native";
 
 import ChatThread from "@/components/ChatThread";
@@ -10,7 +10,6 @@ import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
 import { getUserConversations } from "@/services/messageService";
-import { useCallback } from "react";
 
 interface Conversation {
   id: string;
@@ -93,6 +92,17 @@ const Chat = () => {
   const handleChatPress = (userId: string) => {
     router.push(`/home/chat/${userId}`);
   };
+
+  // Add focus effect to refresh data when tab becomes active
+  useFocusEffect(
+    useCallback(() => {
+      console.log("Chat tab focused - refreshing conversations");
+      fetchConversations();
+      return () => {
+        // Cleanup if needed
+      };
+    }, [])
+  );
 
   return (
     <ThemedSafeAreaView className={isDarkMode ? "flex-1 bg-slate-900" : "flex-1 bg-white"}>

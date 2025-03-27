@@ -3,6 +3,7 @@ import { apiRequest } from "./apiClient";
 import { BOOKING_ENDPOINTS } from "@/constants";
 
 export interface AddBookingAmmendmentRequest {
+  CancellationRequest: any;
   BookingId: string;
   ProposedPrice: number | null;
   StartName: string | null;
@@ -11,9 +12,16 @@ export interface AddBookingAmmendmentRequest {
   EndName: string | null;
   EndLong: number | null;
   EndLat: number | null;
-  StartTime: Date | null;
+  StartTime: string | null;
   DriverApproval: boolean;
   PassengerApproval: boolean;
+}
+
+// Update the interface to match what the server expects
+export interface ApproveBookingAmmendmentRequest {
+  DriverApproval: boolean;
+  PassengerApproval: boolean;
+  CancellationRequest: boolean;
 }
 
 export interface CompleteBookingRequest {
@@ -27,13 +35,15 @@ export interface CreateBookingRequest {
 
 export interface BookingResponse {
   id?: string;
-  success: boolean;
+  BookingAmmendmentId?: string; // Add this to support the server response format
+  Status?: string; // Add this to support the server response format
+  success?: boolean;
   message?: string;
 }
 
 export interface BookingDetails {
   Booking: {
-    BookingId : string;
+    BookingId: string;
     User: object;
     FeeMargin: number;
     RideTime: Date;
@@ -59,8 +69,7 @@ export interface BookingDetails {
   }
 }
 
-export interface GetBookingsResponse
-{
+export interface GetBookingsResponse {
   bookings: BookingDetails[];
   success: boolean;
   message?: string;
@@ -136,8 +145,8 @@ export async function getBookings(driverView: boolean = false): Promise<GetBooki
   }
 }
 
-export async function addBookingAmmendment(bookingAmmendment : AddBookingAmmendmentRequest) : Promise<BookingResponse> {
-  try{
+export async function addBookingAmmendment(bookingAmmendment: AddBookingAmmendmentRequest): Promise<BookingResponse> {
+  try {
     console.log(`Adding booking ammendment for booking ${bookingAmmendment.BookingId}`);
 
     const response = await apiRequest<BookingResponse>(
@@ -148,10 +157,11 @@ export async function addBookingAmmendment(bookingAmmendment : AddBookingAmmendm
       }
     );
 
+    // Normalise the response to ensure it has success property
     return {
-      ...response
+      ...response,
+      success: response.success || response.Status === "Success"
     };
-
   } catch (error) {
     console.error("Add booking ammendment error:", error);
     return {
@@ -162,20 +172,33 @@ export async function addBookingAmmendment(bookingAmmendment : AddBookingAmmendm
   }
 }
 
-export async function approveBookingAmmendment(bookingAmmendmentId : string) : Promise<BookingResponse> {
+export async function approveBookingAmmendment(
+  bookingAmmendmentId: string, 
+  isCancellation: boolean = false,
+  isDriverApproving: boolean = true
+): Promise<BookingResponse> {
   try {
-    console.log(`Approving booking ammendment ${bookingAmmendmentId}`);
+    console.log(`Approving booking ammendment ${bookingAmmendmentId} (Cancellation: ${isCancellation}, Driver: ${isDriverApproving})`);
+
+    const approvalRequest = {
+      DriverApproval: isDriverApproving,
+      PassengerApproval: !isDriverApproving,
+      CancellationRequest: isCancellation
+    };
+
+    console.log("Sending approval request payload:", JSON.stringify(approvalRequest));
 
     const response = await apiRequest<BookingResponse>(
-      `${BOOKING_ENDPOINTS.ADD_BOOKING_AMMENDMENT}/${bookingAmmendmentId}`,
+      `${BOOKING_ENDPOINTS.APPROVE_BOOKING_AMMENDMENT}/${bookingAmmendmentId}`,
       {
         method: "PUT",
-        body: JSON.stringify({})
+        body: JSON.stringify(approvalRequest)
       },
     );
 
     return {
-      ...response
+      ...response,
+      success: response.success || response.Status === "Success"
     };
   } catch (error) {
     console.error("Approve booking ammendment error:", error);
@@ -187,7 +210,7 @@ export async function approveBookingAmmendment(bookingAmmendmentId : string) : P
   }
 }
 
-export async function approveBooking(bookingId: string) : Promise<BookingResponse> {
+export async function approveBooking(bookingId: string): Promise<BookingResponse> {
   try {
     console.log(`Approving booking ${bookingId}`);
 
@@ -231,7 +254,7 @@ export async function cancelBooking(bookingId: string, reason: string): Promise<
   }
 }
 
-export async function confirmAtPickup(bookingId: string) : Promise<BookingResponse> {
+export async function confirmAtPickup(bookingId: string): Promise<BookingResponse> {
   try {
     console.log("Confirming at pickup");
 
@@ -256,7 +279,7 @@ export async function confirmAtPickup(bookingId: string) : Promise<BookingRespon
   }
 }
 
-export async function completeBooking(bookingId: string, completed: boolean) : Promise<BookingResponse> {
+export async function completeBooking(bookingId: string, completed: boolean): Promise<BookingResponse> {
   try {
     console.log("Completing booking");
 
