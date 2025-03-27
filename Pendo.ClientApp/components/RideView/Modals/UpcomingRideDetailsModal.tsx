@@ -1,6 +1,6 @@
 import React from "react";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { View, TouchableOpacity, Modal } from "react-native";
+import { View, TouchableOpacity, Modal, Alert } from "react-native";
 
 import Map from "../../Map/Map";
 import { icons } from "@/constants";
@@ -16,6 +16,7 @@ interface UpcomingRideDetailsModalProps {
   onContactDriver: () => void;
   onCancel: () => void;
   onComplete: () => void;
+  onApproveJourney?: () => void;
   isPastRide: boolean;
   driverView?: boolean;
   journeyView?: boolean;
@@ -36,6 +37,7 @@ const UpcomingRideDetailsModal = ({
   isPastRide,
   driverView = false,
   journeyView = false,
+  onApproveJourney = () => {},
   children,
 }: UpcomingRideDetailsModalProps) => {
   const { isDarkMode } = useTheme();
@@ -115,6 +117,19 @@ const UpcomingRideDetailsModal = ({
                 </Text>
               </TouchableOpacity>
             )}
+
+            {!isPastRide && driverView && ride.Status === "Pending" && (
+              <TouchableOpacity className="flex-1 bg-blue-600 p-4 rounded-xl"
+                onPress={() => {
+                  Alert.alert("Approve Journey", "Are you sure you want to approve this journey?\n\nPlease ensure no booking ammendments have been made.", [
+                    { text: "No", onPress: () => {}, style: "cancel" },
+                    { text: "Yes", onPress: () => onApproveJourney()}
+                  ]);
+                }}>
+                <Text className="text-center text-white font-JakartaBold">
+                  Approve Journey
+                </Text>
+              </TouchableOpacity>)}
           </View>}
         </View>
       </View>
