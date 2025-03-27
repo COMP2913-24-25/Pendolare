@@ -209,7 +209,9 @@ const MyListings = () => {
             (bookedJourneys.length > 0 ? (
               bookedJourneys.map((journey, index) => (
                 <View key={index}>
-                  <DriverRideCard ride={journey} />
+                  <DriverRideCard ride={journey} approveBookingCallback={() => {
+                    fetchBookings();
+                  }} />
                 </View>
               ))
             ) : (

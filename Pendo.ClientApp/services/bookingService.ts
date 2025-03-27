@@ -37,6 +37,7 @@ export interface BookingResponse {
   id?: string;
   BookingAmmendmentId?: string; // Add this to support the server response format
   Status?: string; // Add this to support the server response format
+  Message?: string; // Add this to support the server response format
   success?: boolean;
   message?: string;
 }
@@ -220,13 +221,14 @@ export async function approveBooking(bookingId: string): Promise<BookingResponse
         method: "PUT",
         body: JSON.stringify({})
       },
+      false,
+      true //Silently fail. 403 is expected if there are booking ammendments.
     );
 
     return {
       ...response
     };
   } catch (error) {
-    console.error("Approve booking error:", error);
     return {
       success: false,
       message:
