@@ -1,61 +1,65 @@
 #View Data Relating to All Journeys (Available/Booked/Cancelled)
 
-from db_provider import get_db
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from models import Journey, Booking, BookingStatus
 from fastapi import status
-from typing import List, Dict
+from datetime import datetime
+from response_lib import JourneyAnalyticsResponse
 
 class JourneyAnalyticsCommand:
-        def __init__(self, db_session: Session, response):
+        def __init__(self, db_session: Session, response, logger):
             self.db_session = db_session
             self.response = response
+            self.logger = logger
 
-        def execute(self):
+        def Execute(self) -> JourneyAnalyticsResponse:
             try:
-                #Retrieve all journeys from Journey table
-                journeys = self.db_session.query(Journey).all()
-                # List of dictionaries that will store information about individual journeys
-                journey_data: List[Dict] = []
-                # Two counters are initialinitialised to store number of available journeys and cancelled journeys
-                available_count = 0  
-                cancelled_count = 0
-                booked_count = 0
+                # Get:
+                # - Number of available journeys (JourneyStatus = 1, not in past)
+                # - Number of cancelled bookings (BookingStatus = "Cancelled")
+                # - Number of booked bookings (BookingStatus = "Pending" / "Confirmed") & Not in past
+                # - Number of past bookings
 
-                # Iterates through all journeys to find available journeys 
-                for journey in journeys:
-                    bookings = self.db_session.query(Booking).filter(Booking.JourneyId == journey.JourneyId).all()
+                self.logger.info("Getting journey analytics")
 
-                    booking_statuses = []
-                    is_available = True
-                    is_booked = False
-                    is_cancelled = False
-                    # If there is a booking associated with a journey then loop through booking details to see if booked or cancelled 
-                    for booking in bookings:
-                        booking_status = self.db_session.query(BookingStatus).filter(BookingStatus.BookingStatusId == booking.BookingStatusId).first()
-                        if booking_status:
-                            booking_statuses.append(booking_status.Status)
-                            if booking_status.Status.lower() == "booked":
-                                is_available = False  
-                                is_booked = True
-                            if booking_status.Status.lower() == "cancelled":
-                                is_cancelled = True
-                                is_available = False  
+                available_count = self.db_session.query(
+                    func.count(Journey.JourneyId)
+                ).filter(Journey.JourneyStatusId == 1).scalar()
 
-                    if is_booked:
-                        booked_count += 1
-                    if is_cancelled:
-                        cancelled_count += 1
-                    if is_available and not is_booked and not is_cancelled:
-                        available_count += 1
-                    
-                    
+                self.logger.debug(f"Available journeys: {available_count}")
 
-                return {
-                "available_journeys": available_count,
-                "cancelled_journeys": cancelled_count,
-                "booked_journeys": booked_count
-            }
+                cancelled_count = self.db_session.query(func.count(Booking.BookingId))\
+                    .join(BookingStatus, Booking.BookingStatusId == BookingStatus.BookingStatusId)\
+                    .filter(BookingStatus.Status == "Cancelled").scalar()
+                
+                self.logger.debug(f"Cancelled bookings: {cancelled_count}")
+                
+                booked_count = self.db_session.query(func.count(Booking.BookingId))\
+                    .join(BookingStatus, Booking.BookingStatusId == BookingStatus.BookingStatusId)\
+                    .filter(BookingStatus.Status.in_(["Pending", "Confirmed"]),
+                            Booking.RideTime > datetime.now()).scalar()
+                
+                self.logger.debug(f"Booked bookings: {booked_count}")
+                
+                past_count = self.db_session.query(func.count(Booking.BookingId))\
+                    .join(BookingStatus, Booking.BookingStatusId == BookingStatus.BookingStatusId)\
+                    .filter(BookingStatus.Status.in_(["Pending", "Confirmed"]), 
+                            Booking.RideTime < datetime.now()).scalar()
+                
+                self.logger.debug(f"Past bookings: {past_count}")
+
+                response = JourneyAnalyticsResponse(
+                    AvailableJourneys=available_count,
+                    CancelledBookings=cancelled_count,
+                    BookedBookings=booked_count,
+                    PastBookings=past_count
+                )
+
+                self.logger.info("Journey analytics retrieved successfully: %s", response)
+
+                return response
+            
             except Exception as e:
                 self.response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
                 return {"Error": str(e)}

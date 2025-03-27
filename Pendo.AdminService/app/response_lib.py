@@ -10,3 +10,12 @@ class GetWeeklyRevenueResponse(BaseModel):
     data: List[float]
     currency: str
     total: str
+
+class JourneyAnalyticsResponse(BaseModel):
+    """
+    JourneyAnalyticsResponse is the response object for the JourneyAnalyticsCommand.
+    """
+    AvailableJourneys: int
+    CancelledBookings: int
+    BookedBookings: int
+    PastBookings: int
