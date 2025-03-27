@@ -2,7 +2,8 @@ import json
 from pathlib import Path
 from .configurations import DbConfiguration, SendGridConfiguration, PaymentServiceConfiguration
 from sqlalchemy.orm import Session
-from .models import Configuration  # Ensure this import matches your project structure
+from .models import Configuration 
+
 class ConfigurationProvider:
     """
     ConfigurationProvider class is responsible for loading the application configuration.
