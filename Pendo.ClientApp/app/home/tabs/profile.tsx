@@ -1,6 +1,6 @@
 import { FontAwesome5 } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { ScrollView, Image, Alert } from "react-native";
+import { ScrollView, Image, Alert, TouchableOpacity } from "react-native";
 
 import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
 import ThemedView from "@/components/common/ThemedView";
@@ -151,21 +151,76 @@ const Profile = () => {
           <Text style={{ fontSize: 14, color: "#888", marginBottom: 4 }}>
             The value you can use to book journeys. Add to it by becoming a driver or via the button below
           </Text>
-          <ThemedButton
-            title="Top Up Balance"
-            style={{ marginVertical: 30 }}
-            onPress={() => setModalVisible(true)}
-          />
-          <ThemedButton
-            title="Request Payout"
-            style={{ paddingVertical: 30 }}
-          />
+          
+          {/* Top Up Selector */}
+          <TouchableOpacity
+            className={`p-3 mb-4 rounded-xl ${
+                  isDarkMode
+                  ? "bg-slate-800"
+                  : "bg-white"
+            }`}
+            style = {{borderColor: "#888", borderWidth: 2, marginVertical: 10}}
+            onPress={() => router.push("/home/settings")}
+          >
+            <Text
+              className={`text-lg font-JakartaBold ${
+                isDarkMode
+                ? "text-blue-200"
+                : "text-blue-600"
+              }`}
+            >
+              Top Up Balance
+            </Text>
+            <Text>Add to your balance via card payment</Text>
+          </TouchableOpacity>
+          
+          {/* Payment Methods selector */}
+          <TouchableOpacity
+            className={`p-3 mb-4 rounded-xl ${
+                  isDarkMode
+                  ? "bg-slate-800"
+                  : "bg-white"
+            }`}
+            style = {{borderColor: "#888", borderWidth: 2, marginVertical: 10}}
+          >
+            <Text
+              className={`text-lg font-JakartaBold ${
+                isDarkMode
+                ? "text-blue-200"
+                : "text-blue-600"
+              }`}
+            >
+              Payment Methods
+            </Text>
+            <Text>View previously saved Payment Methods</Text>
+          </TouchableOpacity>
+
+          {/* Request Payout selector */}
+          <TouchableOpacity
+            className={`p-3 mb-4 rounded-xl ${
+                  isDarkMode
+                  ? "bg-slate-800"
+                  : "bg-white"
+            }`}
+            style = {{borderColor: "#888", borderWidth: 2, marginVertical: 10}}
+          >
+            <Text
+              className={`text-lg font-JakartaBold ${
+                isDarkMode
+                ? "text-blue-200"
+                : "text-blue-600"
+              }`}
+            >
+              Request Payout
+            </Text>
+            <Text>Transfer your non-pending balance to your bank account</Text>
+          </TouchableOpacity>
+
         </ThemedView>
           <StripeModal
                 visible={modalVisible}
                 onClose={() => setModalVisible(false)}
               />
-
       </ScrollView>
     </ThemedSafeAreaView>
 
