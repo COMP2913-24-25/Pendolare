@@ -18,7 +18,7 @@ def check_inactivity():
         last_activity = last_activity.replace(tzinfo=None)
     if last_activity and (now - last_activity).total_seconds() > app.permanent_session_lifetime.total_seconds():
         session.clear()
-        flash('You have been logged out due to inactivity.')
+        flash('You have been logged out due to inactivity.', 'warning')
         return redirect(url_for('login'))
     session['last_activity'] = now
 
@@ -40,7 +40,7 @@ def login():
             session['email'] = email
             return redirect(url_for('verify_otp'))
         else:
-            flash('Failed to request OTP. Are you sure you have an account?')
+            flash('Failed to request OTP. Are you sure you have an account?', 'danger')
     return render_template('login.html')
 
 @app.route('/verify_otp', methods=['GET', 'POST'])
@@ -57,10 +57,10 @@ def verify_otp():
                 session['last_activity'] = datetime.utcnow().replace(tzinfo=None)
                 return redirect(url_for('dashboard'))
             else:
-                flash('Access denied. You must be a manager to log in to the admin dashboard.')
+                flash('Access denied. You must be a manager to log in to the admin dashboard.', 'danger')
                 return redirect(url_for('login'))
         else:
-            flash('Invalid OTP. Please try again.')
+            flash('Invalid OTP. Please try again.', 'danger')
     return render_template('verify_otp.html')
 
 @app.route('/logout')
@@ -154,9 +154,9 @@ def update_booking_fee():
     booking_fee = request.form['booking_fee']
     response = AdminClient(api_url, app.logger, jwt=session.get('jwt')).UpdateBookingFee(booking_fee)
     if response.status_code == 200:
-        flash("Booking fee updated successfully.")
+        flash("Booking fee updated successfully.", "success")
     else:
-        flash("Failed to update booking fee.")
+        flash("Failed to update booking fee.", "danger")
     return redirect(url_for('dashboard'))
 
 @app.route('/create_discount', methods=['GET', 'POST'])
@@ -171,10 +171,10 @@ def create_discount():
         result = admin_client.CreateDiscount(weekly_journeys, discount_percentage)
         if result:
             app.logger.info("Discount created successfully: %s", result)
-            flash("Discount created successfully.")
+            flash("Discount created successfully.", "success")
         else:
             app.logger.error("Failed to create discount with weekly_journeys: %s, discount_percentage: %s", weekly_journeys, discount_percentage)
-            flash("Failed to create discount.")
+            flash("Failed to create discount.", "danger")
         return redirect(url_for('dashboard'))
     return render_template('create_discount.html')
 
@@ -189,7 +189,7 @@ def delete_discount(discount_id):
         app.logger.info("Discount deleted successfully: %s", discount_id)
     else:
         app.logger.error("Failed to delete discount: %s", discount_id)
-    flash("Discount deleted successfully." if success else "Failed to delete discount.")
+    flash("Discount deleted successfully." if success else "Failed to delete discount.", "success" if success else "danger")
     return redirect(url_for('dashboard'))
 
 @app.route('/ping')
