@@ -65,8 +65,7 @@ class DeleteDiscountCommand:
             deleted = repository.DeleteDiscount(self.discount_id)
             if not deleted:
                 self.logger.error(f"Discount with id: {self.discount_id} was not found")
-                return HTTPException(status_code=404, detail="Discount is not found")
-            
+                raise HTTPException(status_code=404, detail="Discount is not found")
             self.logger.info(f"Discount with id: {self.discount_id} was deleted successfully")
             return {"Status": "Success", "Message": "Discount was deleted successfully"}
         
