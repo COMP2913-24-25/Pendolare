@@ -4,12 +4,7 @@ from datetime import timedelta, datetime
 from identity_client import IdentityClient
 from admin_client import AdminClient
 from message_client import MessageClient
-
-app = Flask(__name__)
-app.secret_key = 'reallyStrongPwd123'
-app.permanent_session_lifetime = timedelta(minutes=30)
-
-api_url = 'https://pendo-gateway.clsolutions.dev'
+from config import app, api_url
 
 def check_inactivity():
     now = datetime.now().replace(tzinfo=None)
