@@ -19,15 +19,28 @@ def check_inactivity():
 
 @app.before_request
 def before_request():
+    """Pre-request hook to check for inactivity.
+    
+    Checks if the user has exceeded the inactivity timeout and clears the session if so.
+    """
     if 'logged_in' in session:
         check_inactivity()
 
 @app.route('/')
 def home():
+    """Redirect to the login route."""
     return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """Handle user login.
+    
+    GET: Render the login form.
+    POST: Process login form, request OTP via IdentityClient.
+    
+    Returns:
+        Flask response object.
+    """
     if request.method == 'POST':
         email = request.form['email']
         response = IdentityClient(api_url, app.logger).RequestOtp(email)
@@ -40,6 +53,14 @@ def login():
 
 @app.route('/verify_otp', methods=['GET', 'POST'])
 def verify_otp():
+    """Verify OTP for user authentication.
+    
+    GET: Render the OTP verification form.
+    POST: Validate OTP via IdentityClient and, if valid and user is a manager, initiate a session.
+    
+    Returns:
+        Flask response object.
+    """
     if request.method == 'POST':
         session.get('email')
         otp = request.form['otp']
@@ -60,11 +81,20 @@ def verify_otp():
 
 @app.route('/logout')
 def logout():
+    """Log out the user by clearing the session."""
     session.clear()
     return redirect(url_for('login'))
 
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
+    """Display the admin dashboard.
+    
+    GET: Retrieve and display booking fee, weekly revenue, discounts, and conversation data.
+    POST: Process booking fee update form submissions.
+    
+    Returns:
+        Flask response object.
+    """
     if not session.get('logged_in'):
         return redirect(url_for('login'))
     if request.method == 'POST':
@@ -121,6 +151,16 @@ def dashboard():
 
 @app.route('/chat/conversation/<conversation_id>', methods=['GET'])
 def chat_conversation(conversation_id):
+    """Render a chat conversation page.
+    
+    Retrieves conversation details based on conversation_id.
+    
+    Args:
+        conversation_id (str): The ID of the conversation.
+    
+    Returns:
+        Flask response object.
+    """
     messaging_client = MessageClient(f"{api_url}/api/Message", app.logger, jwt=session.get('jwt'))
     conv_response = messaging_client.join_conversation("00000000-0000-0000-0000-000000000000", conversation_id)
     app.logger.info(f"Join conversation returned: {conv_response}")
@@ -131,6 +171,13 @@ def chat_conversation(conversation_id):
 
 @app.route('/chat/send', methods=['POST'])
 def chat_send():
+    """Send a chat message.
+    
+    Processes JSON data containing sender, conversation_id, content, and timestamp, sends the chat message via MessageClient, and returns the response as JSON.
+    
+    Returns:
+        Flask JSON response.
+    """
     data = request.get_json()
     sender = data.get('sender')
     conversation_id = data.get('conversation_id')
@@ -146,6 +193,13 @@ def chat_send():
 
 @app.route('/update_booking_fee', methods=['POST'])
 def update_booking_fee():
+    """Update the booking fee.
+    
+    Reads the booking fee from the POST request, updates it through AdminClient, and flashes a success or error message.
+    
+    Returns:
+        Flask redirect response.
+    """
     booking_fee = request.form['booking_fee']
     response = AdminClient(api_url, app.logger, jwt=session.get('jwt')).UpdateBookingFee(booking_fee)
     if response.status_code == 200:
@@ -156,6 +210,14 @@ def update_booking_fee():
 
 @app.route('/create_discount', methods=['GET', 'POST'])
 def create_discount():
+    """Create a new discount.
+    
+    GET: Render the discount creation form.
+    POST: Process form data to create a discount via AdminClient and provide a success/error flash message.
+    
+    Returns:
+        Flask response object.
+    """
     if not session.get('logged_in'):
         return redirect(url_for('login'))
     if request.method == 'POST':
@@ -175,6 +237,16 @@ def create_discount():
 
 @app.route('/delete_discount/<discount_id>', methods=['POST', 'DELETE'])
 def delete_discount(discount_id):
+    """Delete an existing discount.
+    
+    Initiates discount deletion using AdminClient and provides an appropriate flash message.
+    
+    Args:
+        discount_id (str): The ID of the discount to be deleted.
+    
+    Returns:
+        Flask redirect response.
+    """
     if not session.get('logged_in'):
         return redirect(url_for('login'))
     app.logger.info("Attempting to delete discount with id: %s", discount_id)
@@ -189,6 +261,13 @@ def delete_discount(discount_id):
 
 @app.route('/ping')
 def ping():
+    """Ping the IdentityClient API.
+    
+    Sends a ping request to the API to verify connectivity and returns the API's status message or an error.
+    
+    Returns:
+        String message with API status.
+    """
     try:
         response = IdentityClient(api_url, app.logger).Ping()
         if response.status_code == 200:
