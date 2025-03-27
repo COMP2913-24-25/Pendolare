@@ -16,7 +16,8 @@ import { Rating } from "react-native-ratings";
 import { getUser as apiGetUser, updateUser as apiUpdateUser } from "@/services/authService";
 import { useTheme } from "@/context/ThemeContext";
 import { ViewBalance } from "@/services/paymentService";
-import StripeModal from "@/components/TopUpModel"
+import PaymentMethodsModal from "@/components/PaymentMethodsModal"
+import RequestPayoutModal from "@/components/RequestPayoutModal"
 
 const Profile = () => {
 
@@ -37,7 +38,8 @@ const Profile = () => {
 
   const [user, setUser] = useState(getUser());
   const [balanceSheet, setBalanceSheet] = useState({ NonPending: 0.00 , Pending: 0.00});
-  const [modalVisible, setModalVisible] = useState(false);
+  const [methodsModalVisible, setMethodsModalVisible] = useState(false);
+  const [payoutModalVisible, setPayoutModalVisible] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -182,7 +184,7 @@ const Profile = () => {
                   : "bg-white"
             }`}
             style = {{borderColor: "#888", borderWidth: 2, marginVertical: 10}}
-            onPress={() => setModalVisible(true)}
+            onPress={() => setMethodsModalVisible(true)}
           >
             <Text
               className={`text-lg font-JakartaBold ${
@@ -218,10 +220,14 @@ const Profile = () => {
           </TouchableOpacity>
 
         </ThemedView>
-          <StripeModal
-                visible={modalVisible}
-                onClose={() => setModalVisible(false)}
-              />
+          <PaymentMethodsModal
+            visible={methodsModalVisible}
+            onClose={() => setMethodsModalVisible(false)}
+          />
+          <RequestPayoutModal
+            visible={payoutModalVisible}
+            onClose={() => setPayoutModalVisible(false)}
+          />
       </ScrollView>
     </ThemedSafeAreaView>
 

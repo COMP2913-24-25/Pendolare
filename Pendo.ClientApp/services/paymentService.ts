@@ -42,12 +42,12 @@ export async function ViewBalance(): Promise<BalanceSheet> {
   }
 }
 
-export const fetchPaymentSheetParams = async () => {
+export const fetchPaymentSheetParams = async (amount: number) => {
         const response = await apiRequest<PaymentSheetResponse>(
             PAYMENT_ENDPOINTS.PAYMENT_SHEET,
             {
                 method: "POST",
-                body: JSON.stringify({Amount: 11.50}),
+                body: JSON.stringify({Amount: amount}),
             },
             true
         );

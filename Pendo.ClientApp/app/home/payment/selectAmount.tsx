@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, ScrollView, TextInput } from "react-native";
+import { View, TouchableOpacity, ScrollView, TextInput, Alert } from "react-native";
 import { Text } from "@/components/common/ThemedText";
 import { useTheme } from "@/context/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -7,6 +7,11 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { icons } from "@/constants";
 import ThemedButton from "@/components/common/ThemedButton";
+import { fetchPaymentSheetParams } from "@/services/paymentService";
+
+// stripe requirements
+import {presentPaymentSheet, StripeProvider, usePaymentSheet} from "@stripe/stripe-react-native";
+const stripe_publishable = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "NA"
 
 /*
   SelectAmount
@@ -19,16 +24,53 @@ const SelectAmount = () => {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState('');
 
-  const predefinedOptions = [10, 20, 50, 100];
+  const predefinedOptions = [10, 15, 30, 50];
 
   const handleTopUp = () => {
     const amountToTopUp = customAmount || selectedAmount;
     if (amountToTopUp) {
-      alert(`You are topping up £${amountToTopUp}`);
+      initalisePaymentSheet(Number(amountToTopUp))
     } else {
       alert('Please select or enter an amount to top up.');
     }
   };
+
+
+      const [ready, setReady] = useState(false);
+      const {initPaymentSheet, presentPaymentSheet, loading} = usePaymentSheet();
+      const initalisePaymentSheet = async (amountToTopUp: number) => {
+          const {PaymentIntent, EphemeralKey, CustomerId} = await fetchPaymentSheetParams(amountToTopUp);
+          
+          const {error} = await initPaymentSheet({
+              customerId: CustomerId, 
+              customerEphemeralKeySecret: EphemeralKey,
+              paymentIntentClientSecret: PaymentIntent,
+              merchantDisplayName: "Pendolare",
+              allowsDelayedPaymentMethods: true
+              
+          });
+          if (error) {
+              Alert.alert(`Error: ${error.code}`, error.message);
+          }
+          else {
+              setReady(true)
+              buy()
+          }
+      }
+  
+      async function buy() {
+          const {error} = await presentPaymentSheet();
+  
+          if (error) {
+              Alert.alert(`Error: ${error.code}`, error.message);
+          }
+          else {
+              Alert.alert("Successfully topped up balance")
+              setReady(false)
+              router.back()
+          }
+      }
+  
 
   return (
     <SafeAreaView
@@ -114,9 +156,9 @@ const SelectAmount = () => {
                     className="text-gray-500 text-lg"
                   />
         </View>
-
+      <StripeProvider publishableKey={stripe_publishable}>
       <ThemedButton title="Top Up" onPress={handleTopUp} style={{marginVertical: 20}}/>
-
+      </StripeProvider>
       </View>
     </SafeAreaView>
   );
