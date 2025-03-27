@@ -9,10 +9,10 @@ import { icons } from "@/constants";
 import ThemedButton from "@/components/common/ThemedButton";
 
 /*
-  SelectAmount
+  Checkout
   Page to allow a user to select the amount they wish to top up on their account
 */
-const SelectAmount = () => {
+const Checkout = () => {
   const { isDarkMode } = useTheme();
 
 
@@ -122,4 +122,4 @@ const SelectAmount = () => {
   );
 };
 
-export default SelectAmount;
+export default Checkout;
