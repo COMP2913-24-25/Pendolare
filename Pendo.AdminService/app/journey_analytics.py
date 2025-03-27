@@ -7,55 +7,43 @@ from fastapi import status
 from typing import List, Dict
 
 class JourneyAnalyticsCommand:
-        def __init__(self, db_session: Session, response):
-            self.db_session = db_session
-            self.response = response
+    def __init__(self, db_session: Session, response):
+        self.db_session = db_session
+        self.response = response
 
-        def execute(self):
-            try:
-                #Retrieve all journeys from Journey table
-                journeys = self.db_session.query(Journey).all()
-                # List of dictionaries that will store information about individual journeys
-                journey_data: List[Dict] = []
-                # Two counters are initialinitialised to store number of available journeys and cancelled journeys
-                available_count = 0  
-                cancelled_count = 0
-                booked_count = 0
+    def execute(self):
+        try:
+            results = self.db_session.query(
+                Journey,
+                Booking,
+                BookingStatus
+            )\
+            .outerjoin(Booking, Journey.JourneyId == Booking.JourneyId)\
+            .outerjoin(BookingStatus, BookingStatus.BookingStatusId == Booking.BookingStatusId)\
+            .all()
 
-                # Iterates through all journeys to find available journeys 
-                for journey in journeys:
-                    bookings = self.db_session.query(Booking).filter(Booking.JourneyId == journey.JourneyId).all()
+            journey_flags = {}
+            for journey, booking, booking_status in results:
+                if journey.JourneyId not in journey_flags:
+                    journey_flags[journey.JourneyId] = {"booked": False, "cancelled": False, "available": True}
+                if booking and booking_status:
+                    status_lower = booking_status.Status.lower()
+                    if status_lower == "booked":
+                        journey_flags[journey.JourneyId]["booked"] = True
+                        journey_flags[journey.JourneyId]["available"] = False
+                    if status_lower == "cancelled":
+                        journey_flags[journey.JourneyId]["cancelled"] = True
+                        journey_flags[journey.JourneyId]["available"] = False
 
-                    booking_statuses = []
-                    is_available = True
-                    is_booked = False
-                    is_cancelled = False
-                    # If there is a booking associated with a journey then loop through booking details to see if booked or cancelled 
-                    for booking in bookings:
-                        booking_status = self.db_session.query(BookingStatus).filter(BookingStatus.BookingStatusId == booking.BookingStatusId).first()
-                        if booking_status:
-                            booking_statuses.append(booking_status.Status)
-                            if booking_status.Status.lower() == "booked":
-                                is_available = False  
-                                is_booked = True
-                            if booking_status.Status.lower() == "cancelled":
-                                is_cancelled = True
-                                is_available = False  
+            available_count = sum(1 for flags in journey_flags.values() if flags["available"] and not flags["booked"] and not flags["cancelled"])
+            booked_count = sum(1 for flags in journey_flags.values() if flags["booked"])
+            cancelled_count = sum(1 for flags in journey_flags.values() if flags["cancelled"])
 
-                    if is_booked:
-                        booked_count += 1
-                    if is_cancelled:
-                        cancelled_count += 1
-                    if is_available and not is_booked and not is_cancelled:
-                        available_count += 1
-                    
-                    
-
-                return {
+            return {
                 "available_journeys": available_count,
                 "cancelled_journeys": cancelled_count,
                 "booked_journeys": booked_count
             }
-            except Exception as e:
-                self.response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-                return {"Error": str(e)}
+        except Exception as e:
+            self.response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+            return {"Error": str(e)}
