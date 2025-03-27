@@ -77,7 +77,10 @@ def PaymentMethods(request: GetwithUUID, db: Session = Depends(get_db)) -> Payme
     """
     Used to query stripe for the customers saved payment methods, to display before adding another card or contiuning with a booking
     """
-    response = PaymentMethodsCommand(logging.getLogger("PaymentMethods"), request.UserId, db).Execute()
+    configProvider.LoadStripeConfiguration(db)
+    secret = configProvider.StripeConfiguration.secret
+
+    response = PaymentMethodsCommand(logging.getLogger("PaymentMethods"), request.UserId, secret).Execute()
 
     if response.Status != "success":
         raise HTTPException(400, detail=response.Error)
