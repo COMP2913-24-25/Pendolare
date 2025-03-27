@@ -1,17 +1,19 @@
 import { apiRequest } from "./apiClient";
 import { JOURNEY_ENDPOINTS } from "@/constants";
 
-interface JourneyDetails {
+export interface JourneyDetails {
     JourneyId: string;
     UserId: string;
-    User_: object;
+    User_: any;
     BootHeight: number;
     BootWidth: number;
     StartDate: Date;
     JourneyType: number;
-    MaxPrice: number;
+    AdvertisedPrice: number;
     MaxPassengers: number;
     DistanceRadius: number;
+    StartName: string;
+    EndName: string;
     StartLat: number;
     StartLong: number;
     EndLat: number;
@@ -22,7 +24,7 @@ interface JourneyDetails {
     JourneyStatusId: number;
 }
 
-interface GetJourneyResponse {
+export interface GetJourneyResponse {
     success: boolean;
     journeys: JourneyDetails[];
     message?: string;
@@ -55,6 +57,7 @@ export interface GetJourneysRequest {
     BootHeight?: number;
     BootWidth?: number;
     StartDate?: string;
+    EndDate?: string;
     JourneyType?: number;
     MaxPrice?: number;
     NumPassengers?: number;
@@ -64,6 +67,7 @@ export interface GetJourneysRequest {
     EndLat?: number;
     EndLong?: number;
     SortByPrice?: string;
+    DriverView: boolean;
 }
 
 export async function getJourneys(filters?: GetJourneysRequest): Promise<GetJourneyResponse> {

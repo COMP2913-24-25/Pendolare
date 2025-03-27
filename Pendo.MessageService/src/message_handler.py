@@ -4,6 +4,7 @@ from typing import Dict, Set, List
 from datetime import datetime, timezone
 import logging
 import websockets
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +79,50 @@ class MessageHandler:
 
             logger.info(f"User {user_id} removed")
 
+    def serialize_message(self, message):
+        """
+        Convert a SQLAlchemy Messages model instance to a JSON-serializable dictionary.
+        """
+        # Try to parse the content as JSON to extract additional properties
+        content = message.Content
+        additional_props = {}
+        message_type = message.MessageType
+        
+        try:
+            content_obj = json.loads(message.Content)
+            if isinstance(content_obj, dict):
+                # For booking amendment messages, preserve the special structure
+                if message.MessageType == 'booking_amendment':
+                    # Extract amendment ID and other needed properties
+                    amendmentId = content_obj.get('amendmentId')
+                    content = content_obj.get('content', content_obj)
+                    additional_props['amendmentId'] = amendmentId
+                    additional_props['type'] = 'booking_amendment'
+                else:
+                    # For regular messages, extract content and properties
+                    if "text" in content_obj:
+                        content = content_obj["text"]
+                    
+                    # Extract additional properties
+                    for key, value in content_obj.items():
+                        if key not in ["text", "original_type"]:
+                            additional_props[key] = value
+        except (json.JSONDecodeError, TypeError):
+            # If not JSON or parsing fails, use original content
+            pass
+
+        result = {
+            "id": str(message.MessageId),
+            "conversation_id": str(message.ConversationId),
+            "from": str(message.SenderId),
+            "type": message_type,
+            "content": content,
+            "timestamp": message.CreateDate.isoformat() if message.CreateDate else None,
+            **additional_props
+        }
+        
+        return result
+    
     async def _handle_history_request(self, websocket, data):
         """
         Handle request for message history for a conversation and send back to the requester
@@ -88,7 +133,6 @@ class MessageHandler:
         Returns:
             None
         """
-
         if not all(k in data for k in ('conversation_id', 'user_id')):
             await websocket.send(json.dumps({
                 "type": "error",
@@ -104,6 +148,8 @@ class MessageHandler:
             messages = self.repository.get_messages_by_conversation_id(conversation_id)
             if since_timestamp:
                 messages = [msg for msg in messages if msg.CreateDate.isoformat() > since_timestamp]
+            # Convert Messages objects to dictionaries
+            messages = [self.serialize_message(msg) for msg in messages]
         else:
             messages = self.message_store.get(conversation_id, [])
             if since_timestamp:
@@ -147,7 +193,15 @@ class MessageHandler:
             case 'leave_conversation':
                 await self._handle_leave_conversation(data)
                 return
+            case 'booking_amendment':
+                # Handle booking amendments as a special case
+                await self._handle_booking_amendment(data)
+                return
             case 'chat':
+                await self._handle_chat_message(data)
+                return
+            case _:
+                # For any other message type, handle as chat message
                 await self._handle_chat_message(data)
                 return
 
@@ -167,7 +221,7 @@ class MessageHandler:
 
         # Add timestamp if not provided
         if 'timestamp' not in message:
-            message['timestamp'] = datetime.now(timezone.utc).isoformat()  # ...changed...
+            message['timestamp'] = datetime.now(timezone.utc).isoformat()
         
         # Store message in memory
         conversation_id = message['conversation_id']
@@ -178,11 +232,31 @@ class MessageHandler:
         # Store message in database if repository is available
         try:
             if self.repository:
+                # Use the actual message type instead of hardcoding 'chat'
+                message_type = message.get('type', 'chat')
+                
+                # Prepare content object based on message type
+                if message_type == 'booking_amendment':
+                    # For booking amendments, preserve all properties in content
+                    content = message
+                else:
+                    # For regular messages, use simplified content
+                    content = {
+                        "text": message['content'],
+                        "original_type": message_type
+                    }
+                    
+                    # Add any additional properties to preserve them
+                    for key, value in message.items():
+                        if key not in ['from', 'conversation_id', 'content', 'type', 'timestamp']:
+                            content[key] = value
+                
+                # Save with proper message type and content
                 self.repository.save_message(
                     conversation_id=conversation_id,
                     sender_id=message['from'],
-                    message_type='chat',
-                    content=message['content']
+                    message_type=message_type,
+                    content=json.dumps(content)
                 )
         except Exception as e:
             logger.error(f"Error saving chat message to database: {str(e)}")
@@ -192,41 +266,118 @@ class MessageHandler:
         
         # Broadcast to all users in this conversation except the sender
         await self._broadcast_to_conversation(conversation_id, message, exclude_user=message['from'])
+
+    async def _handle_booking_amendment(self, message):
+        """
+        Handle a booking amendment message
         
-    
+        Parameters:
+            message (dict): Booking amendment message data
+
+        Returns:
+            None
+        """
+        if not all(k in message for k in ['from', 'conversation_id', 'content', 'amendmentId']):
+            logger.error("Incomplete booking amendment message")
+            return
+
+        # Add timestamp if not provided
+        if 'timestamp' not in message:
+            message['timestamp'] = datetime.now(timezone.utc).isoformat()
+        
+        # Explicitly set the message type
+        message['type'] = 'booking_amendment'
+        
+        # Store message in memory
+        conversation_id = message['conversation_id']
+        if conversation_id not in self.message_store:
+            self.message_store[conversation_id] = []
+        self.message_store[conversation_id].append(message)
+        
+        # Store message in database with special handling
+        try:
+            if self.repository:
+                content_obj = {
+                    "amendmentId": message['amendmentId'],
+                    "content": message['content'],
+                    "booking_amendment": True
+                }
+                
+                self.repository.save_message(
+                    conversation_id=conversation_id,
+                    sender_id=message['from'],
+                    message_type='booking_amendment',
+                    content=json.dumps(content_obj)
+                )
+                logger.info(f"Saved booking amendment message to database, amendmentId: {message['amendmentId']}")
+        except Exception as e:
+            logger.error(f"Error saving booking amendment message to database: {str(e)}")
+        
+        # Broadcast to all users in this conversation
+        await self._broadcast_to_conversation(conversation_id, message)
+
     async def _handle_join_conversation(self, message):
         """
         Handle user joining a conversation
-        
-        Parameters:
-            message (dict): Join conversation
 
+        Parameters:
+            message (dict): Join conversation message
+        
         Returns:
             None
         """
         if not all(k in message for k in ['user_id', 'conversation_id']):
             return
-        
         user_id = message['user_id']
         conversation_id = message['conversation_id']
+        
+        # Validate UUID formats
+        try:
+            # Attempt to convert to UUID objects
+            user_uuid = uuid.UUID(user_id)
+            conv_uuid = uuid.UUID(conversation_id)
+        except ValueError:
+            user_socket = self.user_connections.get(user_id)
+            if user_socket:
+                await user_socket.send(json.dumps({
+                    "type": "error",
+                    "message": "Invalid UUID format for user_id or conversation_id"
+                }))
+            return
+
+        # Check conversation exists if using the database
+        if self.repository:
+            convo = self.repository.get_conversation_by_id(conv_uuid)
+            if not convo:
+                user_socket = self.user_connections.get(user_id)
+                if user_socket:
+                    await user_socket.send(json.dumps({
+                        "type": "error",
+                        "message": "Conversation does not exist"
+                    }))
+                return
         
         if conversation_id not in self.conversations:
             self.conversations[conversation_id] = set()
         
-        # Add user to conversation in memory
         self.conversations[conversation_id].add(user_id)
+        # Log join event
         logger.info(f"User {user_id} joined conversation {conversation_id}")
         
-        # Add user to conversation in database if repository is available
+        # Add user to conversation in the database with error handling
         try:
             if self.repository:
-                self.repository.add_user_to_conversation(
-                    conversation_id=conversation_id,
-                    user_id=user_id
-                )
+                self.repository.add_user_to_conversation(conversation_id, user_id)
         except Exception as e:
             logger.error(f"Error adding user to conversation in database: {str(e)}")
-        
+            user_socket = self.user_connections.get(user_id)
+            if user_socket:
+                await user_socket.send(json.dumps({
+                    "type": "error",
+                    "message": str(e)
+                }))
+            return
+
         # Send confirmation to the user
         user_socket = self.user_connections.get(user_id)
         if user_socket:
@@ -236,18 +387,15 @@ class MessageHandler:
                 'timestamp': datetime.now(timezone.utc).isoformat(),
                 'message': f'Successfully joined conversation {conversation_id}'
             }))
-            
-            # Retrieve conversation history
             await self._handle_history_request(user_socket, message)
         
-        # Notify other users in the conversation
+        # Notify other users
         join_notification = {
             'type': 'user_joined',
             'user_id': user_id,
             'conversation_id': conversation_id,
             'timestamp': datetime.now(timezone.utc).isoformat()
         }
-        
         await self._broadcast_to_conversation(conversation_id, join_notification, exclude_user=user_id)
 
     async def _broadcast_to_conversation(self, conversation_id, message, exclude_user=None):
@@ -264,23 +412,21 @@ class MessageHandler:
         """
         if conversation_id not in self.conversations:
             return
-            
+
         for user_id in self.conversations[conversation_id]:
             # Skip the excluded user if specified
             if exclude_user and user_id == exclude_user:
                 # Echo back to sender for confirmation
                 response = {
                     'type': 'user_message_sent',
-                    'timestamp': datetime.now(timezone.utc).isoformat(),  # ...changed...
+                    'timestamp': datetime.now(timezone.utc).isoformat(),
                     'status': 'delivered' if len(self.conversations[conversation_id]) > 2 else 'stored'
                 }
-
                 try:
                     await self.user_connections[user_id].send(json.dumps(response))
                 except websockets.exceptions.ConnectionClosed:
                     logger.info(f"Connection closed for user {user_id}")
                     self.remove_user(user_id)
-    
                 continue
                 
             if user_id in self.user_connections:
@@ -293,9 +439,9 @@ class MessageHandler:
     async def _handle_leave_conversation(self, message):
         """
         Handle user leaving a conversation
-        
+
         Parameters:
-            message (dict): Leave conversation
+            message (dict): Leave conversation message
         
         Returns:
             None

@@ -1,6 +1,6 @@
 import React from "react";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { View, TouchableOpacity, Modal } from "react-native";
+import { View, TouchableOpacity, Modal, Alert } from "react-native";
 
 import Map from "../../Map/Map";
 import { icons } from "@/constants";
@@ -16,7 +16,10 @@ interface UpcomingRideDetailsModalProps {
   onContactDriver: () => void;
   onCancel: () => void;
   onComplete: () => void;
+  onApproveJourney?: () => void;
   isPastRide: boolean;
+  driverView?: boolean;
+  journeyView?: boolean;
   children?: React.ReactNode;
 }
 
@@ -32,6 +35,9 @@ const UpcomingRideDetailsModal = ({
   onCancel,
   onComplete,
   isPastRide,
+  driverView = false,
+  journeyView = false,
+  onApproveJourney = () => {},
   children,
 }: UpcomingRideDetailsModalProps) => {
   const { isDarkMode } = useTheme();
@@ -82,13 +88,13 @@ const UpcomingRideDetailsModal = ({
             </View>
           </View>
 
-          <View className="flex-row gap-4">
+          {!journeyView && <View className="flex-row gap-4">
             <TouchableOpacity
               onPress={onContactDriver}
               className="flex-1 bg-blue-600 p-4 rounded-xl"
             >
               <Text className="text-white text-center font-JakartaBold">
-                Contact Driver
+                {driverView ? "Contact Passenger" : "Contact Driver"}
               </Text>
             </TouchableOpacity>
 
@@ -111,7 +117,20 @@ const UpcomingRideDetailsModal = ({
                 </Text>
               </TouchableOpacity>
             )}
-          </View>
+
+            {!isPastRide && driverView && ride.Status === "Pending" && (
+              <TouchableOpacity className="flex-1 bg-blue-600 p-4 rounded-xl"
+                onPress={() => {
+                  Alert.alert("Approve Journey", "Are you sure you want to approve this journey?\n\nPlease ensure no booking ammendments have been made.", [
+                    { text: "No", onPress: () => {}, style: "cancel" },
+                    { text: "Yes", onPress: () => onApproveJourney()}
+                  ]);
+                }}>
+                <Text className="text-center text-white font-JakartaBold">
+                  Approve Journey
+                </Text>
+              </TouchableOpacity>)}
+          </View>}
         </View>
       </View>
       {children}
