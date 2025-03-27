@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, ScrollView } from "react-native";
+import { View, TouchableOpacity, ScrollView, TextInput } from "react-native";
 import { Text } from "@/components/common/ThemedText";
 import { useTheme } from "@/context/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { icons } from "@/constants";
+import ThemedButton from "@/components/common/ThemedButton";
 
 /*
   SelectAmount
@@ -13,6 +14,21 @@ import { icons } from "@/constants";
 */
 const SelectAmount = () => {
   const { isDarkMode } = useTheme();
+
+
+  const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
+  const [customAmount, setCustomAmount] = useState('');
+
+  const predefinedOptions = [10, 20, 50, 100];
+
+  const handleTopUp = () => {
+    const amountToTopUp = customAmount || selectedAmount;
+    if (amountToTopUp) {
+      alert(`You are topping up £${amountToTopUp}`);
+    } else {
+      alert('Please select or enter an amount to top up.');
+    }
+  };
 
   return (
     <SafeAreaView
@@ -38,43 +54,68 @@ const SelectAmount = () => {
                 
         {/* Tabs */}
         <View
-          className={`flex-row rounded-xl p-1 mb-4 ${
-            isDarkMode ? "bg-slate-800" : "bg-gray-100"
-          }`}
+          className={`flex-row rounded-xl p-1 mb-4`}
         >
+          {predefinedOptions.map((amount) => (
           <TouchableOpacity
-            className={`flex-1 py-2 rounded-lg`}
+          key={amount}
+          className={`flex-1 py-2 rounded-lg`}
+          style = {{borderColor: "#000", 
+                    borderWidth: 2, 
+                    minHeight: 100,
+                    margin: 5, 
+                    justifyContent: "center", 
+                    alignItems: "center", 
+                    backgroundColor: selectedAmount === amount ? "#385975" : isDarkMode ? "#fff" : "#fff" }}
+          onPress={() => {
+            setCustomAmount('');
+            setSelectedAmount(amount);
+          }}
+        >
+          <Text
+            className={`text-center text-xl font-JakartaSemiBold`}
+            style = {{
+              color: selectedAmount === amount? "#fff" : "#000"
+            }}
           >
-            <Text
-              className={`text-center font-JakartaMedium`}
-            >
-              Bookings
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className={`flex-1 py-2 rounded-lg `}
-          >
-            <Text
-              className={`text-center font-JakartaMedium`}
-            >
-              Advertised
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className={`flex-1 py-2 rounded-lg `}
-          >
-            <Text
-              className={`text-center font-JakartaMedium `}
-            >
-              Past Journeys
-            </Text>
-          </TouchableOpacity>
+            {"£" + amount}
+          </Text>
+        </TouchableOpacity>
+        ))}
         </View>
 
-        <View className="bg-white rounded-lg p-4 shadow-md">
-                <Text className="text-gray-500">No past journeys found</Text>
+        <View className="bg-white rounded-lg p-4 shadow-md" style = {{marginVertical: 20}}>
+                <Text className="font-JakartaSemiBold text-lg">Or enter a custom amount:</Text>
+                <TextInput
+                    keyboardType="numeric"
+                    value={customAmount ? `£${customAmount}` : ""}
+                    onChangeText={(value) => {
+                      // remove the £ symbol
+                      const numericValue = value.replace(/^£/, "");
+                
+                      if (numericValue === "") {
+                        setCustomAmount("");
+                        setSelectedAmount(null);
+                      } else {
+                        // validate with regex to ensure two dp
+                        const validValue = numericValue.match(/^\d*\.?\d{0,2}$/) ? numericValue : customAmount;
+                
+                        // ensure the value is within range 2.00 to 100.00
+                        const valueInRange =
+                          parseFloat(validValue) >= 2.00 && parseFloat(validValue) <= 100.00
+                            ? validValue
+                            : customAmount;
+    
+                        setCustomAmount(valueInRange);
+                        setSelectedAmount(null);
+                      }
+                    }}
+                    placeholder="Enter amount"
+                    className="text-gray-500 text-lg"
+                  />
         </View>
 
+      <ThemedButton title="Top Up" onPress={handleTopUp} style={{marginVertical: 20}}/>
 
       </ScrollView>
     </SafeAreaView>

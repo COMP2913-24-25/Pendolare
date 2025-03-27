@@ -1,5 +1,5 @@
 import { FontAwesome5 } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { ScrollView, Image, Alert, TouchableOpacity } from "react-native";
 
 import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
@@ -11,7 +11,7 @@ import ThemedButton from "@/components/common/ThemedButton";
 import { USER_FIRST_NAME_KEY, USER_LAST_NAME_KEY, USER_RATING_KEY } from "@/services/authService";
 import * as SecureStore from "expo-secure-store";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Rating } from "react-native-ratings";
 import { getUser as apiGetUser, updateUser as apiUpdateUser } from "@/services/authService";
 import { useTheme } from "@/context/ThemeContext";
@@ -22,12 +22,6 @@ const Profile = () => {
 
   //Refresh in the background when we load in
   apiGetUser();
-  useEffect(() => {
-    // Fetch the balance sheet and update state
-    ViewBalance().then((result) => {
-      setBalanceSheet(result);
-    });
-  }, []); 
 
   const { isDarkMode } = useTheme();
 
@@ -44,6 +38,14 @@ const Profile = () => {
   const [user, setUser] = useState(getUser());
   const [balanceSheet, setBalanceSheet] = useState({ NonPending: 0.00 , Pending: 0.00});
   const [modalVisible, setModalVisible] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      ViewBalance().then((result) => {
+        setBalanceSheet(result);
+      });
+    }, [ViewBalance, setBalanceSheet])
+  );
 
   const updateUser = (newUser : { firstName: string; lastName: string, rating: string}) => {
     if (newUser.firstName.length > 30 || newUser.lastName.length > 30) {
