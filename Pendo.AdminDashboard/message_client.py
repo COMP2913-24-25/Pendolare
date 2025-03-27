@@ -74,7 +74,8 @@ class MessageClient:
                     msg["timestamp"] = msg["CreateDate"]
                 self.logger.debug(f"Transformed history message: {msg}")
             
-
+            # Sort messages by timestamp (oldest first)
+            messages.sort(key=lambda msg: msg.get("timestamp", ""))
             return {"messages": messages}
         except Exception as e:
             self.logger.error(f"Failed to join conversation via WebSocket: {e}")
