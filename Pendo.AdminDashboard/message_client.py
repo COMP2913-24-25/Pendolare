@@ -16,34 +16,6 @@ class MessageClient:
             headers["Authorization"] = token
         return headers
 
-    def open_conversation(self, participant):
-        """
-        Calls the messaging service API to create a new conversation.
-        The payload follows the CreateConversationRequest schema.
-        :param participant: The user id (uuid) of the person to chat with.
-        :return: The JSON data from the service if successful.
-        """
-        self.logger.info("Starting new conversation via message service")
-        url = f"{self.base_url}/CreateConversation"
-        payload = {
-            "UserId": "00000000-0000-0000-0000-000000000000", 
-            "ConversationType": "adminChat",
-            "participants": [participant]
-        }
-        response = requests.post(
-            url,
-            json=payload,
-            headers=self._get_headers(),
-            verify=True
-        )
-
-        if response.status_code == 200:
-            self.logger.info("Conversation started successfully")
-            return response.json()
-        else:
-            self.logger.error(f"Failed to start conversation: {response.status_code} - {response.text}")
-            return None
-
     def get_user_conversations(self, user_id):
         self.logger.info("Fetching user conversations")
         url = f"{self.base_url}/SupportConversation"
