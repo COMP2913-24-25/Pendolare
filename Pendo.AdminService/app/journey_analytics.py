@@ -23,7 +23,11 @@ class JourneyAnalyticsCommand:
             .all()
 
             journey_flags = {}
-            for journey, booking, booking_status in results:
+            for row in results:
+                if isinstance(row, tuple):
+                    journey, booking, booking_status = row
+                else:
+                    journey, booking, booking_status = row, None, None
                 if journey.JourneyId not in journey_flags:
                     journey_flags[journey.JourneyId] = {"booked": False, "cancelled": False, "available": True}
                 if booking and booking_status:
