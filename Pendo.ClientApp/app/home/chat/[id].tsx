@@ -19,7 +19,7 @@ import { formatTimestamp } from "@/utils/formatTime";
 import { getCurrentUserId } from "@/services/authService";
 import BookingAmendmentModal from "@/components/Chat/BookingAmendmentModal";
 import AmendmentRequestBubble from "@/components/Chat/AmendmentRequestBubble";
-import { AddBookingAmmendmentRequest, addBookingAmmendment, approveBookingAmmendment } from "@/services/bookingService";
+import { AddBookingAmmendmentRequest, addBookingAmmendment, approveBookingAmmendment, getBookings } from "@/services/bookingService";
 
 /*
   Helper function to generate unique message IDs internally for categorisation
@@ -50,6 +50,7 @@ const ChatDetail = () => {
   const [showAmendmentModal, setShowAmendmentModal] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   const [autoCreateChat, setAutoCreateChat] = useState(true);
+  const previousIdRef = useRef<string | null>(null);
 
   // Ensure we have a current user ID
   useEffect(() => {
@@ -80,6 +81,35 @@ const ChatDetail = () => {
       };
     }, [currentUserId])
   );
+
+  // Add this effect to reset state when the ID parameter changes
+  useEffect(() => {
+    // Skip if this is the initial render with the same ID
+    if (previousIdRef.current === id) return;
+    
+    console.log(`Chat ID changed from ${previousIdRef.current} to ${id}`);
+    previousIdRef.current = id as string;
+    
+    // Reset state for new chat thread
+    setChat(null);
+    setMessages([]);
+    setHasSetChatVars(false);
+    setIsLoadingHistory(false);
+    setConnectionError(null);
+    
+    // Disconnect from current chat
+    messageService.disconnect();
+    
+    // Only auto-create when there's an initial message
+    const shouldAutoCreate = !!initialMessage || 
+                          (typeof initialMessage !== 'undefined' && initialMessage !== '');
+    setAutoCreateChat(shouldAutoCreate);
+    
+    // If we have a user ID, fetch the new chat data
+    if (currentUserId) {
+      fetchChatData();
+    }
+  }, [id, currentUserId]);
 
   /*
     Fetch chat details
