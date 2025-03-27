@@ -133,20 +133,18 @@ const Profile = () => {
         <ThemedView className={cardStyle} style={{ marginTop: 25 }}>
           <ThemedInputField
             label="Pending Balance"
-            value={"£" + balanceSheet.Pending.toString()}
+            value={"£" + balanceSheet.Pending.toFixed(2).toString()}
             editable={false}
             containerStyle="mb-4"
-            // onChangeText={(text) => updateUser({...user, firstName: text})}
           />
           <Text style={{ fontSize: 14, color: "#888", marginBottom: 4 }}>
             If you have accepted a ride, but it is not yet complete, your expected payout (the price of the journey minus the admin fee) will show here
           </Text>
           <ThemedInputField
             label="Non-Pending Balance"
-            value={"£" + balanceSheet.NonPending.toString()}
+            value={"£" + balanceSheet.NonPending.toFixed(2).toString()}
             editable={false}
             containerStyle="mb-4"
-            // onChangeText={(text) => updateUser({...user, lastName: text})}
           />
           <Text style={{ fontSize: 14, color: "#888", marginBottom: 4 }}>
             The value you can use to book journeys. Add to it by becoming a driver or via the button below
@@ -160,7 +158,7 @@ const Profile = () => {
                   : "bg-white"
             }`}
             style = {{borderColor: "#888", borderWidth: 2, marginVertical: 10}}
-            onPress={() => router.push("/home/settings")}
+            onPress={() => router.push("/home/payment/selectAmount")}
           >
             <Text
               className={`text-lg font-JakartaBold ${
