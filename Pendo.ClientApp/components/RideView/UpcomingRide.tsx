@@ -11,9 +11,10 @@ import UpcomingRideDetailsModal from "./Modals/UpcomingRideDetailsModal";
 import UpcomingRideCard from "./UpcomingRideCard";
 import { Ride } from "@/constants";
 import { cancelBooking } from "@/services/bookingService";
+import { createConversation } from "@/services/messageService";
 
 interface UpcomingRideProps {
-  ride : Ride
+  ride : Ride;
 }
 
 /*
@@ -52,7 +53,7 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
 
   const handleCancel = async (reason: string) => {
     try {
-      await cancelBooking(ride.BookingId, reason); // Replace with actual API call
+      await cancelBooking(ride.BookingId, reason);
 
       setShowCancelModal(false);
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -73,7 +74,24 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
       setShowDetails(false);
       // Small delay to allow modal to start closing
       await new Promise((resolve) => setTimeout(resolve, 100));
-      router.push(`/home/chat/${ride.DriverId}?name=${ride.DriverName}`);
+      
+      // Explicitly create a conversation before navigating
+      // This ensures the conversation exists when we reach the chat page
+      try {
+        const conversationResponse = await createConversation({
+          ConversationType: "direct",
+          name: `Chat with ${ride.DriverName}`,
+          participants: [ride.DriverId]
+        });
+        
+        console.log("Successfully created conversation:", conversationResponse);
+      } catch (error) {
+        // If creation fails, the chat page will try again
+        console.log("Could not pre-create conversation, will try in chat page:", error);
+      }
+      
+      // Navigate to chat page with properly encoded parameters
+      router.push(`/home/chat/${ride.DriverId}?name=${encodeURIComponent(ride.DriverName)}`);
     } catch (error) {
       console.error("Error navigating to chat:", error);
     }

@@ -1,5 +1,6 @@
 import { FontAwesome5 } from "@expo/vector-icons";
-import { useState, useEffect } from "react";
+import { useFocusEffect } from "expo-router";
+import { useState, useEffect, useCallback } from "react";
 import {
   View,
   TouchableOpacity,
@@ -17,7 +18,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { USER_FIRST_NAME_KEY } from "@/services/authService";
 import * as SecureStore from "expo-secure-store";
-import { getBookings, completeBooking } from "@/services/bookingService";
+import { getBookings, completeBooking, confirmAtPickup } from "@/services/bookingService";
 import RideConfirmationCard from "@/components/RideView/RideConfirmationCard";
 import DriverPickupConfirmationCard from "@/components/RideView/DriverPickupConfirmationCard";
 
@@ -38,6 +39,7 @@ const Home = () => {
   const [cancelledRides, setCancelledRides] = useState<Ride[]>([]);
   const [nextRide, setNextRide] = useState<Ride | null>(null);
   const [userFirstName, setUserFirstName] = useState<string | null>(null);
+  const [upcomingDriverRide, setUpcomingDriverRide] = useState<Ride | null>(null);
 
   useEffect(() => {
     const fetchUserFirstName = async () => {
@@ -47,9 +49,9 @@ const Home = () => {
     fetchUserFirstName();
   }, []);
 
-  const fetchBookings = async () => {
+  const fetchBookings = async (driverView : boolean = false) => {
     try {
-      const response = await getBookings();
+      const response = await getBookings(driverView);
       
       // Process the response to transform the bookings into Ride objects
       const allRides: Ride[] = response.bookings.map((booking: any) => ({
@@ -57,6 +59,7 @@ const Home = () => {
         RideTime: new Date(booking.Booking.RideTime),
         Status: booking.BookingStatus.Status,
         DriverName: booking.Journey.User.FirstName,
+        PassengerName: booking.Booking.User.FirstName as string,
         DriverId: booking.Journey.User.UserId,
         Price: booking.Journey.Price,
         Pickup: {
@@ -70,6 +73,25 @@ const Home = () => {
           name: booking.Journey.EndName
         }
       }));
+
+      if (driverView) {
+        const now = Date.now();
+        const thirtyMinutes = 30 * 60 * 1000;
+
+        const ridesInRange = allRides.filter(ride =>
+          ride.Status === "Confirmed" &&
+          ride.RideTime.getTime() >= now - thirtyMinutes &&
+          ride.RideTime.getTime() <= now + thirtyMinutes
+        );
+
+        const nextDriverRide = ridesInRange.sort(
+          (a, b) => Math.abs(a.RideTime.getTime() - now) - Math.abs(b.RideTime.getTime() - now)
+        )[0];
+
+        setUpcomingDriverRide(nextDriverRide);
+        return;
+      }
+      
       
       // Split the rides into upcoming and past based on the current time
       const cancelled = allRides.filter(ride => ride.Status === "Cancelled");
@@ -90,12 +112,25 @@ const Home = () => {
   };
 
   useEffect(() => {
-    fetchBookings();
+    fetchBookings(false);
+    fetchBookings(true);
   }, []);
 
   useEffect(() => {
     setCurrentJourneyTab("Upcoming");
   }, []);
+
+  // Add focus effect to refresh data when tab becomes active
+  useFocusEffect(
+    useCallback(() => {
+      console.log("Home tab focused - refreshing bookings");
+      fetchBookings(false);
+      fetchBookings(true);
+      return () => {
+        // Cleanup if needed
+      };
+    }, [])
+  );
 
   const confirmSignOut = async () => {
     setShowModal(false);
@@ -153,7 +188,18 @@ const Home = () => {
           </View>
 
           {/* Driver Pickup Confirmation Section - needs to be done conditonally properly once endpoints are redployed.*/}
-          {(nextRide == null && <DriverPickupConfirmationCard passenger={null} onConfirmArrival={() => {}} />)}
+          {(upcomingDriverRide != null && 
+            <DriverPickupConfirmationCard passenger={upcomingDriverRide.PassengerName} 
+              onConfirmArrival={() => {
+                confirmAtPickup(upcomingDriverRide.BookingId).then((response) => {
+                  if (!response.success) {
+                    Alert.alert("Error", "There was an error confirming your arrival at the pickup location.");
+                    return;
+                  }
+                  fetchBookings(true);
+                  Alert.alert("Pickup Confirmed", "You have confirmed your arrival at the pickup location.");
+                });
+              }} />)}
 
           {/* Next Journey Section */}
           <View className="mt-2">

@@ -1,5 +1,7 @@
 import { FontAwesome5 } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
+
+import { ScrollView, Image, Alert } from "react-native";
 import { ScrollView, Image, Alert, TouchableOpacity } from "react-native";
 
 import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
@@ -58,7 +60,15 @@ const Profile = () => {
 
   const cardStyle = `${isDarkMode ? "bg-dark" : "bg_white"} rounded-lg shadow-sm px-5 py-3`;
 
-  
+  useFocusEffect(
+    useCallback(() => {
+      const refreshUserData = async () => {
+        await apiGetUser();
+        setUser(getUser());
+      };
+      refreshUserData();
+    }, [])
+  );
 
   return (
     <ThemedSafeAreaView className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-general-500"}`}>

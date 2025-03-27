@@ -4,6 +4,7 @@ export interface Ride {
   Status: string;
   DriverName: string;
   DriverId: string;
+  PassengerName: string;
   Price: number;
   Pickup : {
     latitude: number;
@@ -40,7 +41,8 @@ export const icons = {
   car: "car",
   flag: "flag",
   repeat: "redo",
-  list: "clipboard-list"
+  list: "clipboard-list",
+  chevronRight: "chevron-right"
 };
 
 export const onboarding = [
@@ -83,13 +85,13 @@ export const AUTH_ENDPOINTS = {
 
 // Booking endpoints
 export const BOOKING_ENDPOINTS = {
-  CREATE_BOOKING: "/Booking/CreateBooking",
   GET_BOOKINGS: "/Booking/GetBookings",
+  CREATE_BOOKING: "/Booking/CreateBooking",
   ADD_BOOKING_AMMENDMENT: "/Booking/AddBookingAmmendment",
   APPROVE_BOOKING_AMMENDMENT: "/Booking/ApproveBookingAmmendment",
   APPROVE_BOOKING: "/Booking/ApproveBooking",
   CONFIRM_AT_PICKUP: "/Booking/ConfirmAtPickup",
-  COMPLETE_BOOKING: "/Booking/CompleteBooking"
+  COMPLETE_BOOKING: "/Booking/CompleteBooking",
 };
 
 // Journey endpoints
@@ -115,6 +117,17 @@ export const MESSAGE_ENDPOINTS = {
   GET_USER_CONVERSATIONS: "/Message/UserConversation",
   CREATE_CONVERSATION: "/Message/CreateConversation",
 };
+
+// Cancellation reasons
+export const cancelReasons = [
+  "Plans changed",
+  "Found alternative transport",
+  "Price too high",
+  "Emergency",
+  "Other",
+];
+
+
 
 // Dummy data generated utilising machine learning models
 export const dummyRides = [
@@ -316,12 +329,4 @@ export const pastRides = [
     },
     status: "completed",
   },
-];
-
-export const cancelReasons = [
-  "Plans changed",
-  "Found alternative transport",
-  "Price too high",
-  "Emergency",
-  "Other",
 ];

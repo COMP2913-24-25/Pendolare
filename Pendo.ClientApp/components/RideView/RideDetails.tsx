@@ -6,8 +6,9 @@ import { Text } from "@/components/common/ThemedText"; // updated
 import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 import { createBooking } from "@/services/bookingService";
-import { toHumanReadable } from "@/utils/cronTools";
+import { toHumanReadable, getNextCronDates } from "@/utils/cronTools";
 import { Rating } from "react-native-ratings";
+import CheckoutModal, { Discount, SubRide } from "./Modals/CheckoutModal";
 
 interface RideDetailsProps {
   ride: any;
@@ -31,6 +32,10 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
     message: "",
     showMessage: false,
   });
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [subrides, setSubrides] = useState<SubRide[]>([]);
+  const [discount, setDiscount] = useState<Discount>();
+  const [userBalance, setUserBalance] = useState(0.00);
 
   const handleBooking = async () => {
     setInBooking(true);
@@ -41,6 +46,34 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
         typeof ride.departureTime === "string"
           ? new Date(ride.departureTime)
           : new Date(ride.departureTime);
+
+      if (ride.recurrence) {
+        const oneWeek = 604800000; // 1 week in milliseconds
+        const journeyDates = getNextCronDates(
+            ride.recurrence, 
+            departureTime, 
+            new Date(departureTime.getTime() + oneWeek), 
+            24);
+
+        const newSubrides : SubRide[] = journeyDates.map((date) => ({
+          journeyId: ride.JourneyId,
+          journeyDate: date,
+          price: ride.AdvertisedPrice,
+          parent: ride,
+        }));
+
+        const discount: Discount = {
+          name: "Frequent Rider Discount",
+          amount: 0.1
+        };
+
+        setSubrides(newSubrides);
+        setDiscount(discount);
+        setUserBalance(100.00);
+
+        setShowCheckout(true);
+        return;
+      }
 
       const result = await createBooking(ride.JourneyId, departureTime);
 
@@ -183,6 +216,20 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
                   {ride.MaxPassengers} seats available
                 </Text>
               </View>
+
+              {ride.recurrence && (
+                <View className="flex-row items-center mt-2">
+                  <FontAwesome5
+                    name={icons.time}
+                    size={20}
+                    color={isDarkMode ? "#FFF" : "#666666"}
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text className="text-gray-600">
+                    {toHumanReadable(ride.recurrence)}
+                  </Text>
+                </View>
+              )}
             </View>
 
             <View className="flex-row justify-between space-x-4">
@@ -274,6 +321,15 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
           </View>
         </TouchableOpacity>
       </Modal>
+
+      <CheckoutModal 
+        visible={showCheckout} 
+        onClose={() => setShowCheckout(false)} 
+        subrides={subrides} 
+        discount={discount}
+        userBalance={userBalance}
+        isDarkMode={isDarkMode} 
+        onConfirm={() => {}} />
     </Modal>
   );
 };

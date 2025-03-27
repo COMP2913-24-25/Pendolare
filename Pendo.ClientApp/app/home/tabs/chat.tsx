@@ -1,6 +1,6 @@
 import { FontAwesome5 } from "@expo/vector-icons";
-import { router } from "expo-router";
-import { useState, useEffect } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useState, useEffect, useCallback } from "react";
 import { ScrollView, View, TouchableOpacity } from "react-native";
 
 import ChatThread from "@/components/ChatThread";
@@ -18,6 +18,7 @@ interface Conversation {
   lastMessage: string;
   timestamp: number;
   unread: number;
+  userId: string;
 }
 
 /*
@@ -53,10 +54,13 @@ const Chat = () => {
         ...conv,
         type: conv.Type ? conv.Type.toLowerCase() : conv.type,
         id: conv.id || conv.ConversationId,
+        userId: conv.UserId,
         title: conv.Name,
         lastMessage: conv.lastMessage || "",
         timestamp: new Date(conv.CreateDate).getTime(),
       }));
+
+      normalisedConversations.forEach((conv) => {console.log(conv.userId)});
 
       console.log("normalised conversations:", normalisedConversations);
       setConversations(normalisedConversations);
@@ -65,9 +69,11 @@ const Chat = () => {
     }
   };
 
-  useEffect(() => {
-    fetchConversations();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchConversations();
+    }, [])
+  );
 
   /*
     Handle Support Category
@@ -83,9 +89,29 @@ const Chat = () => {
     Handle Chat Press
     Navigate to the chat screen when a chat is pressed
   */
-  const handleChatPress = (chatId: string) => {
-    router.push(`/home/chat/${chatId}`);
+  const handleChatPress = (conversation: Conversation) => {
+    console.log(`Navigating to chat: ${conversation.id}, title: ${conversation.title}`);
+    
+    // Use the conversation ID as the route parameter, not the userId
+    router.push({
+      pathname: `/home/chat/${conversation.id}`,
+      params: { 
+        name: conversation.title,
+        // Don't include initialMessage to prevent auto-sending on navigation
+      }
+    });
   };
+
+  // Add focus effect to refresh data when tab becomes active
+  useFocusEffect(
+    useCallback(() => {
+      console.log("Chat tab focused - refreshing conversations");
+      fetchConversations();
+      return () => {
+        // Cleanup if needed
+      };
+    }, [])
+  );
 
   return (
     <ThemedSafeAreaView className={isDarkMode ? "flex-1 bg-slate-900" : "flex-1 bg-white"}>
@@ -121,7 +147,7 @@ const Chat = () => {
                   lastMessage={chat.lastMessage}
                   timestamp={chat.timestamp}
                   unread={chat.unread}
-                  onPress={() => handleChatPress(chat.id)}
+                  onPress={() => handleChatPress(chat)}
                 />
               );
             })}
