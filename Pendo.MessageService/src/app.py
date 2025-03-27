@@ -198,16 +198,18 @@ async def create_conversation_handler(request):
     
     name = data.get("name")
 
-    print(participants)
-    print(name)
-    print("ELLO")
-    
     # Create conversation with participants
     try:
         # First check if repository exists in app context (for testing)
         repo = request.app.get('repository', repository)
         if repo is None:
             return web.json_response({"error": "Repository not available"}, status=500)
+        
+        existing_convos = repo.get_user_conversations(user_id)
+        for conv in existing_convos:
+            if set(conv.participants) == set(participants):
+                return web.json_response({"error": "Conversation already exists"}, status=400)
+
             
         conversation = repo.create_conversation_with_participants(conversation_type, participants, name)
         response_data = {
