@@ -24,10 +24,13 @@ class JourneyAnalyticsCommand:
 
             journey_flags = {}
             for row in results:
-                if isinstance(row, tuple):
+                try:
                     journey, booking, booking_status = row
-                else:
-                    journey, booking, booking_status = row, None, None
+                except TypeError:
+                    journey = row
+                    booking = getattr(row, "Booking", None)
+                    booking_status = getattr(row, "BookingStatus", None)
+
                 if journey.JourneyId not in journey_flags:
                     journey_flags[journey.JourneyId] = {"booked": False, "cancelled": False, "available": True}
                 if booking and booking_status:
@@ -35,11 +38,11 @@ class JourneyAnalyticsCommand:
                     if status_lower == "booked":
                         journey_flags[journey.JourneyId]["booked"] = True
                         journey_flags[journey.JourneyId]["available"] = False
-                    if status_lower == "cancelled":
+                    elif status_lower == "cancelled":
                         journey_flags[journey.JourneyId]["cancelled"] = True
                         journey_flags[journey.JourneyId]["available"] = False
 
-            available_count = sum(1 for flags in journey_flags.values() if flags["available"] and not flags["booked"] and not flags["cancelled"])
+            available_count = sum(1 for flags in journey_flags.values() if flags["available"])
             booked_count = sum(1 for flags in journey_flags.values() if flags["booked"])
             cancelled_count = sum(1 for flags in journey_flags.values() if flags["cancelled"])
 
