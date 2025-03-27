@@ -11,9 +11,15 @@ class PaymentRepository():
 
     def __init__(self):
         """
-        Constructor for BookingRepository class.
+        Constructor for PaymentRepository class.
         """
         self.db_session = next(get_db())
+
+    def __del__(self):
+        """
+        Destructor for PaymentRepository class.
+        """
+        self.db_session.close()
 
     def GetUserBalance(self, user_id):
         """
