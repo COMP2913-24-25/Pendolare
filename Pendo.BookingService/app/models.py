@@ -11,7 +11,7 @@ Base = declarative_base()
 class BookingStatus(Base):
     __tablename__ = 'BookingStatus'
     __table_args__ = (
-        PrimaryKeyConstraint('BookingStatusId', name='PK__BookingS__54F9C05DCD22D26A'),
+        PrimaryKeyConstraint('BookingStatusId', name='PK__BookingS__54F9C05DB1EDBB80'),
         {'schema': 'booking'}
     )
 
@@ -26,7 +26,7 @@ class BookingStatus(Base):
 class UserType(Base):
     __tablename__ = 'UserType'
     __table_args__ = (
-        PrimaryKeyConstraint('UserTypeId', name='PK__UserType__40D2D8166D76C419'),
+        PrimaryKeyConstraint('UserTypeId', name='PK__UserType__40D2D816692AEBEE'),
         {'schema': 'identity'}
     )
 
@@ -41,8 +41,8 @@ class UserType(Base):
 class Configuration(Base):
     __tablename__ = 'Configuration'
     __table_args__ = (
-        PrimaryKeyConstraint('ConfigurationId', name='PK__Configur__95AA53BBE8ADEAEC'),
-        Index('UQ__Configur__C41E0289473D62FF', 'Key', unique=True),
+        PrimaryKeyConstraint('ConfigurationId', name='PK__Configur__95AA53BBF4B673D6'),
+        Index('UQ__Configur__C41E0289E137EECA', 'Key', unique=True),
         {'schema': 'shared'}
     )
 
@@ -57,14 +57,15 @@ class User(Base):
     __tablename__ = 'User'
     __table_args__ = (
         ForeignKeyConstraint(['UserTypeId'], ['identity.UserType.UserTypeId'], name='FK_User_UserType'),
-        PrimaryKeyConstraint('UserId', name='PK__User__1788CC4CFB386371'),
+        PrimaryKeyConstraint('UserId', name='PK__User__1788CC4C9BA5FE5B'),
         Index('IX_User_UserType', 'UserTypeId'),
-        Index('UQ__User__A9D10534B377CD41', 'Email', unique=True),
+        Index('UQ__User__A9D105341E761372', 'Email', unique=True),
         {'schema': 'identity'}
     )
 
     UserId = mapped_column(Uuid, server_default=text('(newsequentialid())'))
     Email = mapped_column(Unicode(255, 'SQL_Latin1_General_CP1_CI_AS'), nullable=False)
+    UserRating = mapped_column(Float(53), nullable=False, server_default=text('((-1))'))
     UserTypeId = mapped_column(Integer, nullable=False)
     CreateDate = mapped_column(DATETIME2, nullable=False, server_default=text('(getutcdate())'))
     UpdateDate = mapped_column(DATETIME2, nullable=False, server_default=text('(getutcdate())'))
@@ -81,7 +82,8 @@ class OtpLogin(Base):
     __tablename__ = 'OtpLogin'
     __table_args__ = (
         ForeignKeyConstraint(['UserId'], ['identity.User.UserId'], name='FK_OtpLogin_User'),
-        PrimaryKeyConstraint('OtpLoginId', name='PK__OtpLogin__C597BB31A84E22A9'),
+        PrimaryKeyConstraint('OtpLoginId', name='PK__OtpLogin__C597BB312DD4267C'),
+        Index('IX_OtpLogin_UserId', 'UserId'),
         {'schema': 'identity'}
     )
 
@@ -100,7 +102,7 @@ class Journey(Base):
     __tablename__ = 'Journey'
     __table_args__ = (
         ForeignKeyConstraint(['UserId'], ['identity.User.UserId'], name='FK_Journeys_UserId'),
-        PrimaryKeyConstraint('JourneyId', name='PK__Journey__4159B9EFC48858AE'),
+        PrimaryKeyConstraint('JourneyId', name='PK__Journey__4159B9EF526A112F'),
         {'schema': 'journey'}
     )
 
@@ -138,7 +140,7 @@ class Booking(Base):
         ForeignKeyConstraint(['BookingStatusId'], ['booking.BookingStatus.BookingStatusId'], name='FK_Booking_BookingStatus'),
         ForeignKeyConstraint(['JourneyId'], ['journey.Journey.JourneyId'], name='FK_Booking_Journey'),
         ForeignKeyConstraint(['UserId'], ['identity.User.UserId'], name='FK_Booking_User'),
-        PrimaryKeyConstraint('BookingId', name='PK__Booking__73951AED014D12EE'),
+        PrimaryKeyConstraint('BookingId', name='PK__Booking__73951AED76C2AFA1'),
         {'schema': 'booking'}
     )
 
@@ -162,7 +164,7 @@ class BookingAmmendment(Base):
     __tablename__ = 'BookingAmmendment'
     __table_args__ = (
         ForeignKeyConstraint(['BookingId'], ['booking.Booking.BookingId'], name='FK_BookingAmmendment_Booking'),
-        PrimaryKeyConstraint('BookingAmmendmentId', name='PK__BookingA__59DE3C6AD79DFBBE'),
+        PrimaryKeyConstraint('BookingAmmendmentId', name='PK__BookingA__59DE3C6A7584BD74'),
         {'schema': 'booking'}
     )
 
