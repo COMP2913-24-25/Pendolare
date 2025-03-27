@@ -1,0 +1,396 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Pendo.AdminService.Api",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api/Admin"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "tags": [
+          "Read Root"
+        ],
+        "summary": "Read Root",
+        "operationId": "read_root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/HealthCheck": {
+      "get": {
+        "tags": [
+          "HealthCheck"
+        ],
+        "summary": "Health Check",
+        "operationId": "health_check_HealthCheck_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/UpdateBookingFee": {
+      "patch": {
+        "tags": [
+          "Booking Fee"
+        ],
+        "summary": "Update Booking Fee",
+        "operationId": "update_booking_fee_UpdateBookingFee_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBookingFeeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/GetBookingFee": {
+      "get": {
+        "tags": [
+          "Booking Fee"
+        ],
+        "summary": "Get Booking Fee",
+        "operationId": "get_booking_fee_GetBookingFee_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/GetWeeklyRevenue": {
+      "get": {
+        "tags": [
+          "Booking Revenue"
+        ],
+        "summary": "Get Booking Revenue",
+        "operationId": "get_booking_revenue_GetWeeklyRevenue_get",
+        "parameters": [
+          {
+            "name": "StartDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Startdate"
+            }
+          },
+          {
+            "name": "EndDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Enddate"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/JourneyAnalytics": {
+      "get": {
+        "tags": [
+          "Journey Analytics"
+        ],
+        "summary": "Journey Analytics",
+        "operationId": "journey_analytics_JourneyAnalytics_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/FrequentUsers": {
+      "get": {
+        "tags": [
+          "User Analytics"
+        ],
+        "summary": "Frequent Users",
+        "operationId": "frequent_users_FrequentUsers_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/CreateDiscount": {
+      "post": {
+        "tags": [
+          "Discounts"
+        ],
+        "summary": "Create Discount",
+        "operationId": "create_discount_CreateDiscount_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDiscountRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Discounts": {
+      "get": {
+        "tags": [
+          "Discounts"
+        ],
+        "summary": "Get Discounts",
+        "operationId": "get_discounts_Discounts_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Discounts/{discount_id}": {
+      "delete": {
+        "tags": [
+          "Discounts"
+        ],
+        "summary": "Delete Discount",
+        "operationId": "delete_discount_Discounts__discount_id__delete",
+        "parameters": [
+          {
+            "name": "discount_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Discount Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CreateDiscountRequest": {
+        "properties": {
+          "WeeklyJourneys": {
+            "type": "integer",
+            "title": "Weeklyjourneys"
+          },
+          "DiscountPercentage": {
+            "type": "number",
+            "title": "Discountpercentage"
+          }
+        },
+        "type": "object",
+        "required": [
+          "WeeklyJourneys",
+          "DiscountPercentage"
+        ],
+        "title": "CreateDiscountRequest"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "UpdateBookingFeeRequest": {
+        "properties": {
+          "FeeMargin": {
+            "type": "number",
+            "title": "Feemargin"
+          }
+        },
+        "type": "object",
+        "required": [
+          "FeeMargin"
+        ],
+        "title": "UpdateBookingFeeRequest"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
