@@ -1,6 +1,6 @@
 import { FontAwesome5 } from "@expo/vector-icons";
-import { router, useGlobalSearchParams, useLocalSearchParams } from "expo-router";
-import { useState, useEffect, useRef } from "react";
+import { router, useGlobalSearchParams, useLocalSearchParams, useFocusEffect } from "expo-router";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   View,
   TextInput,
@@ -16,9 +16,10 @@ import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 import { messageService, ChatMessage, getUserConversations, createConversation } from "@/services/messageService";
 import { formatTimestamp } from "@/utils/formatTime";
-import { useAuth } from "@/context/AuthContext";
-import * as SecureStore from "expo-secure-store";
-import { getJWTToken, getCurrentUserId } from "@/services/authService";
+import { getCurrentUserId } from "@/services/authService";
+import BookingAmendmentModal from "@/components/Chat/BookingAmendmentModal";
+import AmendmentRequestBubble from "@/components/Chat/AmendmentRequestBubble";
+import { AddBookingAmmendmentRequest, addBookingAmmendment, approveBookingAmmendment } from "@/services/bookingService";
 
 /*
   Helper function to generate unique message IDs internally for categorisation
@@ -42,22 +43,18 @@ const ChatDetail = () => {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [hasSetChatVars, setHasSetChatVars] = useState(false);
-  const { user } = useAuth(); // Get the current authenticated user
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const scrollViewRef = useRef<RNScrollView>(null);
   const inputRef = useRef<TextInput>(null);
   const lastSentMessageRef = useRef<string>("");
+  const [showAmendmentModal, setShowAmendmentModal] = useState(false);
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+  const [autoCreateChat, setAutoCreateChat] = useState(true);
 
   // Ensure we have a current user ID
   useEffect(() => {
     const getUserId = async () => {
-      // Try to get user ID from auth context first
-      if (user?.id) {
-        setCurrentUserId(user.id);
-        return;
-      }
-
-      // Fallback: Get user ID from auth service
+      // Get user ID directly from auth service
       try {
         const userId = await getCurrentUserId();
         if (userId) {
@@ -70,7 +67,113 @@ const ChatDetail = () => {
     };
 
     getUserId();
-  }, [user]);
+  }, []);
+
+  // Add focus effect to refresh data when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      if (currentUserId) {
+        fetchChatData();
+      }
+      return () => {
+        // Cleanup if needed
+      };
+    }, [currentUserId])
+  );
+
+  /*
+    Fetch chat details
+  */
+  const fetchChatData = async () => {
+    try {
+      // Fetch conversation details from API
+      console.log("Fetching conversation details for:", id);
+      const response = await getUserConversations();
+      
+      // Normalise conversation data
+      const normalisedConversations = response.conversations.map((conv: any) => ({
+        ...conv,
+        type: conv.Type ? conv.Type.toLowerCase() : conv.type,
+        id: conv.id || conv.ConversationId,
+        title: conv.Name,
+        lastMessage: conv.lastMessage || "",
+        timestamp: new Date(conv.CreateDate).getTime()
+      }));
+      
+      // Check if conversation ID matches directly
+      let selectedChat = normalisedConversations.find((c: any) => 
+        c.id === id || c.ConversationId === id
+      );
+      
+      // If not found by ID, check if there's a conversation with this participant
+      if (!selectedChat) {
+        selectedChat = normalisedConversations.find((c: any) => 
+          (c.Name && c.Name.includes(`Chat with ${name || id}`)) || 
+          (c.title && c.title.includes(`Chat with ${name || id}`)) ||
+          c.UserId === id.toString()
+        );
+      }
+      
+      // Ssearch in the participants list if available as a last resort
+      if (!selectedChat) {
+        selectedChat = normalisedConversations.find((c: any) => 
+          c.participants?.includes(id.toString())
+        );
+      }
+
+      if (!selectedChat) {
+        console.log("Chat not found.");
+        
+        // Only auto-create chat when explicitly set to true
+        // This prevents creating new chats on every refresh
+        if (!autoCreateChat) {
+          console.log("Auto-creation disabled. Not creating a new chat.");
+          return;
+        }
+        
+        setIsLoadingHistory(false);
+        const userName: any = typeof name === "undefined" ? id.toString() : name as string;
+
+        try {
+          // Create new conversation
+          const response = await createConversation({
+            ConversationType: "direct",
+            name: `Chat with ${userName}`,
+            participants: [id.toString()]
+          });
+          console.log("Conversation created:", response);
+
+          // Disable auto-creation for subsequent renders
+          setAutoCreateChat(false);
+
+          setHasSetChatVars(true);
+          setChat({
+            id: response.ConversationId,
+            ConversationId: response.ConversationId,
+            type: response.Type,
+            title: response.Name,
+            lastMessage: "",
+            timestamp: new Date().getTime(),
+            UserId: currentUserId // Use the current user ID
+          });  
+
+          return;
+          
+        } catch (error) {
+          console.error("Failed to create conversation:", error);
+        }
+      } else {
+        // Found an existing chat, disable auto-creation
+        setAutoCreateChat(false);
+        console.log("Found existing chat:", selectedChat.id);
+        
+        setHasSetChatVars(true);
+        setChat(selectedChat);
+      }
+    } catch (error) {
+      console.error("Error fetching conversation:", error);
+    }
+  };
 
   /*
     Fetch chat details on initial load
@@ -79,66 +182,14 @@ const ChatDetail = () => {
     // Skip if we don't have a user ID yet
     if (!currentUserId) return;
     
-    async function fetchChat() {
-      try {
-        // Fetch conversation details from API
-        console.log("Fetching conversation details for:", id);
-        const response = await getUserConversations();
-        
-        // Normalise conversation data
-        // This is a simplified version of the response structure
-        const normalisedConversations = response.conversations.map((conv: any) => ({
-          ...conv,
-          type: conv.Type ? conv.Type.toLowerCase() : conv.type,
-          id: conv.id || conv.ConversationId,
-          title: conv.Name,
-          lastMessage: conv.lastMessage || "",
-          timestamp: new Date(conv.CreateDate).getTime()
-        }));
-        
-        // Find the selected conversation by ID
-        const selectedChat = normalisedConversations.find((c: any) => c.UserId == id.toString());
-
-        if (typeof selectedChat === "undefined") {
-          console.log("Chat not found. Creating new conversation.");
-          setIsLoadingHistory(false);
-
-          const userName : any = typeof name === "undefined" ? id.toString() : name as string;
-
-          try {
-            // Create new conversation
-            const response = await createConversation({
-              ConversationType: "direct",
-              name: `Chat with ${userName}.`,
-              participants: [ id.toString() ]
-            });
-            console.log("Conversation created:", response);
-
-            setHasSetChatVars(true);
-            setChat({
-              id: response.ConversationId,
-              ConversationId: response.ConversationId,
-              type: response.Type,
-              title: response.Name,
-              lastMessage: "",
-              timestamp: new Date().getTime(),
-              UserId: currentUserId // Use the current user ID
-            });  
-
-            return;
-            
-          } catch (error) {
-            console.error("Failed to create conversation:", error);
-          }
-        }
-
-        setHasSetChatVars(true);
-        setChat(selectedChat);
-      } catch (error) {
-        console.error("Error fetching conversation:", error);
-      }
-    }
-    fetchChat();
+    // Only auto-create chat when this is the first load or when explicitly requested
+    // This drastically reduces unwanted chat creation
+    const shouldAutoCreate = !!initialMessage || 
+                             (typeof initialMessage !== 'undefined' && initialMessage !== '');
+    
+    setAutoCreateChat(shouldAutoCreate);
+    
+    fetchChatData();
   }, [id, currentUserId]);
 
   useEffect(() => {
@@ -245,6 +296,28 @@ const ChatDetail = () => {
         return;
       }
       
+      // Special handling for booking amendment messages
+      if (message.type === "booking_amendment" || message.amendmentId) {
+        console.log("Received booking amendment message:", message);
+        // Ensure it has the right type
+        message.type = "booking_amendment";
+        
+        setMessages((prev) => [
+          ...prev,
+          {
+            ...message,
+            id: message.id || generateUniqueId(),
+            sender: message.from === currentUserId ? "user" : "other",
+          }
+        ]);
+        
+        // Scroll to bottom
+        setTimeout(() => {
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+        return;
+      }
+      
       // Handle incoming chat messages
       if (message.type === "chat" && message.content) {
         // Determine sender based on user ID 
@@ -331,6 +404,154 @@ const ChatDetail = () => {
   };
 
   /*
+    Send a booking amendment request
+  */
+  const sendBookingAmendmentRequest = async (amendment: AddBookingAmmendmentRequest) => {
+    if (!isConnected) return;
+  
+    try {
+      // First save the amendment to booking service
+      const result = await addBookingAmmendment(amendment);
+      
+      // Check for success response - handle both structures
+      if (result.success || result.Status === "Success") {
+        // Get the amendment ID from either response format
+        const amendmentId = result.id || result.BookingAmmendmentId || "";
+        console.log("Amendment created with ID:", amendmentId);
+        
+        // Auto-approve the amendment for the creator
+        // This saves the requester from having to explicitly approve their own request
+        const approvalResult = await approveBookingAmmendment(
+          amendmentId,
+          amendment.CancellationRequest
+        );
+        
+        if (!approvalResult.success) {
+          console.error("Failed to auto-approve amendment:", approvalResult.message);
+        } else {
+          console.log("Amendment auto-approved for requester");
+        }
+        
+        // Create a special message formatted specifically for booking amendments
+        const amendmentMessage = {
+          type: "booking_amendment",
+          from: currentUserId,
+          conversation_id: chat.ConversationId,
+          content: JSON.stringify(amendment),
+          amendmentId: amendmentId,
+          timestamp: new Date().toISOString(),
+          // Add requester approval flag to show it's already approved by sender
+          requesterApproved: true
+        };
+        
+        // Log the message before sending
+        console.log("Sending amendment message:", amendmentMessage);
+        
+        // Send the amendment message directly
+        const success = messageService.sendMessage(JSON.stringify(amendmentMessage));
+        if (!success) {
+          console.error("Failed to send amendment message");
+        } else {
+          console.log("Amendment message sent successfully");
+        }
+        
+        // Reset state
+        setShowAmendmentModal(false);
+        setSelectedBookingId(null);
+      } else {
+        // Handle error
+        console.error("Failed to create booking amendment:", result.message || "Unknown error");
+      }
+    } catch (error) {
+      console.error("Error sending booking amendment:", error);
+    }
+  };
+
+  /*
+    Handle approval of booking amendment
+  */
+  const handleAmendmentApproval = async (amendmentId: string) => {
+    try {
+      // Get the message with this amendment ID to determine if it's a cancellation
+      const amendmentMessage = messages.find(msg => msg.amendmentId === amendmentId);
+      let isCancellation = false;
+      
+      if (amendmentMessage && amendmentMessage.content) {
+        try {
+          // Try to parse the content to get the cancellation status
+          const content = typeof amendmentMessage.content === 'string' 
+            ? JSON.parse(amendmentMessage.content) 
+            : amendmentMessage.content;
+          
+          isCancellation = content.CancellationRequest || false;
+          
+          // Get the booking details to determine who is the driver and who is the passenger
+          const bookingsResponse = await getBookings();
+          if (!bookingsResponse.success) {
+            console.error("Failed to fetch bookings for amendment approval");
+            return;
+          }
+          
+          // Find the booking that matches this amendment
+          const booking = bookingsResponse.bookings.find(b => 
+            b.Booking.BookingId === content.BookingId
+          );
+          
+          if (!booking) {
+            console.error("Booking not found for this amendment");
+            return;
+          }
+          
+          // Determine if current user is the driver or passenger
+          const isDriver = booking.Journey.User.UserId === currentUserId;
+          const isPassenger = booking.Booking.User.UserId === currentUserId;
+          
+          console.log("User roles:", { 
+            currentUserId, 
+            isDriver, 
+            isPassenger,
+            driverId: booking.Journey.User.UserId,
+            passengerId: booking.Booking.User.UserId
+          });
+          
+          // If the current user already approved this amendment, don't re-approve
+          if ((content.DriverApproval && isDriver) || (content.PassengerApproval && isPassenger)) {
+            console.log("This amendment has already been approved by this user");
+            return;
+          }
+          
+          // Pass the appropriate approval type parameter
+          const result = await approveBookingAmmendment(
+            amendmentId, 
+            isCancellation,
+            isDriver // Only drivers should approve as drivers
+          );
+          
+          if (result.success) {
+            // Send approval confirmation message
+            const approvalMessage = {
+              type: "amendment_approved",
+              from: currentUserId,
+              conversation_id: chat.ConversationId,
+              content: `Amendment ${amendmentId} approved`,
+              amendmentId: amendmentId,
+              timestamp: new Date().toISOString(),
+            };
+            
+            messageService.sendMessage(JSON.stringify(approvalMessage));
+          } else {
+            console.error("Failed to approve booking amendment:", result.message);
+          }
+        } catch (e) {
+          console.log("Error parsing amendment content", e);
+        }
+      }
+    } catch (error) {
+      console.error("Error approving booking amendment:", error);
+    }
+  };
+
+  /*
     MessageBubble
     Component for rendering chat messages
   */
@@ -338,6 +559,69 @@ const ChatDetail = () => {
     console.log(message);
     const isUser = message.sender === "user";
     const isSystem = message.sender === "system";
+    
+    // Enhanced logging for all messages to help debug
+    console.log(`Rendering message: type=${message.type}, amendmentId=${message.amendmentId}`, message);
+    
+    // Improved detection of booking amendment messages
+    if (message.type === "booking_amendment" || message.amendmentId) {
+      try {
+        console.log("Processing amendment message:", message);
+        
+        // Parse the content if it's a stringified JSON
+        let amendmentData = message.content;
+        
+        // Handle different message formats
+        if (typeof amendmentData === 'string') {
+          try {
+            // First try direct parsing
+            amendmentData = JSON.parse(amendmentData);
+          } catch (e) {
+            console.error("Failed to parse amendment data:", e);
+            return (
+              <View className="flex-row justify-center mb-4">
+                <View className={`rounded-2xl px-4 py-2 max-w-[90%] ${isDarkMode ? "bg-red-800" : "bg-red-100"}`}>
+                  <Text className={`text-center ${isDarkMode ? "text-white" : "text-red-600"}`}>
+                    Booking amendment request (Unable to display details)
+                  </Text>
+                  <Text className={`text-center text-xs ${isDarkMode ? "text-white" : "text-red-600"}`}>
+                    Raw content: {typeof amendmentData === 'string' ? amendmentData.substring(0, 50) : 'Non-string content'}
+                  </Text>
+                </View>
+              </View>
+            );
+          }
+        }
+        
+        console.log("Processed amendment data:", amendmentData);
+        
+        // Render amendment request bubble with the parsed data
+        return (
+          <AmendmentRequestBubble 
+            amendment={amendmentData}
+            amendmentId={message.amendmentId || ''}
+            isFromCurrentUser={isUser}
+            timestamp={message.timestamp}
+            onApprove={handleAmendmentApproval}
+          />
+        );
+      } catch (error) {
+        console.error("Error rendering amendment message:", error);
+        // Return a fallback UI for errors
+        return (
+          <View className="flex-row justify-center mb-4">
+            <View className={`rounded-2xl px-4 py-2 max-w-[90%] ${isDarkMode ? "bg-red-800" : "bg-red-100"}`}>
+              <Text className={`text-center ${isDarkMode ? "text-white" : "text-red-600"}`}>
+                Error displaying booking amendment
+              </Text>
+              <Text className={`text-center text-xs ${isDarkMode ? "text-white" : "text-red-600"}`}>
+                Error: {error.message}
+              </Text>
+            </View>
+          </View>
+        );
+      }
+    }
 
     // Special styling for system messages
     if (isSystem) {
@@ -464,6 +748,16 @@ const ChatDetail = () => {
       
             {/* Message Input */}
             <View className="p-4 border-t border-gray-200 flex-row items-center">
+              {/* Plus button for booking amendment */}
+              <TouchableOpacity
+                className={`w-10 h-10 rounded-full items-center justify-center mr-2 ${
+                  isDarkMode ? "bg-slate-700" : "bg-gray-100"
+                }`}
+                onPress={() => setShowAmendmentModal(true)}
+              >
+                <FontAwesome5 name="plus" size={18} color={isDarkMode ? "#FFF" : "#000"} />
+              </TouchableOpacity>
+              
               <TextInput
                 ref={inputRef}
                 className={`flex-1 px-4 py-2 mr-2 rounded-full ${isDarkMode ? "bg-slate-700 text-white" : "bg-gray-100 text-black"}`}
@@ -486,6 +780,13 @@ const ChatDetail = () => {
           </>
         )}
       </KeyboardAvoidingView>
+
+      {/* Booking Amendment Modal */}
+      <BookingAmendmentModal
+        visible={showAmendmentModal}
+        onClose={() => setShowAmendmentModal(false)}
+        onSubmit={sendBookingAmendmentRequest}
+      />
     </ThemedSafeAreaView>
   );
 };

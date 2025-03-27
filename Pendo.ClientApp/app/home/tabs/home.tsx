@@ -1,5 +1,6 @@
 import { FontAwesome5 } from "@expo/vector-icons";
-import { useState, useEffect } from "react";
+import { useFocusEffect } from "expo-router";
+import { useState, useEffect, useCallback } from "react";
 import {
   View,
   TouchableOpacity,
@@ -118,6 +119,18 @@ const Home = () => {
   useEffect(() => {
     setCurrentJourneyTab("Upcoming");
   }, []);
+
+  // Add focus effect to refresh data when tab becomes active
+  useFocusEffect(
+    useCallback(() => {
+      console.log("Home tab focused - refreshing bookings");
+      fetchBookings(false);
+      fetchBookings(true);
+      return () => {
+        // Cleanup if needed
+      };
+    }, [])
+  );
 
   const confirmSignOut = async () => {
     setShowModal(false);
