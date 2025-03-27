@@ -206,6 +206,7 @@ const Profile = () => {
                   : "bg-white"
             }`}
             style = {{borderColor: "#888", borderWidth: 2, marginVertical: 10}}
+            onPress={() => setPayoutModalVisible(true)}
           >
             <Text
               className={`text-lg font-JakartaBold ${
