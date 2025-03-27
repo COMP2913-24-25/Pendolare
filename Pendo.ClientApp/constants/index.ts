@@ -109,6 +109,17 @@ export const MESSAGE_ENDPOINTS = {
   CREATE_CONVERSATION: "/Message/CreateConversation",
 };
 
+// Cancellation reasons
+export const cancelReasons = [
+  "Plans changed",
+  "Found alternative transport",
+  "Price too high",
+  "Emergency",
+  "Other",
+];
+
+
+
 // Dummy data generated utilising machine learning models
 export const dummyRides = [
   {
@@ -309,12 +320,4 @@ export const pastRides = [
     },
     status: "completed",
   },
-];
-
-export const cancelReasons = [
-  "Plans changed",
-  "Found alternative transport",
-  "Price too high",
-  "Emergency",
-  "Other",
 ];
