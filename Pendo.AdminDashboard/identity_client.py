@@ -19,8 +19,8 @@ class IdentityClient:
         return headers
 
     def RequestOtp(self, email):
-        """
-        RequestOtp sends a POST request to the Identity API to request an OTP.
+        """RequestOtp sends a POST request to the Identity API to request an OTP.
+
         :param email: The email address to send the OTP to.
         :return: The response from the Identity API.
         """
@@ -41,8 +41,8 @@ class IdentityClient:
         return response
     
     def VerifyOtp(self, email, otp):
-        """
-        VerifyOtp sends a POST request to the Identity API to verify an OTP.
+        """VerifyOtp sends a POST request to the Identity API to verify an OTP.
+
         :param email: The email address to verify the OTP for.
         :param otp: The OTP to verify.
         :return: The response from the Identity API.
@@ -64,8 +64,8 @@ class IdentityClient:
         return response
     
     def Ping(self):
-        """
-        Ping sends a GET request to the Identity API to check if it is alive.
+        """Ping sends a GET request to the Identity API to check if it is alive.
+        
         :return: The response from the Identity API.
         """
         self.logger.info('Pinging Identity API')
