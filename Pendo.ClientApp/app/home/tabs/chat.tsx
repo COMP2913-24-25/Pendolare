@@ -89,8 +89,17 @@ const Chat = () => {
     Handle Chat Press
     Navigate to the chat screen when a chat is pressed
   */
-  const handleChatPress = (userId: string) => {
-    router.push(`/home/chat/${userId}`);
+  const handleChatPress = (conversation: Conversation) => {
+    console.log(`Navigating to chat: ${conversation.id}, title: ${conversation.title}`);
+    
+    // Use the conversation ID as the route parameter, not the userId
+    router.push({
+      pathname: `/home/chat/${conversation.id}`,
+      params: { 
+        name: conversation.title,
+        // Don't include initialMessage to prevent auto-sending on navigation
+      }
+    });
   };
 
   // Add focus effect to refresh data when tab becomes active
@@ -138,7 +147,7 @@ const Chat = () => {
                   lastMessage={chat.lastMessage}
                   timestamp={chat.timestamp}
                   unread={chat.unread}
-                  onPress={() => handleChatPress(chat.userId)}
+                  onPress={() => handleChatPress(chat)}
                 />
               );
             })}
