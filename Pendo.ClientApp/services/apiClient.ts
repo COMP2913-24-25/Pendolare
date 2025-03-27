@@ -8,7 +8,8 @@ import { API_BASE_URL } from "@/constants";
 export async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {},
-  forceJsonParse: boolean = false
+  forceJsonParse: boolean = false,
+  silentFail: boolean = false,
 ): Promise<T> {
   const jwt = await getJWTToken();
 
@@ -41,7 +42,7 @@ export async function apiRequest<T>(
       console.log(data);
     }
 
-    if (!response.ok) {
+    if (!response.ok && !silentFail) {
       throw new Error(data.message || `API request failed: ${response}`);
     }
 

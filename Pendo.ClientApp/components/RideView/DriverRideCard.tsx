@@ -1,14 +1,17 @@
 import { router } from "expo-router";
 import { useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { View } from "react-native";
+import { Alert, View } from "react-native";
 
 import UpcomingRideDetailsModal from "./Modals/UpcomingRideDetailsModal";
 import UpcomingRideCard from "./UpcomingRideCard";
 
+import { approveBooking } from "@/services/bookingService";
+
 interface DriverRideCardProps {
   ride: any;
   journeyView?: boolean;
+  approveBookingCallback?: () => void;
 }
 
 /*
@@ -16,7 +19,7 @@ interface DriverRideCardProps {
     Component for an upcoming ride from the driver's perspective.
     This version removes ride cancellation and completion functionality.
 */
-const DriverRideCard = ({ ride, journeyView = false }: DriverRideCardProps) => {
+const DriverRideCard = ({ ride, journeyView = false, approveBookingCallback }: DriverRideCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
   const insets = useSafeAreaInsets();
 
@@ -47,6 +50,17 @@ const DriverRideCard = ({ ride, journeyView = false }: DriverRideCardProps) => {
         isPastRide={false}
         driverView={true}
         journeyView={journeyView}
+        onApproveJourney={() => { 
+          approveBooking(ride.BookingId).then((response) => {
+            if (response.Status !== "Error") {
+              Alert.alert("Journey Approved Successfully.");
+              setShowDetails(false);
+              approveBookingCallback && approveBookingCallback();
+            } else {
+              Alert.alert("Failed to approve journey", `${response.Message}`);
+            }
+          });
+        }}
       />
     </View>
   );
