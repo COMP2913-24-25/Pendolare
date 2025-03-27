@@ -1,7 +1,5 @@
 import pytest
 from unittest.mock import MagicMock
-from fastapi import Response
-from sqlalchemy.orm import Session
 
 @pytest.fixture
 def configuration_provider_mock():
@@ -17,4 +15,8 @@ def db_session_mock():
 
 @pytest.fixture
 def request_mock():
+    return MagicMock()
+
+@pytest.fixture
+def logger_mock():
     return MagicMock()

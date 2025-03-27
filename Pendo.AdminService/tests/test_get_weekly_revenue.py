@@ -3,6 +3,7 @@ from datetime import datetime
 from decimal import Decimal
 from types import SimpleNamespace
 from app.get_weekly_revenue import GetWeeklyRevenueCommand
+from unittest.mock import MagicMock
 
 class FakeQuery:
     def __init__(self, bookings):
@@ -60,9 +61,13 @@ def mock_response():
 def mock_configuration_provider():
     return SimpleNamespace()
 
-def test_execute_success(mock_bookings, mock_request, mock_response, mock_configuration_provider):
+@pytest.fixture
+def mock_logger():
+    return MagicMock()
+
+def test_execute_success(mock_bookings, mock_request, mock_response, mock_configuration_provider, mock_logger):
     db_session = FakeDBSession(mock_bookings)
-    cmd = GetWeeklyRevenueCommand(db_session, mock_request, mock_response, mock_configuration_provider)
+    cmd = GetWeeklyRevenueCommand(db_session, mock_request, mock_response, mock_configuration_provider, mock_logger)
     result = cmd.Execute()
 
     assert 'Error' not in result
@@ -72,7 +77,7 @@ def test_execute_success(mock_bookings, mock_request, mock_response, mock_config
     assert result.total == "£40.00"
     assert mock_response.status_code != 500
 
-def test_execute_same_week(mock_request, mock_response, mock_configuration_provider):
+def test_execute_same_week(mock_request, mock_response, mock_configuration_provider, mock_logger):
     b1 = SimpleNamespace(
         RideTime=datetime(2023, 1, 3),
         FeeMargin=10,
@@ -86,16 +91,17 @@ def test_execute_same_week(mock_request, mock_response, mock_configuration_provi
         Journey_=SimpleNamespace(AdvertisedPrice=Decimal("200.00"))
     )
     db_session = FakeDBSession([b1, b2])
-    cmd = GetWeeklyRevenueCommand(db_session, mock_request, mock_response, mock_configuration_provider)
+    cmd = GetWeeklyRevenueCommand(db_session, mock_request, mock_response, mock_configuration_provider, mock_logger)
+
     result = cmd.Execute()
     assert result.labels == ["WEEK 1"]
     assert result.data == [40.0]
     assert result.currency == "£"
     assert result.total == "£40.00"
 
-def test_execute_exception(mock_request, mock_response, mock_configuration_provider):
+def test_execute_exception(mock_request, mock_response, mock_configuration_provider, mock_logger):
     db_session = FakeDBSessionException()
-    cmd = GetWeeklyRevenueCommand(db_session, mock_request, mock_response, mock_configuration_provider)
+    cmd = GetWeeklyRevenueCommand(db_session, mock_request, mock_response, mock_configuration_provider, mock_logger)
     result = cmd.Execute()
     assert "Error" in result
     assert mock_response.status_code == 500

@@ -9,7 +9,7 @@ class FrequentUsersCommand:
     """
     Command to retrieve frequent users based on their booking history.
     """
-    def __init__(self, db_session: Session, response):
+    def __init__(self, db_session: Session, response, logger):
         """
         Initializes the FrequentUsersCommand.
 
@@ -19,8 +19,9 @@ class FrequentUsersCommand:
         """
         self.db_session = db_session
         self.response = response
+        self.logger = logger
 
-    def execute(self):
+    def Execute(self):
         try:
             """
         Executes the command to retrieve frequent users who have booked more than 4 journeys in the last 7 days.
@@ -31,6 +32,8 @@ class FrequentUsersCommand:
         Raises:
             Exception: If an error occurs during the database query or processing.
         """
+            self.logger.info("Retrieving frequent users...")
+
             current_date = datetime.now(timezone.utc)
 
             seven_days_ago = current_date - timedelta(days=7)
@@ -45,12 +48,15 @@ class FrequentUsersCommand:
                 )
 
             response_data: List[Dict] = [
-                    {"user_id": str(user.UserId), "journey_count": user.journey_count}
+                    {"UserId": str(user.UserId), "JourneyCount": user.journey_count}
                     for user in frequent_users
                 ]
+            
+            self.logger.info("Frequent users retrieved successfully.")
 
-            return {"frequent_users": response_data}
+            return {"FrequentUsers": response_data}
 
         except Exception as e:
+            self.logger.error(f"An error occurred while retrieving frequent users: {str(e)}")
             self.response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
             return {"Error": str(e)}

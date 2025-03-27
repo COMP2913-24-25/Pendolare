@@ -1,4 +1,3 @@
-import logging
 from booking_repository import BookingRepository
 from response_lib import GetWeeklyRevenueResponse
 from fastapi import status
@@ -7,22 +6,23 @@ from sqlalchemy import and_
 
 from models import Booking, BookingStatus, Journey, BookingAmmendment
 
-logger = logging.getLogger(__name__)
-
 class GetWeeklyRevenueCommand:
 
-    def __init__(self, db_session, request, response, configuration_provider):
+    def __init__(self, db_session, request, response, configuration_provider, logger):
         self.db_session = db_session
         self.booking_repo = BookingRepository(db_session)
         self.configuration_provider = configuration_provider
         self.request = request
         self.response = response
+        self.logger = logger
 
     def Execute(self):
         """
         Get the weekly revenue from the database.
         """
         try:
+            self.logger.info("Getting weekly revenue data...")
+
             bookings = self.db_session.query(
                 Booking,
                 BookingStatus.Status,
@@ -44,9 +44,11 @@ class GetWeeklyRevenueCommand:
                 Booking.RideTime <= datetime.strptime(self.request.EndDate, "%Y-%m-%d")
             ).all()
 
-            logger.info("Bookings: %s", bookings)
+            self.logger.debug("Retrieved bookings data successfully")
 
             weekly_revenue_data = self.calculate_management_revenue(bookings, self.request.StartDate)
+
+            self.logger.info("Calculated weekly revenue data successfully")
 
             labels, data, total = self.get_labels(weekly_revenue_data)
             currency = '£'
@@ -54,7 +56,7 @@ class GetWeeklyRevenueCommand:
             return GetWeeklyRevenueResponse(labels=labels, data=data, currency=currency, total=f"{currency}{float(total):.2f}")
 
         except Exception as e:
-            logger.exception("Error in GetWeeklyRevenueCommand Execute method")
+            self.logger.error("Error in GetWeeklyRevenueCommand Execute method: %s", str(e))
             self.response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
             return {"Error": str(e)}
         

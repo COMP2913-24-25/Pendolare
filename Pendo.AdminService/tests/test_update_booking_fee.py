@@ -1,13 +1,11 @@
-import pytest
-from unittest.mock import MagicMock
 from app.update_booking_fee import UpdateBookingFeeCommand
 from app.conftest import *
 from fastapi import status
 
-def test_update_booking_fee_success(db_session_mock, request_mock, response_mock, configuration_provider_mock):
+def test_update_booking_fee_success(db_session_mock, request_mock, response_mock, configuration_provider_mock, logger_mock):
     request_mock.FeeMargin = 0.05  
 
-    command = UpdateBookingFeeCommand(db_session_mock, request_mock, response_mock, configuration_provider_mock)
+    command = UpdateBookingFeeCommand(db_session_mock, request_mock, response_mock, configuration_provider_mock, logger_mock)
 
     result = command.Execute()
 
@@ -16,11 +14,10 @@ def test_update_booking_fee_success(db_session_mock, request_mock, response_mock
     db_session_mock.commit.assert_called_once()
     response_mock.assert_not_called()  
 
-def test_update_booking_fee_invalid_fee_margin_too_low(db_session_mock, request_mock, response_mock, configuration_provider_mock):
+def test_update_booking_fee_invalid_fee_margin_too_low(db_session_mock, request_mock, response_mock, configuration_provider_mock, logger_mock):
     request_mock.FeeMargin = -0.01  
 
-    command = UpdateBookingFeeCommand(db_session_mock, request_mock, response_mock, configuration_provider_mock)
-
+    command = UpdateBookingFeeCommand(db_session_mock, request_mock, response_mock, configuration_provider_mock, logger_mock)
 
     result = command.Execute()
 
@@ -32,11 +29,11 @@ def test_update_booking_fee_invalid_fee_margin_too_low(db_session_mock, request_
     db_session_mock.rollback.assert_not_called()
 
 
-def test_update_booking_fee_invalid_fee_margin_too_high(db_session_mock, request_mock, response_mock, configuration_provider_mock):
+def test_update_booking_fee_invalid_fee_margin_too_high(db_session_mock, request_mock, response_mock, configuration_provider_mock, logger_mock):
 
     request_mock.FeeMargin = 1.00  
 
-    command = UpdateBookingFeeCommand(db_session_mock, request_mock, response_mock, configuration_provider_mock)
+    command = UpdateBookingFeeCommand(db_session_mock, request_mock, response_mock, configuration_provider_mock, logger_mock)
 
     result = command.Execute()
 
@@ -46,12 +43,12 @@ def test_update_booking_fee_invalid_fee_margin_too_high(db_session_mock, request
     db_session_mock.commit.assert_not_called()
     db_session_mock.rollback.assert_not_called()
 
-def test_update_booking_fee_exception(db_session_mock, request_mock, response_mock, configuration_provider_mock):
+def test_update_booking_fee_exception(db_session_mock, request_mock, response_mock, configuration_provider_mock, logger_mock):
    
     request_mock.FeeMargin = 0.05
     configuration_provider_mock.UpdateValue.side_effect = Exception("Database update failed")
 
-    command = UpdateBookingFeeCommand(db_session_mock, request_mock, response_mock, configuration_provider_mock)
+    command = UpdateBookingFeeCommand(db_session_mock, request_mock, response_mock, configuration_provider_mock, logger_mock)
 
     result = command.Execute()
 

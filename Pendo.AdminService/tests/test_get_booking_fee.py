@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock
 from app.get_booking_fee import GetBookingFeeCommand
 from fastapi import status
+import pytest
 
 def test_get_booking_fee_success():
     
@@ -8,9 +9,9 @@ def test_get_booking_fee_success():
     configuration_provider_mock.GetSingleValue.return_value = "0.05"  
     response_mock = MagicMock()
     db_session_mock = MagicMock()
+    logger_mock = MagicMock()
 
-    command = GetBookingFeeCommand(configuration_provider_mock, response_mock, db_session_mock)
-
+    command = GetBookingFeeCommand(configuration_provider_mock, response_mock, db_session_mock, logger_mock)
     
     result = command.Execute()
 
@@ -24,8 +25,9 @@ def test_get_booking_fee_exception():
     configuration_provider_mock.GetSingleValue.side_effect = Exception("Database error")
     response_mock = MagicMock()
     db_session_mock = MagicMock()
+    logger_mock = MagicMock()
 
-    command = GetBookingFeeCommand(configuration_provider_mock, response_mock, db_session_mock)
+    command = GetBookingFeeCommand(configuration_provider_mock, response_mock, db_session_mock, logger_mock)
     result = command.Execute()
     assert result == {"Error": "Database error"}
     assert response_mock.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
