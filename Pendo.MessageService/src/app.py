@@ -207,7 +207,9 @@ async def create_conversation_handler(request):
         
         existing_convos = repo.get_user_conversations(user_id)
         for conv in existing_convos:
-            if set(conv.participants) == set(participants):
+            conv_participant_ids = {p.UserId for p in conv.ConversationParticipants}
+            if conv_participant_ids == set(participants):
+                print("Conversation already exists")
                 return web.json_response({"error": "Conversation already exists"}, status=400)
 
             

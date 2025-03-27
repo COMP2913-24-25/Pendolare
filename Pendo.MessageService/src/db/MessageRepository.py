@@ -119,6 +119,7 @@ class MessageRepository():
         db_session = next(get_db())
         try:
             conversations = db_session.query(Conversations)\
+                .options(joinedload(Conversations.ConversationParticipants))\
                 .join(ConversationParticipants)\
                 .filter(ConversationParticipants.UserId == user_id)\
                 .filter(ConversationParticipants.LeftAt == None)\
