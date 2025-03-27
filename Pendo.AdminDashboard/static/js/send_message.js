@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
             user_id: sender
         };
         socket.send(JSON.stringify(registrationPayload));
-        logToConsole(`Sent registration for admin user: ${sender}`, 'sent');
+        logToConsole(`Sent registration for admin user: ${sender}`, 'system');
         setTimeout(() => {
             const joinPayload = {
                 type: "join_conversation",
