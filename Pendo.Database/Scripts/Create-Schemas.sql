@@ -27,7 +27,3 @@ GO
 -- Messaging Service
 CREATE SCHEMA [messaging]
 GO
-
--- Admin Service
-CREATE SCHEMA [discounts]
-GO
