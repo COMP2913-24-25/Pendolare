@@ -17,6 +17,11 @@ class MessageClient:
         return headers
 
     def get_user_conversations(self, user_id):
+        """Fetches all conversations for a given user.
+
+        :param user_id: The user ID to fetch conversations for.
+        :return: The response from the API.
+        """
         self.logger.info("Fetching user conversations")
         url = f"{self.base_url}/SupportConversation"
         payload = {"UserId": user_id}
@@ -35,6 +40,12 @@ class MessageClient:
             return None
 
     def join_conversation(self, user_id, conversation_id):
+        """Connects to the WebSocket server and joins a conversation. Returns the conversation history.
+
+        :param user_id: The user ID to join the conversation as.
+        :param conversation_id: The conversation ID to join
+        :return: The conversation history as a list of messages.
+        """
         self.logger.info("Joining conversation and requesting history via WebSocket")
         ws_url = "wss://pendo-message.clsolutions.dev/ws/"
         try:
@@ -82,8 +93,7 @@ class MessageClient:
             return None
 
     def send_chat_message(self, sender, conversation_id, content, timestamp):
-        """
-        Sends a chat message via WebSocket.
+        """Sends a chat message via WebSocket.
         
         Expected payload format:
           {
@@ -93,6 +103,12 @@ class MessageClient:
             "content": content,
             "timestamp": timestamp
           }
+
+        :param sender: The user ID of the sender.
+        :param conversation_id: The conversation ID to send the message to.
+        :param content: The message content.
+        :param timestamp: The message timestamp.
+        :return: The response from the WebSocket server.
         """
         self.logger.info("Sending chat message using persistent WebSocket connection")
         if self.ws and not self.ws.closed:
