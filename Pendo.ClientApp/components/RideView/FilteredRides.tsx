@@ -55,7 +55,7 @@ const FilteredRides = ({ resetFilters, setResetFilters, isDarkMode, journeyType 
 
   const getRides = async () => {
     
-    let filters : GetJourneysRequest = {};
+    let filters : GetJourneysRequest = { DriverView: false };
 
     if (pickupLocation.length > 0) {
       // Journey Service does not currently calculate deal with radius correctly. This needs to be fixed
@@ -76,7 +76,7 @@ const FilteredRides = ({ resetFilters, setResetFilters, isDarkMode, journeyType 
     console.log("Getting available rides");
     try {
       if (resetFilters) {
-        filters = {};
+        filters = { DriverView: false };
         setResetFilters(false);
         setFieldDropoffLocation("");
         setFieldPickupLocation("");

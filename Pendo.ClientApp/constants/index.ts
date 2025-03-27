@@ -41,7 +41,8 @@ export const icons = {
   car: "car",
   flag: "flag",
   repeat: "redo",
-  list: "clipboard-list"
+  list: "clipboard-list",
+  chevronRight: "chevron-right"
 };
 
 export const onboarding = [
