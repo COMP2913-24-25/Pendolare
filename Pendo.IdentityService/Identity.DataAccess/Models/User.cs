@@ -15,6 +15,8 @@ public partial class User
 
     public string LastName { get; set; }
 
+    public double UserRating { get; set; }
+
     public int UserTypeId { get; set; }
 
     public DateTime CreateDate { get; set; }

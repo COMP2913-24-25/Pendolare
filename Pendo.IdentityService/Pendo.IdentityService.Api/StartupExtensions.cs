@@ -60,7 +60,8 @@ public static class StartupExtensions
         .AddTransient<ICommandDispatcher, CommandDispatcher>()
         .AddTransient<ICommandHandler<OtpRequest, Response>, OtpRequestHandler>()
         .AddTransient<ICommandHandler<VerifyOtpRequest, VerifyOtpResponse>, VerifyOtpRequestHandler>()
-        .AddTransient<ICommandHandler<UpdateUserRequest, Response>, UpdateUserRequestHandler>();
+        .AddTransient<ICommandHandler<UpdateUserRequest, Response>, UpdateUserRequestHandler>()
+        .AddTransient<ICommandHandler<GetUserRequest, GetUserResponse>, GetUserRequestHandler>();
 
     public static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
         => services
