@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { View, TouchableOpacity, Modal, Alert, ActivityIndicator } from "react-native";
+import { router } from "expo-router";
 
 import Map from "../../Map/Map";
 import { icons } from "@/constants";
@@ -10,12 +11,7 @@ import StatusBadge from "../StatusBadge";
 import CronVisualizer from "../CronVisualiser";
 import CommuterScheduleAmendmentModal from "./CommuterScheduleAmendmentModal";
 import { BookingDetails } from "@/services/bookingService";
-
-interface Location {
-  name: string;
-  latitude: number;
-  longitude: number;
-}
+import { getUserConversations } from "@/services/messageService";
 
 interface UpcomingRideDetailsModalProps {
   booking?: BookingDetails;
@@ -149,6 +145,51 @@ const UpcomingRideDetailsModal = ({
     isCommuterJourney = !!journey.Recurrance;
   }
 
+  // Function to handle contacting the driver or passenger
+  const handleContactPerson = async () => {
+    if (!booking || !booking.Journey?.User?.UserId) {
+      // Call the original callback if we can't find the right info
+      onContactDriver();
+      return;
+    }
+    
+    // Get the ID of the person to contact (driver or passenger depending on view)
+    const personId = driverView 
+      ? booking.Booking?.User?.UserId 
+      : booking.Journey?.User?.UserId;
+    
+    const personName = driverView
+      ? booking.Booking?.User?.Name || "Passenger"
+      : booking.Journey?.User?.Name || "Driver";
+    
+    if (!personId) {
+      console.error("Could not find user ID for contact");
+      onContactDriver(); // Fallback to original handler
+      return;
+    }
+    
+    try {
+      // Find existing conversation first
+      const existingConversations = await getUserConversations();
+      
+      // Navigate to existing conversation if found
+      router.push({
+        pathname: '/home/chat/[id]',
+        params: { 
+          id: personId,
+          name: personName,
+          // Don't include an initial message to prevent auto-conversation creation
+        }
+      });
+      
+      // Close the modal after navigating
+      onClose();
+    } catch (error) {
+      console.error("Error navigating to chat:", error);
+      onContactDriver(); // Fallback to original handler
+    }
+  };
+
   // Conditionally render sections based on available data
   const canShowMap = pickup !== null && dropoff !== null;
   const canShowPrice = journey.Price !== undefined && journey.Price !== null;
@@ -246,7 +287,7 @@ const UpcomingRideDetailsModal = ({
 
               {!journeyView && <View className="flex-row gap-4 flex-wrap">
                 <TouchableOpacity
-                  onPress={onContactDriver}
+                  onPress={handleContactPerson}
                   className="flex-1 bg-blue-600 p-4 rounded-xl"
                 >
                   <Text className="text-white text-center font-JakartaBold">

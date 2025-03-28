@@ -3,6 +3,7 @@ from sqlalchemy.orm import joinedload, with_loader_criteria
 from .db_provider import get_db
 from datetime import datetime
 from .statuses.booking_statii import BookingStatus
+import logging
 
 class BookingRepository():
     """
@@ -13,6 +14,7 @@ class BookingRepository():
         """
         Constructor for BookingRepository class.
         """
+        self.logger = logging.getLogger(__name__)
         self.db_session = next(get_db())
 
     def __del__(self):
@@ -39,19 +41,45 @@ class BookingRepository():
         else:
             filters.append(Journey.UserId == user_id)
 
-        return_dto = []
-        bookings = self.db_session.query(Booking)\
-            .join(Booking.Journey_)\
-            .filter(*filters)\
-            .options(
+        try:
+            return_dto = []
+            query_options = [
                 joinedload(Booking.BookingStatus_),
                 joinedload(Booking.User_),
                 joinedload(Booking.Journey_).joinedload(Journey.User_),
-                joinedload(Booking.Journey_).joinedload(Journey.Discounts_, innerjoin=False),
                 joinedload(Booking.BookingAmmendment, innerjoin=False),
-                with_loader_criteria(BookingAmmendment, (BookingAmmendment.DriverApproval & BookingAmmendment.PassengerApproval)))\
-            .all()
-        
+                with_loader_criteria(BookingAmmendment, (BookingAmmendment.DriverApproval & BookingAmmendment.PassengerApproval))
+            ]
+            
+            try:
+                if hasattr(Journey, 'Discounts_'):
+                    query_options.append(joinedload(Booking.Journey_).joinedload(Journey.Discounts_, innerjoin=False))
+            except Exception as e:
+                self.logger.warning(f"Could not join Discounts_: {e}")
+                
+            bookings = self.db_session.query(Booking)\
+                .join(Booking.Journey_)\
+                .filter(*filters)\
+                .options(*query_options)\
+                .all()
+            
+        except Exception as e:
+            self.logger.error(f"Error getting bookings: {e}")
+            # Fall back to a simpler query if the relationship causes issues
+            query_options = [
+                joinedload(Booking.BookingStatus_),
+                joinedload(Booking.User_),
+                joinedload(Booking.Journey_).joinedload(Journey.User_),
+                joinedload(Booking.BookingAmmendment, innerjoin=False)
+            ]
+                
+            bookings = self.db_session.query(Booking)\
+                .join(Booking.Journey_)\
+                .filter(*filters)\
+                .options(*query_options)\
+                .all()
+            
+        # Process each booking
         for booking in bookings:
             startTime, startName, startLong, startLat, endName, endLong, endLat, rideTime, price, reccurance = (None,) * 10
 
@@ -73,16 +101,19 @@ class BookingRepository():
             discount_info = None
             
             # Apply discount for commuter journeys if available
-            if booking.Journey_.JourneyType == 2 and booking.Journey_.Discounts_ is not None:
-                discount = booking.Journey_.Discounts_
-                discount_info = {
-                    "DiscountID": discount.DiscountID,
-                    "WeeklyJourneys": discount.WeeklyJourneys,
-                    "DiscountPercentage": discount.DiscountPercentage,
-                    "OriginalPrice": float(base_price)
-                }
-                # Apply the discount
-                base_price = float(base_price) * (1 - discount.DiscountPercentage)
+            try:
+                if booking.Journey_.JourneyType == 2 and hasattr(booking.Journey_, 'Discounts_') and booking.Journey_.Discounts_ is not None:
+                    discount = booking.Journey_.Discounts_
+                    discount_info = {
+                        "DiscountID": discount.DiscountID,
+                        "WeeklyJourneys": discount.WeeklyJourneys,
+                        "DiscountPercentage": discount.DiscountPercentage,
+                        "OriginalPrice": float(base_price)
+                    }
+                    # Apply the discount
+                    base_price = float(base_price) * (1 - discount.DiscountPercentage)
+            except Exception as e:
+                self.logger.warning(f"Could not apply discount: {e}")
 
             return_dto.append({
                 "Booking": {

@@ -1,12 +1,12 @@
 import { apiRequest } from "./apiClient";
 
-import { PAYMENT_ENDPOINTS } from "@/constants";
+import { PAYMENT_ENDPOINTS, ADMIN_ENDPOINTS } from "@/constants";
 
 export interface BalanceSheet {
   Status: string;
   Pending: number | 0.00;
   NonPending: number | 0.00;
-  Weekly: Array;
+  Weekly: any[];
 }
 
 export interface StatusResponse {
@@ -21,6 +21,15 @@ export interface PaymentSheetResponse {
     CustomerId: string,
     PublishableKey: string
 }
+
+export interface Discount {
+  // Update property names to match API response format
+  DiscountId: string;
+  WeeklyJourneys: number;
+  DiscountPercentage: number;
+  CreateDate: string;
+}
+
 /*
  * Get PaymentSheet
  * Note: The UserId is automatically added by the Kong gateway
@@ -118,5 +127,45 @@ export const fetchPaymentSheetParams = async (amount: number) => {
             EphemeralKey,
             CustomerId
         }
-} 
+}
+
+/**
+ * Fetches available discounts from the Admin API
+ * @returns Array of discount options
+ */
+export const getDiscounts = async (): Promise<Discount[]> => {
+  try {
+    const response = await apiRequest<Discount[]>(
+      ADMIN_ENDPOINTS.GET_DISCOUNTS,
+      {
+        method: "GET"
+      },
+      true
+    );
+    return response;
+  } catch (error) {
+    console.error("Error fetching discounts:", error);
+    return [];
+  }
+};
+
+/**
+ * Finds the appropriate discount based on number of journeys per week
+ * @param journeysPerWeek Number of journeys per week
+ * @returns The matching discount or null if none found
+ */
+export const findDiscountForJourneys = async (journeysPerWeek: number): Promise<Discount | null> => {
+  try {
+    const discounts = await getDiscounts();
+    
+    // Sort descending by weekly journeys to find the highest applicable discount
+    const sortedDiscounts = discounts.sort((a, b) => b.WeeklyJourneys - a.WeeklyJourneys);
+    
+    // Find the first discount where weekly journeys is less than or equal to requested amount
+    return sortedDiscounts.find(d => journeysPerWeek >= d.WeeklyJourneys) || null;
+  } catch (error) {
+    console.error("Error finding discount:", error);
+    return null;
+  }
+};
 

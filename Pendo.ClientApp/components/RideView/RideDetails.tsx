@@ -39,6 +39,45 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
   const [discount, setDiscount] = useState<Discount>();
   const [userBalance, setUserBalance] = useState(0.00);
 
+  // Extract discount info if available
+  const hasDiscount = ride.Discount || 
+                     (ride.Journey && ride.Journey.Discount);
+  const discountInfo = hasDiscount ? 
+                      (ride.Discount || ride.Journey.Discount) : 
+                      null;
+  
+  // Format price with discount if applicable
+  const formatPrice = () => {
+    let formattedPrice = "";
+    
+    // Handle different price properties depending on data structure
+    const price = ride.price || ride.AdvertisedPrice;
+    
+    if (!hasDiscount) {
+      return typeof price === 'number' ? `£${price.toFixed(2)}` : price;
+    }
+    
+    // If there's a discount, calculate and display original and discounted price
+    const originalPrice = discountInfo?.OriginalPrice || price/(1-discountInfo?.DiscountPercentage);
+    const discountPercentage = discountInfo?.DiscountPercentage * 100;
+    
+    return (
+      <View>
+        <View className="flex-row items-center">
+          <Text className="font-JakartaBold text-2xl text-blue-600">
+            {typeof price === 'number' ? `£${price.toFixed(2)}` : price}
+          </Text>
+          <Text className="ml-2 line-through text-gray-500">
+            £{originalPrice.toFixed(2)}
+          </Text>
+        </View>
+        <Text className="text-xs text-green-600">
+          {discountPercentage}% discount applied
+        </Text>
+      </View>
+    );
+  };
+
   const handleBooking = async () => {
     setInBooking(true);
 
@@ -54,20 +93,29 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
             new Date(departureTime.getTime() + oneWeek), 
             24);
 
+        // Apply discount from journey if available
+        let rideDiscount: Discount | undefined;
+        if (hasDiscount) {
+          rideDiscount = {
+            name: `${discountInfo.WeeklyJourneys} Journeys/Week Discount`,
+            amount: discountInfo.DiscountPercentage
+          };
+        } else {
+          rideDiscount = {
+            name: "Frequent Rider Discount",
+            amount: 0.1
+          };
+        }
+
         const newSubrides : SubRide[] = journeyDates.map((date) => ({
           journeyId: ride.JourneyId,
           journeyDate: date,
-          price: ride.AdvertisedPrice,
+          price: ride.AdvertisedPrice || ride.price?.replace('£', ''),
           parent: ride,
         }));
 
-        const discount: Discount = {
-          name: "Frequent Rider Discount",
-          amount: 0.1
-        };
-
         setSubrides(newSubrides);
-        setDiscount(discount);
+        setDiscount(rideDiscount);
 
         setShowCheckout(true);
         return;
@@ -111,7 +159,7 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
 
   const handleCommuterBooking = async () => {
     const twoWeeks = 1209600000; // 2 weeks in milliseconds
-    const result = await createBooking(ride.JourneyId, new Date(ride.departureTime), new Date(new Date(ride.departureTime).getTime() + twoWeeks));
+    const result = await createBooking(ride.JourneyId, new Date(ride.departureTime), new Date(twoWeeks));
 
     console.log("Commuter booking result:", result);
     
@@ -128,13 +176,6 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
     setBookingStatus((prev) => ({ ...prev, showMessage: false }));
   };
 
-  /* 
-    Note: Styling and class names are derived from Tailwind CSS docs
-    https://tailwindcss.com/docs/
-    Additional design elements have been generated using Figma -> React Native (Tailwind)
-    https://www.figma.com/community/plugin/821138713091291738/figma-react-native
-    https://www.figma.com/community/plugin/1283055580669946018/tailwind-react-code-generator-by-pagesloft
-  */
   return (
     <Modal
       animationType="slide"
@@ -190,9 +231,7 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
                   </View>
                 </View>
               </View>
-              <Text className="font-JakartaBold text-2xl text-blue-600">
-                {ride.price}
-              </Text>
+              {formatPrice()}
             </View>
 
             <View
@@ -214,7 +253,16 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
               </View>
               <View>
                 <Text className="text-gray-500">Price</Text>
-                <Text className="font-JakartaMedium">{ride.price}</Text>
+                <View>
+                  <Text className="font-JakartaMedium">
+                    {typeof ride.price === 'number' ? `£${ride.price.toFixed(2)}` : ride.price}
+                  </Text>
+                  {hasDiscount && (
+                    <Text className="text-xs text-green-600">
+                      {discountInfo?.DiscountPercentage * 100}% discount for {discountInfo?.WeeklyJourneys} journeys per week
+                    </Text>
+                  )}
+                </View>
               </View>
             </View>
 

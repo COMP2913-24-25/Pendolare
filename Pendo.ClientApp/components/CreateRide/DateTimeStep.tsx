@@ -1,8 +1,9 @@
 import { FontAwesome5 } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useState, useEffect } from "react";
-import { Platform, View, TouchableOpacity, ScrollView } from "react-native";
+import { Platform, View, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { Text } from "@/components/common/ThemedText";
+import { getDiscounts } from "@/services/paymentService";
 
 const frequencies = [
   { label: "Weekly", value: "weekly" },
@@ -20,6 +21,8 @@ const weekDays = [
   "Sunday",
 ];
 
+const defaultDiscountOption = { label: "No Discount", value: null, percentage: 0, weeklyJourneys: 0 };
+
 interface DateTimeStepProps {
   isDarkMode: boolean;
   isCommuter: boolean;
@@ -36,6 +39,8 @@ interface DateTimeStepProps {
   endDate: Date;
   setStartDate: (date: Date) => void;
   setEndDate: (date: Date) => void;
+  selectedDiscount: any;
+  setSelectedDiscount: (discount: any) => void;
 }
 
 /*
@@ -59,6 +64,8 @@ const DateTimeStep = (props: DateTimeStepProps) => {
     endDate,
     setStartDate,
     setEndDate,
+    selectedDiscount,
+    setSelectedDiscount
   } = props;
 
   // Local state to track what we're currently editing
@@ -175,6 +182,94 @@ const DateTimeStep = (props: DateTimeStepProps) => {
       setSelectedDays([...selectedDays, day]);
     }
   };
+
+  const [discountOptions, setDiscountOptions] = useState([defaultDiscountOption]);
+  const [loadingDiscounts, setLoadingDiscounts] = useState(false);
+  
+  // Fetch discount options when component mounts
+  useEffect(() => {
+    const fetchDiscounts = async () => {
+      setLoadingDiscounts(true);
+      try {
+        const discounts = await getDiscounts();
+        
+        if (discounts && discounts.length > 0) {
+          const formattedDiscounts = discounts.map(discount => {
+            // Make sure the discount has valid values
+            if (!discount || typeof discount.WeeklyJourneys !== 'number' || typeof discount.DiscountPercentage !== 'number') {
+              console.warn("Invalid discount data:", discount);
+              return null;
+            }
+            
+            return {
+              label: `${discount.WeeklyJourneys} Journeys/Week (${discount.DiscountPercentage * 100}% off)`,
+              value: discount.DiscountId,
+              percentage: discount.DiscountPercentage,
+              weeklyJourneys: discount.WeeklyJourneys
+            };
+          }).filter(Boolean); // Filter out null values
+          
+          setDiscountOptions([defaultDiscountOption, ...formattedDiscounts]);
+        }
+      } catch (error) {
+        console.error("Error fetching discounts:", error);
+      } finally {
+        setLoadingDiscounts(false);
+      }
+    };
+    
+    fetchDiscounts();
+  }, []);
+
+  const renderDiscountOptions = () => (
+    <>
+      <Text className="mt-4 mb-2">Discount Options</Text>
+      <View
+        className={`border rounded-lg mb-4 ${
+          isDarkMode ? "border-slate-600" : "border-slate-200"
+        }`}
+      >
+        {loadingDiscounts ? (
+          <View className="p-4 flex items-center">
+            <ActivityIndicator size="small" color={isDarkMode ? "#FFF" : "#2563EB"} />
+            <Text className="mt-2">Loading discount options...</Text>
+          </View>
+        ) : (
+          discountOptions.map((discount, index) => (
+            <TouchableOpacity
+              key={discount.value ? discount.value : `discount-${index}`}
+              onPress={() => setSelectedDiscount(discount)}
+              className={`p-3 flex-row justify-between items-center border-b ${
+                isDarkMode ? "border-slate-600" : "border-slate-200"
+              } ${
+                selectedDiscount?.value === discount.value
+                  ? isDarkMode
+                    ? "bg-slate-700"
+                    : "bg-blue-50"
+                  : ""
+              }`}
+            >
+              <View>
+                <Text>{discount.label}</Text>
+                {discount.percentage > 0 && (
+                  <Text className="text-xs text-gray-500">
+                    Save {discount.percentage * 100}% on your journeys
+                  </Text>
+                )}
+              </View>
+              {selectedDiscount?.value === discount.value && (
+                <FontAwesome5
+                  name="check"
+                  size={16}
+                  color={isDarkMode ? "#FFFFFF" : "#2563EB"}
+                />
+              )}
+            </TouchableOpacity>
+          ))
+        )}
+      </View>
+    </>
+  );
 
   return (
     <ScrollView
@@ -307,6 +402,9 @@ const DateTimeStep = (props: DateTimeStepProps) => {
               <Text>{day}</Text>
             </TouchableOpacity>
           ))}
+
+          {/* Discount selection */}
+          {renderDiscountOptions()}
         </View>
       ) : (
         // NON-COMMUTER SINGLE JOURNEY DATE/TIME
