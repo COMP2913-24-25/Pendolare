@@ -15,12 +15,12 @@ export interface StatusResponse {
 }
 
 export interface SingularPaymentMethod {
-    Brand: string;
-    Funding: string;
-    Last4: string;
-    Exp_month: number;
-    Exp_year: number;
-    PaymentType: string;
+  Brand: string;
+  Funding: string;
+  Last4: string;
+  Exp_month: number;
+  Exp_year: number;
+  PaymentType: string;
 }
 export interface PaymentMethodResponse {
   Status: string;
@@ -55,8 +55,8 @@ export async function PaymentMethods(): Promise<PaymentMethodResponse> {
   } catch (error) {
     console.error("View Balance error:", error);
     return {
-        Status: "fail",
-        Methods: []
+      Status: "fail",
+      Methods: []
     };
   }
 }
@@ -81,8 +81,8 @@ export async function PayoutRequest(): Promise<StatusResponse> {
   } catch (error) {
     console.error("Payout error:", error);
     return {
-        Status: "fail",
-        Error: String(error)
+      Status: "fail",
+      Error: String(error)
     };
   }
 }
@@ -109,30 +109,34 @@ export async function ViewBalance(): Promise<BalanceSheet> {
   } catch (error) {
     console.error("Payout error:", error);
     return {
-        Status: "fail",
-        Pending: 0.00,
-        NonPending: 0.00,
-        Weekly: [],
+      Status: "fail",
+      Pending: 0.00,
+      NonPending: 0.00,
+      Weekly: [],
     };
   }
 }
 
+/*
+ * Fetch PaymentSheet Parameters
+ * Returns neccecary attributes for presentation of payment sheet
+*/
 export const fetchPaymentSheetParams = async (amount: number) => {
-        const response = await apiRequest<PaymentSheetResponse>(
-            PAYMENT_ENDPOINTS.PAYMENT_SHEET,
-            {
-                method: "POST",
-                body: JSON.stringify({Amount: amount}),
-            },
-            true
-        );
+  const response = await apiRequest<PaymentSheetResponse>(
+    PAYMENT_ENDPOINTS.PAYMENT_SHEET,
+    {
+      method: "POST",
+      body: JSON.stringify({ Amount: amount }),
+    },
+    true
+  );
 
-        const {PaymentIntent, EphemeralKey, CustomerId} = await response
+  const { PaymentIntent, EphemeralKey, CustomerId } = await response
 
-        return {
-            PaymentIntent, 
-            EphemeralKey,
-            CustomerId
-        }
-} 
+  return {
+    PaymentIntent,
+    EphemeralKey,
+    CustomerId
+  }
+}
 

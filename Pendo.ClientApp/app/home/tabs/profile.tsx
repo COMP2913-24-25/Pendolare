@@ -223,7 +223,7 @@ const Profile = () => {
             <Text>Transfer your non-pending balance to your bank account</Text>
           </TouchableOpacity>
 
-          {/* Modal Imports */}
+        {/* Modal Imports */}
         </ThemedView>
         <PaymentMethodsModal
           visible={methodsModalVisible}
