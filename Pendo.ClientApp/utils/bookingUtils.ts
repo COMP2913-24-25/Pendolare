@@ -23,6 +23,9 @@ export interface Ride {
     longitude: number;
     name: string;
   };
+  Recurrence?: string;
+  JourneyType?: number;
+  EndBookingWindow?: Date;
 }
 
 /**
@@ -38,7 +41,8 @@ export function convertRideToBookingDetails(ride: Ride): BookingDetails {
       User: {
         UserId: ride.PassengerId || '',
         Name: ride.PassengerName || 'Passenger'
-      }
+      },
+      BookedWindowEnd: ride.EndBookingWindow || undefined,
     },
     BookingStatus: {
       Status: ride.Status,
@@ -60,7 +64,8 @@ export function convertRideToBookingDetails(ride: Ride): BookingDetails {
       User: {
         UserId: ride.DriverId || '',
         Name: ride.DriverName || 'Driver'
-      }
+      },
+      Recurrance: ride.Recurrence || undefined
     }
   };
 }
@@ -118,7 +123,10 @@ export function convertBookingDetailsToRide(booking: BookingDetails): Ride {
       latitude: journey.EndLat || 0,
       longitude: journey.EndLong || 0,
       name: journey.EndName
-    } : undefined
+    } : undefined,
+    Recurrence: journey.Recurrance || undefined,
+    JourneyType: journey.JourneyType,
+    EndBookingWindow: bookingDetails.BookedWindowEnd 
   };
 }
 

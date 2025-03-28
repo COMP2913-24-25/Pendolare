@@ -3,6 +3,10 @@ import { Text } from "@/components/common/ThemedText";
 import { useTheme } from "@/context/ThemeContext";
 import { BookingDetails } from "@/services/bookingService";
 import StatusBadge from "./StatusBadge";
+import CronVisualizer from "./CronVisualiser";
+import { getNextCronDates } from "@/utils/cronTools";
+import OneClickRebook from "./OneClickRebook";
+import CheckoutModal from "./Modals/CheckoutModal";
 
 interface UpcomingRideCardProps {
   booking?: BookingDetails;
@@ -57,6 +61,20 @@ const UpcomingRideCard = ({ booking, onPress }: UpcomingRideCardProps) => {
       else if (user.FirstName) driverName = user.FirstName;
     }
   }
+
+  if (booking.Journey.Recurrance) {
+    // get next date from cron
+    
+    const startDate = rideDetails.RideTime < new Date() ? new Date() : rideDetails.RideTime;
+
+    const endDate = new Date(Date.now() + (1000 * 60 * 60 * 24 * 30));
+
+    const cron = booking.Journey.Recurrance;
+    const nextDate = getNextCronDates(cron, startDate, endDate, 1)[0];
+    if (nextDate) {
+      rideDetails.RideTime = nextDate;
+    }
+  }
   
   // Safe date conversion
   let rideTime = new Date();
@@ -95,6 +113,18 @@ const UpcomingRideCard = ({ booking, onPress }: UpcomingRideCardProps) => {
         <Text className="text-gray-800 font-JakartaSemiBold">With {driverName}</Text>
       </View>
       <StatusBadge statusText={status.Status} />
+      {(booking.Journey.Recurrance &&     
+      <View className="mt-2">
+        <CronVisualizer
+          cron={booking.Journey.Recurrance}
+          endDate={rideTime}
+          isDarkMode={isDarkMode}
+          />
+            <View>
+              <OneClickRebook onRebook={() => console.log("Rebook clicked")} />
+              {/*<CheckoutModal*/}
+            </View>
+      </View>)}
     </TouchableOpacity>
   );
 };

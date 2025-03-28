@@ -22,6 +22,7 @@ import { getBookings, completeBooking, confirmAtPickup } from "@/services/bookin
 import RideConfirmationCard from "@/components/RideView/RideConfirmationCard";
 import DriverPickupConfirmationCard from "@/components/RideView/DriverPickupConfirmationCard";
 import { Ride, convertBookingDetailsToRide, convertRideToBookingDetails } from "@/utils/bookingUtils";
+import { getNextCronDates } from "@/utils/cronTools";
 
 /*
   Home
@@ -116,14 +117,35 @@ const Home = () => {
       
       const upcoming = rideBookings.filter(ride => {
         if (ride.Status === 'Cancelled') return false;
+
+        const bigTime = 5 * 365 * 24 * 60 * 60 * 1000;
+
+        if (ride.EndBookingWindow) {
+          const endBookingWindow = ride.EndBookingWindow instanceof Date 
+            ? ride.EndBookingWindow 
+            : new Date(ride.EndBookingWindow);
         
-        return ride.RideTime.getTime() > Date.now();
+          if (endBookingWindow.getTime() < new Date("1972-01-15T00:00:00.000Z").getTime()) {
+            ride.EndBookingWindow = new Date(Date.now() + bigTime);
+          }
+        }        
+
+        const dateComp = ride.EndBookingWindow 
+          ? new Date(ride.EndBookingWindow ?? Date.now() + bigTime)
+          : new Date(Date.now() + bigTime);
+
+        const startDate = ride.RideTime.getTime() < Date.now() ? new Date(Date.now()) : ride.RideTime;
+
+        const commuterPred = (ride.Recurrence && getNextCronDates(ride.Recurrence, startDate, new Date(Date.now() + bigTime), 1)[0]?.getTime() < dateComp.getTime());
+
+        return ride.RideTime.getTime() > Date.now() || commuterPred;
+
       }).sort((a, b) => a.RideTime.getTime() - b.RideTime.getTime());
       
       const past = rideBookings.filter(ride => {
         if (ride.Status === 'Cancelled') return false;
-        
-        return ride.RideTime.getTime() <= Date.now();
+
+        return ride.RideTime.getTime() <= Date.now() ;
       });
       
       const pendingCompletion = past.filter(ride => 
