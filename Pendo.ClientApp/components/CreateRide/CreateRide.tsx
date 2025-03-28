@@ -130,8 +130,8 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
         MaxPassengers: parseInt(seats, 10),
         JourneyStatusId: 1,
         RegPlate: regPlate,
-        BootHeight: bootHeight ? parseFloat(bootHeight) : 0, // Use bootHeight
-        BootWidth: bootWidth ? parseFloat(bootWidth) : 0,     // Use bootWidth
+        BootHeight: Number(bootHeight),
+        BootWidth: Number(bootWidth)
       };
       
       // Add commuter-specific properties if applicable
