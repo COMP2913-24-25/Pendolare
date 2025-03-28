@@ -57,7 +57,7 @@ const ChatDetail = () => {
     isDriverMode
   );
 
-  // Ensure we have a current user ID
+  // Ensure current user ID is set before fetching chat data
   useEffect(() => {
     const getUserId = async () => {
       try {
@@ -98,7 +98,7 @@ const ChatDetail = () => {
     const shouldAutoCreate = !!initialMessage && initialMessage !== '';
     setAutoCreateChat(shouldAutoCreate);
     
-    // If we have a user ID, fetch the new chat data
+    // If the ID has changed, fetch new chat data
     if (currentUserId) {
       fetchChatData();
     }
@@ -157,7 +157,7 @@ const ChatDetail = () => {
         timestamp: new Date(conv.CreateDate).getTime()
       }));
       
-      // First check for conversations with the user ID we're looking for
+      // First check for conversations with the user ID
       let selectedChat = normalisedConversations.find((c: any) => {
         // Check if conversation ID matches
         if (c.id === id || c.ConversationId === id) {
@@ -238,7 +238,7 @@ const ChatDetail = () => {
       } catch (error) {
         console.error("Failed to create conversation:", error);
         
-        // If conversation already exists but we didn't find it, try fetching again
+        // If conversation already exists but wasn't found, retry fetching
         if (String(error).includes("Conversation already exists")) {
           console.log("Conversation exists but wasn't found initially, retrying fetch");
           setTimeout(() => fetchChatData(), 1000);

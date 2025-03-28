@@ -104,7 +104,7 @@ class MessageService {
       return;
     }
 
-    // If we're in the process of reconnecting, don't start another connection
+    // If already connected, skip reconnect attempts
     if (this.isReconnecting) {
       console.log("Already attempting to reconnect, skipping duplicate connect");
       return;
@@ -566,7 +566,7 @@ class MessageService {
       if (this.isConnected) {
         this.registerUser();
         
-        // Join conversation if we have one
+        // Join conversation if it's set
         if (this.conversationId) {
           this.joinConversation();
         }

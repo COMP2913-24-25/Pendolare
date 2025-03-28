@@ -21,7 +21,7 @@ export const useChatMessages = (
   );
 
   useEffect(() => {
-    // Only set up connection once we have all the required data
+    // Only set up connection once chatId and userId are available
     if (!chatId || !userId) return;
 
     // Set up message service event handlers
@@ -71,7 +71,7 @@ export const useChatMessages = (
     }
   };
 
-  const handleDisconnected = (reason: string) => {
+  const handleDisconnected = (reason?: string) => {
     setIsConnected(false);
     setIsLoadingHistory(false);
     if (reason) {
@@ -242,8 +242,6 @@ export const useChatMessages = (
           
           isCancellation = content.CancellationRequest || false;
           
-          // Log the booking ID we're looking for
-          console.log("Looking for booking ID:", content.BookingId);
           
           // Make sure to get bookings with the driver view parameter matching our current view
           const bookingsResponse = await getBookings(isDriverMode);
@@ -259,6 +257,7 @@ export const useChatMessages = (
           
           if (!booking) {
             console.log("Booking not found directly. Proceeding with amendment approval anyway.");
+            
             // Try to approve the amendment using the isDriverMode flag
             const result = await approveBookingAmmendment(
               amendmentId, 

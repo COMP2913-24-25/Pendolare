@@ -5,6 +5,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { formatTimestamp } from '@/utils/formatTime';
 import { ChatMessage } from '@/services/messageService';
 import AmendmentRequestBubble from './AmendmentRequestBubble';
+import { useAmendmentMessage } from '@/hooks/useAmendmentMessage';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -13,79 +14,48 @@ interface MessageBubbleProps {
   onApproveAmendment: (amendmentId: string) => void;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ 
+const MessageBubble = ({ 
   message, 
   currentUserId, 
   isDriverMode,
   onApproveAmendment 
-}) => {
+}: MessageBubbleProps) => {
   const { isDarkMode } = useTheme();
   const isUser = message.sender === "user";
   const isSystem = message.sender === "system";
   
+  const { isAmendmentMessage, amendmentContent, error } = useAmendmentMessage(message);
+  
   // Enhanced logging for all messages to help debug
   console.log(`Rendering message: type=${message.type}, amendmentId=${message.amendmentId}`, message);
   
-  // Improved detection of booking amendment messages
-  if (message.type === "booking_amendment" || message.amendmentId) {
-    try {
-      console.log("Processing amendment message:", message);
-      
-      // Parse the content if it's a stringified JSON
-      let amendmentData = message.content;
-      
-      // Handle different message formats
-      if (typeof amendmentData === 'string') {
-        try {
-          // First try direct parsing
-          amendmentData = JSON.parse(amendmentData);
-        } catch (e) {
-          console.error("Failed to parse amendment data:", e);
-          return (
-            <View className="flex-row justify-center mb-4">
-              <View className={`rounded-2xl px-4 py-2 max-w-[90%] ${isDarkMode ? "bg-red-800" : "bg-red-100"}`}>
-                <Text className={`text-center ${isDarkMode ? "text-white" : "text-red-600"}`}>
-                  Booking amendment request (Unable to display details)
-                </Text>
-                <Text className={`text-center text-xs ${isDarkMode ? "text-white" : "text-red-600"}`}>
-                  Raw content: {typeof amendmentData === 'string' ? amendmentData.substring(0, 50) : 'Non-string content'}
-                </Text>
-              </View>
-            </View>
-          );
-        }
-      }
-      
-      console.log("Processed amendment data:", amendmentData);
-      console.log("Current user is in driver mode:", isDriverMode);
-      
-      // Render amendment request bubble with the parsed data
-      return (
-        <AmendmentRequestBubble 
-          amendment={amendmentData}
-          amendmentId={message.amendmentId || ''}
-          isFromCurrentUser={isUser}
-          timestamp={message.timestamp}
-          onApprove={onApproveAmendment}
-          isDriverView={isDriverMode}
-        />
-      );
-    } catch (error) {
-      console.error("Error rendering amendment message:", error);
-      // Return a fallback UI for errors
+  // Handle booking amendment messages with our custom hook
+  if (isAmendmentMessage) {
+    if (error) {
       return (
         <View className="flex-row justify-center mb-4">
           <View className={`rounded-2xl px-4 py-2 max-w-[90%] ${isDarkMode ? "bg-red-800" : "bg-red-100"}`}>
             <Text className={`text-center ${isDarkMode ? "text-white" : "text-red-600"}`}>
-              Error displaying booking amendment
+              Booking amendment request (Unable to display details)
             </Text>
             <Text className={`text-center text-xs ${isDarkMode ? "text-white" : "text-red-600"}`}>
-              Error: {error.message}
+              Error: {error}
             </Text>
           </View>
         </View>
       );
     }
+    
+    return (
+      <AmendmentRequestBubble 
+        amendment={amendmentContent}
+        amendmentId={message.amendmentId || ''}
+        isFromCurrentUser={isUser}
+        timestamp={message.timestamp}
+        onApprove={onApproveAmendment}
+        isDriverView={isDriverMode}
+      />
+    );
   }
 
   // Special styling for system messages

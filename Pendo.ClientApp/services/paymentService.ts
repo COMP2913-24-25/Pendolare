@@ -2,11 +2,16 @@ import { apiRequest } from "./apiClient";
 
 import { PAYMENT_ENDPOINTS, ADMIN_ENDPOINTS } from "@/constants";
 
+export interface WeeklyRevenue {
+  week: number;
+  total_income: number;
+}
+
 export interface BalanceSheet {
   Status: string;
-  Pending: number | 0.00;
-  NonPending: number | 0.00;
-  Weekly: any[];
+  Pending: number;
+  NonPending: number;
+  Weekly: WeeklyRevenue[];
 }
 
 export interface StatusResponse {
@@ -98,7 +103,7 @@ export async function PayoutRequest(): Promise<StatusResponse> {
  * Post ViewBalance
  * Note: The UserId is automatically added by the Kong gateway
  */
-export async function ViewBalance(): Promise<BalanceSheet> {
+export const ViewBalance = async (): Promise<BalanceSheet> => {
   try {
     const response = await apiRequest<BalanceSheet>(
       PAYMENT_ENDPOINTS.VIEW_BALANCE,
@@ -108,7 +113,7 @@ export async function ViewBalance(): Promise<BalanceSheet> {
       },
       true
     );
-
+    console.log("FETCHING BALANCE SHEET")
     console.log(response)
 
     return response;
@@ -122,7 +127,7 @@ export async function ViewBalance(): Promise<BalanceSheet> {
       Weekly: [],
     };
   }
-}
+};
 
 /*
  * Fetch PaymentSheet Parameters

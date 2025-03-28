@@ -117,3 +117,66 @@ export function getNextCronDates(
       throw error;
     }
 }
+
+/**
+ * Parse a cron expression into its component parts
+ */
+export const parseCronExpression = (cronExpression: string) => {
+  const parts = cronExpression.split(' ');
+  
+  // Parse minutes and hours for time
+  const minutes = parseInt(parts[0]);
+  const hours = parseInt(parts[1]);
+  const startTime = new Date();
+  startTime.setHours(hours, minutes, 0, 0);
+  
+  // Determine frequency
+  let frequency: 'weekly' | 'fortnightly' | 'monthly' = 'weekly';
+  if (parts[2].includes('*/14')) {
+    frequency = 'fortnightly';
+  } else if (parts[2] !== '*') {
+    frequency = 'monthly';
+  }
+  
+  // Parse days of week
+  let days: string[] = [];
+  if (parts[4] !== '*') {
+    days = parts[4].split(',');
+  }
+  
+  return {
+    startTime,
+    frequency,
+    days
+  };
+};
+
+/**
+ * Generate a cron expression from its components
+ */
+export const generateCronExpression = (
+  frequency: 'weekly' | 'fortnightly' | 'monthly',
+  days: string[],
+  time: Date
+) => {
+  const minutes = time.getMinutes();
+  const hours = time.getHours();
+  
+  let dayOfMonth = '*';
+  let dayOfWeek = '*';
+  
+  // Set day of month or week based on frequency
+  if (frequency === 'monthly') {
+    dayOfMonth = (new Date().getDate()).toString();
+  } else {
+    // For weekly/fortnightly, use days of the week
+    if (days.length > 0) {
+      dayOfWeek = days.join(',');
+    }
+  }
+  
+  // Adjust month field for fortnightly
+  const monthField = frequency === 'fortnightly' ? '*/14' : '*';
+  
+  return `${minutes} ${hours} ${dayOfMonth} * ${dayOfWeek}`;
+};

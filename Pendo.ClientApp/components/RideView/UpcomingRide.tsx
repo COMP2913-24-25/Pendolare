@@ -34,10 +34,8 @@ const UpcomingRide = ({ booking, onPress }: UpcomingRideProps) => {
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const insets = useSafeAreaInsets();
 
-  // Add debug log to see the exact data we're working with
-  console.log("UpcomingRide received booking:", booking);
-
-  // Absolute minimum validation
+  // Check if booking is valid
+  // This is a more explicit check to ensure booking is not null or undefined
   const isValidBooking = !!booking;
 
   // Handle missing data gracefully
@@ -133,7 +131,7 @@ const UpcomingRide = ({ booking, onPress }: UpcomingRideProps) => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Explicitly create a conversation before navigating
-      // This ensures the conversation exists when we reach the chat page
+      // This ensures the conversation exists when the user navigates to the chat page
       try {
         const conversationResponse = await createConversation({
           ConversationType: "direct",
