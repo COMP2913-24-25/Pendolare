@@ -97,6 +97,14 @@ class CreateBookingCommand:
                 numJourneysInWindow = len(getNextTimes(journey.Recurrance, booking.RideTime, booking.BookedWindowEnd, 9999))
                 
             amount = journey.AdvertisedPrice * numJourneysInWindow
+            
+            # Apply discount if present for commuter journeys
+            if journey.JourneyType == 2 and journey.DiscountID is not None:
+                discount = self.booking_repository.db_session.query(Discounts).filter_by(DiscountID=journey.DiscountID).first()
+                if discount is not None:
+                    self.logger.info(f"Applying discount: {discount.DiscountPercentage * 100}% off for {discount.WeeklyJourneys} weekly journeys")
+                    amount = amount * (1 - discount.DiscountPercentage)
+                    
             print(journey.AdvertisedPrice, numJourneysInWindow, amount)
             print(booking.BookingId, booking.RideTime, booking.BookedWindowEnd)
 

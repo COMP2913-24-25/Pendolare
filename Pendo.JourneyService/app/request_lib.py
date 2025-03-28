@@ -40,6 +40,7 @@ class CreateJourneyRequest(BaseModel):
     JourneyStatusId: int = 1
     BootWidth: Optional[float] = None
     BootHeight: Optional[float] = None
+    DiscountID: Optional[UUID] = None
     LockedUntil: Optional[datetime.datetime] = None
 
 class AdjustPriceRequest(BaseModel):
