@@ -237,7 +237,7 @@ def test_get_journey(booking_repository, mock_db_session):
     mock_db_session.query.assert_called_once_with(Journey)
 
 def test_get_booking_by_id(booking_repository, mock_db_session):
-    mock_db_session.query.return_value.join.return_value.filter_by.return_value = [Booking()]
+    mock_db_session.query.return_value.join.return_value.filter.return_value = [Booking()]
     result = booking_repository.GetBookingById(1)
     assert result is not None
     mock_db_session.query.assert_called_once_with(Booking)
@@ -258,7 +258,7 @@ def test_create_booking(booking_repository, mock_db_session):
 def test_approve_booking(booking_repository, mock_db_session):
 
     booking = Booking(BookingId=1, DriverApproval=False)
-    mock_db_session.query.return_value.join.return_value.filter_by.return_value = [booking]
+    mock_db_session.query.return_value.join.return_value.filter.return_value = [booking]
 
     result = booking_repository.ApproveBooking(1)
     
@@ -270,7 +270,7 @@ def test_update_booking_status(booking_repository, mock_db_session):
         mock_datetime.now.return_value = datetime(2025, 3, 1, 12, 0, 0)
 
         booking = Booking(BookingId=1, BookingStatusId=1)
-        mock_db_session.query.return_value.join.return_value.filter_by.return_value = [booking]
+        mock_db_session.query.return_value.join.return_value.filter.return_value = [booking]
 
         booking_repository.UpdateBookingStatus(1, 2)
         
