@@ -2,6 +2,8 @@ from .booking_repository import BookingRepository
 from fastapi import status
 from .responses import StatusResponse
 from .statuses.booking_statii import BookingStatus
+from .payment_service_api import PaymentServiceClient
+from .cron_checker import getNextTimes
 
 class BookingCompleteCommand:
     """
@@ -14,7 +16,7 @@ class BookingCompleteCommand:
         self.response = response
         self.logger = logger
         self.booking_repository = BookingRepository()
-        self.payment_service_client = payment_service_client
+        self.payment_service_client : PaymentServiceClient = payment_service_client
 
     def Execute(self) -> StatusResponse:
         """
@@ -61,14 +63,28 @@ class BookingCompleteCommand:
                     self.logger.debug("Passenger has confirmed booking happened. Completing booking.")
                     self.booking_repository.UpdateBookingStatus(self.bookingId, BookingStatus.Completed)
 
+                    # Load booking with ammendments
+                    booking = self.booking_repository.GetBookingsForUser(self.request.UserId,
+                                                                         self.bookingId)[0]
+                    
+                    num_journeys = 1
+                    if booking["Journey"]["JourneyType"] == 2:
+                        num_journeys = len(getNextTimes(booking["Journey"]["Recurrence"], 
+                                                    booking["Booking"]["RideTime"], 
+                                                    booking["Booking"]["BookedWindowEnd"], 
+                                                    9999))
+
+                    amount = booking["Journey"]["Price"] * num_journeys
+
                     self.logger.info(f"Sending completed booking request to payment service for booking {self.bookingId}")
-                    if not self.payment_service_client.CompletedBookingRequest(self.bookingId):
+                    if not self.payment_service_client.CompletedBookingRequest(self.bookingId, amount):
                         msg = "Payment service returned an error, rolloing booking back to not completed."
                         self.logger.error(msg)
 
                         self.logger.debug("Rolling back booking to 'Not Completed'.")
                         self.booking_repository.UpdateBookingStatus(self.bookingId, BookingStatus.NotCompleted)
                         return StatusResponse(Status="Failed", Message=msg)
+        
                     
                     self.booking_repository.CalculateDriverRating(journey.UserId)
 

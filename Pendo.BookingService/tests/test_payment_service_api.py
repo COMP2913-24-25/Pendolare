@@ -36,18 +36,18 @@ def fake_post(monkeypatch):
 
 def test_pending_booking_request_success(fake_post, payment_service_client, dummy_booking_id):
     fake_post({"Status": "Success", "Error": ""})
-    result = payment_service_client.PendingBookingRequest(dummy_booking_id)
+    result = payment_service_client.PendingBookingRequest(dummy_booking_id, 32)
     assert result is True
 
 def test_completed_booking_request_success(fake_post, payment_service_client, dummy_booking_id):
     fake_post({"Status": "Success", "Error": ""})
-    result = payment_service_client.CompletedBookingRequest(dummy_booking_id)
+    result = payment_service_client.CompletedBookingRequest(dummy_booking_id, 32)
     assert result is True
 
 def test_completed_booking_request_error(fake_post, payment_service_client, dummy_booking_id):
     fake_post({"Status": "Error", "Error": "Some error occurred"})
     with pytest.raises(Exception) as excinfo:
-        payment_service_client.CompletedBookingRequest(dummy_booking_id)
+        payment_service_client.CompletedBookingRequest(dummy_booking_id, 32)
     assert "Payment service returned an error" in str(excinfo.value)
 
 def test_refund_request_success(fake_post, payment_service_client, dummy_booking_id):

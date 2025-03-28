@@ -8,6 +8,7 @@ from .statuses.booking_statii import BookingStatus
 from .responses import StatusResponse
 from .requests import CreateBookingRequest
 from .db_provider import get_db
+from .payment_service_api import PaymentServiceClient
 
 class CreateBookingCommand:
     """
@@ -21,7 +22,7 @@ class CreateBookingCommand:
                  logger, 
                  dvla_client, 
                  configuration_provider,
-                 payment_service_client):
+                 payment_service_client : PaymentServiceClient):
         """
         Constructor for CreateBookingCommand class.
         :param request: Request object containing the booking details.
@@ -81,21 +82,36 @@ class CreateBookingCommand:
                 RideTime=self.request.JourneyTime
             )
 
+            if journey.JourneyType == 2:
+                if self.request.EndCommuterWindow is None:
+                    self.response.status_code = status.HTTP_400_BAD_REQUEST
+                    raise Exception("EndCommuterWindow must be provided for commuter journeys.")
+                
+                booking.BookedWindowEnd = self.request.EndCommuterWindow
+
             self.booking_repository.CreateBooking(booking)
             self.logger.debug(f"Booking DB object created successfully. BookingId: {booking.BookingId}")
 
+            numJourneysInWindow = 1
+            if journey.JourneyType == 2:
+                numJourneysInWindow = len(getNextTimes(journey.Recurrance, booking.RideTime, booking.BookedWindowEnd, 9999))
+                
+            amount = journey.AdvertisedPrice * numJourneysInWindow
+
             # Notify payment service of new booking
-            # if not self.payment_service_client.PendingBookingRequest(booking.BookingId):
-            #     self.response.status_code = status.HTTP_403_FORBIDDEN
-            #     self.booking_repository.DeleteBooking(booking)
-            #     raise Exception("Payment service failed to process booking. User balance insufficient.")
+            if not self.payment_service_client.PendingBookingRequest(booking.BookingId, amount):
+                 self.response.status_code = status.HTTP_403_FORBIDDEN
+                 self.booking_repository.DeleteBooking(booking)
+                 raise Exception("Payment service failed to process booking. User balance insufficient.")
             
             self.booking_repository.UpdateBookingStatus(booking.BookingId, BookingStatus.Pending)
             self.logger.debug("Booking status updated to pending successfully.")
             
             self.booking_repository.MarkJourneyBooked(booking)
 
-            email_data = generateEmailDataFromBooking(booking, user, journey, self.dvla_client.GetVehicleDetails(journey.RegPlate))
+            driver = self.booking_repository.GetUser(journey.UserId)
+
+            email_data = generateEmailDataFromBooking(booking, driver, journey, self.dvla_client.GetVehicleDetails(journey.RegPlate))
 
             self.email_sender.SendBookingPending(user.Email, email_data)
             self.logger.debug("Booking pending email sent successfully.")

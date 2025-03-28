@@ -1,6 +1,6 @@
 import { FontAwesome5 } from "@expo/vector-icons";
-import { useState } from "react";
-import { View, TouchableOpacity, Modal, ScrollView, ActivityIndicator } from "react-native";
+import { useCallback, useState } from "react";
+import { View, TouchableOpacity, Modal, ScrollView, ActivityIndicator, Alert } from "react-native";
 import Map from "../Map/Map";
 import { Text } from "@/components/common/ThemedText"; // updated
 import { icons } from "@/constants";
@@ -9,6 +9,8 @@ import { createBooking } from "@/services/bookingService";
 import { toHumanReadable, getNextCronDates } from "@/utils/cronTools";
 import { Rating } from "react-native-ratings";
 import CheckoutModal, { Discount, SubRide } from "./Modals/CheckoutModal";
+import { BalanceSheet, ViewBalance } from "@/services/paymentService";
+import { useFocusEffect } from "expo-router";
 
 interface RideDetailsProps {
   ride: any;
@@ -42,10 +44,7 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
 
     try {
       // Extract departureTime from string or timestamp
-      const departureTime =
-        typeof ride.departureTime === "string"
-          ? new Date(ride.departureTime)
-          : new Date(ride.departureTime);
+      const departureTime = new Date(ride.departureTime);
 
       if (ride.recurrence) {
         const oneWeek = 604800000; // 1 week in milliseconds
@@ -69,7 +68,6 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
 
         setSubrides(newSubrides);
         setDiscount(discount);
-        setUserBalance(100.00);
 
         setShowCheckout(true);
         return;
@@ -111,6 +109,21 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
     }
   };
 
+  const handleCommuterBooking = async () => {
+    const twoWeeks = 1209600000; // 2 weeks in milliseconds
+    const result = await createBooking(ride.JourneyId, new Date(ride.departureTime), new Date(twoWeeks));
+
+    console.log("Commuter booking result:", result);
+    
+    if (result.Status !== "Error") {
+      Alert.alert("Success", "Your ride has been successfully booked!");
+      return;
+    }
+
+    Alert.alert("Error", "Failed to book your ride. Please try again.");
+    return;
+  };
+
   const dismissMessage = () => {
     setBookingStatus((prev) => ({ ...prev, showMessage: false }));
   };
@@ -127,6 +140,11 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
       animationType="slide"
       transparent={true}
       visible={visible}
+      onShow={() => {
+        ViewBalance().then((balance : BalanceSheet) => {
+          setUserBalance(balance.NonPending);
+        });
+      }}
       onRequestClose={onClose}
     >
       <View className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-white"}`}>
@@ -329,7 +347,7 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
         discount={discount}
         userBalance={userBalance}
         isDarkMode={isDarkMode} 
-        onConfirm={() => {}} />
+        onConfirm={() => handleCommuterBooking()} />
     </Modal>
   );
 };
