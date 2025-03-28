@@ -9,11 +9,13 @@ interface CostAndSeatsStepProps {
   setSeats: (value: string) => void;
   regPlate: string;
   setRegPlate: (value: string) => void;
+  bootSize: string;
+  setBootSize: (value: string) => void;
 }
 
 /*
   CostAndSeatsStep
-  Step for entering cost, seats, and vehicle reg plate
+  Step for entering cost, seats, vehicle reg plate, and boot size
 */
 const CostAndSeatsStep = ({
   isDarkMode,
@@ -23,6 +25,8 @@ const CostAndSeatsStep = ({
   setSeats,
   regPlate,
   setRegPlate,
+  bootSize,
+  setBootSize,
 }: CostAndSeatsStepProps) => {
   return (
     <View
@@ -73,6 +77,21 @@ const CostAndSeatsStep = ({
           }`}
           placeholderTextColor={isDarkMode ? "#9CA3AF" : "#6B7280"}
           placeholder="Enter reg plate (e.g., AB12CDE)"
+        />
+      </View>
+
+      <View className="mb-4">
+        <Text className="text-lg font-JakartaBold mb-2">Boot Size</Text>
+        <TextInput
+          value={bootSize}
+          onChangeText={setBootSize}
+          className={`h-[45px] border rounded-lg px-3 ${
+            isDarkMode
+              ? "bg-slate-700 border-slate-600 text-white"
+              : "bg-white border-slate-200 text-black"
+          }`}
+          placeholderTextColor={isDarkMode ? "#9CA3AF" : "#6B7280"}
+          placeholder="Enter boot size (optional)"
         />
       </View>
     </View>
