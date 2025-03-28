@@ -6,7 +6,7 @@ export interface BalanceSheet {
   Status: string;
   Pending: number | 0.00;
   NonPending: number | 0.00;
-  Weekly: Array<any>;
+  Weekly: any[];
 }
 
 export interface StatusResponse {
