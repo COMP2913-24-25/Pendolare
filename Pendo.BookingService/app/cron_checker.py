@@ -65,7 +65,7 @@ def toHumanReadable(cron: str) -> str:
     except Exception:
         return "Invalid schedule"
     
-def getNextTimes(cron : str, startTime : datetime, endTime : datetime, max : datetime) -> list[datetime]:
+def getNextTimes(cron : str, startTime : datetime, endTime : datetime, max : int) -> list[datetime]:
     """
     getNextTimes method returns the next max times that satisfy the cron expression between the specified start and end times.
     :param cron: Cron expression.
@@ -75,9 +75,6 @@ def getNextTimes(cron : str, startTime : datetime, endTime : datetime, max : dat
     :return: List of times.
     """
     try:
-        startTime = datetime.strptime(startTime, "%Y-%m-%d %H:%M:%S")
-        endTime = datetime.strptime(endTime, "%Y-%m-%d %H:%M:%S")
-
         iter = croniter(cron, startTime)
         numTimes = 0
         times = []

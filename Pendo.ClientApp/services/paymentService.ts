@@ -8,6 +8,11 @@ export interface BalanceSheet {
   NonPending: number | 0.00;
 }
 
+export interface StatusResponse {
+  Status: string;
+  Error: string;
+}
+
 export interface PaymentSheetResponse {
     Status: string,
     PaymentIntent: string,
@@ -38,6 +43,32 @@ export async function ViewBalance(): Promise<BalanceSheet> {
         Status: "fail",
         Pending: -99,
         NonPending: -99
+    };
+  }
+}
+
+/*
+ * Post PayoutRequest
+ * Note: The UserId is automatically added by the Kong gateway
+ */
+export async function PayoutRequest(): Promise<StatusResponse> {
+  try {
+    const response = await apiRequest<StatusResponse>(
+      PAYMENT_ENDPOINTS.CREATE_PAYOUT,
+      {
+        method: "POST",
+        body: JSON.stringify({}),
+      },
+      true
+    );
+
+    return response;
+
+  } catch (error) {
+    console.error("Payout error:", error);
+    return {
+        Status: "fail",
+        Error: String(error)
     };
   }
 }

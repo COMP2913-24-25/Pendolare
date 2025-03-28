@@ -8,6 +8,7 @@ import { Text } from "@/components/common/ThemedText";
 import ThemedButton from "@/components/common/ThemedButton";
 import ThemedInputField from "./common/ThemedInputField";
 import ThemedView from "./common/ThemedView";
+import { PayoutRequest } from "@/services/paymentService";
 
 
 interface RequestPayoutModalProps {
@@ -23,6 +24,16 @@ interface RequestPayoutModalProps {
 const RequestPayoutModal = ({ visible, onClose, amount }: RequestPayoutModalProps) => {
     
   const { isDarkMode } = useTheme();
+
+
+  async function handlePayout() {
+    const response = PayoutRequest();
+    if ((await response).Status == "success") {
+      onClose()
+      Alert.alert("Success! Please check your email")
+      
+    }
+  }
 
   const cardStyle = `${isDarkMode ? "bg-dark" : "bg_white"} rounded-lg shadow-sm px-5 py-3`;
 
@@ -63,8 +74,9 @@ const RequestPayoutModal = ({ visible, onClose, amount }: RequestPayoutModalProp
               You will recieve an email confimation, and your request will be processed by the admin team. This will reset your balance to zero.
             </Text>
             <ThemedButton
-              title={`Pay out £${amount}?`}>
-              
+              title={`Pay out £${amount}?`}
+              onPress={handlePayout}
+              >
             </ThemedButton>
         </View>
       </SafeAreaView>
