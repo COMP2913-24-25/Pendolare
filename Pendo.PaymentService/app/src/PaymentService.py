@@ -27,19 +27,11 @@ from .requests.PaymentRequests import GetwithUUID, CompletedBookingRequest, Paym
 from .returns.PaymentReturns import ViewBalanceResponse, StatusResponse, PaymentMethodResponse, PaymentSheetResponse
 
 
-if environment == "Development":
-    logging.basicConfig(
-        level=logging.DEBUG,
-        stream=sys.stdout,
-        format='%(asctime)s [%(levelname)s] %(name)s: %(message)s'
-    )
-else:
-    logging.basicConfig(
-        level=logging.INFO,
-        stream=sys.stdout,
-        format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
-    )
-
+logging.basicConfig(
+    level=logging.INFO,
+    stream=sys.stdout,
+    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+)
 logger = logging.getLogger(__name__)
 logger.info("Starting Pendo.PaymentService.Api")
 
@@ -49,6 +41,9 @@ app = FastAPI(title="Pendo.PaymentService.Api",
 
 @app.get("/HealthCheck", tags=["HealthCheck"])
 def test_db(db: Session = Depends(get_db)):
+    """
+    Tests connection to the database
+    """
     logger.info("Testing DB connection...")
     try:
         db.execute(text("SELECT 1"))
@@ -60,11 +55,13 @@ def test_db(db: Session = Depends(get_db)):
 
 @app.post("/PaymentSheet", tags=["Stripe"])
 def PaymentSheet(request: PaymentSheetRequest, db: Session = Depends(get_db)) -> PaymentSheetResponse:
+    """
+    Return the required items to display the PaymentSheet on the Client App
+    """
     configProvider.LoadStripeConfiguration(db)
     secret = configProvider.StripeConfiguration.secret
 
     response = PaymentSheetCommand(logging.getLogger("PaymentSheet"), request.UserId, request.Amount, secret).Execute()
-
     
     if response.Status != "success":
         raise HTTPException(400, detail=response.Error)
@@ -89,9 +86,9 @@ def PaymentMethods(request: GetwithUUID, db: Session = Depends(get_db)) -> Payme
 
 @app.post("/StripeWebhook", tags=["Stripe"])
 async def StripeWebhook(request: Request) -> StatusResponse:
-
-    # update user balance
-
+    """
+    Handle response from stripe when payment is made on the front end
+    """
     requestBody = await request.json()
     customer = requestBody["data"]["object"]["customer"]
     amount = requestBody["data"]['object']['amount'] / 100

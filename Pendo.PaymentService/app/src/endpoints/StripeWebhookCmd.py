@@ -1,3 +1,8 @@
+# 
+# StripeWebhook endpoint implementation
+# Author: Alexander McCall
+#
+
 from ..db.PaymentRepository import PaymentRepository
 from ..db.PendoDatabase import UserBalance
 from ..returns.PaymentReturns import StatusResponse
