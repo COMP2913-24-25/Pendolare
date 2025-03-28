@@ -20,10 +20,10 @@ from .endpoints.CreatePayoutCmd import CreatePayoutCommand
 
 # database handling
 from .db.PendoDatabase import UserBalance
-from .db.PendoDatabaseProvider import get_db, Session, text, environment
+from .db.PendoDatabaseProvider import get_db, Session, text, environment, configProvider
 
 # requests and returns
-from .requests.PaymentRequests import GetwithUUID, MakePendingBooking, PaymentSheetRequest, RefundPaymentRequest
+from .requests.PaymentRequests import GetwithUUID, CompletedBookingRequest, PaymentSheetRequest, RefundPaymentRequest
 from .returns.PaymentReturns import ViewBalanceResponse, StatusResponse, PaymentMethodResponse, PaymentSheetResponse
 
 
@@ -60,10 +60,10 @@ def test_db(db: Session = Depends(get_db)):
 
 @app.post("/PaymentSheet", tags=["Stripe"])
 def PaymentSheet(request: PaymentSheetRequest, db: Session = Depends(get_db)) -> PaymentSheetResponse:
-    configProvider.LoadStripeConfiguration(self.db)
+    configProvider.LoadStripeConfiguration(db)
     secret = configProvider.StripeConfiguration.secret
 
-    response = PaymentSheetCommand(logging.getLogger("PaymentMethods"), request.UserId, request.Amount, secret).Execute()
+    response = PaymentSheetCommand(logging.getLogger("PaymentSheet"), request.UserId, request.Amount, secret).Execute()
 
     
     if response.Status != "success":
@@ -77,7 +77,10 @@ def PaymentMethods(request: GetwithUUID, db: Session = Depends(get_db)) -> Payme
     """
     Used to query stripe for the customers saved payment methods, to display before adding another card or contiuning with a booking
     """
-    response = PaymentMethodsCommand(logging.getLogger("PaymentMethods"), request.UserId, db).Execute()
+    configProvider.LoadStripeConfiguration(db)
+    secret = configProvider.StripeConfiguration.secret
+
+    response = PaymentMethodsCommand(logging.getLogger("PaymentMethods"), request.UserId, secret).Execute()
 
     if response.Status != "success":
         raise HTTPException(400, detail=response.Error)
@@ -105,11 +108,11 @@ async def StripeWebhook(request: Request) -> StatusResponse:
 
 
 @app.post("/PendingBooking", tags=["At Booking time"])
-def PendingBooking(request: MakePendingBooking, db: Session = Depends(get_db)) -> StatusResponse:
+def PendingBooking(request: CompletedBookingRequest, db: Session = Depends(get_db)) -> StatusResponse:
     """
     Used when a booking is created in the pending state
     """
-    response = PendingBookingCommand(logging.getLogger("PendingBooking"), request.BookingId).Execute()
+    response = PendingBookingCommand(logging.getLogger("PendingBooking"), request.BookingId, request.LatestPrice).Execute()
 
     if response.Status != "success":
         raise HTTPException(400, detail=response.Error)
@@ -117,20 +120,15 @@ def PendingBooking(request: MakePendingBooking, db: Session = Depends(get_db)) -
         return response
 
 @app.post("/CompletedBooking", tags=["On booking confirmation"])
-def CompletedBooking(request: MakePendingBooking, db: Session = Depends(get_db)) -> StatusResponse:
+def CompletedBooking(request: CompletedBookingRequest, db: Session = Depends(get_db)) -> StatusResponse:
     """
     Used when a booking status changes to complete, takes payment from user's saved card details and non-pending balance
     """
-    # TODO: Complete Confirm endpoint - Catherine
-    # See src/endpoints/CompletedBookingCmd
-
-    response = CompletedBookingCommand(logging.getLogger("CompleteBooking"), request.BookingId).Execute()
+    response = CompletedBookingCommand(logging.getLogger("CompleteBooking"), request.BookingId, request.LatestPrice).Execute()
     if response.Status != "success":
         raise HTTPException(400, detail=response.Error)
     else:
         return response
-
-    return StatusResponse(Status="success")
 
 @app.post("/ViewBalance", tags=["Anytime"])
 def ViewBalance(request: GetwithUUID, db: Session = Depends(get_db)) -> ViewBalanceResponse:
@@ -165,8 +163,10 @@ def CreatePayout(request: GetwithUUID, db: Session = Depends(get_db)) -> StatusR
     Used to retrieve the non-pending value of a user. Will send an email to Admin with value to process payment
     """
     # TODO: Complete Payout endpoint - Alex
+    
+    sendGrid = configProvider.LoadEmailConfiguration(db)
 
-    response = CreatePayoutCommand(logging.getLogger("CreatePayout"), request.UserId).Execute()
+    response = CreatePayoutCommand(logging.getLogger("CreatePayout"), request.UserId, sendGrid).Execute()
     if response.Status != "success":
         raise HTTPException(400, detail=response.Error)
     else:

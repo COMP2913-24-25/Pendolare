@@ -28,7 +28,7 @@ class StripeWebhookCommand:
             if user is None:
                 raise Exception("User not found")
 
-            self.logger.info("Got user", user)
+            self.logger.info("Got user")
             
             userBalance = self.PaymentRepository.GetUserBalance(self.UserId)
             if userBalance is None:

@@ -45,3 +45,4 @@ uvicorn==0.34.0
 watchfiles==1.0.4
 websockets==15.0
 stripe==11.6.0
+sendgrid==6.11.0
