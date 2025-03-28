@@ -1,4 +1,5 @@
 from .PendoDatabase import *
+from sqlalchemy import func, literal_column
 from sqlalchemy.orm import joinedload, with_loader_criteria
 import datetime
 from .PendoDatabaseProvider import get_db
@@ -159,3 +160,26 @@ class PaymentRepository():
         
         self.db_session.commit()
 
+    def GetWeeklyList(self, user_id):
+        """
+        GetWeekly queries the driver's weekly income
+        """    
+        weekly_income = (
+            self.db_session.query(
+                func.datepart(literal_column("week"), Transaction.CreateDate).label("week"),
+                func.sum(Transaction.Value).label("total_income")
+            )
+            .filter(
+                Transaction.TransactionTypeId == 3,
+                Transaction.UserId == user_id
+            )
+            .group_by(
+                func.datepart(literal_column("week"), Transaction.CreateDate)
+            )
+            .order_by(
+                func.datepart(literal_column("week"), Transaction.CreateDate)
+            )
+            .all()
+        )
+        print(type(weekly_income))
+        return weekly_income

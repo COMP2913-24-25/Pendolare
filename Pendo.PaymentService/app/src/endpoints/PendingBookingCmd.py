@@ -51,25 +51,25 @@ class PendingBookingCommand:
             # find driver and booker, calculate price and margin
             DriverSheet = self.PaymentRepository.GetUserBalance(Driver.UserId)
             BookerSheet = self.PaymentRepository.GetUserBalance(Booker.UserId)
-            Margin = round(pendingBooking.FeeMargin * self.LatestAmount, 2)
+            Margin = round(float(pendingBooking.FeeMargin) * float(self.LatestAmount), 2)
             Price = self.LatestAmount - Margin
 
             if DriverSheet is None:
                 self.logger.info("Driver has no balance sheet, creating")
                 newBalanceSheetDriver = UserBalance(UserId = Driver.UserId)
                 self.PaymentRepository.CreateUserBalance(newBalanceSheetDriver)
-                userBalance = self.PaymentRepository.GetUserBalance(Driver.UserId)
+                DriverSheet = self.PaymentRepository.GetUserBalance(Driver.UserId)
 
             if BookerSheet is None:
                 self.logger.info("Booker has no balance sheet, creating")
                 newBalanceSheetBooker = UserBalance(UserId = Booker.UserId)
                 self.PaymentRepository.CreateUserBalance(newBalanceSheetBooker)
-                userBalance = self.PaymentRepository.GetUserBalance(Booker.UserId)
+                BookerSheet = self.PaymentRepository.GetUserBalance(Booker.UserId)
 
             self.logger.info("Got both balance sheets")
 
             # ensure that booker has sufficient balance
-            if Booker.NonPending < self.LatestAmount:
+            if BookerSheet.NonPending < self.LatestAmount:
                 raise Exception("Not enough user balance to set journey to pending")
 
             # increase advertiser pending balance by Booking value (minus fee!)

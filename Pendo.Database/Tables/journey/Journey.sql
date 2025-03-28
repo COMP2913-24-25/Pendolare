@@ -26,10 +26,14 @@ CREATE TABLE [journey].[Journey]
   [RegPlate] NVARCHAR(100) NOT NULL,
   [BootWidth] FLOAT NULL,
   [BootHeight] FLOAT NULL,
+  [DiscountID] UNIQUEIDENTIFIER NULL,
   [CreateDate] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
   [UpdateDate] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
   [LockedUntil] DATETIME2 NULL, --Set this to hide the journey from booking until the set datetime
 
   CONSTRAINT FK_Journeys_UserId FOREIGN KEY ([UserId])
-  REFERENCES [identity].[User](UserId)
+  REFERENCES [identity].[User](UserId),
+  
+  CONSTRAINT FK_Journeys_DiscountID FOREIGN KEY ([DiscountID])
+  REFERENCES [payment].[Discounts](DiscountID)
 )
