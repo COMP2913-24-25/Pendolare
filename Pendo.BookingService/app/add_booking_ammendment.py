@@ -48,7 +48,6 @@ class AddBookingAmmendmentCommand:
             self.logger.error(msg)
             raise Exception(msg)
 
-
     def _createBookingAmendment(self):
         return BookingAmmendment(
             BookingId=self.request.BookingId,
@@ -61,5 +60,6 @@ class AddBookingAmmendmentCommand:
             StartTime=self.request.StartTime,
             CancellationRequest=self.request.CancellationRequest,
             DriverApproval=self.request.DriverApproval,
-            PassengerApproval=self.request.PassengerApproval
+            PassengerApproval=self.request.PassengerApproval,
+            Recurrance=self.request.Recurrance
         )

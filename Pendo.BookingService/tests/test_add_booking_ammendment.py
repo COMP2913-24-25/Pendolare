@@ -15,6 +15,7 @@ class DummyRequest:
     CancellationRequest = False
     DriverApproval = False
     PassengerApproval = False
+    Recurrance = None
 
 class DummyResponse:
     def __init__(self):
@@ -40,6 +41,8 @@ def add_booking_ammendment_command(mock_repository, mock_logger):
 
 def test_add_booking_ammendment_success(add_booking_ammendment_command, mock_repository, mock_logger):
     result = add_booking_ammendment_command.Execute()
+
+    print(result)
 
     assert result["Status"] == "Success"
     mock_repository.AddBookingAmmendment.assert_called_once()
