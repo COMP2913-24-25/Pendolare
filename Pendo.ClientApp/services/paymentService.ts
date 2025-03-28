@@ -14,25 +14,34 @@ export interface StatusResponse {
   Error: string;
 }
 
-export interface StatusResponse {
+export interface SingularPaymentMethod {
+    Brand: string;
+    Funding: string;
+    Last4: string;
+    Exp_month: number;
+    Exp_year: number;
+    PaymentType: string;
+}
+export interface PaymentMethodResponse {
   Status: string;
-  Error: string;
+  Methods: Array<SingularPaymentMethod>
 }
 
 export interface PaymentSheetResponse {
-    Status: string,
-    PaymentIntent: string,
-    EphemeralKey: string,
-    CustomerId: string,
-    PublishableKey: string
+  Status: string,
+  PaymentIntent: string,
+  EphemeralKey: string,
+  CustomerId: string,
+  PublishableKey: string
 }
+
 /*
- * Get PaymentSheet
+ * Get PaymentMethods
  * Note: The UserId is automatically added by the Kong gateway
  */
-export async function ViewBalance(): Promise<BalanceSheet> {
+export async function PaymentMethods(): Promise<PaymentMethodResponse> {
   try {
-    const response = await apiRequest<BalanceSheet>(
+    const response = await apiRequest<PaymentMethodResponse>(
       PAYMENT_ENDPOINTS.VIEW_BALANCE,
       {
         method: "POST",
@@ -47,9 +56,7 @@ export async function ViewBalance(): Promise<BalanceSheet> {
     console.error("View Balance error:", error);
     return {
         Status: "fail",
-        Pending: -99,
-        NonPending: -99,
-        Weekly: []
+        Methods: []
     };
   }
 }
@@ -81,10 +88,10 @@ export async function PayoutRequest(): Promise<StatusResponse> {
 }
 
 /*
- * Post MethodsRequest
+ * Post ViewBalance
  * Note: The UserId is automatically added by the Kong gateway
  */
-export async function MethodsRequest(): Promise<StatusResponse> {
+export async function ViewBalance(): Promise<StatusResponse> {
   try {
     const response = await apiRequest<StatusResponse>(
       PAYMENT_ENDPOINTS.PAYMENT_METHODS,
