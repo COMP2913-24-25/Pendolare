@@ -46,7 +46,7 @@ const Profile = () => {
   function setPayoutModalVisibleFunc(state: boolean) {
     setTimeout(() => {
       setPayoutModalVisible(state);
-    }, 2000);
+    }, 0);
   }
 
   useFocusEffect(

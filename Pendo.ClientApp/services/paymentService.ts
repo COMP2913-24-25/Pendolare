@@ -6,6 +6,7 @@ export interface BalanceSheet {
   Status: string;
   Pending: number | 0.00;
   NonPending: number | 0.00;
+  Weekly: Array;
 }
 
 export interface StatusResponse {
@@ -42,7 +43,8 @@ export async function ViewBalance(): Promise<BalanceSheet> {
     return {
         Status: "fail",
         Pending: -99,
-        NonPending: -99
+        NonPending: -99,
+        Weekly: []
     };
   }
 }
@@ -55,6 +57,32 @@ export async function PayoutRequest(): Promise<StatusResponse> {
   try {
     const response = await apiRequest<StatusResponse>(
       PAYMENT_ENDPOINTS.CREATE_PAYOUT,
+      {
+        method: "POST",
+        body: JSON.stringify({}),
+      },
+      true
+    );
+
+    return response;
+
+  } catch (error) {
+    console.error("Payout error:", error);
+    return {
+        Status: "fail",
+        Error: String(error)
+    };
+  }
+}
+
+/*
+ * Post MethodsRequest
+ * Note: The UserId is automatically added by the Kong gateway
+ */
+export async function MethodsRequest(): Promise<StatusResponse> {
+  try {
+    const response = await apiRequest<StatusResponse>(
+      PAYMENT_ENDPOINTS.PAYMENT_METHODS,
       {
         method: "POST",
         body: JSON.stringify({}),
@@ -91,3 +119,4 @@ export const fetchPaymentSheetParams = async (amount: number) => {
             CustomerId
         }
 } 
+
