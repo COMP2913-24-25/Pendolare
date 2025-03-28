@@ -40,7 +40,7 @@ def mock_user_balance():
     return balance
 
 @pytest.fixture
-def create_payout_command(mock_logger, user_id, mock_sendgrid_config, mock_mail_sender):
+def create_payout_command(mock_logger, user_id, mock_sendgrid_config, mock_mail_sender, mock_user_balance):
     # Use patch to mock the dependencies
     with patch('src.endpoints.CreatePayoutCmd.PaymentRepository') as MockRepo, \
          patch('src.endpoints.CreatePayoutCmd.MailSender', return_value=mock_mail_sender):
@@ -60,6 +60,8 @@ def test_create_payout_success(create_payout_command):
     # Act
     result = create_payout_command.Execute()
     
+    print(result)
+
     # Assert
     assert result.Status == "success", f"Unexpected result: {result.__dict__}"
     
