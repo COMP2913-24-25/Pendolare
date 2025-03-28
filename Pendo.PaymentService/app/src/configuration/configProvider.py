@@ -3,7 +3,7 @@ from pathlib import Path
 from .config import DbConfiguration, SendGridConfiguration, StripeConfiguration
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from ..db.PendoDatabase import Configuration  # Ensure this import matches your project structure
+from ..db.PendoDatabase import Configuration
 
 class ConfigurationProvider:
     """
@@ -29,7 +29,7 @@ class ConfigurationProvider:
     def LoadEmailConfiguration(self, db_session: Session) -> SendGridConfiguration:
         """
         Load EmailConfiguration from the database and store it in the emailConfiguration member.
-        Assumes the configuration key is 'Booking.EmailConfiguration' and that the 'Value'
+        Assumes the configuration key is 'Payment.EmailConfiguration' and that the 'Value'
         is a JSON string.
         """
         config_row = db_session.query(Configuration).filter(Configuration.Key == "Payment.EmailConfiguration").first()
@@ -43,8 +43,8 @@ class ConfigurationProvider:
 
     def LoadStripeConfiguration(self, db_session: Session) -> StripeConfiguration:
         """
-        Load EmailConfiguration from the database and store it in the emailConfiguration member.
-        Assumes the configuration key is 'Booking.EmailConfiguration' and that the 'Value'
+        Load StripeConfiguration from the database and store it in the StripeConfiguration member.
+        Assumes the configuration key is 'Payment.StripeConfiguration' and that the 'Value'
         is a JSON string.
         """
         config_row = db_session.query(Configuration).filter(Configuration.Key == "Payment.StripeConfiguration").first()

@@ -1,3 +1,8 @@
+# 
+# PendoDatabase Models
+# Author: SQLACODEGEN_V2 module - generated from database schema
+#
+
 from typing import List, Optional
 
 from sqlalchemy import Boolean, CHAR, Column, DECIMAL, Float, ForeignKeyConstraint, Identity, Index, Integer, PrimaryKeyConstraint, Unicode, Uuid, text
