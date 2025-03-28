@@ -143,6 +143,12 @@ class PaymentRepository():
         
         self.db_session.commit()
 
+    def GetAdminUsers(self):
+        """
+        GetAminUsers returns a list of all admins registered on the dashboard
+        """
+        return self.db_session.query(User).filter(User.UserTypeId == 2).all()
+
     def UpdateBookingStatus(self, booking_id, status):
         """
         UpdateBookingStatus updates the status of a booking
@@ -152,3 +158,4 @@ class PaymentRepository():
         bookingToUpdate.UpdateDate = datetime.datetime.now()
         
         self.db_session.commit()
+
