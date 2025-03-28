@@ -8,7 +8,7 @@ class PendingBookingCommand:
     PendingBookingCommand class is responsible for creating a transaction record when a booking becomes pending.
     """
 
-    def __init__(self, logger, BookingId):
+    def __init__(self, logger, BookingId, LatestAmount):
         """
         Constructor for PendingBookingCommand class.
         :param BookingId
@@ -16,6 +16,7 @@ class PendingBookingCommand:
         self.PaymentRepository = PaymentRepository()
         self.logger = logger
         self.BookingId = BookingId
+        self.LatestAmount = LatestAmount
 
     def Execute(self):
         """
@@ -50,8 +51,8 @@ class PendingBookingCommand:
             # find driver and booker, calculate price and margin
             DriverSheet = self.PaymentRepository.GetUserBalance(Driver.UserId)
             BookerSheet = self.PaymentRepository.GetUserBalance(Booker.UserId)
-            Margin = round(pendingBooking.FeeMargin * pendingBooking.Journey_.AdvertisedPrice, 2)
-            Price = pendingBooking.Journey_.AdvertisedPrice - Margin
+            Margin = round(pendingBooking.FeeMargin * self.LatestAmount, 2)
+            Price = self.LatestAmount - Margin
 
             if DriverSheet is None:
                 self.logger.info("Driver has no balance sheet, creating")
@@ -68,7 +69,7 @@ class PendingBookingCommand:
             self.logger.info("Got both balance sheets")
 
             # ensure that booker has sufficient balance
-            if Booker.NonPending < pendingBooking.Journey_.AdvertisedPrice:
+            if Booker.NonPending < self.LatestAmount:
                 raise Exception("Not enough user balance to set journey to pending")
 
             # increase advertiser pending balance by Booking value (minus fee!)
