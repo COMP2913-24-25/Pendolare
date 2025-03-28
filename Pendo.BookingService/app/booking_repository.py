@@ -52,7 +52,7 @@ class BookingRepository():
             .all()
         
         for booking in bookings:
-            startTime, startName, startLong, startLat, endName, endLong, endLat, rideTime, price = (None,) * 9
+            startTime, startName, startLong, startLat, endName, endLong, endLat, rideTime, price, reccurance = (None,) * 10
 
             if booking.BookingAmmendment:
                 for amendment in sorted(booking.BookingAmmendment, key=lambda x: x.CreateDate):
@@ -65,13 +65,15 @@ class BookingRepository():
                     endLat = self.setIfNotNull(amendment.EndLat)
                     rideTime = self.setIfNotNull(amendment.StartTime)
                     price = self.setIfNotNull(amendment.ProposedPrice)
+                    reccurance = self.setIfNotNull(amendment.Recurrance)
 
             return_dto.append({
                 "Booking": {
                     "BookingId": booking.BookingId,
                     "User": booking.User_,
                     "FeeMargin": booking.FeeMargin,
-                    "RideTime": self.setDefaultIfNotNull(rideTime, booking.RideTime)
+                    "RideTime": self.setDefaultIfNotNull(rideTime, booking.RideTime),
+                    "BookedWindowEnd": booking.BookedWindowEnd,
                 },
                 "BookingStatus": {
                     "StatusId": booking.BookingStatusId,
@@ -90,7 +92,8 @@ class BookingRepository():
                     "EndLat": self.setDefaultIfNotNull(endLat, booking.Journey_.EndLat),
                     "Price": self.setDefaultIfNotNull(price, booking.Journey_.AdvertisedPrice),
                     "JourneyStatusId": booking.Journey_.JourneyStatusId,
-                    "JourneyType": booking.Journey_.JourneyType
+                    "JourneyType": booking.Journey_.JourneyType,
+                    "Recurrance": self.setDefaultIfNotNull(reccurance, booking.Journey_.Recurrance)
                 }
             })
 
@@ -111,7 +114,7 @@ class BookingRepository():
         """
         return self.db_session.query(User).get(user_id)
     
-    def GetJourney(self, journey_id):
+    def GetJourney(self, journey_id) -> Journey:
         """
         GetJourney method returns the journey for the specified journey id.
         :param journey_id: Id of the journey.
@@ -127,14 +130,14 @@ class BookingRepository():
         """
         return self.db_session.query(Booking).get(booking_id)
     
-    def GetExistingBooking(self, user_id, journey_id, ride_time):
+    def GetExistingBooking(self, user_id, journey_id):
         """
         GetExistingBooking method returns the existing booking for the specified user and journey.
         :param user_id: Id of the user.
         :param journey_id: Id of the journey.
         :return: Booking object.
         """
-        return self.db_session.query(Booking).filter(Booking.UserId == user_id, Booking.JourneyId == journey_id, Booking.RideTime == ride_time).first()
+        return self.db_session.query(Booking).filter(Booking.UserId == user_id, Booking.JourneyId == journey_id).first()
     
     def CreateBooking(self, booking):
         """
@@ -231,6 +234,14 @@ class BookingRepository():
         :param booking_ammendment: BookingAmmendment object to be updated.
         """
         booking_ammendment.UpdateDate = datetime.now()
+        self.db_session.commit()
+
+    def UpdateBooking(self, booking):
+        """
+        UpdateBooking method updates an existing booking in the database.
+        :param booking: Booking object to be updated.
+        """
+        booking.UpdateDate = datetime.now()
         self.db_session.commit()
 
     def CalculateDriverRating(self, driver_id):
