@@ -20,3 +20,7 @@ class RefundPaymentRequest(BaseModel):
     LatestPrice: float
     CancellationTime: datetime
     JourneyTime: datetime
+
+class CompletedBookingRequest(BaseModel):
+    BookingId: UUID
+    LatestPrice: float
