@@ -107,6 +107,8 @@ class ApproveBookingAmmendmentCommand:
 
             booking_id = booking["Booking"]["BookingId"]
             amount = booking["Journey"]["Price"] * num_journeys
+            # Note: The discount has already been applied to the journey price in the GetBookingsForUser method
+            
             journeyTime = booking["Journey"]["StartTime"]
             userId = self.request.UserId
 

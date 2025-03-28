@@ -6,22 +6,42 @@ export interface BalanceSheet {
   Status: string;
   Pending: number | 0.00;
   NonPending: number | 0.00;
+  Weekly: any[];
+}
+
+export interface StatusResponse {
+  Status: string;
+  Error: string;
+}
+
+export interface SingularPaymentMethod {
+    Brand: string;
+    Funding: string;
+    Last4: string;
+    Exp_month: number;
+    Exp_year: number;
+    PaymentType: string;
+}
+export interface PaymentMethodResponse {
+  Status: string;
+  Methods: Array<SingularPaymentMethod>
 }
 
 export interface PaymentSheetResponse {
-    Status: string,
-    PaymentIntent: string,
-    EphemeralKey: string,
-    CustomerId: string,
-    PublishableKey: string
+  Status: string,
+  PaymentIntent: string,
+  EphemeralKey: string,
+  CustomerId: string,
+  PublishableKey: string
 }
+
 /*
- * Get PaymentSheet
+ * Get PaymentMethods
  * Note: The UserId is automatically added by the Kong gateway
  */
-export async function ViewBalance(): Promise<BalanceSheet> {
+export async function PaymentMethods(): Promise<PaymentMethodResponse> {
   try {
-    const response = await apiRequest<BalanceSheet>(
+    const response = await apiRequest<PaymentMethodResponse>(
       PAYMENT_ENDPOINTS.VIEW_BALANCE,
       {
         method: "POST",
@@ -36,8 +56,59 @@ export async function ViewBalance(): Promise<BalanceSheet> {
     console.error("View Balance error:", error);
     return {
         Status: "fail",
-        Pending: -99,
-        NonPending: -99
+        Methods: []
+    };
+  }
+}
+
+/*
+ * Post PayoutRequest
+ * Note: The UserId is automatically added by the Kong gateway
+ */
+export async function PayoutRequest(): Promise<StatusResponse> {
+  try {
+    const response = await apiRequest<StatusResponse>(
+      PAYMENT_ENDPOINTS.CREATE_PAYOUT,
+      {
+        method: "POST",
+        body: JSON.stringify({}),
+      },
+      true
+    );
+
+    return response;
+
+  } catch (error) {
+    console.error("Payout error:", error);
+    return {
+        Status: "fail",
+        Error: String(error)
+    };
+  }
+}
+
+/*
+ * Post ViewBalance
+ * Note: The UserId is automatically added by the Kong gateway
+ */
+export async function ViewBalance(): Promise<StatusResponse> {
+  try {
+    const response = await apiRequest<StatusResponse>(
+      PAYMENT_ENDPOINTS.PAYMENT_METHODS,
+      {
+        method: "POST",
+        body: JSON.stringify({}),
+      },
+      true
+    );
+
+    return response;
+
+  } catch (error) {
+    console.error("Payout error:", error);
+    return {
+        Status: "fail",
+        Error: String(error)
     };
   }
 }
@@ -60,3 +131,4 @@ export const fetchPaymentSheetParams = async (amount: number) => {
             CustomerId
         }
 } 
+

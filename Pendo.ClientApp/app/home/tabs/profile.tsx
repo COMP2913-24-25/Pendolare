@@ -42,6 +42,13 @@ const Profile = () => {
   const [methodsModalVisible, setMethodsModalVisible] = useState(false);
   const [payoutModalVisible, setPayoutModalVisible] = useState(false);
 
+
+  function setPayoutModalVisibleFunc(state: boolean) {
+    setTimeout(() => {
+      setPayoutModalVisible(state);
+    }, 0);
+  }
+
   useFocusEffect(
     useCallback(() => {
       ViewBalance().then((result) => {
@@ -236,7 +243,7 @@ const Profile = () => {
           />
           <RequestPayoutModal
             visible={payoutModalVisible}
-            onClose={() => setPayoutModalVisible(false)}
+            onClose={() => setPayoutModalVisibleFunc(false)}
             amount={balanceSheet.NonPending.toFixed(2).toString()}
           />
       </ScrollView>
