@@ -272,6 +272,7 @@ const Home = () => {
 
       <Modal
         visible={showAllRides}
+        presentationStyle="pageSheet"
         animationType="slide"
         onRequestClose={() => setShowAllRides(false)}
       >
