@@ -487,6 +487,17 @@
             "type": "boolean",
             "title": "Passengerapproval",
             "default": false
+          },
+          "Recurrance": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recurrance"
           }
         },
         "type": "object",
@@ -511,6 +522,11 @@
           "PassengerApproval": {
             "type": "boolean",
             "title": "Passengerapproval",
+            "default": false
+          },
+          "CancellationRequest": {
+            "type": "boolean",
+            "title": "Cancellationrequest",
             "default": false
           }
         },
@@ -559,6 +575,11 @@
             "type": "string",
             "format": "uuid",
             "title": "Userid"
+          },
+          "JourneyTime": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Journeytime"
           }
         },
         "type": "object",
@@ -583,6 +604,18 @@
             "type": "string",
             "format": "date-time",
             "title": "Journeytime"
+          },
+          "EndCommuterWindow": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endcommuterwindow"
           }
         },
         "type": "object",
