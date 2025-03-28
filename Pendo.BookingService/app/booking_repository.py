@@ -47,6 +47,7 @@ class BookingRepository():
                 joinedload(Booking.BookingStatus_),
                 joinedload(Booking.User_),
                 joinedload(Booking.Journey_).joinedload(Journey.User_),
+                joinedload(Booking.Journey_).joinedload(Journey.Discounts_, innerjoin=False),
                 joinedload(Booking.BookingAmmendment, innerjoin=False),
                 with_loader_criteria(BookingAmmendment, (BookingAmmendment.DriverApproval & BookingAmmendment.PassengerApproval)))\
             .all()
@@ -66,6 +67,22 @@ class BookingRepository():
                     rideTime = self.setIfNotNull(amendment.StartTime)
                     price = self.setIfNotNull(amendment.ProposedPrice)
                     reccurance = self.setIfNotNull(amendment.Recurrance)
+
+            # Get the base price from journey or amendment
+            base_price = self.setDefaultIfNotNull(price, booking.Journey_.AdvertisedPrice)
+            discount_info = None
+            
+            # Apply discount for commuter journeys if available
+            if booking.Journey_.JourneyType == 2 and booking.Journey_.Discounts_ is not None:
+                discount = booking.Journey_.Discounts_
+                discount_info = {
+                    "DiscountID": discount.DiscountID,
+                    "WeeklyJourneys": discount.WeeklyJourneys,
+                    "DiscountPercentage": discount.DiscountPercentage,
+                    "OriginalPrice": float(base_price)
+                }
+                # Apply the discount
+                base_price = float(base_price) * (1 - discount.DiscountPercentage)
 
             return_dto.append({
                 "Booking": {
@@ -90,7 +107,8 @@ class BookingRepository():
                     "EndName": self.setDefaultIfNotNull(endName, booking.Journey_.EndName),
                     "EndLong": self.setDefaultIfNotNull(endLong, booking.Journey_.EndLong),
                     "EndLat": self.setDefaultIfNotNull(endLat, booking.Journey_.EndLat),
-                    "Price": self.setDefaultIfNotNull(price, booking.Journey_.AdvertisedPrice),
+                    "Price": base_price,
+                    "Discount": discount_info,
                     "JourneyStatusId": booking.Journey_.JourneyStatusId,
                     "JourneyType": booking.Journey_.JourneyType,
                     "Recurrance": self.setDefaultIfNotNull(reccurance, booking.Journey_.Recurrance)

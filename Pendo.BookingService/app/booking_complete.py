@@ -75,6 +75,8 @@ class BookingCompleteCommand:
                                                     9999))
 
                     amount = booking["Journey"]["Price"] * num_journeys
+                    
+                    # Note: The discount has already been applied to the journey price in the GetBookingsForUser method
 
                     self.logger.info(f"Sending completed booking request to payment service for booking {self.bookingId}")
                     if not self.payment_service_client.CompletedBookingRequest(self.bookingId, amount):
