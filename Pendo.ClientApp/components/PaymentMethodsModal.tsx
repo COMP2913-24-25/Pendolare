@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { View, Modal, TouchableOpacity, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 import { Text } from "@/components/common/ThemedText";
+import { PaymentMethodResponse, PaymentMethods } from "@/services/paymentService";
+import { useFocusEffect } from "expo-router";
 
 interface BlankModalProps {
   visible: boolean;
@@ -21,7 +23,25 @@ const PaymentMethodsModal = ({ visible, onClose }: BlankModalProps) => {
     
   const { isDarkMode } = useTheme();
 
-  const methods = PaymentMeth
+  const [methods, setPaymentMethods] = useState<PaymentMethodResponse>({
+    Status: "fail",
+    Methods: [{
+      Brand: "",
+      Funding: "",
+      Last4: "",
+      Exp_month: 0,
+      Exp_year: 0,
+      PaymentType: ""
+    }]
+  });
+
+  useFocusEffect(
+    useCallback(() => {
+      PaymentMethods().then((result) => {
+        setPaymentMethods(result);
+      });
+    }, [PaymentMethods, setPaymentMethods])
+  );
 
   return (
     <Modal
@@ -50,7 +70,7 @@ const PaymentMethodsModal = ({ visible, onClose }: BlankModalProps) => {
         <View
           className={`flex rounded-xl p-1 mb-4`}
         >
-          {methods.map((amount) => (
+          {/* {methods.map((amount) => (
           <TouchableOpacity
           key={amount}
           className={`flex-1 py-2 rounded-lg`}
@@ -68,6 +88,41 @@ const PaymentMethodsModal = ({ visible, onClose }: BlankModalProps) => {
             {"£" + amount}
           </Text>
         </TouchableOpacity>
+        ))} */}
+
+        {methods.Methods?.map((method, index) => (
+        <TouchableOpacity
+        key={index}
+        className={`flex-1 py-2 rounded-lg`}
+        style = {{borderColor: "#000", 
+                  borderWidth: 2, 
+                  minHeight: 100,
+                  margin: 5, 
+                  justifyContent: "center", 
+                  alignItems: "center", 
+                  backgroundColor: isDarkMode ? "#fff" : "#fff" }}
+        >
+          <View style={{ marginVertical: 10 }}>
+
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-around" }}>
+              <Text className="text-lg font-JakartaBold">
+                {method.Brand.toUpperCase()}
+              </Text>
+              <Text style={{ marginHorizontal: 20 }}>
+                {"Exp: " + method.Exp_month + "/" + method.Exp_year}
+              </Text>
+            </View>
+            
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-around", marginTop: 5 }}>
+
+              <Text className="text-sm font-Jakarta">{"••••" + method.Last4}</Text>
+              <Text style={{ marginHorizontal: 20 }}>
+                {method.Funding.charAt(0).toUpperCase() + method.Funding.slice(1) + " Card"}
+              </Text>
+            </View>
+          </View>
+
+          </TouchableOpacity>
         ))}
         </View>
 
