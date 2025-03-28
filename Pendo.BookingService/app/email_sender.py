@@ -1,5 +1,6 @@
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+from .cron_checker import toHumanReadable
 
 class MailSender:
     """
@@ -67,7 +68,7 @@ class MailSender:
         return response
     
 def generateEmailDataFromAmmendment(ammendment, driver, journey, vehicle):
-    return {
+    dict = {
         "booking_id": f"{ammendment.BookingId}",
         "driver_name": driver.FirstName if driver.FirstName is not None else "(Name not set)",
         "pickup_location": ammendment.StartName if ammendment.StartName is not None else journey.StartName,
@@ -76,9 +77,13 @@ def generateEmailDataFromAmmendment(ammendment, driver, journey, vehicle):
         "dropoff_location": ammendment.EndName if ammendment.EndName is not None else journey.EndName,
         "vehicle_info": vehicle
     }
+    if journey.JourneyType == 2:
+        dict["recurrance"] = toHumanReadable(journey.Recurrance)
+
+    return dict
 
 def generateEmailDataFromBooking(booking, driver, journey, vehicle):
-    return {
+    dict = {
         "booking_id": f"{booking.BookingId}",
         "driver_name": driver.FirstName if driver.FirstName is not None else "(Name not set)",
         "pickup_location": journey.StartName,
@@ -87,3 +92,8 @@ def generateEmailDataFromBooking(booking, driver, journey, vehicle):
         "dropoff_location": journey.EndName,
         "vehicle_info": vehicle
     }
+
+    if journey.JourneyType == 2:
+        dict["recurrance"] = toHumanReadable(journey.Recurrance)
+
+    return dict

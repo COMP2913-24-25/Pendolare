@@ -38,6 +38,7 @@ class CreateBookingRequest(BaseModel):
     UserId: UUID
     JourneyId: UUID
     JourneyTime: datetime
+    EndCommuterWindow: Optional[datetime] = None # Only required for commuter journeys - the end of the window for the current booking period
 
 class CompleteBookingRequest(BaseModel):
     UserId: UUID
