@@ -22,7 +22,7 @@ import RequestPayoutModal from "@/components/RequestPayoutModal"
 
 const Profile = () => {
 
-  //Refresh in the background when we load in
+  //Refresh in the background when the user is on this screen
   apiGetUser();
 
   const { isDarkMode } = useTheme();

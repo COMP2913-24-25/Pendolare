@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { View, TextInput, TouchableOpacity } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
@@ -11,13 +11,13 @@ interface ChatInputProps {
   isConnected: boolean;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({
+const ChatInput = ({
   message,
   onChangeMessage,
   onSendMessage,
   onShowAmendmentModal,
   isConnected
-}) => {
+}: ChatInputProps) => {
   const { isDarkMode } = useTheme();
   const inputRef = useRef<TextInput>(null);
 

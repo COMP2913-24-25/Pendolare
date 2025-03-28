@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, ScrollView } from "react-native";
+import { View, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { Text } from "@/components/common/ThemedText";
 import { useTheme } from "@/context/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -7,10 +7,12 @@ import { useFocusEffect } from "expo-router";
 
 import UpcomingRide from "@/components/RideView/UpcomingRide";
 import DriverRideCard from "@/components/RideView/DriverRideCard";
+import RevenueChart from "@/components/Dashboard/RevenueChart";
 
 import { getBookings } from "@/services/bookingService";
 import { getJourneys, JourneyDetails } from "@/services/journeyService";
 import { convertRideToBookingDetails, Ride } from "@/utils/bookingUtils";
+import { useBalanceData } from "@/hooks/useBalanceData";
 
 /*
   MyListings
@@ -22,6 +24,7 @@ const MyListings = () => {
   const [bookedJourneys, setBookedJourneys] = useState<any[]>([]);
   const [advertisedJourneys, setAdvertisedJourneys] = useState<any[]>([]);
   const [pastJourneys, setPastJourneys] = useState<any[]>([]);
+  const { weeklyRevenue, isLoading: isLoadingBalance, refresh: refreshBalance } = useBalanceData();
 
   const fetchBookings = async () => {
     try {
@@ -129,16 +132,26 @@ const MyListings = () => {
     fetchBookings();
   }, []);
 
+  // Add function to refresh all data
+  const refreshAllData = useCallback(() => {
+    fetchBookings();
+    fetchJourneys();
+    refreshBalance();
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       console.log("My Listings tab focused - refreshing data");
-      fetchBookings();
-      fetchJourneys();
+      refreshAllData();
       return () => {
         // Cleanup if needed
       };
-    }, [])
+    }, [refreshAllData])
   );
+
+  // Determine if the revenue chart should be shown
+  const shouldShowRevenueChart = 
+    advertisedJourneys.length > 0 || bookedJourneys.length > 0 || pastJourneys.length > 0;
 
   return (
     <SafeAreaView
@@ -153,9 +166,28 @@ const MyListings = () => {
           My Listings
         </Text>
 
+        {/* Revenue Chart Section - shown when there are journeys */}
+        {shouldShowRevenueChart && (
+          <>
+            {isLoadingBalance ? (
+              <View className={`p-4 rounded-lg ${isDarkMode ? 'bg-slate-800' : 'bg-white'} shadow mb-5 items-center justify-center`}>
+                <ActivityIndicator size="small" color="#2563EB" />
+                <Text className={`mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Loading revenue data...
+                </Text>
+              </View>
+            ) : (
+              <RevenueChart 
+                weeklyData={weeklyRevenue} 
+                title="Your Driving Revenue" 
+              />
+            )}
+          </>
+        )}
+
         {/* Tabs */}
         <View
-          className={`flex-row rounded-xl p-1 ${
+          className={`flex-row rounded-xl p-1 mb-4 ${
             isDarkMode ? "bg-slate-800" : "bg-gray-100"
           }`}
         >

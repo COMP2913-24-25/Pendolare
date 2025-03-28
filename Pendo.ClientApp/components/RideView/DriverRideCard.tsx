@@ -21,13 +21,6 @@ const DriverRideCard = ({ booking, journeyView = false, approveBookingCallback, 
   const { isDarkMode } = useTheme();
   const [showDetails, setShowDetails] = useState(false);
   
-  // Log what we're receiving
-  console.log("DriverRideCard received:", { 
-    hasBooking: !!booking,
-    journeyView,
-    isCommuter
-  });
-  
   // Extract needed data from the booking
   const { Journey: journey, Booking: rideDetails, BookingStatus: status } = booking;
   

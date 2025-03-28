@@ -23,7 +23,7 @@ const UpcomingRideCard = ({ booking, onPress }: UpcomingRideCardProps) => {
   // Log the booking data to see its structure
   console.log("UpcomingRideCard received booking:", booking);
   
-  // Super minimal validation - just check if we have something to show
+  // Check if booking is valid and has the required properties
   const isValidBooking = !!booking && 
                        typeof booking === 'object' &&
                        (!!booking.Journey || !!booking.Booking);

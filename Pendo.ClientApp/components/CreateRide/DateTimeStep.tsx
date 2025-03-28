@@ -68,7 +68,7 @@ const DateTimeStep = (props: DateTimeStepProps) => {
     setSelectedDiscount
   } = props;
 
-  // Local state to track what we're currently editing
+  // Local state to track what picker is currently open
   const [pickerMode, setPickerMode] = useState<"date" | "time" | "datetime">("datetime");
   const [currentPicker, setCurrentPicker] = useState<"regular" | "start" | "end" | "time">("regular");
   

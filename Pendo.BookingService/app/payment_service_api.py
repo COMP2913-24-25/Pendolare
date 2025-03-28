@@ -76,7 +76,6 @@ class PaymentServiceClient:
             self.logger.error(msg)
             return False
         
-        # This should be an error code really but we'll just check for the string for now.
         if response["Error"] == "Not enough user balance to set journey to pending":
             self.logger.warn("User balance insufficient to create pending booking")
             return False

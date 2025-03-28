@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Text } from '@/components/common/ThemedText';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -13,12 +12,12 @@ interface ChatHeaderProps {
   isConnected: boolean;
 }
 
-const ChatHeader: React.FC<ChatHeaderProps> = ({ 
+const ChatHeader = ({ 
   title, 
   chatType, 
   isConnecting, 
   isConnected 
-}) => {
+}: ChatHeaderProps) => {
   const { isDarkMode } = useTheme();
 
   return (

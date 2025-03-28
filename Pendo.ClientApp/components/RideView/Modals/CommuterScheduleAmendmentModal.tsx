@@ -179,7 +179,7 @@ const CommuterScheduleAmendmentModal: React.FC<CommuterScheduleAmendmentModalPro
   
   // Generate the new cron expression based on form values
   const generateCronExpression = () => {
-    // Ensure we have at least one day selected for weekly frequency
+    // Ensure at least one day is selected for weekly frequency
     const daysList = Object.keys(selectedDays).filter(key => selectedDays[key]);
     
     if (frequency === 'weekly' && daysList.length === 0) {
@@ -213,7 +213,7 @@ const CommuterScheduleAmendmentModal: React.FC<CommuterScheduleAmendmentModalPro
       const amendmentRequest: AddBookingAmmendmentRequest = {
         BookingId: rideDetails.BookingId,
         CancellationRequest: false,
-        // Standard fields set to null as we're only changing the schedule
+        // Standard fields set to null as they are not needed for schedule amendments
         ProposedPrice: null,
         StartName: null,
         StartLat: null,
@@ -264,7 +264,7 @@ const CommuterScheduleAmendmentModal: React.FC<CommuterScheduleAmendmentModalPro
           requesterApproved: true
         };
         
-        // Send message to chat if we have a connection
+        // Send message to chat if there is a connection
         if (messageService && messageService.sendMessage) {
           messageService.sendMessage(JSON.stringify(amendmentMessage));
         }

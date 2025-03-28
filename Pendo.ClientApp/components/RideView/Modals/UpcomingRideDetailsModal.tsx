@@ -98,7 +98,7 @@ const UpcomingRideDetailsModal = ({
     }
   }
 
-  // Only run these if we have minimal data to avoid errors
+  // Check if booking is a past ride 
   let rideTime = new Date();
   let pickup = null;
   let dropoff = null;
@@ -149,7 +149,7 @@ const UpcomingRideDetailsModal = ({
   // Function to handle contacting the driver or passenger
   const handleContactPerson = async () => {
     if (!booking || !booking.Journey?.User?.UserId) {
-      // Call the original callback if we can't find the right info
+      // Call the original callback if booking is not valid
       onContactDriver();
       return;
     }

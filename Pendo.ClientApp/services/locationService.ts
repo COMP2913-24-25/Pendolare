@@ -47,7 +47,8 @@ export const getRoute = async (
         })
       );
       
-      // Early return if we didn't get any valid coordinates
+      // Early return if no coordinates are found
+      // This is a safeguard, as the above checks should ensure coordinates exist
       if (!coordinates || coordinates.length === 0) {
         console.warn("No valid coordinates returned from routing service");
         return [];
@@ -85,7 +86,6 @@ export const getRoute = async (
         { latitude: dropoff.latitude, longitude: dropoff.longitude },
       ];
       
-      // Note: We might want to indicate to the user this is a straight line, not a road route
       console.log("Using straight line route as fallback");
       
       // Call progress callback if provided
