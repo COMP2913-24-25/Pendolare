@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Create Discount</title>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <h2>Create New Discount</h2>
+    <form method="POST" action="{{ url_for('create_discount') }}">
+        <div class="mb-3">
+            <label for="weeklyJourneys" class="form-label">Weekly Journeys</label>
+            <input type="number" class="form-control" id="weeklyJourneys" name="weekly_journeys" required>
+        </div>
+        <div class="mb-3">
+            <label for="discountPercentage" class="form-label">Discount Percentage</label>
+            <input type="number" class="form-control" id="discountPercentage" name="discount_percentage" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Create Discount</button>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary ms-2">Cancel</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking Confirmation :tada:</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #F4F4F4;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #FFFFFF;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    .logo {
+      font-size: 32px;
+      font-weight: bold;
+      color: #2D89FF;
+      margin-bottom: 20px;
+    }
+    .location-banner {
+      background: #E8F9E1; /* Green touch for confirmation */
+      color: #333;
+      padding: 15px 20px;
+      border-radius: 8px;
+      text-align: left;
+      margin-bottom: 20px;
+    }
+    .location-header {
+      font-size: 100%;
+      font-weight: bold;
+      margin-bottom: 10px;
+      background: #4CAF50; /* Green header */
+      padding: 8px;
+      text-align: center;
+      color: white;
+      border-radius: 10px;
+    }
+    .location-details {
+      font-size: 16px;
+      color: #333;
+      margin: 4px 0;
+      line-height: 1.4;
+    }
+    .booking-title {
+      font-size: 28px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 10px;
+    }
+    .booking-id {
+      font-size: 12px;
+      font-weight: lighter;
+      color: #555;
+      margin-bottom: 10px;
+    }
+    .message {
+      font-size: 16px;
+      color: #555;
+      margin-bottom: 20px;
+    }
+    .footer {
+      margin-top: 20px;
+      font-size: 12px;
+      color: #777;
+    }
+    .emoji {
+      font-size: 22px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">Pendolare :car:</div>
+    <div class="booking-title">Payout Request Submitted</div>
+    <div class="location-banner">
+      <div class="location-header">Your request to pay out your balance has been submitted</div>
+      <p class="driverdeets"><strong>User:</strong> {{driver_name}}</p>
+      <p class="amount"><strong>Your payout amount:</strong> £{{non_pending}}</p>
+      <p>A member of our team will review the request and transfer funds accordingly. Please expect payment in approximetly 3-5 working days.</p>
+    </div>
+    <p class="message"><span class="emoji">:white_tick:</span> Your payout request is submitted! Thank you for choosing Pendolare. Have a safe and enjoyable trip! <span class="emoji">:tada:</span></p>
+    <div class="footer">If you have any questions, feel free to contact us. <span class="emoji">:telephone_receiver:</span></div>
+  </div>
+</body>
+</html>
