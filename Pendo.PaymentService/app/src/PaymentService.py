@@ -23,7 +23,7 @@ from .db.PendoDatabase import UserBalance
 from .db.PendoDatabaseProvider import get_db, Session, text, environment, configProvider
 
 # requests and returns
-from .requests.PaymentRequests import GetwithUUID, MakePendingBooking, PaymentSheetRequest, RefundPaymentRequest
+from .requests.PaymentRequests import GetwithUUID, MakePendingBooking, PaymentSheetRequest, RefundPaymentRequest, CompletedBookingRequest
 from .returns.PaymentReturns import ViewBalanceResponse, StatusResponse, PaymentMethodResponse, PaymentSheetResponse
 
 
@@ -120,20 +120,15 @@ def PendingBooking(request: MakePendingBooking, db: Session = Depends(get_db)) -
         return response
 
 @app.post("/CompletedBooking", tags=["On booking confirmation"])
-def CompletedBooking(request: MakePendingBooking, db: Session = Depends(get_db)) -> StatusResponse:
+def CompletedBooking(request: CompletedBookingRequest, db: Session = Depends(get_db)) -> StatusResponse:
     """
     Used when a booking status changes to complete, takes payment from user's saved card details and non-pending balance
     """
-    # TODO: Complete Confirm endpoint - Catherine
-    # See src/endpoints/CompletedBookingCmd
-
-    response = CompletedBookingCommand(logging.getLogger("CompleteBooking"), request.BookingId).Execute()
+    response = CompletedBookingCommand(logging.getLogger("CompleteBooking"), request.BookingId, request.LatestPrice).Execute()
     if response.Status != "success":
         raise HTTPException(400, detail=response.Error)
     else:
         return response
-
-    return StatusResponse(Status="success")
 
 @app.post("/ViewBalance", tags=["Anytime"])
 def ViewBalance(request: GetwithUUID, db: Session = Depends(get_db)) -> ViewBalanceResponse:
