@@ -55,7 +55,10 @@ const FilteredRides = ({ resetFilters, setResetFilters, isDarkMode, journeyType 
 
   const getRides = async () => {
     
-    let filters : GetJourneysRequest = { DriverView: false, StartDate: new Date().toISOString() };
+    let filters : GetJourneysRequest = { 
+      DriverView: false, 
+      StartDate: new Date().toISOString(),
+    };
 
     if (pickupLocation.length > 0) {
       filters.DistanceRadius = pickupRadius;
@@ -82,11 +85,15 @@ const FilteredRides = ({ resetFilters, setResetFilters, isDarkMode, journeyType 
         setPickupLocation("");
       }
 
-      filters.JourneyType = journeyType;
+      if (journeyType > 0) {
+        filters.JourneyType = journeyType;
+      }
 
+      console.log("Fetching journeys with filters:", filters);
+      
       const response = await getJourneys(filters);
       if (response.success) {
-        console.log("Found available rides");
+        console.log(`Found ${response.journeys.length} available rides`);
         setFilteredRides(response.journeys);
       }
     } catch (error) {

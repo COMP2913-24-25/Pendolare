@@ -54,7 +54,11 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
     const price = ride.price || ride.AdvertisedPrice;
     
     if (!hasDiscount) {
-      return typeof price === 'number' ? `£${price.toFixed(2)}` : price;
+      return (
+        <Text className="font-JakartaBold text-2xl text-blue-600">
+          {typeof price === 'number' ? `£${price.toFixed(2)}` : price}
+        </Text>
+      );
     }
     
     // If there's a discount, calculate and display original and discounted price

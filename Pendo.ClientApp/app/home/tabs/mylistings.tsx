@@ -79,6 +79,7 @@ const MyListings = () => {
   };
 
   const fetchJourneys = async () => {
+    // Don't specify JourneyType to get both normal and commuter journeys
     const response = await getJourneys({
       StartDate: new Date().toISOString(),
       DriverView: true,
@@ -86,6 +87,12 @@ const MyListings = () => {
 
     console.log(`Fetched ${response.journeys.length} journeys`);
     console.log(response.journeys);
+
+    // Split journeys into regular and commuter types for better organization
+    const regularJourneys = response.journeys.filter(j => j.JourneyType === 1);
+    const commuterJourneys = response.journeys.filter(j => j.JourneyType === 2);
+    
+    console.log(`Regular journeys: ${regularJourneys.length}, Commuter journeys: ${commuterJourneys.length}`);
 
     const journeys: Ride[] = response.journeys.map((journey: JourneyDetails) => ({
       BookingId: "N/A",
@@ -106,6 +113,12 @@ const MyListings = () => {
         longitude: journey.EndLong,
         name: journey.EndName,
       },
+      // Add recurrence information to properly display commuter journeys
+      RecurrenceInfo: journey.JourneyType === 2 ? {
+        recurrence: journey.Recurrance,
+        repeatUntil: new Date(journey.RepeatUntil)
+      } : undefined,
+      JourneyType: journey.JourneyType,
     }));
 
     setAdvertisedJourneys(journeys.sort((a, b) => a.RideTime.getTime() - b.RideTime.getTime()));
@@ -239,6 +252,7 @@ const MyListings = () => {
                   <DriverRideCard 
                     booking={convertRideToBookingDetails(journey)} 
                     journeyView={true} 
+                    isCommuter={journey.JourneyType === 2}
                   />
                 </View>
               ))
