@@ -27,7 +27,7 @@ class CreatePayoutCommand:
         """
 
         try:
-            
+
             mailer = MailSender(self.sendGridConfig)
 
             # get user and balance sheet
@@ -75,19 +75,3 @@ class CreatePayoutCommand:
         except Exception as e:
             self.logger.error(f"Error in Payout Balance. Error: {str(e)}")
             return StatusResponse(Status="fail", Error=str(e))
-        
-
-
-
-
-
-
-
-
-
-
-
-
-   
-   
-   
