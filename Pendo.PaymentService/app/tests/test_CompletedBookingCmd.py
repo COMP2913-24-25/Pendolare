@@ -16,6 +16,10 @@ def booking_id():
     return 1
 
 @pytest.fixture
+def latest_price():
+    return 100
+
+@pytest.fixture
 def mock_booking():
     booking = MagicMock()
     booking.BookingId = 1
@@ -58,10 +62,9 @@ def mock_passenger_balance():
     return balance
 
 @pytest.fixture
-def completed_booking_command(mock_logger, booking_id):
-    command = CompletedBookingCommand(mock_logger, booking_id)
+def completed_booking_command(mock_logger, booking_id, latest_price):
+    command = CompletedBookingCommand(mock_logger, booking_id, latest_price)
     command.PaymentRepository = MagicMock(spec=PaymentRepository)
-    command.LatestPrice = 100.0
     command.booking_id = booking_id
     return command
 
