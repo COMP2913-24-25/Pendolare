@@ -5,6 +5,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { formatTimestamp } from '@/utils/formatTime';
 import { AddBookingAmmendmentRequest } from '@/services/bookingService';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { toHumanReadable } from '@/utils/cronTools';
 
 interface AmendmentRequestBubbleProps {
   amendment: AddBookingAmmendmentRequest;
@@ -40,6 +41,16 @@ const AmendmentRequestBubble: React.FC<AmendmentRequestBubbleProps> = ({
     
     if (amendment.CancellationRequest) {
       details.push('Booking cancellation requested');
+    } else if (amendment.ScheduleAmendment) {
+      // Handle schedule amendments
+      if (amendment.RecurrenceCron) {
+        details.push(`New schedule: ${toHumanReadable(amendment.RecurrenceCron)}`);
+      }
+      
+      if (amendment.RepeatUntil) {
+        const date = new Date(amendment.RepeatUntil);
+        details.push(`Repeat until: ${date.toLocaleDateString()}`);
+      }
     } else {
       if (amendment.ProposedPrice) {
         details.push(`New price: £${amendment.ProposedPrice.toFixed(2)}`);
@@ -74,7 +85,11 @@ const AmendmentRequestBubble: React.FC<AmendmentRequestBubbleProps> = ({
       >
         <View className="mb-2 flex-row justify-between items-center">
           <Text className={`font-JakartaBold ${isDarkMode ? 'text-white' : 'text-indigo-800'}`}>
-            {amendment.CancellationRequest ? 'Booking Cancellation Request' : 'Booking Amendment Request'}
+            {amendment.CancellationRequest 
+              ? 'Booking Cancellation Request' 
+              : amendment.ScheduleAmendment
+                ? 'Schedule Amendment Request'
+                : 'Booking Amendment Request'}
           </Text>
           <View className={`px-2 py-1 rounded-full ${
             amendment.DriverApproval ? 'bg-blue-600' : 'bg-green-600'

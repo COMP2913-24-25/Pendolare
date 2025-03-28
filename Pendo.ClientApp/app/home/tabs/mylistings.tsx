@@ -6,11 +6,11 @@ import { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from "expo-router";
 
 import UpcomingRide from "@/components/RideView/UpcomingRide";
-import { Ride } from "@/constants";
 import DriverRideCard from "@/components/RideView/DriverRideCard";
 
 import { getBookings } from "@/services/bookingService";
 import { getJourneys, JourneyDetails } from "@/services/journeyService";
+import { convertRideToBookingDetails, Ride } from "@/utils/bookingUtils";
 
 /*
   MyListings
@@ -25,57 +25,69 @@ const MyListings = () => {
 
   const fetchBookings = async () => {
     try {
+      console.log("Fetching bookings with driverView=true");
       const response = await getBookings(true);
-      
-      // Process the response to transform the bookings into Ride objects
-      const allRides: Ride[] = response.bookings.map((booking: any) => ({
-        BookingId: booking.Booking.BookingId,
-        JourneyId: booking.Journey.JourneyId,
-        RideTime: new Date(booking.Booking.RideTime),
-        Status: booking.BookingStatus.Status,
-        DriverName: booking.Journey.User.FirstName,
-        PassengerId: booking.Booking.User.UserId,
-        PassengerName: booking.Booking.User.FirstName,
-        DriverId: booking.Journey.User.UserId,
-        Price: booking.Journey.Price,
-        Pickup: {
-          latitude: booking.Journey.StartLat,
-          longitude: booking.Journey.StartLong,
-          name: booking.Journey.StartName
-        },
-        Dropoff: {
-          latitude: booking.Journey.EndLat,
-          longitude: booking.Journey.EndLong,
-          name: booking.Journey.EndName
-        }
-      }));
 
-      const cancelled = allRides.filter(ride => ride.Status === "Cancelled");
-      const upcoming = allRides.filter(ride => ride.RideTime.getTime() > Date.now() && !cancelled.includes(ride))
-        .sort((a, b) => a.RideTime.getTime() - b.RideTime.getTime());
+      console.log(
+        `Raw bookings response, found ${response.bookings?.length || 0} bookings:`,
+        response.bookings?.length > 0 ? "Data exists" : "No data"
+      );
 
-      const past = allRides
-        .filter(ride => ride.RideTime.getTime() <= Date.now())
-        .concat(cancelled)
-        .sort((a, b) => b.RideTime.getTime() - a.RideTime.getTime());
+      if (!response.success || !response.bookings || response.bookings.length === 0) {
+        console.log("No bookings found or API request was unsuccessful");
+        setBookedJourneys([]);
+        setPastJourneys([]);
+        return;
+      }
 
-      //  Update state with the retrieved rides
+      const bookings = response.bookings || [];
+
+      const upcoming = bookings.filter((booking) => {
+        const rideTime = booking.Booking?.RideTime
+          ? typeof booking.Booking.RideTime === "string"
+            ? new Date(booking.Booking.RideTime)
+            : booking.Booking.RideTime
+          : new Date();
+
+        const isPending = booking.BookingStatus?.Status === "Pending";
+        const isConfirmed = booking.BookingStatus?.Status === "Confirmed";
+        const isFuture = rideTime > new Date();
+        return (isPending || isConfirmed) && isFuture;
+      });
+
+      const past = bookings.filter((booking) => {
+        const rideTime = booking.Booking?.RideTime
+          ? typeof booking.Booking.RideTime === "string"
+            ? new Date(booking.Booking.RideTime)
+            : booking.Booking.RideTime
+          : new Date();
+
+        const isCancelled = booking.BookingStatus?.Status === "Cancelled";
+        const isPast = rideTime <= new Date();
+        return isCancelled || isPast;
+      });
+
+      console.log(`Filtered: ${upcoming.length} upcoming, ${past.length} past bookings`);
+
       setBookedJourneys(upcoming);
       setPastJourneys(past);
     } catch (error) {
-      console.error('Error fetching bookings:', error);
+      console.error("Error fetching bookings:", error);
+      setBookedJourneys([]);
+      setPastJourneys([]);
     }
   };
 
   const fetchJourneys = async () => {
-    const response = await getJourneys({ 
-      StartDate: new Date().toISOString(), 
-      DriverView: true});
+    const response = await getJourneys({
+      StartDate: new Date().toISOString(),
+      DriverView: true,
+    });
 
     console.log(`Fetched ${response.journeys.length} journeys`);
     console.log(response.journeys);
 
-    const journeys : Ride[] = response.journeys.map((journey: JourneyDetails) => ({
+    const journeys: Ride[] = response.journeys.map((journey: JourneyDetails) => ({
       BookingId: "N/A",
       Status: "Advertised",
       PassengerName: "N/A",
@@ -87,13 +99,13 @@ const MyListings = () => {
       Pickup: {
         latitude: journey.StartLat,
         longitude: journey.StartLong,
-        name: journey.StartName
+        name: journey.StartName,
       },
       Dropoff: {
         latitude: journey.EndLat,
         longitude: journey.EndLong,
-        name: journey.EndName
-      }
+        name: journey.EndName,
+      },
     }));
 
     setAdvertisedJourneys(journeys.sort((a, b) => a.RideTime.getTime() - b.RideTime.getTime()));
@@ -104,7 +116,6 @@ const MyListings = () => {
     fetchBookings();
   }, []);
 
-  // Add focus effect to refresh data when tab becomes active
   useFocusEffect(
     useCallback(() => {
       console.log("My Listings tab focused - refreshing data");
@@ -207,11 +218,12 @@ const MyListings = () => {
         <View className="mb-20">
           {currentTab === "Booked" &&
             (bookedJourneys.length > 0 ? (
-              bookedJourneys.map((journey, index) => (
+              bookedJourneys.map((booking, index) => (
                 <View key={index}>
-                  <DriverRideCard ride={journey} approveBookingCallback={() => {
-                    fetchBookings();
-                  }} />
+                  <DriverRideCard
+                    booking={booking}
+                    approveBookingCallback={() => fetchBookings()}
+                  />
                 </View>
               ))
             ) : (
@@ -224,7 +236,10 @@ const MyListings = () => {
             (advertisedJourneys.length > 0 ? (
               advertisedJourneys.map((journey, index) => (
                 <View key={index}>
-                  <DriverRideCard ride={journey} journeyView={true} />
+                  <DriverRideCard 
+                    booking={convertRideToBookingDetails(journey)} 
+                    journeyView={true} 
+                  />
                 </View>
               ))
             ) : (
@@ -239,7 +254,10 @@ const MyListings = () => {
             (pastJourneys.length > 0 ? (
               pastJourneys.map((journey, index) => (
                 <View key={index}>
-                  <DriverRideCard ride={journey} journeyView={true} />
+                  <DriverRideCard 
+                    booking={convertRideToBookingDetails(journey)} 
+                    journeyView={true} 
+                  />
                 </View>
               ))
             ) : (

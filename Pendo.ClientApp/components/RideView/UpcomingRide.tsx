@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import { useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { View } from "react-native";
+import { View, ActivityIndicator } from "react-native";
 
 import CancellationReasonModal from "./Modals/CancellationReasonModal";
 import LateCancellationModal from "./Modals/LateCancellationModal";
@@ -9,19 +9,23 @@ import RatingModal from "./Modals/RatingModal";
 import RideCompletionModal from "./Modals/RideCompletionModal";
 import UpcomingRideDetailsModal from "./Modals/UpcomingRideDetailsModal";
 import UpcomingRideCard from "./UpcomingRideCard";
-import { Ride } from "@/constants";
+import { BookingDetails, User } from "@/services/bookingService";
 import { cancelBooking } from "@/services/bookingService";
 import { createConversation } from "@/services/messageService";
+import { Text } from "@/components/common/ThemedText";
+import { useTheme } from "@/context/ThemeContext";
 
 interface UpcomingRideProps {
-  ride : Ride;
+  booking?: BookingDetails;
+  onPress?: () => void;
 }
 
 /*
     UpcomingRide
     Component for an upcoming ride in ride view
 */
-const UpcomingRide = ({ ride }: UpcomingRideProps) => {
+const UpcomingRide = ({ booking, onPress }: UpcomingRideProps) => {
+  const { isDarkMode } = useTheme();
   const [showDetails, setShowDetails] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showLateCancelWarning, setShowLateCancelWarning] = useState(false);
@@ -30,20 +34,71 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const insets = useSafeAreaInsets();
 
-  // Check if the ride is within 15 minutes of departure
+  // Add debug log to see the exact data we're working with
+  console.log("UpcomingRide received booking:", booking);
+
+  // Absolute minimum validation
+  const isValidBooking = !!booking;
+
+  // Handle missing data gracefully
+  if (!isValidBooking) {
+    console.log("No booking data available");
+    return (
+      <View style={{ paddingTop: insets.top > 0 ? insets.top : 20 }}>
+        <View
+          className={`p-4 rounded-lg shadow-sm ${
+            isDarkMode ? "bg-slate-800" : "bg-white"
+          } items-center`}
+        >
+          <ActivityIndicator size="small" color="#2563EB" className="mb-2" />
+          <Text className="text-gray-500">Loading ride details...</Text>
+        </View>
+      </View>
+    );
+  }
+
+  // Extract driver information safely
+  let driverId = "";
+  let driverName = "Driver";
+
+  if (booking.Journey.User) {
+    if (typeof booking.Journey.User === "object") {
+      if ("UserId" in booking.Journey.User) {
+        driverId = booking.Journey.User.UserId;
+      }
+      if ("Name" in booking.Journey.User) {
+        driverName = booking.Journey.User.Name ?? "Driver";
+      }
+    }
+  }
+
+  // Get RideTime safely
+  let rideTime: Date;
+  try {
+    if (typeof booking.Booking.RideTime === "string") {
+      rideTime = new Date(booking.Booking.RideTime);
+    } else if (booking.Booking.RideTime instanceof Date) {
+      rideTime = booking.Booking.RideTime;
+    } else {
+      rideTime = new Date();
+    }
+  } catch (e) {
+    rideTime = new Date();
+  }
+
   const isLastMinuteCancellation = () => {
     const now = Date.now();
     const fifteenMinutes = 15 * 60 * 1000;
-    return ride.RideTime.getTime() - now <= fifteenMinutes;
+    return rideTime.getTime() - now <= fifteenMinutes;
   };
 
   const isPastRide = () => {
-    return Date.now() > ride.RideTime.getTime();
+    return Date.now() > rideTime.getTime();
   };
 
   const handleCancelAttempt = () => {
     console.log("Handling cancellation.");
-    
+
     if (isLastMinuteCancellation()) {
       setShowLateCancelWarning(true);
     } else {
@@ -53,7 +108,7 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
 
   const handleCancel = async (reason: string) => {
     try {
-      await cancelBooking(ride.BookingId, reason);
+      await cancelBooking(booking.Booking.BookingId, reason);
 
       setShowCancelModal(false);
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -61,7 +116,9 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
       setShowDetails(false);
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      router.push(`/home/chat/${ride.DriverId}?name=${ride.DriverName}&initialMessage=Ride cancelled for reason: ${reason}.`);
+      router.push(
+        `/home/chat/${driverId}?name=${driverName}&initialMessage=Ride cancelled for reason: ${reason}.`
+      );
 
       console.log(`Ride cancelled for reason: ${reason}`);
     } catch (error) {
@@ -74,24 +131,29 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
       setShowDetails(false);
       // Small delay to allow modal to start closing
       await new Promise((resolve) => setTimeout(resolve, 100));
-      
+
       // Explicitly create a conversation before navigating
       // This ensures the conversation exists when we reach the chat page
       try {
         const conversationResponse = await createConversation({
           ConversationType: "direct",
-          name: `Chat with ${ride.DriverName}`,
-          participants: [ride.DriverId]
+          name: `Chat with ${driverName}`,
+          participants: [driverId],
         });
-        
+
         console.log("Successfully created conversation:", conversationResponse);
       } catch (error) {
         // If creation fails, the chat page will try again
-        console.log("Could not pre-create conversation, will try in chat page:", error);
+        console.log(
+          "Could not pre-create conversation, will try in chat page:",
+          error
+        );
       }
-      
+
       // Navigate to chat page with properly encoded parameters
-      router.push(`/home/chat/${ride.DriverId}?name=${encodeURIComponent(ride.DriverName)}`);
+      router.push(
+        `/home/chat/${driverId}?name=${encodeURIComponent(driverName)}`
+      );
     } catch (error) {
       console.error("Error navigating to chat:", error);
     }
@@ -103,8 +165,8 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
       setShowDetails(false);
       // Small delay to allow modals to start closing
       await new Promise((resolve) => setTimeout(resolve, 100));
-      console.log(`DRIVER ID: ${ride.DriverId}`);
-      router.push(`/home/chat/${ride.DriverId}`);
+      console.log(`DRIVER ID: ${driverId}`);
+      router.push(`/home/chat/${driverId}`);
     } catch (error) {
       console.error("Error navigating to support:", error);
     }
@@ -142,52 +204,55 @@ const UpcomingRide = ({ ride }: UpcomingRideProps) => {
 
   return (
     <View style={{ paddingTop: insets.top > 0 ? insets.top : 20 }}>
-      <UpcomingRideCard ride={ride} onPress={() => setShowDetails(true)} />
+      <UpcomingRideCard
+        booking={booking}
+        onPress={() => setShowDetails(true)}
+      />
       <UpcomingRideDetailsModal
-          ride={ride}
-          visible={showDetails}
-          onClose={() => setShowDetails(false)}
-          onContactDriver={handleContactDriver}
-          onCancel={handleCancelAttempt}
-          onComplete={handleCompletionStart}
-          isPastRide={isPastRide()}
-        >
-            <View>
-              <LateCancellationModal
-                visible={showLateCancelWarning}
-                onClose={() => setShowLateCancelWarning(false)}
-                onConfirm={() => {
-                  setShowLateCancelWarning(false);
-                  setShowCancelModal(true);
-                }}
-              />
+        booking={booking}
+        visible={showDetails}
+        onClose={() => setShowDetails(false)}
+        onContactDriver={handleContactDriver}
+        onCancel={handleCancelAttempt}
+        onComplete={handleCompletionStart}
+        isPastRide={isPastRide()}
+      >
+        <View>
+          <LateCancellationModal
+            visible={showLateCancelWarning}
+            onClose={() => setShowLateCancelWarning(false)}
+            onConfirm={() => {
+              setShowLateCancelWarning(false);
+              setShowCancelModal(true);
+            }}
+          />
 
-              <CancellationReasonModal
-                visible={showCancelModal}
-                onCancel={() => setShowCancelModal(false)}
-                onReasonSelect={handleCancel}
-              />
+          <CancellationReasonModal
+            visible={showCancelModal}
+            onCancel={() => setShowCancelModal(false)}
+            onReasonSelect={handleCancel}
+          />
 
-              <RatingModal
-                visible={showRatingModal}
-                driverName={ride.DriverName}
-                rating={rating}
-                setRating={setRating}
-                onClose={() => setShowRatingModal(false)}
-                onSubmit={handleRate}
-              />
+          <RatingModal
+            visible={showRatingModal}
+            driverName={driverName}
+            rating={rating}
+            setRating={setRating}
+            onClose={() => setShowRatingModal(false)}
+            onSubmit={handleRate}
+          />
 
-              <RideCompletionModal
-                visible={showCompletionModal}
-                driverName={ride.DriverName}
-                rating={rating}
-                setRating={setRating}
-                onClose={() => setShowCompletionModal(false)}
-                onSubmit={handleComplete}
-                onDispute={handleDisputeRide}
-              />
-            </View>
-        </UpcomingRideDetailsModal>
+          <RideCompletionModal
+            visible={showCompletionModal}
+            driverName={driverName}
+            rating={rating}
+            setRating={setRating}
+            onClose={() => setShowCompletionModal(false)}
+            onSubmit={handleComplete}
+            onDispute={handleDisputeRide}
+          />
+        </View>
+      </UpcomingRideDetailsModal>
     </View>
   );
 };
