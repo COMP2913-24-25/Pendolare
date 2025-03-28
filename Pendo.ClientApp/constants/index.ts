@@ -102,6 +102,14 @@ export const JOURNEY_ENDPOINTS = {
   ADJUST_PRICE: "/Journey/AdjustPrice",
 };
 
+// Payment endpoints
+export const PAYMENT_ENDPOINTS = {
+  VIEW_BALANCE: "/PaymentService/ViewBalance",
+  PAYMENT_SHEET: "/PaymentService/PaymentSheet",
+  CREATE_PAYOUT: "/PaymentService/CreatePayout",
+  PAYMENT_METHODS: "/PaymentService/PaymentMethods",
+};
+
 export const MESSAGE_API_BASE_URL = "wss://pendo-message.clsolutions.dev/ws";
 
 // Message endpoints
@@ -109,6 +117,17 @@ export const MESSAGE_ENDPOINTS = {
   GET_USER_CONVERSATIONS: "/Message/UserConversation",
   CREATE_CONVERSATION: "/Message/CreateConversation",
 };
+
+// Cancellation reasons
+export const cancelReasons = [
+  "Plans changed",
+  "Found alternative transport",
+  "Price too high",
+  "Emergency",
+  "Other",
+];
+
+
 
 // Dummy data generated utilising machine learning models
 export const dummyRides = [
@@ -310,12 +329,4 @@ export const pastRides = [
     },
     status: "completed",
   },
-];
-
-export const cancelReasons = [
-  "Plans changed",
-  "Found alternative transport",
-  "Price too high",
-  "Emergency",
-  "Other",
 ];

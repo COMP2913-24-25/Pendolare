@@ -12,7 +12,8 @@ interface AmendmentRequestBubbleProps {
   isFromCurrentUser: boolean;
   timestamp: string;
   onApprove: (amendmentId: string) => void;
-  requesterApproved?: boolean; // Add this to track if the requester already approved
+  requesterApproved?: boolean;
+  isDriverView?: boolean; // Add prop to indicate if the current user is a driver
 }
 
 const AmendmentRequestBubble: React.FC<AmendmentRequestBubbleProps> = ({
@@ -21,9 +22,17 @@ const AmendmentRequestBubble: React.FC<AmendmentRequestBubbleProps> = ({
   isFromCurrentUser,
   timestamp,
   onApprove,
-  requesterApproved = false
+  requesterApproved = false,
+  isDriverView = false
 }) => {
   const { isDarkMode } = useTheme();
+  
+  // Determine who can approve this amendment
+  const needsDriverApproval = !amendment.DriverApproval;
+  const needsPassengerApproval = !amendment.PassengerApproval;
+  
+  // Check if current user can approve (driver can approve passenger amendments and vice versa)
+  const canApprove = isDriverView ? needsDriverApproval : needsPassengerApproval;
   
   // Format the amendment details for display
   const formatAmendmentDetails = () => {
@@ -53,6 +62,9 @@ const AmendmentRequestBubble: React.FC<AmendmentRequestBubbleProps> = ({
     return details.length > 0 ? details : ['No changes specified'];
   };
 
+  // Determine who requested this amendment
+  const requestedBy = amendment.DriverApproval ? 'Driver' : 'Passenger';
+
   return (
     <View className={`mb-4 ${isFromCurrentUser ? 'items-end' : 'items-start'}`}>
       <View
@@ -60,14 +72,19 @@ const AmendmentRequestBubble: React.FC<AmendmentRequestBubbleProps> = ({
           isDarkMode ? 'bg-indigo-800' : 'bg-indigo-100'
         }`}
       >
-        <View className="mb-2">
+        <View className="mb-2 flex-row justify-between items-center">
           <Text className={`font-JakartaBold ${isDarkMode ? 'text-white' : 'text-indigo-800'}`}>
             {amendment.CancellationRequest ? 'Booking Cancellation Request' : 'Booking Amendment Request'}
           </Text>
-          <Text className={`text-xs ${isDarkMode ? 'text-indigo-200' : 'text-indigo-500'}`}>
-            Booking ID: {amendment.BookingId}
-          </Text>
+          <View className={`px-2 py-1 rounded-full ${
+            amendment.DriverApproval ? 'bg-blue-600' : 'bg-green-600'
+          }`}>
+            <Text className="text-white text-xs">{requestedBy}</Text>
+          </View>
         </View>
+        <Text className={`text-xs ${isDarkMode ? 'text-indigo-200' : 'text-indigo-500'}`}>
+            Booking ID: {amendment.BookingId}
+        </Text>
         
         <View className="border-t border-b my-2 py-2 border-opacity-20 border-indigo-300">
           {formatAmendmentDetails().map((detail, index) => (
@@ -89,8 +106,8 @@ const AmendmentRequestBubble: React.FC<AmendmentRequestBubbleProps> = ({
             {formatTimestamp(new Date(timestamp).getTime())}
           </Text>
           
-          {/* Show approval buttons or approval status */}
-          {!isFromCurrentUser && !amendment.DriverApproval && (
+          {/* Show approval buttons if the user can approve */}
+          {!isFromCurrentUser && canApprove && (
             <View className="flex-row">
               <TouchableOpacity
                 className="bg-green-600 px-3 py-1 rounded-full mr-2"
@@ -106,17 +123,25 @@ const AmendmentRequestBubble: React.FC<AmendmentRequestBubbleProps> = ({
             </View>
           )}
           
-          {/* Show different status based on approval state */}
-          {(amendment.DriverApproval || isFromCurrentUser) && (
-            <View className="flex-row items-center">
-              <FontAwesome5 name="check-circle" size={14} color="green" />
-              <Text className="text-green-600 text-xs ml-1">
-                {isFromCurrentUser 
-                  ? (amendment.DriverApproval ? "Fully Approved" : "Awaiting Approval")
-                  : "Approved"}
-              </Text>
-            </View>
-          )}
+          {/* Show approval status */}
+          <View className="flex-row items-center">
+            {amendment.DriverApproval && amendment.PassengerApproval ? (
+              <>
+                <FontAwesome5 name="check-circle" size={14} color="green" />
+                <Text className="text-green-600 text-xs ml-1">Fully Approved</Text>
+              </>
+            ) : isFromCurrentUser ? (
+              <>
+                <FontAwesome5 name="clock" size={14} color="orange" />
+                <Text className="text-orange-500 text-xs ml-1">Awaiting Approval</Text>
+              </>
+            ) : (amendment.DriverApproval || amendment.PassengerApproval) ? (
+              <>
+                <FontAwesome5 name="check" size={14} color="green" />
+                <Text className="text-green-600 text-xs ml-1">Partially Approved</Text>
+              </>
+            ) : null}
+          </View>
         </View>
       </View>
     </View>
