@@ -20,7 +20,6 @@ const stripe_publishable = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "NA
 const SelectAmount = () => {
   const { isDarkMode } = useTheme();
 
-
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState('');
 
@@ -35,48 +34,45 @@ const SelectAmount = () => {
     }
   };
 
+  // configure stripe payment sheet from endpoint with amount specified
+  const [ready, setReady] = useState(false);
+  const {initPaymentSheet, presentPaymentSheet, loading} = usePaymentSheet();
+  const initalisePaymentSheet = async (amountToTopUp: number) => {
+    const {PaymentIntent, EphemeralKey, CustomerId} = await fetchPaymentSheetParams(amountToTopUp);
+    const {error} = await initPaymentSheet({
+        customerId: CustomerId, 
+        customerEphemeralKeySecret: EphemeralKey,
+        paymentIntentClientSecret: PaymentIntent,
+        merchantDisplayName: "Pendolare",
+        allowsDelayedPaymentMethods: true
+    });
+    if (error) {
+        Alert.alert(`Error: ${error.code}`, error.message);
+    }
+    else {
+        setReady(true)
+        buy()
+    }
+  }
+  
+  async function buy() {
+      const {error} = await presentPaymentSheet();
 
-      const [ready, setReady] = useState(false);
-      const {initPaymentSheet, presentPaymentSheet, loading} = usePaymentSheet();
-      const initalisePaymentSheet = async (amountToTopUp: number) => {
-          const {PaymentIntent, EphemeralKey, CustomerId} = await fetchPaymentSheetParams(amountToTopUp);
-          
-          const {error} = await initPaymentSheet({
-              customerId: CustomerId, 
-              customerEphemeralKeySecret: EphemeralKey,
-              paymentIntentClientSecret: PaymentIntent,
-              merchantDisplayName: "Pendolare",
-              allowsDelayedPaymentMethods: true
-              
-          });
-          if (error) {
-              Alert.alert(`Error: ${error.code}`, error.message);
-          }
-          else {
-              setReady(true)
-              buy()
-          }
+      if (error) {
+          Alert.alert(`Error: ${error.code}`, error.message);
       }
-  
-      async function buy() {
-          const {error} = await presentPaymentSheet();
-  
-          if (error) {
-              Alert.alert(`Error: ${error.code}`, error.message);
-          }
-          else {
-              Alert.alert("Successfully topped up balance")
-              setReady(false)
-              router.back()
-          }
+      else {
+          Alert.alert("Successfully topped up balance")
+          setReady(false)
+          router.back()
       }
+  }
   
-
   return (
-    <SafeAreaView
-      className={`flex-1 pt-2 ${isDarkMode ? "bg-slate-900" : "bg-general-500"}`}
-    >
+    <SafeAreaView className={`flex-1 pt-2 ${isDarkMode ? "bg-slate-900" : "bg-general-500"}`}>
       <View className="flex-1 px-4">
+
+        {/* Header */}
         <View className="flex-row items-center my-5">
           <TouchableOpacity onPress={() => router.back()} className="mr-4">
               <FontAwesome5
