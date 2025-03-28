@@ -18,7 +18,7 @@ def booking_id():
 @pytest.fixture
 def mock_booking():
     booking = MagicMock()
-    booking.BookingId = booking_id()
+    booking.BookingId = str(uuid.uuid4())
     booking.UserId = str(uuid.uuid4())  # Passenger ID
     booking.FeeMargin = 0.1  # 10% fee
     booking.DriverApproval = True
