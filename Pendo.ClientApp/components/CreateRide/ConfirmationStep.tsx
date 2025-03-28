@@ -19,11 +19,13 @@ interface ConfirmationStepProps {
   cost: string;
   seats: string;
   date: Date;
+  bootHeight: string;
+  bootWidth: string;
 }
 
 /*
   ConfirmationStep
-  Step for confirming ride details
+  Step for confirming ride details including boot dimensions
 */
 const ConfirmationStep = ({
   isDarkMode,
@@ -32,6 +34,8 @@ const ConfirmationStep = ({
   cost,
   seats,
   date,
+  bootHeight,
+  bootWidth,
 }: ConfirmationStepProps) => {
   return (
     <View className="flex-1">
@@ -105,6 +109,24 @@ const ConfirmationStep = ({
             </Text>
           </View>
           <Text className="text-base ml-6">{seats}</Text>
+        </View>
+
+        <View className="mb-3">
+          <View className="flex-row items-center">
+            <FontAwesome5
+              name="truck"
+              size={16}
+              style={{ marginRight: 8 }}
+            />
+            <Text className="text-gray-500">
+              Boot Dimensions
+            </Text>
+          </View>
+          <Text className="text-base ml-6">
+            {bootHeight || bootWidth
+              ? `${bootHeight || "N/A"} cm x ${bootWidth || "N/A"} cm`
+              : "N/A"}
+          </Text>
         </View>
 
         <View className="mb-3">
