@@ -2,6 +2,8 @@ from .PendoDatabase import *
 from sqlalchemy.orm import joinedload, with_loader_criteria
 import datetime
 from .PendoDatabaseProvider import get_db
+import logging
+from decimal import Decimal
 
 class PaymentRepository():
     """
@@ -10,9 +12,15 @@ class PaymentRepository():
 
     def __init__(self):
         """
-        Constructor for BookingRepository class.
+        Constructor for PaymentRepository class.
         """
         self.db_session = next(get_db())
+
+    def __del__(self):
+        """
+        Destructor for PaymentRepository class.
+        """
+        self.db_session.close()
 
     def GetUserBalance(self, user_id):
         """
@@ -20,7 +28,7 @@ class PaymentRepository():
         :param user_id: Id of the user.
         :return UserBalance object.
         """
-        return self.db_session.query(UserBalance).filter_by(UserId=user_id).one_or_none()
+        return self.db_session.query(UserBalance).filter(UserBalance.UserId == user_id).one_or_none()
     
     def GetUser(self, user_id):
         """
@@ -29,7 +37,35 @@ class PaymentRepository():
         :return: User object.
         """
         return self.db_session.query(User).get(user_id)
-    
+
+    def GetUserType(self, user_id, booking_id):
+        try:
+            # Check if user is the passenger
+            passenger_booking = self.db_session.query(Booking).filter(
+                (Booking.UserId == user_id) & 
+                (Booking.BookingId == booking_id)
+            ).first()
+            
+            if passenger_booking:
+                return "Passenger"
+
+            driver_booking = self.db_session.query(Booking).join(Journey, Booking.JourneyId == Journey.JourneyId).filter(
+                (Journey.UserId == user_id) & 
+                (Booking.BookingId == booking_id)
+            ).first()
+
+            if driver_booking:
+                return "Driver"
+
+            # If neither passenger nor driver
+            return None
+
+        except Exception as e:
+            logging.error(f"Error in GetUserType: {str(e)}")
+            logging.error(f"User ID: {user_id}, Booking ID: {booking_id}")
+            
+            raise ValueError(f"Error determining user type: {str(e)}")
+        
     def GetBookingById(self, booking_id):
         """
         GetBookingById method returns the booking for the specified booking id.
@@ -41,8 +77,8 @@ class PaymentRepository():
                 .options(
                     joinedload(Booking.BookingStatus_),
                     joinedload(Booking.Journey_),
-                    joinedload(Booking.BookingAmmendment),
-                    with_loader_criteria(BookingAmmendment, BookingAmmendment.DriverApproval and BookingAmmendment.PassengerApproval))\
+                    joinedload(Booking.BookingAmmendment, innerjoin=False),
+                    with_loader_criteria(BookingAmmendment, (BookingAmmendment.DriverApproval & BookingAmmendment.PassengerApproval)))\
                 .first()
     
     def CreateUserBalance(self, balance):
@@ -64,7 +100,7 @@ class PaymentRepository():
         if BalanceSheet is None:
             raise Exception("Balance Sheet not found for user")
 
-        BalanceSheet.Pending += amount
+        BalanceSheet.Pending += Decimal(amount)
 
         self.db_session.commit()
 
@@ -79,7 +115,7 @@ class PaymentRepository():
         if BalanceSheet is None:
             raise Exception("Balance Sheet not found for user")
         
-        BalanceSheet.NonPending += amount
+        BalanceSheet.NonPending += Decimal(amount)
         self.db_session.commit()
 
     def CreateTransaction(self, transaction):
@@ -89,12 +125,12 @@ class PaymentRepository():
         self.db_session.add(transaction)
         self.db_session.commit()
 
-    def GetTransaction(self, user_id = None, amount = None, status = None, typeof = None):
+    def GetTransaction(self, user_id = None, booking_id = None, amount = None, status = None, typeof = None):
         """
         GetTransaction searches the db for a speicifc transaction log given the appropiate parameters
         """
-        return self.db_session.query(Transaction).filter(Transaction.UserId == user_id, Transaction.Value == amount, Transaction.TransactionStatusId == status, Transaction.TransactionTypeId == typeof).first()
-
+        return self.db_session.query(Transaction).filter(Transaction.UserId == user_id, Transaction.BookingId == booking_id, Transaction.Value == amount, Transaction.TransactionStatusId == status, Transaction.TransactionTypeId == typeof).first()
+      
     def UpdateTransaction(self, transaction_id, amount, typeof, status):
         """
         UpdateTransaction allows for an update to an existing transaction
@@ -106,3 +142,20 @@ class PaymentRepository():
         transactionToUpdate.UpdateDate = datetime.datetime.now()
         
         self.db_session.commit()
+
+    def GetAdminUsers(self):
+        """
+        GetAminUsers returns a list of all admins registered on the dashboard
+        """
+        return self.db_session.query(User).filter(User.UserTypeId == 2).all()
+
+    def UpdateBookingStatus(self, booking_id, status):
+        """
+        UpdateBookingStatus updates the status of a booking
+        """
+        bookingToUpdate = self.GetBookingById(booking_id)
+        bookingToUpdate.BookingStatusId = status
+        bookingToUpdate.UpdateDate = datetime.datetime.now()
+        
+        self.db_session.commit()
+

@@ -111,7 +111,7 @@ DECLARE @PaymentEmailConfiguration NVARCHAR(MAX) = '
 {
     "apiKey": "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",
     "fromEmail": "pendolare-dev@clsolutions.dev",
-    "payoutTemplateId": "TODO"
+    "payoutTemplateId": "d-59f9176bff504f4f87d325e71e7101d7"
 }'
 
 DECLARE @StripeConfiguration NVARCHAR(MAX) = '
@@ -148,7 +148,7 @@ DECLARE @AdminId UNIQUEIDENTIFIER = '00000000-0000-0000-0000-000000000000'
 MERGE INTO [identity].[User] as target
 USING (
     VALUES
-        (@AdminId, 'Pendolare.Admin.Support@clsolutions.dev', 'Support', 'Admin', 1)
+        (@AdminId, 'Pendolare.Admin.Support@clsolutions.dev', 'Support', 'Admin', 2)
 ) AS source ([UserId], [Email], [FirstName], [LastName], [UserTypeId])
 ON target.[UserId] = source.[UserId]
 WHEN NOT MATCHED THEN
