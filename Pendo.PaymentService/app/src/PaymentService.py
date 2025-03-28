@@ -168,8 +168,10 @@ def CreatePayout(request: GetwithUUID, db: Session = Depends(get_db)) -> StatusR
     Used to retrieve the non-pending value of a user. Will send an email to Admin with value to process payment
     """
     # TODO: Complete Payout endpoint - Alex
+    configProvider.LoadEmailConfiguration(db)
+    sendGrid = configProvider.LoadEmailConfiguration
 
-    response = CreatePayoutCommand(logging.getLogger("CreatePayout"), request.UserId).Execute()
+    response = CreatePayoutCommand(logging.getLogger("CreatePayout"), request.UserId, sendGrid).Execute()
     if response.Status != "success":
         raise HTTPException(400, detail=response.Error)
     else:
