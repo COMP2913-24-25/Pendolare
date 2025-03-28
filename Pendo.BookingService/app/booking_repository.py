@@ -65,13 +65,15 @@ class BookingRepository():
                     endLat = self.setIfNotNull(amendment.EndLat)
                     rideTime = self.setIfNotNull(amendment.StartTime)
                     price = self.setIfNotNull(amendment.ProposedPrice)
+                    reccurance = self.setIfNotNull(amendment.Reccurance)
 
             return_dto.append({
                 "Booking": {
                     "BookingId": booking.BookingId,
                     "User": booking.User_,
                     "FeeMargin": booking.FeeMargin,
-                    "RideTime": self.setDefaultIfNotNull(rideTime, booking.RideTime)
+                    "RideTime": self.setDefaultIfNotNull(rideTime, booking.RideTime),
+                    "BookedWindowEnd": booking.BookedWindowEnd,
                 },
                 "BookingStatus": {
                     "StatusId": booking.BookingStatusId,
@@ -90,7 +92,8 @@ class BookingRepository():
                     "EndLat": self.setDefaultIfNotNull(endLat, booking.Journey_.EndLat),
                     "Price": self.setDefaultIfNotNull(price, booking.Journey_.AdvertisedPrice),
                     "JourneyStatusId": booking.Journey_.JourneyStatusId,
-                    "JourneyType": booking.Journey_.JourneyType
+                    "JourneyType": booking.Journey_.JourneyType,
+                    "Reccurance": self.setDefaultIfNotNull(reccurance, booking.Journey_.Reccurance)
                 }
             })
 
@@ -111,7 +114,7 @@ class BookingRepository():
         """
         return self.db_session.query(User).get(user_id)
     
-    def GetJourney(self, journey_id):
+    def GetJourney(self, journey_id) -> Journey:
         """
         GetJourney method returns the journey for the specified journey id.
         :param journey_id: Id of the journey.
@@ -127,14 +130,14 @@ class BookingRepository():
         """
         return self.db_session.query(Booking).get(booking_id)
     
-    def GetExistingBooking(self, user_id, journey_id, ride_time):
+    def GetExistingBooking(self, user_id, journey_id):
         """
         GetExistingBooking method returns the existing booking for the specified user and journey.
         :param user_id: Id of the user.
         :param journey_id: Id of the journey.
         :return: Booking object.
         """
-        return self.db_session.query(Booking).filter(Booking.UserId == user_id, Booking.JourneyId == journey_id, Booking.RideTime == ride_time).first()
+        return self.db_session.query(Booking).filter(Booking.UserId == user_id, Booking.JourneyId == journey_id).first()
     
     def CreateBooking(self, booking):
         """

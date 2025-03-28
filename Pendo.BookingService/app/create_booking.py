@@ -1,11 +1,12 @@
 from .booking_repository import BookingRepository, Booking
 from .email_sender import generateEmailDataFromBooking
 from datetime import datetime
-from .cron_checker import checkTimeValid
+from .cron_checker import checkTimeValid, getNextTimes
 from sqlalchemy import DECIMAL, cast
 from fastapi import status
 from .statuses.booking_statii import BookingStatus
 from .responses import StatusResponse
+from .requests import CreateBookingRequest
 from .db_provider import get_db
 
 class CreateBookingCommand:
@@ -14,8 +15,8 @@ class CreateBookingCommand:
     """
 
     def __init__(self, 
-                 request, 
-                 response, 
+                 request : CreateBookingRequest, 
+                 response : StatusResponse, 
                  email_sender, 
                  logger, 
                  dvla_client, 
@@ -55,14 +56,14 @@ class CreateBookingCommand:
                 self.response.status_code = status.HTTP_400_BAD_REQUEST
                 raise Exception("Booking time cannot be in the past")
             
-            if journey.JourneyType == 2 and not checkTimeValid(journey.Recurrance, self.request.JourneyTime):
+            if journey.JourneyType == 2 and journey.Recurrance is None:
                 self.response.status_code = status.HTTP_400_BAD_REQUEST
-                raise Exception("Booking time is not valid for the commuter journey")
+                raise Exception("Commuter journey must have a recurrance.")
             
-            existing_booking = self.booking_repository.GetExistingBooking(user.UserId, journey.JourneyId, self.request.JourneyTime)
+            existing_booking = self.booking_repository.GetExistingBooking(user.UserId, journey.JourneyId)
             if existing_booking is not None:
                 self.response.status_code = status.HTTP_400_BAD_REQUEST
-                raise Exception("Booking for this time and journey combination already exists")
+                raise Exception("Booking for this journey already exists")
             
             current_booking_fee = self.configuration_provider.GetSingleValue(next(get_db()), "Booking.FeeMargin")
             if current_booking_fee is None:
@@ -81,10 +82,10 @@ class CreateBookingCommand:
             self.logger.debug(f"Booking DB object created successfully. BookingId: {booking.BookingId}")
 
             # Notify payment service of new booking
-            if not self.payment_service_client.PendingBookingRequest(booking.BookingId):
-                self.response.status_code = status.HTTP_403_FORBIDDEN
-                self.booking_repository.DeleteBooking(booking)
-                raise Exception("Payment service failed to process booking. User balance insufficient.")
+            # if not self.payment_service_client.PendingBookingRequest(booking.BookingId):
+            #     self.response.status_code = status.HTTP_403_FORBIDDEN
+            #     self.booking_repository.DeleteBooking(booking)
+            #     raise Exception("Payment service failed to process booking. User balance insufficient.")
             
             self.booking_repository.UpdateBookingStatus(booking.BookingId, BookingStatus.Pending)
             self.logger.debug("Booking status updated to pending successfully.")
