@@ -203,7 +203,7 @@ const UpcomingRide = ({ booking, onPress }: UpcomingRideProps) => {
   insets.top = 0;
 
   return (
-    <View style={{ paddingTop: insets.top > 0 ? insets.top : 20 }}>
+    <View>
       <UpcomingRideCard
         booking={booking}
         onPress={() => setShowDetails(true)}
