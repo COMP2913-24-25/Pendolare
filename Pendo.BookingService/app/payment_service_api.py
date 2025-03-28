@@ -1,6 +1,4 @@
 import requests
-from pydantic import BaseModel
-from fastapi.encoders import jsonable_encoder
 from uuid import UUID
 
 class PaymentServiceClient:
@@ -20,7 +18,7 @@ class PaymentServiceClient:
 
         request = {
             "BookingId": str(bookingId),
-            "LatestPrice": amount
+            "LatestPrice": float(amount)
         }
 
         self.logger.debug(f"Sending pending booking request to payment service: {request}")
@@ -37,7 +35,7 @@ class PaymentServiceClient:
 
         request = {
             "BookingId": str(bookingId),
-            "LatestPrice": latestPrice
+            "LatestPrice": float(latestPrice)
         }
 
         self.logger.debug(f"Sending completed booking request to payment service: {request}")
@@ -56,7 +54,7 @@ class PaymentServiceClient:
         request = { 
             "BookingId": str(bookingId), 
             "CancelledById": str(userId), 
-            "LatestPrice": refundAmount,
+            "LatestPrice": float(refundAmount),
             "CancellationTime": requestTime,
             "JourneyTime": bookingTime
              }
