@@ -34,8 +34,9 @@ class StripeWebhookCommand:
             if userBalance is None:
                 newBalanceSheet = UserBalance(UserId = self.UserId)
                 self.PaymentRepository.CreateUserBalance(newBalanceSheet)
-                
-            transaction = self.PaymentRepository.GetTransaction(self.UserId, self.Amount, 3, 5)
+            
+            #  user_id = None, booking_id = None, amount = None, status = None, typeof = None
+            transaction = self.PaymentRepository.GetTransaction(self.UserId, None, self.Amount, 3, 5)
             if transaction is None:
                 raise Exception("Transaction not found")
             
