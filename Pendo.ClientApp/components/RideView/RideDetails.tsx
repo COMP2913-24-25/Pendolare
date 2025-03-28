@@ -198,6 +198,15 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
                 <Text className="text-gray-500">Price</Text>
                 <Text className="font-JakartaMedium">{ride.price}</Text>
               </View>
+              {/* New Boot Dimensions Section */}
+              <View className="mb-3 mt-3">
+                <Text className="text-gray-500">Boot Dimensions</Text>
+                <Text className="font-JakartaMedium">
+                  {ride.BootHeight && ride.BootWidth
+                    ? `${ride.BootHeight}cm x ${ride.BootWidth}cm`
+                    : "N/A"}
+                </Text>
+              </View>
             </View>
 
             <View
