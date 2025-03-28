@@ -63,6 +63,7 @@ export interface BookingDetails {
     User: User; // Update to use the User interface
     FeeMargin: number;
     RideTime: Date;
+    BookedWindowEnd?: Date;
   };
   BookingStatus: {
     StatusId: number;
