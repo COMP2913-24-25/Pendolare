@@ -6,7 +6,12 @@ export interface BalanceSheet {
   Status: string;
   Pending: number | 0.00;
   NonPending: number | 0.00;
-  Weekly: Array;
+  Weekly: Array<any>;
+}
+
+export interface StatusResponse {
+  Status: string;
+  Error: string;
 }
 
 export interface StatusResponse {
