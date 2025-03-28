@@ -1,6 +1,7 @@
 import { apiRequest } from "./apiClient";
-
+import { getNextCronDates } from "@/utils/cronTools";
 import { BOOKING_ENDPOINTS } from "@/constants";
+import { getJourneys } from "./journeyService";
 
 export interface AddBookingAmmendmentRequest {
   CancellationRequest: any;
@@ -166,6 +167,31 @@ export async function getBookings(driverView: boolean = false): Promise<GetBooki
       // Ensure BookingStatus object exists
       if (!booking.BookingStatus) {
         booking.BookingStatus = { Status: 'Unknown' };
+      }
+
+      // Re-set ride time from cron if it exists
+      if (booking.Journey.Recurrance) {
+        const endDate = booking.Booking.EndBookingWindow 
+          ? new Date(booking.Booking.EndBookingWindow ?? booking.RepeatUntil)
+          : new Date(Date.now());
+
+        if (endDate.getTime() < Date.now()) {
+          // set ridetime to last possible cron date
+          const last = getNextCronDates(booking.Journey.Recurrance, booking.Booking.RideTime, endDate, 9999);
+          booking.Booking.RideTime = last[last.length - 1];
+          return booking;
+        }
+
+        if (booking.Booking.RideTime > Date.now()) {
+          // set ridetime to first possible cron date
+          const first = getNextCronDates(booking.Journey.Recurrance, booking.Booking.RideTime, endDate, 1)[0];
+          booking.Booking.RideTime = first;
+        }
+
+        // set ridetime to next possible cron date
+        const next = getNextCronDates(booking.Journey.Recurrance, new Date(), endDate, 1)[0];
+        booking.Booking.RideTime = next;
+
       }
       
       return booking;
