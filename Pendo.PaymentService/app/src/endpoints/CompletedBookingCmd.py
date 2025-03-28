@@ -1,9 +1,13 @@
+# 
+# CompleteBooking Endpoint Implementation
+# Author: Catherine Weightman
+#
+
 from ..db.PaymentRepository import PaymentRepository
 from ..db.PendoDatabase import Transaction, UserBalance
 from ..returns.PaymentReturns import StatusResponse
 import datetime
 from decimal import Decimal
-
 
 class CompletedBookingCommand:
     """
@@ -29,14 +33,7 @@ class CompletedBookingCommand:
         """
 
         try:
-            
-            # TODO: Complete Confirm endpoint - Catherine
-            
-            # input: CompletedBookingRequest
-            # schema:
-                # BookingId: UUID
-                # LatestPrice: float
-
+        
             booking = self.PaymentRepository.GetBookingById(self.BookingId)
             if not booking:
                 self.logger.error(f"Booking not found: {self.BookingId}")

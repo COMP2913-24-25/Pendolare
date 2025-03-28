@@ -1,3 +1,8 @@
+# 
+# PendingBooking endpoint implementation
+# Author: Alexander McCall
+#
+
 from ..db.PaymentRepository import PaymentRepository
 from ..db.PendoDatabase import Transaction, UserBalance
 from ..returns.PaymentReturns import StatusResponse, PaymentMethodResponse

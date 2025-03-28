@@ -85,7 +85,7 @@ class PaymentRepository():
     def CreateUserBalance(self, balance):
         """
         CreateUserBalance method creates a new user balance in the database.
-        :param booking: Booking object to be created.
+        :param balance: Balance object to be created.
         """
         self.db_session.add(balance)
         self.db_session.commit()
@@ -128,7 +128,7 @@ class PaymentRepository():
 
     def GetTransaction(self, user_id = None, booking_id = None, amount = None, status = None, typeof = None):
         """
-        GetTransaction searches the db for a speicifc transaction log given the appropiate parameters
+        GetTransaction searches the db for a speicifc transaction log, given the appropiate parameters
         """
         return self.db_session.query(Transaction).filter(Transaction.UserId == user_id, Transaction.BookingId == booking_id, Transaction.Value == amount, Transaction.TransactionStatusId == status, Transaction.TransactionTypeId == typeof).first()
       
