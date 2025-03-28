@@ -74,7 +74,7 @@ class PaymentServiceClient:
         if "Status" not in response:
             msg = "Invalid response from payment service"
             self.logger.error(msg)
-            raise Exception(msg)
+            return False
         
         # This should be an error code really but we'll just check for the string for now.
         if response["Error"] == "Not enough user balance to set journey to pending":
