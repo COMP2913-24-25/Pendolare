@@ -256,18 +256,27 @@ def test_create_booking(booking_repository, mock_db_session):
     mock_db_session.commit.assert_called_once()
 
 def test_approve_booking(booking_repository, mock_db_session):
+
     booking = Booking(BookingId=1, DriverApproval=False)
-    mock_db_session.query.return_value.get.return_value = booking
+    mock_db_session.query.return_value.join.return_value.get.return_value = booking
+
     result = booking_repository.ApproveBooking(1)
+    
     assert result.DriverApproval is True
     mock_db_session.commit.assert_called_once()
 
 def test_update_booking_status(booking_repository, mock_db_session):
-    booking = Booking(BookingId=1)
-    mock_db_session.query.return_value.get.return_value = booking
-    booking_repository.UpdateBookingStatus(1, 2)
-    assert booking.BookingStatusId == 2
-    mock_db_session.commit.assert_called_once()
+    with patch('app.booking_repository.datetime') as mock_datetime:
+        mock_datetime.now.return_value = datetime(2025, 3, 1, 12, 0, 0)
+
+        booking = Booking(BookingId=1, BookingStatusId=1)
+        mock_db_session.query.return_value.join.return_value.get.return_value = booking
+
+        booking_repository.UpdateBookingStatus(1, 2)
+        
+        assert booking.BookingStatusId == 2
+        assert booking.UpdateDate == datetime(2025, 3, 1, 12, 0, 0)
+        mock_db_session.commit.assert_called_once()
 
 def test_add_booking_ammendment(booking_repository, mock_db_session):
     ammendment = BookingAmmendment()

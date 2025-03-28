@@ -128,7 +128,9 @@ class BookingRepository():
         :param booking_id: Id of the booking.
         :return: Booking object.
         """
-        return self.db_session.query(Booking).get(booking_id)
+        return self.db_session.query(Booking)\
+            .join(BookingAmmendment, Booking.BookingId == BookingAmmendment.BookingId, isouter=True)\
+            .get(booking_id)
     
     def GetExistingBooking(self, user_id, journey_id):
         """
@@ -152,6 +154,7 @@ class BookingRepository():
         DeleteBooking method deletes a booking from the database.
         :param booking: Booking object to be deleted.
         """
+        booking = self.GetBookingById(booking.BookingId)
         self.db_session.delete(booking)
         self.db_session.commit()
 
