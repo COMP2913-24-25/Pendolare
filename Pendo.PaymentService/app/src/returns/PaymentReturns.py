@@ -7,6 +7,7 @@ class ViewBalanceResponse(BaseModel):
     Status : str
     NonPending : float
     Pending : float
+    Weekly: list
 
 class StatusResponse(BaseModel):
     Status: str
