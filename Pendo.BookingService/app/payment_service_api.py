@@ -12,14 +12,14 @@ class PaymentServiceClient:
         self.paymentServiceConfiguration = paymentServiceConfiguration
         self.logger = logger
 
-    def PendingBookingRequest(self, bookingId, amount):
+    def PendingBookingRequest(self, bookingId : UUID, amount):
         """
         Calls the /PendingBooking endpoint to notify the payment service of a new booking.
         """
         self.logger.info(f"Sending pending booking request to payment service for booking {bookingId}")
 
         request = {
-            "BookingId": bookingId,
+            "BookingId": str(bookingId),
             "LatestPrice": amount
         }
 
@@ -36,7 +36,7 @@ class PaymentServiceClient:
         self.logger.info(f"Sending completed booking request to payment service for booking {bookingId}")
 
         request = {
-            "BookingId": bookingId,
+            "BookingId": str(bookingId),
             "LatestPrice": latestPrice
         }
 
@@ -54,8 +54,8 @@ class PaymentServiceClient:
         self.logger.info(f"Sending refund request to payment service for user {userId}")
 
         request = { 
-            "BookingId": bookingId, 
-            "CancelledById": userId, 
+            "BookingId": str(bookingId), 
+            "CancelledById": str(userId), 
             "LatestPrice": refundAmount,
             "CancellationTime": requestTime,
             "JourneyTime": bookingTime
