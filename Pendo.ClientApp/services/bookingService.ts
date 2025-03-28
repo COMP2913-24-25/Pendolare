@@ -15,6 +15,10 @@ export interface AddBookingAmmendmentRequest {
   StartTime: string | null;
   DriverApproval: boolean;
   PassengerApproval: boolean;
+  // Add commuter schedule amendment fields
+  ScheduleAmendment?: boolean;
+  RecurrenceCron?: string;
+  RepeatUntil?: string;
 }
 
 // Update the interface to match what the server expects
@@ -42,10 +46,21 @@ export interface BookingResponse {
   message?: string;
 }
 
+// Add new User interface
+export interface User {
+  UserId: string;
+  Name?: string;
+  FullName?: string;
+  FirstName?: string;
+  LastName?: string;
+  Email?: string;
+  // Add other user properties as needed
+}
+
 export interface BookingDetails {
   Booking: {
     BookingId: string;
-    User: object;
+    User: User; // Update to use the User interface
     FeeMargin: number;
     RideTime: Date;
   };
@@ -56,7 +71,7 @@ export interface BookingDetails {
   },
   Journey: {
     JourneyId: string;
-    User: object;
+    User: User; // Update to use the User interface
     StartTime: Date;
     StartName: string;
     StartLong: number;
@@ -67,6 +82,8 @@ export interface BookingDetails {
     Price: number;
     JourneyStatusId: number;
     JourneyType: number;
+    Recurrance?: string;
+    RepeatUntil?: Date;
   }
 }
 
@@ -131,8 +148,28 @@ export async function getBookings(driverView: boolean = false): Promise<GetBooki
       true
     );
 
+    // Add additional preprocessing to ensure structure integrity
+    const processedBookings = response.map((booking: any) => {
+      // Ensure Journey object exists and has all required properties
+      if (!booking.Journey) {
+        booking.Journey = {};
+      }
+      
+      // Ensure Booking object exists
+      if (!booking.Booking) {
+        booking.Booking = {};
+      }
+      
+      // Ensure BookingStatus object exists
+      if (!booking.BookingStatus) {
+        booking.BookingStatus = { Status: 'Unknown' };
+      }
+      
+      return booking;
+    });
+
     return {
-      bookings: response,
+      bookings: processedBookings,
       success: true
     };
   } catch (error) {

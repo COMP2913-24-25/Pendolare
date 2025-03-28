@@ -63,10 +63,8 @@ const BookingAmendmentModal: React.FC<BookingAmendmentModalProps> = ({
       const result = await getBookings(isDriver);
       if (result.success) {
         // Filter only pending or confirmed bookings
-        result.bookings.forEach(x => console.log(x.Booking.RideTime));
         const activeBookings = result.bookings.filter(
-          b => (b.BookingStatus.Status === 'Pending' || b.BookingStatus.Status === 'Confirmed') 
-          && new Date(b.Booking.RideTime) > new Date(Date.now())
+          b => b.BookingStatus.Status === 'Pending' || b.BookingStatus.Status === 'Confirmed'
         );
         setBookings(activeBookings);
         if (activeBookings.length > 0) {
@@ -224,10 +222,10 @@ const BookingAmendmentModal: React.FC<BookingAmendmentModalProps> = ({
                     <Picker
                       selectedValue={selectedBookingId}
                       onValueChange={(itemValue) => setSelectedBookingId(itemValue)}
+                      style={{ color: isDarkMode ? '#FFF' : '#000' }}
                     >
                       {bookings.map((booking) => (
-                        <Picker.Item
-                          color={ isDarkMode ? '#FFF' : '#000' }
+                        <Picker.Item 
                           key={booking.Booking.BookingId} 
                           label={`${booking.Journey.StartName} to ${booking.Journey.EndName}`} 
                           value={booking.Booking.BookingId} 
