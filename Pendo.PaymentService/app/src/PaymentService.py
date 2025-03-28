@@ -23,7 +23,7 @@ from .db.PendoDatabase import UserBalance
 from .db.PendoDatabaseProvider import get_db, Session, text, environment, configProvider
 
 # requests and returns
-from .requests.PaymentRequests import GetwithUUID, MakePendingBooking, PaymentSheetRequest, RefundPaymentRequest, CompletedBookingRequest
+from .requests.PaymentRequests import GetwithUUID, CompletedBookingRequest, PaymentSheetRequest, RefundPaymentRequest
 from .returns.PaymentReturns import ViewBalanceResponse, StatusResponse, PaymentMethodResponse, PaymentSheetResponse
 
 
@@ -108,11 +108,11 @@ async def StripeWebhook(request: Request) -> StatusResponse:
 
 
 @app.post("/PendingBooking", tags=["At Booking time"])
-def PendingBooking(request: MakePendingBooking, db: Session = Depends(get_db)) -> StatusResponse:
+def PendingBooking(request: CompletedBookingRequest, db: Session = Depends(get_db)) -> StatusResponse:
     """
     Used when a booking is created in the pending state
     """
-    response = PendingBookingCommand(logging.getLogger("PendingBooking"), request.BookingId).Execute()
+    response = PendingBookingCommand(logging.getLogger("PendingBooking"), request.BookingId, request.LatestPrice).Execute()
 
     if response.Status != "success":
         raise HTTPException(400, detail=response.Error)
@@ -163,8 +163,10 @@ def CreatePayout(request: GetwithUUID, db: Session = Depends(get_db)) -> StatusR
     Used to retrieve the non-pending value of a user. Will send an email to Admin with value to process payment
     """
     # TODO: Complete Payout endpoint - Alex
+    
+    sendGrid = configProvider.LoadEmailConfiguration(db)
 
-    response = CreatePayoutCommand(logging.getLogger("CreatePayout"), request.UserId).Execute()
+    response = CreatePayoutCommand(logging.getLogger("CreatePayout"), request.UserId, sendGrid).Execute()
     if response.Status != "success":
         raise HTTPException(400, detail=response.Error)
     else:

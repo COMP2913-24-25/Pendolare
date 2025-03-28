@@ -22,9 +22,7 @@ class SendGridConfiguration(BaseModel):
     """
     apiKey : str
     fromEmail : str
-    pendingTemplateId : str
-    confirmedTemplateId : str
-    cancelledTemplateId : str
+    payoutTemplateId: str
 
 class StripeConfiguration(BaseModel):
     """
