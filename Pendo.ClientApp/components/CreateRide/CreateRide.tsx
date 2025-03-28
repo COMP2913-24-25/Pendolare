@@ -234,6 +234,8 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
               cost={cost}
               seats={seats}
               date={date}
+              bootHeight={bootHeight}      // Pass bootHeight prop
+              bootWidth={bootWidth}        // Pass bootWidth prop
             />
           )}
         </ScrollView>
