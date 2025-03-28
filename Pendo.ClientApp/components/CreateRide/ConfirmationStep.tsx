@@ -124,7 +124,7 @@ const ConfirmationStep = ({
           </View>
           <Text className="text-base ml-6">
             {bootHeight || bootWidth
-              ? `${bootHeight || "N/A"} cm x ${bootWidth || "N/A"} cm`
+              ? `${bootHeight || "N/A"}cm x ${bootWidth || "N/A"}cm`
               : "N/A"}
           </Text>
         </View>
