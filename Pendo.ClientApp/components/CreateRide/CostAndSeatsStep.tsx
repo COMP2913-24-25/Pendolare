@@ -96,7 +96,7 @@ const CostAndSeatsStep = ({
               : "bg-white border-slate-200 text-black"
           }`}
           placeholderTextColor={isDarkMode ? "#9CA3AF" : "#6B7280"}
-          placeholder="Enter boot height (optional)"
+          placeholder="Enter boot height (cm, optional)"
         />
       </View>
       <View className="mb-4">
@@ -111,7 +111,7 @@ const CostAndSeatsStep = ({
               : "bg-white border-slate-200 text-black"
           }`}
           placeholderTextColor={isDarkMode ? "#9CA3AF" : "#6B7280"}
-          placeholder="Enter boot width (optional)"
+          placeholder="Enter boot width (cm, optional)"
         />
       </View>
     </View>
