@@ -55,10 +55,9 @@ const FilteredRides = ({ resetFilters, setResetFilters, isDarkMode, journeyType 
 
   const getRides = async () => {
     
-    let filters : GetJourneysRequest = { DriverView: false };
+    let filters : GetJourneysRequest = { DriverView: false, StartDate: new Date().toISOString() };
 
     if (pickupLocation.length > 0) {
-      // Journey Service does not currently calculate deal with radius correctly. This needs to be fixed
       filters.DistanceRadius = pickupRadius;
       filters.StartLat = pickupCoords.lat;
       filters.StartLong = pickupCoords.lon;
@@ -66,7 +65,6 @@ const FilteredRides = ({ resetFilters, setResetFilters, isDarkMode, journeyType 
     }
 
     if (dropoffLocation.length > 0) {
-      // Journey Service does not currently calculate deal with radius correctly. This needs to be fixed
       filters.DistanceRadius = pickupRadius;
       filters.EndLat = dropoffCoords.lat;
       filters.EndLong = dropoffCoords.lon;
