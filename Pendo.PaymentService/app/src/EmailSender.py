@@ -1,3 +1,8 @@
+# 
+# SendGrid Handler
+# Author: James Kinely & Alexander McCall
+#
+
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
