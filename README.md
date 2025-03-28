@@ -89,7 +89,7 @@ The following backlog outlines all features and requirements for the Pendolare p
 | **21** | Allow management to configure booking fees | Functional | Low (2) | ✅ Completed |
 | **22** | Allow management to view weekly income (0.5% fee) | Functional | High (1) | ✅ Completed |
 | **23** | Plot management earnings graphically | Functional | Low (2) | ✅ Completed |
-| **24** | Enable temporary deactivation of journeys (illness/holiday) | Functional | Low (2) | ✅ Completed |
+| **24** | Enable temporary deactivation of journeys (illness/holiday) | Functional | Low (2) | ❎ Not Completed |
 | **25** | Provide discounts for frequent users (>4 trips per week) | Functional | Low (2) | ✅ Completed |
 | **26** | Allow communication between users and management | Functional | Low (2) | ✅ Completed |
 | **27** | Support simultaneous multi-client usage | Functional | Low (2) | ✅ Completed |
