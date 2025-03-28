@@ -237,6 +237,7 @@ const Profile = () => {
           <RequestPayoutModal
             visible={payoutModalVisible}
             onClose={() => setPayoutModalVisible(false)}
+            amount={balanceSheet.NonPending.toFixed(2).toString()}
           />
       </ScrollView>
     </ThemedSafeAreaView>

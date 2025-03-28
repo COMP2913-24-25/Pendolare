@@ -92,7 +92,6 @@ const Home = () => {
         return;
       }
       
-      
       // Split the rides into upcoming and past based on the current time
       const cancelled = allRides.filter(ride => ride.Status === "Cancelled");
       const upcoming = allRides.filter(ride => ride.RideTime.getTime() > Date.now() && !cancelled.includes(ride));
@@ -112,23 +111,13 @@ const Home = () => {
   };
 
   useEffect(() => {
-    fetchBookings(false);
-    fetchBookings(true);
-  }, []);
-
-  useEffect(() => {
     setCurrentJourneyTab("Upcoming");
   }, []);
 
-  // Add focus effect to refresh data when tab becomes active
   useFocusEffect(
     useCallback(() => {
-      console.log("Home tab focused - refreshing bookings");
       fetchBookings(false);
       fetchBookings(true);
-      return () => {
-        // Cleanup if needed
-      };
     }, [])
   );
 
