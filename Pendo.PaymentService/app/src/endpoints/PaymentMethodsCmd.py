@@ -1,9 +1,14 @@
+# 
+# PaymentMethods endpoint implementation
+# Author: Alexander McCall
+#
+
 from ..returns.PaymentReturns import ViewBalanceResponse, StatusResponse, SingularPaymentMethod, PaymentMethodResponse
 import stripe 
 
 class PaymentMethodsCommand:
     """
-    PaymentMethodsCommand class is responsible for finding and returning the payment methods of a user.
+    PaymentMethodsCommand class is responsible for finding and returning the payment methods of a user from Stripe.
     """
 
     def __init__(self, logger, UserId, secret):
