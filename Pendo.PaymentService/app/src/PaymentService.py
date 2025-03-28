@@ -124,9 +124,6 @@ def CompletedBooking(request: CompletedBookingRequest, db: Session = Depends(get
     """
     Used when a booking status changes to complete, takes payment from user's saved card details and non-pending balance
     """
-    # TODO: Complete Confirm endpoint - Catherine
-    # See src/endpoints/CompletedBookingCmd
-
     response = CompletedBookingCommand(logging.getLogger("CompleteBooking"), request.BookingId, request.LatestPrice).Execute()
     if response.Status != "success":
         raise HTTPException(400, detail=response.Error)
