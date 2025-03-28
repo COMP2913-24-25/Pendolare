@@ -82,13 +82,13 @@ def generateEmailDataFromAmmendment(ammendment, driver, journey, vehicle):
 
     return dict
 
-def generateEmailDataFromBooking(booking, driver, journey, vehicle):
+def generateEmailDataFromBooking(booking, driver, journey, vehicle, startTimeOverride = None):
     dict = {
         "booking_id": f"{booking.BookingId}",
         "driver_name": driver.FirstName if driver.FirstName is not None else "(Name not set)",
         "pickup_location": journey.StartName,
-        "pickup_time": journey.StartTime.strftime('%H:%M'),
-        "pickup_date": journey.StartDate.strftime('%d/%m/%Y'),
+        "pickup_time": startTimeOverride if startTimeOverride is not None else journey.StartTime.strftime('%H:%M'),
+        "pickup_date": startTimeOverride if startTimeOverride is not None else journey.StartDate.strftime('%d/%m/%Y'),
         "dropoff_location": journey.EndName,
         "vehicle_info": vehicle
     }

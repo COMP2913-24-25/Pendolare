@@ -21,6 +21,7 @@ class AddBookingAmmendmentRequest(BaseModel):
     CancellationRequest: bool = False
     DriverApproval: bool = False
     PassengerApproval: bool = False
+    Recurrance: Optional[str] = None
 
 class ApproveBookingAmmendmentRequest(BaseModel):
     UserId: UUID
@@ -33,6 +34,7 @@ class ApproveBookingRequest(BaseModel):
 
 class ConfirmAtPickupRequest(BaseModel):
     UserId: UUID
+    JourneyTime: datetime = None
 
 class CreateBookingRequest(BaseModel):
     UserId: UUID

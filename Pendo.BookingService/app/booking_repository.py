@@ -52,7 +52,7 @@ class BookingRepository():
             .all()
         
         for booking in bookings:
-            startTime, startName, startLong, startLat, endName, endLong, endLat, rideTime, price = (None,) * 9
+            startTime, startName, startLong, startLat, endName, endLong, endLat, rideTime, price, reccurance = (None,) * 10
 
             if booking.BookingAmmendment:
                 for amendment in sorted(booking.BookingAmmendment, key=lambda x: x.CreateDate):
@@ -65,7 +65,7 @@ class BookingRepository():
                     endLat = self.setIfNotNull(amendment.EndLat)
                     rideTime = self.setIfNotNull(amendment.StartTime)
                     price = self.setIfNotNull(amendment.ProposedPrice)
-                    reccurance = self.setIfNotNull(amendment.Reccurance)
+                    reccurance = self.setIfNotNull(amendment.Recurrance)
 
             return_dto.append({
                 "Booking": {
@@ -93,7 +93,7 @@ class BookingRepository():
                     "Price": self.setDefaultIfNotNull(price, booking.Journey_.AdvertisedPrice),
                     "JourneyStatusId": booking.Journey_.JourneyStatusId,
                     "JourneyType": booking.Journey_.JourneyType,
-                    "Reccurance": self.setDefaultIfNotNull(reccurance, booking.Journey_.Reccurance)
+                    "Recurrance": self.setDefaultIfNotNull(reccurance, booking.Journey_.Recurrance)
                 }
             })
 
@@ -234,6 +234,14 @@ class BookingRepository():
         :param booking_ammendment: BookingAmmendment object to be updated.
         """
         booking_ammendment.UpdateDate = datetime.now()
+        self.db_session.commit()
+
+    def UpdateBooking(self, booking):
+        """
+        UpdateBooking method updates an existing booking in the database.
+        :param booking: Booking object to be updated.
+        """
+        booking.UpdateDate = datetime.now()
         self.db_session.commit()
 
     def CalculateDriverRating(self, driver_id):

@@ -62,8 +62,11 @@ class CreateBookingCommand:
             
             existing_booking = self.booking_repository.GetExistingBooking(user.UserId, journey.JourneyId)
             if existing_booking is not None:
-                self.response.status_code = status.HTTP_400_BAD_REQUEST
-                raise Exception("Booking for this journey already exists")
+                if journey.JourneyType == 2:
+                    self._handleNewBookingWindow(existing_booking)
+                else:
+                    self.response.status_code = status.HTTP_400_BAD_REQUEST
+                    raise Exception("Booking for this journey already exists")
             
             current_booking_fee = self.configuration_provider.GetSingleValue(next(get_db()), "Booking.FeeMargin")
             if current_booking_fee is None:
@@ -105,3 +108,21 @@ class CreateBookingCommand:
                 self.response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
                 
             return StatusResponse(Status="Failed", Message=str(e))
+        
+    def _handleNewBookingWindow(self, existing_booking):
+        """
+        Method to handle the creation of a new booking window for a commuter journey.
+        :param existing_booking: Existing booking object.
+        """
+        if existing_booking.BookedWindowEnd is not None and existing_booking.BookedWindowEnd >= self.request.JourneyTime:
+            self.logger.debug("Booking window has not passed. No action required")
+            return
+
+        self.logger.debug("Booking window has passed. Creating new booking window.")
+        new_window_start, new_window_end = getNextTimes(self.request.JourneyTime, existing_booking.Journey.Recurrance)
+
+        existing_booking.RideTime = new_window_start
+        existing_booking.BookedWindowEnd = new_window_end
+        self.booking_repository.UpdateBooking(existing_booking)
+
+        self.logger.debug("New booking window created successfully.")

@@ -16,9 +16,6 @@ def checkTimeValid(cron, time):
         return cron.check_trigger(time_tuple)
     except Exception as e:
         return str(e)
-    
-from croniter import croniter
-from datetime import datetime
 
 def toHumanReadable(cron: str) -> str:
     """
