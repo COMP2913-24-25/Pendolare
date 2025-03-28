@@ -4,25 +4,28 @@ import { Text } from "@/components/common/ThemedText";
 import { useTheme } from "@/context/ThemeContext";
 import UpcomingRideDetailsModal from "./Modals/UpcomingRideDetailsModal";
 import { approveBooking, BookingDetails } from "@/services/bookingService";
+import { toHumanReadable } from "@/utils/cronTools";
 
 interface DriverRideCardProps {
   booking: BookingDetails; // Only accept BookingDetails
   journeyView?: boolean;
   approveBookingCallback?: () => void;
+  isCommuter?: boolean;
 }
 
 /*
     DriverRideCard
     Card for a ride from the perspective of the driver
 */
-const DriverRideCard = ({ booking, journeyView = false, approveBookingCallback }: DriverRideCardProps) => {
+const DriverRideCard = ({ booking, journeyView = false, approveBookingCallback, isCommuter = false }: DriverRideCardProps) => {
   const { isDarkMode } = useTheme();
   const [showDetails, setShowDetails] = useState(false);
   
   // Log what we're receiving
   console.log("DriverRideCard received:", { 
     hasBooking: !!booking,
-    journeyView
+    journeyView,
+    isCommuter
   });
   
   // Extract needed data from the booking
@@ -92,11 +95,32 @@ const DriverRideCard = ({ booking, journeyView = false, approveBookingCallback }
         <Text className="text-blue-600 font-JakartaBold">{`£${journey.Price.toFixed(2)}`}</Text>
       </View>
 
+      {/* Add commuter journey badge */}
+      {isCommuter && (
+        <View className="mb-2 bg-blue-100 self-start rounded-full px-2 py-1">
+          <Text className="text-blue-800 text-xs">Commuter Journey</Text>
+        </View>
+      )}
+
       <View className="mb-2">
         <Text className={`${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
           {rideTime.toLocaleString()}
         </Text>
       </View>
+
+      {/* Show recurrence information if this is a commuter journey */}
+      {isCommuter && journey.Recurrance && (
+        <View className="mb-2 py-1 px-2 bg-gray-100 rounded-md">
+          <Text className="text-sm text-gray-700">
+            {toHumanReadable(journey.Recurrance)}
+          </Text>
+          {journey.RepeatUntil && (
+            <Text className="text-xs text-gray-500">
+              Until {new Date(journey.RepeatUntil).toLocaleDateString()}
+            </Text>
+          )}
+        </View>
+      )}
 
       <View className="mb-1">
         <Text className={`${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
