@@ -111,7 +111,7 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
 
   const handleCommuterBooking = async () => {
     const twoWeeks = 1209600000; // 2 weeks in milliseconds
-    const result = await createBooking(ride.JourneyId, new Date(ride.departureTime), new Date(twoWeeks));
+    const result = await createBooking(ride.JourneyId, new Date(ride.departureTime), new Date(new Date(ride.departureTime).getTime() + twoWeeks));
 
     console.log("Commuter booking result:", result);
     

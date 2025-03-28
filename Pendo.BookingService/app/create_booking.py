@@ -97,6 +97,8 @@ class CreateBookingCommand:
                 numJourneysInWindow = len(getNextTimes(journey.Recurrance, booking.RideTime, booking.BookedWindowEnd, 9999))
                 
             amount = journey.AdvertisedPrice * numJourneysInWindow
+            print(journey.AdvertisedPrice, numJourneysInWindow, amount)
+            print(booking.BookingId, booking.RideTime, booking.BookedWindowEnd)
 
             # Notify payment service of new booking
             if not self.payment_service_client.PendingBookingRequest(booking.BookingId, amount):
@@ -135,10 +137,10 @@ class CreateBookingCommand:
             return
 
         self.logger.debug("Booking window has passed. Creating new booking window.")
-        new_window_start, new_window_end = getNextTimes(self.request.JourneyTime, existing_booking.Journey.Recurrance)
 
-        existing_booking.RideTime = new_window_start
-        existing_booking.BookedWindowEnd = new_window_end
+        existing_booking.RideTime = self.request.JourneyTime
+        existing_booking.BookedWindowEnd = self.request.EndCommuterWindow
+
         self.booking_repository.UpdateBooking(existing_booking)
 
         self.logger.debug("New booking window created successfully.")
