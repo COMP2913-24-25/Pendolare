@@ -1,3 +1,8 @@
+# 
+# Request bodies for Pendo.PaymentService
+# Author: Alexander McCall
+#
+
 from pydantic import BaseModel
 from ..db.PendoDatabase import User, UserBalance
 from uuid import UUID
