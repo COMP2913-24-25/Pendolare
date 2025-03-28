@@ -105,8 +105,6 @@ export async function getJourneys(filters?: GetJourneysRequest): Promise<GetJour
 
 export async function createJourney(payload: CreateJourneyRequest): Promise<any> {
     try {
-        payload.BootHeight = 0;
-        payload.BootWidth = 0;
         payload.CurrencyCode = "GBP";
         payload.LockedUntil = new Date().toISOString();
         const response = await apiRequest<any>(

@@ -45,6 +45,8 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
   const [cost, setCost] = useState("");
   const [seats, setSeats] = useState("");
   const [regPlate, setRegPlate] = useState("");
+  const [bootHeight, setBootHeight] = useState(""); // New state for boot height
+  const [bootWidth, setBootWidth] = useState("");   // New state for boot width
   
   // Date and time states
   const [date, setDate] = useState(new Date());
@@ -128,8 +130,8 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
         MaxPassengers: parseInt(seats, 10),
         JourneyStatusId: 1,
         RegPlate: regPlate,
-        BootWidth: 0,
-        BootHeight: 0,
+        BootHeight: Number(bootHeight),
+        BootWidth: Number(bootWidth)
       };
       
       // Add commuter-specific properties if applicable
@@ -197,6 +199,10 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
               setSeats={setSeats}
               regPlate={regPlate}
               setRegPlate={setRegPlate}
+              bootHeight={bootHeight}
+              setBootHeight={setBootHeight}
+              bootWidth={bootWidth}
+              setBootWidth={setBootWidth}
             />
           )}
           
@@ -228,6 +234,8 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
               cost={cost}
               seats={seats}
               date={date}
+              bootHeight={bootHeight}      // Pass bootHeight prop
+              bootWidth={bootWidth}        // Pass bootWidth prop
             />
           )}
         </ScrollView>
