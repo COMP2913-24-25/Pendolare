@@ -80,7 +80,7 @@ const UpcomingRideCard = ({ booking, onPress }: UpcomingRideCardProps) => {
       <View className="flex-row justify-between items-center mb-2">
         <Text
           className="text-lg font-JakartaBold flex-1"
-          numberOfLines={2}
+          numberOfLines={3}
           adjustsFontSizeToFit
           minimumFontScale={1}
         >
