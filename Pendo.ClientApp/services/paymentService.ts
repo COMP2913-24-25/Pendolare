@@ -14,14 +14,14 @@ export interface StatusResponse {
   Error: string;
 }
 
-export interface PaymentSheetResponse {
-    Status: string,
-    PaymentIntent: string,
-    EphemeralKey: string,
-    CustomerId: string,
-    PublishableKey: string
+export interface SingularPaymentMethod {
+  Brand: string;
+  Funding: string;
+  Last4: string;
+  Exp_month: number;
+  Exp_year: number;
+  PaymentType: string;
 }
-
 export interface Discount {
   // Update property names to match API response format
   DiscountId: string;
@@ -29,15 +29,27 @@ export interface Discount {
   DiscountPercentage: number;
   CreateDate: string;
 }
+export interface PaymentMethodResponse {
+  Status: string;
+  Methods: Array<SingularPaymentMethod>
+}
+
+export interface PaymentSheetResponse {
+  Status: string,
+  PaymentIntent: string,
+  EphemeralKey: string,
+  CustomerId: string,
+  PublishableKey: string
+}
 
 /*
- * Get PaymentSheet
+ * Get PaymentMethods
  * Note: The UserId is automatically added by the Kong gateway
  */
-export async function ViewBalance(): Promise<BalanceSheet> {
+export async function PaymentMethods(): Promise<PaymentMethodResponse> {
   try {
-    const response = await apiRequest<BalanceSheet>(
-      PAYMENT_ENDPOINTS.VIEW_BALANCE,
+    const response = await apiRequest<PaymentMethodResponse>(
+      PAYMENT_ENDPOINTS.PAYMENT_METHODS,
       {
         method: "POST",
         body: JSON.stringify({}),
@@ -50,10 +62,8 @@ export async function ViewBalance(): Promise<BalanceSheet> {
   } catch (error) {
     console.error("View Balance error:", error);
     return {
-        Status: "fail",
-        Pending: -99,
-        NonPending: -99,
-        Weekly: []
+      Status: "fail",
+      Methods: []
     };
   }
 }
@@ -78,20 +88,20 @@ export async function PayoutRequest(): Promise<StatusResponse> {
   } catch (error) {
     console.error("Payout error:", error);
     return {
-        Status: "fail",
-        Error: String(error)
+      Status: "fail",
+      Error: String(error)
     };
   }
 }
 
 /*
- * Post MethodsRequest
+ * Post ViewBalance
  * Note: The UserId is automatically added by the Kong gateway
  */
-export async function MethodsRequest(): Promise<StatusResponse> {
+export async function ViewBalance(): Promise<BalanceSheet> {
   try {
-    const response = await apiRequest<StatusResponse>(
-      PAYMENT_ENDPOINTS.PAYMENT_METHODS,
+    const response = await apiRequest<BalanceSheet>(
+      PAYMENT_ENDPOINTS.VIEW_BALANCE,
       {
         method: "POST",
         body: JSON.stringify({}),
@@ -99,34 +109,42 @@ export async function MethodsRequest(): Promise<StatusResponse> {
       true
     );
 
+    console.log(response)
+
     return response;
 
   } catch (error) {
     console.error("Payout error:", error);
     return {
-        Status: "fail",
-        Error: String(error)
+      Status: "fail",
+      Pending: 0.00,
+      NonPending: 0.00,
+      Weekly: [],
     };
   }
 }
 
+/*
+ * Fetch PaymentSheet Parameters
+ * Returns neccecary attributes for presentation of payment sheet
+*/
 export const fetchPaymentSheetParams = async (amount: number) => {
-        const response = await apiRequest<PaymentSheetResponse>(
-            PAYMENT_ENDPOINTS.PAYMENT_SHEET,
-            {
-                method: "POST",
-                body: JSON.stringify({Amount: amount}),
-            },
-            true
-        );
+  const response = await apiRequest<PaymentSheetResponse>(
+    PAYMENT_ENDPOINTS.PAYMENT_SHEET,
+    {
+      method: "POST",
+      body: JSON.stringify({ Amount: amount }),
+    },
+    true
+  );
 
-        const {PaymentIntent, EphemeralKey, CustomerId} = await response
+  const { PaymentIntent, EphemeralKey, CustomerId } = await response
 
-        return {
-            PaymentIntent, 
-            EphemeralKey,
-            CustomerId
-        }
+  return {
+      PaymentIntent, 
+      EphemeralKey,
+      CustomerId
+  }
 }
 
 /**
@@ -168,4 +186,3 @@ export const findDiscountForJourneys = async (journeysPerWeek: number): Promise<
     return null;
   }
 };
-

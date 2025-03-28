@@ -47,7 +47,6 @@ const UpcomingRideDetailsModal = ({
   const { isDarkMode } = useTheme();
   const [showScheduleAmendmentModal, setShowScheduleAmendmentModal] = useState(false);
 
-  // Add detailed structure logging to diagnose the issue
   useEffect(() => {
     if (booking) {
       console.log("Booking structure:", {
@@ -57,6 +56,8 @@ const UpcomingRideDetailsModal = ({
         hasBooking: !!booking.Booking,
         hasStatus: !!booking.BookingStatus
       });
+
+      console.log("Booking details:", booking.Journey.Recurrance);
       
       // If Journey exists but is empty, log that specifically
       if (booking.Journey && Object.keys(booking.Journey).length === 0) {

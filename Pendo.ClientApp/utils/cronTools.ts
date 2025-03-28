@@ -91,6 +91,7 @@ export function getNextCronDates(
       const interval = cronParser.parse(cronExpression, { currentDate: startDate, endDate: maxDate });
       
       if (!interval.hasNext()) {
+        console.log("No next dates available for the given CRON expression.");
         return results;
       }
 
@@ -108,6 +109,7 @@ export function getNextCronDates(
         nextDate = interval.next().toDate();
       }
       
+      console.log("Next dates: ", results.length);
       return results;
     }
     catch(error){

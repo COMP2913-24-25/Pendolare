@@ -72,6 +72,7 @@ const Book = () => {
         <Modal
           visible={showCreateRideModal}
           animationType="slide"
+          presentationStyle="pageSheet"
           onRequestClose={() => setShowCreateRideModal(false)}
         >
           <CreateRide onClose={() => setShowCreateRideModal(false)} />
