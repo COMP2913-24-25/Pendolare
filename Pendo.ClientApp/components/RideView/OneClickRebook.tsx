@@ -5,10 +5,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { rebookCommuterJourney } from '@/services/bookingService';
 
 interface OneClickRebookProps {
-  journeyId: string;
-  originalDuration?: number;
-  startDate?: Date;
-  onSuccess?: () => void;
+  onPress?: () => void;
   compact?: boolean;
 }
 
@@ -17,58 +14,17 @@ interface OneClickRebookProps {
  * an expired commuter journey preserving the original booking's duration
  */
 const OneClickRebook = ({ 
-  journeyId, 
-  originalDuration,
-  startDate, 
-  onSuccess, 
+  onPress, 
   compact = false 
 }: OneClickRebookProps) => {
   const { isDarkMode } = useTheme();
   const [isRebooking, setIsRebooking] = useState(false);
   
-  const handleRebook = async () => {
-    try {
-      setIsRebooking(true);
-      
-      const result = await rebookCommuterJourney(
-        journeyId, 
-        {
-          startDate: startDate || new Date(),
-          customDuration: originalDuration
-        }
-      );
-      
-      if (result.success) {
-        Alert.alert(
-          "Success",
-          "Journey rebooked successfully! Your commuter journey has been extended.",
-          [{ text: "OK" }]
-        );
-        if (onSuccess) onSuccess();
-      } else {
-        Alert.alert(
-          "Booking Failed",
-          result.message || "Failed to rebook journey. Please try again.",
-          [{ text: "OK" }]
-        );
-      }
-    } catch (error) {
-      console.error("Error rebooking journey:", error);
-      Alert.alert(
-        "Error",
-        "An unexpected error occurred. Please try again later.",
-        [{ text: "OK" }]
-      );
-    } finally {
-      setIsRebooking(false);
-    }
-  };
-  
   if (compact) {
     return (
       <TouchableOpacity
         className={`py-2 px-4 rounded-full ${isDarkMode ? 'bg-blue-700' : 'bg-blue-600'}`}
-        onPress={handleRebook}
+        onPress={onPress}
         disabled={isRebooking}
       >
         {isRebooking ? (
@@ -88,7 +44,7 @@ const OneClickRebook = ({
             ? (isDarkMode ? 'bg-blue-800' : 'bg-blue-400') 
             : (isDarkMode ? 'bg-blue-700' : 'bg-blue-600')
         }`}
-        onPress={handleRebook}
+        onPress={onPress}
         disabled={isRebooking}
       >
         {isRebooking ? (

@@ -6,7 +6,11 @@ import StatusBadge from "./StatusBadge";
 import CronVisualizer from "./CronVisualiser";
 import { getNextCronDates } from "@/utils/cronTools";
 import OneClickRebook from "./OneClickRebook";
-import CheckoutModal from "./Modals/CheckoutModal";
+import CheckoutModal, { SubRide } from "./Modals/CheckoutModal";
+import { useState } from "react";
+import { ViewBalance } from "@/services/paymentService";
+import { createBooking } from "@/services/bookingService";
+import { create } from "react-test-renderer";
 
 interface UpcomingRideCardProps {
   booking?: BookingDetails;
@@ -19,6 +23,58 @@ interface UpcomingRideCardProps {
 */
 const UpcomingRideCard = ({ booking, onPress }: UpcomingRideCardProps) => {
   const { isDarkMode } = useTheme();
+  const [visible, setVisible] = useState(false);
+  const [userBalance, setUserBalance] = useState(0);
+  const [subrides, setSubrides] = useState<SubRide[]>([]);
+  const [endDate, setEnddate] = useState<Date>(new Date(Date.now() + (1000 * 60 * 60 * 24 * 14)));
+  const [startDate, setStart] = useState<Date>(new Date());
+
+  const handleRebookCommuter = async () => {
+    createBooking(booking?.Journey.JourneyId as any,
+      startDate,
+      endDate
+    ).then((res) => {
+        console.log("Rebooked successfully:", res);
+        setVisible(false);
+      });
+  }
+
+  async function getSubrides() {
+    // Fetch subrides here
+    let start = booking?.Booking.BookedWindowEnd ? new Date(booking.Booking.BookedWindowEnd) : new Date();
+
+    if (start < new Date()) {
+      start = new Date(Date.now() + (1000 * 60 * 15));
+    }
+
+    setStart(start);
+
+    const twoWeeksFromNow = new Date(Date.now() + (1000 * 60 * 60 * 24 * 14));
+    let end = new Date(booking?.Journey?.RepeatUntil ?? twoWeeksFromNow.getTime()) > twoWeeksFromNow 
+    ? twoWeeksFromNow : new Date(booking?.Journey.RepeatUntil ?? twoWeeksFromNow.getTime());
+
+    if (end === undefined) {
+      // don't ask
+      end = twoWeeksFromNow;
+    }
+
+    setEnddate(end);
+
+    const times = getNextCronDates(booking?.Journey.Recurrance as string, start, end, 40);
+
+    times.forEach((time) => {
+      console.log("Time:", time);
+    });
+
+    setSubrides(times.map((time) => {
+      return {
+        journeyId: booking?.Journey.JourneyId as string,
+        journeyDate: time as Date,
+        price: booking?.Journey.Price as number,
+        parent: booking?.Journey,
+      };
+    }));
+  }
   
   // Log the booking data to see its structure
   console.log("UpcomingRideCard received booking:", booking);
@@ -117,13 +173,26 @@ const UpcomingRideCard = ({ booking, onPress }: UpcomingRideCardProps) => {
       <View className="mt-2">
         <CronVisualizer
           cron={booking.Journey.Recurrance}
-          endDate={rideTime}
+          endDate={booking.Journey.RepeatUntil ?? rideTime}
           isDarkMode={isDarkMode}
           />
-            <View>
-              <OneClickRebook onRebook={() => console.log("Rebook clicked")} />
-              {/*<CheckoutModal*/}
-            </View>
+          <View>
+            <OneClickRebook onPress={() => {
+              getSubrides();
+              ViewBalance().then((balance) => {
+                setUserBalance(balance.NonPending);
+              });
+              setVisible(true);
+            }}/>
+            <CheckoutModal
+              visible={visible}
+              onClose={() => setVisible(false)}
+              onConfirm={handleRebookCommuter}
+              isDarkMode={isDarkMode}
+              userBalance={userBalance}
+              subrides={subrides}
+              />
+          </View>
       </View>)}
     </TouchableOpacity>
   );
