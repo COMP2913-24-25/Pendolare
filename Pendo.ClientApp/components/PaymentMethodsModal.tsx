@@ -11,6 +11,8 @@ interface BlankModalProps {
   onClose: () => void;
 }
 
+const methods = [1, 2, 3]
+
 /*
   PaymentMethodsModal
   To display the PaymentSheet to user
@@ -38,17 +40,36 @@ const PaymentMethodsModal = ({ visible, onClose }: BlankModalProps) => {
                 color={isDarkMode ? "#FFF" : "#000"}
               />
             </TouchableOpacity>
-            <Text className="text-2xl font-JakartaBold mt-4">Blank Modal</Text>
+            <Text className="text-2xl font-JakartaBold mt-4">Saved Payment Methods</Text>
             <View className="w-10 mt-4" />
           </View>
 
           {/* Body */}
-          <View className="flex-1 justify-center items-center">
-            <Text className={`text-base ${isDarkMode ? "text-white" : "text-black"}`}>
-              This is a blank modal.
-            </Text>
+        <View
+          className={`flex rounded-xl p-1 mb-4`}
+        >
+          {methods.map((amount) => (
+          <TouchableOpacity
+          key={amount}
+          className={`flex-1 py-2 rounded-lg`}
+          style = {{borderColor: "#000", 
+                    borderWidth: 2, 
+                    minHeight: 100,
+                    margin: 5, 
+                    justifyContent: "center", 
+                    alignItems: "center", 
+                    backgroundColor: isDarkMode ? "#fff" : "#fff" }}
+        >
+          <Text
+            className={`text-center text-xl font-JakartaSemiBold`}
+          >
+            {"£" + amount}
+          </Text>
+        </TouchableOpacity>
+        ))}
+        </View>
 
-          </View>
+
         </View>
       </SafeAreaView>
     </Modal>
