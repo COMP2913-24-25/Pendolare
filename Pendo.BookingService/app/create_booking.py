@@ -9,6 +9,7 @@ from .responses import StatusResponse
 from .requests import CreateBookingRequest
 from .db_provider import get_db
 from .payment_service_api import PaymentServiceClient
+from .models import Discounts
 
 class CreateBookingCommand:
     """
@@ -100,10 +101,13 @@ class CreateBookingCommand:
             
             # Apply discount if present for commuter journeys
             if journey.JourneyType == 2 and journey.DiscountID is not None:
-                discount = self.booking_repository.db_session.query(Discounts).filter_by(DiscountID=journey.DiscountID).first()
-                if discount is not None:
-                    self.logger.info(f"Applying discount: {discount.DiscountPercentage * 100}% off for {discount.WeeklyJourneys} weekly journeys")
-                    amount = amount * (1 - discount.DiscountPercentage)
+                try:
+                    discount = self.booking_repository.db_session.query(Discounts).filter_by(DiscountID=journey.DiscountID).first()
+                    if discount is not None:
+                        self.logger.info(f"Applying discount: {discount.DiscountPercentage * 100}% off for {discount.WeeklyJourneys} weekly journeys")
+                        amount = amount * (1 - discount.DiscountPercentage)
+                except Exception as e:
+                    self.logger.warning(f"Could not apply discount: {e}")
                     
             print(journey.AdvertisedPrice, numJourneysInWindow, amount)
             print(booking.BookingId, booking.RideTime, booking.BookedWindowEnd)

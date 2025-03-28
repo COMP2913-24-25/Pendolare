@@ -11,7 +11,7 @@ Base = declarative_base()
 class BookingStatus(Base):
     __tablename__ = 'BookingStatus'
     __table_args__ = (
-        PrimaryKeyConstraint('BookingStatusId', name='PK__BookingS__54F9C05D0641ACC0'),
+        PrimaryKeyConstraint('BookingStatusId', name='PK__BookingS__54F9C05D74A30BE8'),
         {'schema': 'booking'}
     )
 
@@ -26,7 +26,7 @@ class BookingStatus(Base):
 class UserType(Base):
     __tablename__ = 'UserType'
     __table_args__ = (
-        PrimaryKeyConstraint('UserTypeId', name='PK__UserType__40D2D816618C75DF'),
+        PrimaryKeyConstraint('UserTypeId', name='PK__UserType__40D2D81658BF604D'),
         {'schema': 'identity'}
     )
 
@@ -38,11 +38,26 @@ class UserType(Base):
     User: Mapped[List['User']] = relationship('User', uselist=True, back_populates='UserType_')
 
 
+class Discounts(Base):
+    __tablename__ = 'Discounts'
+    __table_args__ = (
+        PrimaryKeyConstraint('DiscountID', name='PK__Discount__E43F6DF627B08CEC'),
+        {'schema': 'payment'}
+    )
+
+    DiscountID = mapped_column(Uuid, server_default=text('(newsequentialid())'))
+    WeeklyJourneys = mapped_column(Integer, nullable=False)
+    DiscountPercentage = mapped_column(Float(53), nullable=False)
+    CreateDate = mapped_column(DATETIME2, nullable=False, server_default=text('(getutcdate())'))
+
+    Journey: Mapped[List['Journey']] = relationship('Journey', uselist=True, back_populates='Discounts_')
+
+
 class Configuration(Base):
     __tablename__ = 'Configuration'
     __table_args__ = (
-        PrimaryKeyConstraint('ConfigurationId', name='PK__Configur__95AA53BB9FE08A0F'),
-        Index('UQ__Configur__C41E02899B5066B3', 'Key', unique=True),
+        PrimaryKeyConstraint('ConfigurationId', name='PK__Configur__95AA53BB1403DF28'),
+        Index('UQ__Configur__C41E02896558D695', 'Key', unique=True),
         {'schema': 'shared'}
     )
 
@@ -57,9 +72,9 @@ class User(Base):
     __tablename__ = 'User'
     __table_args__ = (
         ForeignKeyConstraint(['UserTypeId'], ['identity.UserType.UserTypeId'], name='FK_User_UserType'),
-        PrimaryKeyConstraint('UserId', name='PK__User__1788CC4C6A258229'),
+        PrimaryKeyConstraint('UserId', name='PK__tmp_ms_x__1788CC4CBF03BA51'),
         Index('IX_User_UserType', 'UserTypeId'),
-        Index('UQ__User__A9D105340F6024CF', 'Email', unique=True),
+        Index('UQ__tmp_ms_x__A9D10534F96C98F2', 'Email', unique=True),
         {'schema': 'identity'}
     )
 
@@ -82,7 +97,7 @@ class OtpLogin(Base):
     __tablename__ = 'OtpLogin'
     __table_args__ = (
         ForeignKeyConstraint(['UserId'], ['identity.User.UserId'], name='FK_OtpLogin_User'),
-        PrimaryKeyConstraint('OtpLoginId', name='PK__OtpLogin__C597BB319E1A6AFB'),
+        PrimaryKeyConstraint('OtpLoginId', name='PK__OtpLogin__C597BB318BCC0BDE'),
         Index('IX_OtpLogin_UserId', 'UserId'),
         {'schema': 'identity'}
     )
@@ -98,27 +113,12 @@ class OtpLogin(Base):
     User_: Mapped['User'] = relationship('User', back_populates='OtpLogin')
 
 
-class Discounts(Base):
-    __tablename__ = 'Discounts'
-    __table_args__ = (
-        PrimaryKeyConstraint('DiscountID', name='PK__Discount__E43F6DF627B08CEC'),
-        {'schema': 'payment'}
-    )
-
-    DiscountID = mapped_column(Uuid, server_default=text('(newsequentialid())'))
-    WeeklyJourneys = mapped_column(Integer, nullable=False)
-    DiscountPercentage = mapped_column(Float(53), nullable=False)
-    CreateDate = mapped_column(DATETIME2, nullable=False, server_default=text('(getutcdate())'))
-
-    Journey: Mapped[List['Journey']] = relationship('Journey', uselist=True, back_populates='Discounts_')
-
-
 class Journey(Base):
     __tablename__ = 'Journey'
     __table_args__ = (
         ForeignKeyConstraint(['DiscountID'], ['payment.Discounts.DiscountID'], name='FK_Journeys_DiscountID'),
         ForeignKeyConstraint(['UserId'], ['identity.User.UserId'], name='FK_Journeys_UserId'),
-        PrimaryKeyConstraint('JourneyId', name='PK__Journey__4159B9EFBBC50EFA'),
+        PrimaryKeyConstraint('JourneyId', name='PK__tmp_ms_x__4159B9EFEEC326ED'),
         {'schema': 'journey'}
     )
 
@@ -158,7 +158,7 @@ class Booking(Base):
         ForeignKeyConstraint(['BookingStatusId'], ['booking.BookingStatus.BookingStatusId'], name='FK_Booking_BookingStatus'),
         ForeignKeyConstraint(['JourneyId'], ['journey.Journey.JourneyId'], name='FK_Booking_Journey'),
         ForeignKeyConstraint(['UserId'], ['identity.User.UserId'], name='FK_Booking_User'),
-        PrimaryKeyConstraint('BookingId', name='PK__Booking__73951AED3DF9093E'),
+        PrimaryKeyConstraint('BookingId', name='PK__Booking__73951AED844907A0'),
         {'schema': 'booking'}
     )
 
@@ -183,7 +183,7 @@ class BookingAmmendment(Base):
     __tablename__ = 'BookingAmmendment'
     __table_args__ = (
         ForeignKeyConstraint(['BookingId'], ['booking.Booking.BookingId'], name='FK_BookingAmmendment_Booking'),
-        PrimaryKeyConstraint('BookingAmmendmentId', name='PK__BookingA__59DE3C6AB9778538'),
+        PrimaryKeyConstraint('BookingAmmendmentId', name='PK__tmp_ms_x__59DE3C6A423B292A'),
         {'schema': 'booking'}
     )
 

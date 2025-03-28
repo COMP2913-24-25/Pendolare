@@ -28,13 +28,21 @@ const AmendmentRequestBubble: React.FC<AmendmentRequestBubbleProps> = ({
 }) => {
   const { isDarkMode } = useTheme();
   
-  // Determine who can approve this amendment
+  // Correctly identify who needs to approve this amendment
   const needsDriverApproval = !amendment.DriverApproval;
   const needsPassengerApproval = !amendment.PassengerApproval;
   
-  // Check if current user can approve (driver can approve passenger amendments and vice versa)
+  // Check if the current user can approve based on their role
   const canApprove = isDriverView ? needsDriverApproval : needsPassengerApproval;
+
+  // Determine the status of the amendment
+  const isFullyApproved = amendment.DriverApproval && amendment.PassengerApproval;
+  const isPartiallyApproved = (amendment.DriverApproval || amendment.PassengerApproval) && !isFullyApproved;
   
+  // Determine who originally requested this amendment (based on who already approved it)
+  const requestedByDriver = amendment.DriverApproval && !amendment.PassengerApproval;
+  const requestedBy = requestedByDriver ? 'Driver' : 'Passenger';
+
   // Format the amendment details for display
   const formatAmendmentDetails = () => {
     const details = [];
@@ -72,10 +80,7 @@ const AmendmentRequestBubble: React.FC<AmendmentRequestBubbleProps> = ({
     
     return details.length > 0 ? details : ['No changes specified'];
   };
-
-  // Determine who requested this amendment
-  const requestedBy = amendment.DriverApproval ? 'Driver' : 'Passenger';
-
+  
   return (
     <View className={`mb-4 ${isFromCurrentUser ? 'items-end' : 'items-start'}`}>
       <View
@@ -92,11 +97,12 @@ const AmendmentRequestBubble: React.FC<AmendmentRequestBubbleProps> = ({
                 : 'Booking Amendment Request'}
           </Text>
           <View className={`px-2 py-1 rounded-full ${
-            amendment.DriverApproval ? 'bg-blue-600' : 'bg-green-600'
+            requestedByDriver ? 'bg-blue-600' : 'bg-green-600'
           }`}>
             <Text className="text-white text-xs">{requestedBy}</Text>
           </View>
         </View>
+        
         <Text className={`text-xs ${isDarkMode ? 'text-indigo-200' : 'text-indigo-500'}`}>
             Booking ID: {amendment.BookingId}
         </Text>
@@ -121,8 +127,8 @@ const AmendmentRequestBubble: React.FC<AmendmentRequestBubbleProps> = ({
             {formatTimestamp(new Date(timestamp).getTime())}
           </Text>
           
-          {/* Show approval buttons if the user can approve */}
-          {!isFromCurrentUser && canApprove && (
+          {/* Show approval buttons if current user can approve */}
+          {canApprove && (
             <View className="flex-row">
               <TouchableOpacity
                 className="bg-green-600 px-3 py-1 rounded-full mr-2"
@@ -138,25 +144,27 @@ const AmendmentRequestBubble: React.FC<AmendmentRequestBubbleProps> = ({
             </View>
           )}
           
-          {/* Show approval status */}
-          <View className="flex-row items-center">
-            {amendment.DriverApproval && amendment.PassengerApproval ? (
-              <>
-                <FontAwesome5 name="check-circle" size={14} color="green" />
-                <Text className="text-green-600 text-xs ml-1">Fully Approved</Text>
-              </>
-            ) : isFromCurrentUser ? (
-              <>
-                <FontAwesome5 name="clock" size={14} color="orange" />
-                <Text className="text-orange-500 text-xs ml-1">Awaiting Approval</Text>
-              </>
-            ) : (amendment.DriverApproval || amendment.PassengerApproval) ? (
-              <>
-                <FontAwesome5 name="check" size={14} color="green" />
-                <Text className="text-green-600 text-xs ml-1">Partially Approved</Text>
-              </>
-            ) : null}
-          </View>
+          {/* Show approval status when not showing approval buttons */}
+          {(!canApprove || isFullyApproved) && (
+            <View className="flex-row items-center">
+              {isFullyApproved ? (
+                <>
+                  <FontAwesome5 name="check-circle" size={14} color="green" />
+                  <Text className="text-green-600 text-xs ml-1">Fully Approved</Text>
+                </>
+              ) : isPartiallyApproved ? (
+                <>
+                  <FontAwesome5 name="check" size={14} color="orange" />
+                  <Text className="text-orange-500 text-xs ml-1">Partially Approved</Text>
+                </>
+              ) : (
+                <>
+                  <FontAwesome5 name="clock" size={14} color="orange" />
+                  <Text className="text-orange-500 text-xs ml-1">Awaiting Approval</Text>
+                </>
+              )}
+            </View>
+          )}
         </View>
       </View>
     </View>

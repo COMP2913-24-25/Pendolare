@@ -2,6 +2,7 @@ from .request_lib import CreateJourneyRequest
 from fastapi import status
 from datetime import datetime
 import datetime
+from uuid import UUID
 from .PendoDatabase import Discounts
 
 class CheckJourneyData:
@@ -41,7 +42,7 @@ class CheckJourneyData:
         if self.request.JourneyType == 2:
             required_type_2_fields = {
                 'Recurrance': "Recurrance is required for JourneyType 2.",
-                'ReturnUntil': "ReturnUntil is required for JourneyType 2."
+                'RepeatUntil': "RepeatUntil is required for JourneyType 2."
             }
             for field, error_message in required_type_2_fields.items():
                 if getattr(self.request, field) is None:
@@ -55,6 +56,7 @@ class CheckJourneyData:
                     self.logger.error(f"DiscountID {self.request.DiscountID} does not exist")
                     raise Exception(f"DiscountID {self.request.DiscountID} does not exist")
                 self.logger.info(f"Found discount: {discount.DiscountPercentage * 100}% off for {discount.WeeklyJourneys} weekly journeys")
+  
         elif self.request.JourneyType == 1:
             self.request.RepeatUntil = datetime.datetime(9999, 12, 31, 23, 59, 59)
 

@@ -19,7 +19,7 @@ import { formatTimestamp } from "@/utils/formatTime";
 import { getCurrentUserId } from "@/services/authService";
 import BookingAmendmentModal from "@/components/Chat/BookingAmendmentModal";
 import AmendmentRequestBubble from "@/components/Chat/AmendmentRequestBubble";
-import { AddBookingAmmendmentRequest, addBookingAmmendment, approveBookingAmmendment, getBookings } from "@/services/bookingService";
+import { AddBookingAmmendmentRequest, addBookingAmmendment, approveBookingAmmendment, getBookings, getJourneys } from "@/services/bookingService";
 
 /*
   Helper function to generate unique message IDs internally for categorisation
@@ -51,6 +51,7 @@ const ChatDetail = () => {
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   const [autoCreateChat, setAutoCreateChat] = useState(true);
   const previousIdRef = useRef<string | null>(null);
+  const [isDriverMode, setIsDriverMode] = useState(false); // Default to passenger view until determined
 
   // Ensure we have a current user ID
   useEffect(() => {
@@ -111,11 +112,45 @@ const ChatDetail = () => {
     }
   }, [id, currentUserId]);
 
+  // Determine if the current user is a driver or passenger based on their bookings/journeys
+  useEffect(() => {
+    const determineUserRole = async () => {
+      if (!currentUserId) return;
+      
+      try {
+        // First check if the user has any journeys (rides they're driving)
+        const driverBookings = await getBookings(true);
+        
+        // If user has driver bookings, they're a driver in at least some context
+        const isDriver = driverBookings.bookings?.some(booking => 
+          booking.Journey?.User?.UserId === currentUserId
+        );
+        
+        // Set driver mode based on the results
+        setIsDriverMode(isDriver);
+        console.log(`User role determined: ${isDriver ? 'Driver' : 'Passenger'}`);
+        
+      } catch (error) {
+        console.error("Error determining user role:", error);
+        // Default to passenger view if there's an error
+        setIsDriverMode(false);
+      }
+    };
+    
+    determineUserRole();
+  }, [currentUserId]);
+
   /*
     Fetch chat details
   */
   const fetchChatData = async () => {
     try {
+      // Only allow one fetch operation at a time
+      if (chatFetchInProgress) return;
+      
+      // Set a flag to prevent multiple fetches
+      let chatFetchInProgress = true;
+      
       // Fetch conversation details from API
       console.log("Fetching conversation details for:", id);
       const response = await getUserConversations();
@@ -130,97 +165,121 @@ const ChatDetail = () => {
         timestamp: new Date(conv.CreateDate).getTime()
       }));
       
-      // Check if conversation ID matches directly
-      let selectedChat = normalisedConversations.find((c: any) => 
-        c.id === id || c.ConversationId === id
-      );
-      
-      // If not found by ID, check if there's a conversation with this participant
-      if (!selectedChat) {
-        selectedChat = normalisedConversations.find((c: any) => 
-          (c.Name && c.Name.includes(`Chat with ${name || id}`)) || 
-          (c.title && c.title.includes(`Chat with ${name || id}`)) ||
-          c.UserId === id.toString()
-        );
-      }
-      
-      // Ssearch in the participants list if available as a last resort
-      if (!selectedChat) {
-        selectedChat = normalisedConversations.find((c: any) => 
-          c.participants?.includes(id.toString())
-        );
-      }
-
-      if (!selectedChat) {
-        console.log("Chat not found.");
-        
-        // Only auto-create chat when explicitly set to true
-        // This prevents creating new chats on every refresh
-        if (!autoCreateChat) {
-          console.log("Auto-creation disabled. Not creating a new chat.");
-          return;
+      // First check for conversations with the user ID we're looking for
+      let selectedChat = normalisedConversations.find((c: any) => {
+        // Check if conversation ID matches
+        if (c.id === id || c.ConversationId === id) {
+          console.log("Found exact conversation match by ID");
+          return true;
         }
         
-        setIsLoadingHistory(false);
-        const userName: any = typeof name === "undefined" ? id.toString() : name as string;
-
-        try {
-          // Create new conversation
-          const response = await createConversation({
-            ConversationType: "direct",
-            name: `Chat with ${userName}`,
-            participants: [id.toString()]
-          });
-          console.log("Conversation created:", response);
-
-          // Disable auto-creation for subsequent renders
-          setAutoCreateChat(false);
-
-          setHasSetChatVars(true);
-          setChat({
-            id: response.ConversationId,
-            ConversationId: response.ConversationId,
-            type: response.Type,
-            title: response.Name,
-            lastMessage: "",
-            timestamp: new Date().getTime(),
-            UserId: currentUserId // Use the current user ID
-          });  
-
-          return;
-          
-        } catch (error) {
-          console.error("Failed to create conversation:", error);
+        // Check if the user is a participant
+        if (c.participants && c.participants.includes(id.toString())) {
+          console.log("Found conversation where target is a participant");
+          return true;
         }
-      } else {
-        // Found an existing chat, disable auto-creation
+        
+        // Check if conversation name contains the user name
+        const targetName = name?.toString().toLowerCase() || id?.toString().toLowerCase();
+        if (c.Name && c.Name.toLowerCase().includes(targetName)) {
+          console.log("Found conversation match by name");
+          return true;
+        }
+        
+        // Check if user is mentioned in title
+        if (c.title && c.title.toLowerCase().includes(targetName)) {
+          console.log("Found conversation match by title");
+          return true;
+        }
+        
+        // No match
+        return false;
+      });
+      
+      if (selectedChat) {
+        // Found existing chat - always use it
+        console.log("Using existing chat:", selectedChat.id);
         setAutoCreateChat(false);
-        console.log("Found existing chat:", selectedChat.id);
-        
         setHasSetChatVars(true);
         setChat(selectedChat);
+        chatFetchInProgress = false;
+        return;
+      }
+      
+      // No existing conversation was found
+      console.log("No existing conversation found for:", id);
+      
+      // Only create a conversation if explicitly allowed to
+      if (!autoCreateChat || typeof initialMessage === 'undefined' || initialMessage === '') {
+        console.log("Auto-creation disabled or no initial message. Not creating a new chat.");
+        chatFetchInProgress = false;
+        return;
+      }
+      
+      // Clear to create a new conversation
+      console.log("Will attempt to create new conversation");
+      const userName: any = typeof name === "undefined" ? id.toString() : name as string;
+      
+      try {
+        // Create new conversation
+        console.log(`Creating new conversation with ${userName}`);
+        const response = await createConversation({
+          ConversationType: "direct",
+          name: `Chat with ${userName}`,
+          participants: [id.toString()]
+        });
+        
+        console.log("Conversation created successfully:", response);
+        
+        // Immediately disable auto-creation to prevent further attempts
+        setAutoCreateChat(false);
+        
+        // Set chat details
+        setHasSetChatVars(true);
+        setChat({
+          id: response.ConversationId,
+          ConversationId: response.ConversationId,
+          type: response.Type,
+          title: response.Name,
+          lastMessage: "",
+          timestamp: new Date().getTime(),
+          UserId: currentUserId
+        });
+      } catch (error) {
+        console.error("Failed to create conversation:", error);
+        
+        // If conversation already exists but we didn't find it, try fetching again
+        if (String(error).includes("Conversation already exists")) {
+          console.log("Conversation exists but wasn't found initially, retrying fetch");
+          setTimeout(() => fetchChatData(), 1000);
+        }
+      } finally {
+        chatFetchInProgress = false;
       }
     } catch (error) {
-      console.error("Error fetching conversation:", error);
+      console.error("Error in fetchChatData:", error);
     }
   };
 
-  /*
-    Fetch chat details on initial load
-  */
+  // Fix issue with double fetch on mount
   useEffect(() => {
-    // Skip if we don't have a user ID yet
-    if (!currentUserId) return;
-    
-    // Only auto-create chat when this is the first load or when explicitly requested
-    // This drastically reduces unwanted chat creation
-    const shouldAutoCreate = !!initialMessage || 
-                             (typeof initialMessage !== 'undefined' && initialMessage !== '');
-    
-    setAutoCreateChat(shouldAutoCreate);
-    
-    fetchChatData();
-  }, [id, currentUserId]);
+    // This effect is responsible for the initial data fetch
+    // and should only run once the user ID is available
+    if (currentUserId && !chat) {
+      fetchChatData();
+    }
+  }, [currentUserId]);
+
+  // Add this effect to reset auto-create when ID changes
+  useEffect(() => {
+    if (id !== previousIdRef.current) {
+      console.log(`ID changed from ${previousIdRef.current} to ${id}, checking if auto-create needed`);
+      // Only auto-create when there's an initial message
+      const shouldAutoCreate = !!initialMessage && initialMessage !== '';
+      setAutoCreateChat(shouldAutoCreate);
+      previousIdRef.current = id as string;
+    }
+  }, [id, initialMessage]);
 
   useEffect(() => {
     console.log("Chat updated:", chat);
@@ -515,12 +574,18 @@ const ChatDetail = () => {
           
           isCancellation = content.CancellationRequest || false;
           
-          // Get the booking details to determine who is the driver and who is the passenger
-          const bookingsResponse = await getBookings();
+          // Log the booking ID we're looking for
+          console.log("Looking for booking ID:", content.BookingId);
+          
+          // Make sure to get bookings with the driver view parameter matching our current view
+          const bookingsResponse = await getBookings(isDriverMode);
           if (!bookingsResponse.success) {
             console.error("Failed to fetch bookings for amendment approval");
             return;
           }
+          
+          // Log all the booking IDs we received
+          console.log("Received booking IDs:", bookingsResponse.bookings.map(b => b.Booking.BookingId));
           
           // Find the booking that matches this amendment
           const booking = bookingsResponse.bookings.find(b => 
@@ -528,7 +593,35 @@ const ChatDetail = () => {
           );
           
           if (!booking) {
-            console.error("Booking not found for this amendment");
+            console.log("Booking not found directly. Proceeding with amendment approval anyway.");
+            // If we can't find the booking, we'll still try to approve the amendment
+            // using the isDriverMode flag to determine if this is a driver approval
+            const result = await approveBookingAmmendment(
+              amendmentId, 
+              isCancellation,
+              isDriverMode // Use the driver mode flag directly
+            );
+            
+            if (result.success) {
+              console.log("Successfully approved amendment without finding booking");
+              
+              // Update the amendment status in memory to reflect the approval
+              updateAmendmentStatus(amendmentId, content, isDriverMode);
+              
+              // Send approval confirmation message
+              const approvalMessage = {
+                type: "amendment_approved",
+                from: currentUserId,
+                conversation_id: chat.ConversationId,
+                content: `Amendment ${amendmentId} approved`,
+                amendmentId: amendmentId,
+                timestamp: new Date().toISOString(),
+              };
+              
+              messageService.sendMessage(JSON.stringify(approvalMessage));
+            } else {
+              console.error("Failed to approve booking amendment:", result.message);
+            }
             return;
           }
           
@@ -554,10 +647,13 @@ const ChatDetail = () => {
           const result = await approveBookingAmmendment(
             amendmentId, 
             isCancellation,
-            isDriver // Only drivers should approve as drivers
+            isDriverMode // Use isDriverMode consistently instead of isDriver which may be incorrect
           );
           
           if (result.success) {
+            // Update the amendment status in memory to reflect the approval
+            updateAmendmentStatus(amendmentId, content, isDriverMode);
+            
             // Send approval confirmation message
             const approvalMessage = {
               type: "amendment_approved",
@@ -579,6 +675,39 @@ const ChatDetail = () => {
     } catch (error) {
       console.error("Error approving booking amendment:", error);
     }
+  };
+
+  /**
+   * Update the amendment status in the local messages state
+   */
+  const updateAmendmentStatus = (amendmentId: string, content: any, isDriverApproval: boolean) => {
+    // Update the amendment in the local messages state
+    setMessages(prevMessages => {
+      return prevMessages.map(msg => {
+        if (msg.amendmentId === amendmentId && msg.content) {
+          // Clone the content object to avoid modifying the original
+          const updatedContent = typeof msg.content === 'string' 
+            ? JSON.parse(msg.content) 
+            : { ...msg.content };
+          
+          // Update the appropriate approval field
+          if (isDriverApproval) {
+            updatedContent.DriverApproval = true;
+          } else {
+            updatedContent.PassengerApproval = true;
+          }
+          
+          console.log("Updated amendment content:", updatedContent);
+          
+          // Return message with updated content
+          return {
+            ...msg,
+            content: JSON.stringify(updatedContent)
+          };
+        }
+        return msg;
+      });
+    });
   };
 
   /*
@@ -624,6 +753,7 @@ const ChatDetail = () => {
         }
         
         console.log("Processed amendment data:", amendmentData);
+        console.log("Current user is in driver mode:", isDriverMode);
         
         // Render amendment request bubble with the parsed data
         return (
@@ -633,6 +763,7 @@ const ChatDetail = () => {
             isFromCurrentUser={isUser}
             timestamp={message.timestamp}
             onApprove={handleAmendmentApproval}
+            isDriverView={isDriverMode} // Explicitly set driver view mode here
           />
         );
       } catch (error) {
@@ -782,11 +913,11 @@ const ChatDetail = () => {
               <TouchableOpacity
                 className={`w-10 h-10 rounded-full items-center justify-center mr-2 ${
                   isDarkMode ? "bg-slate-700" : "bg-gray-100"
-                }`}
-                onPress={() => setShowAmendmentModal(true)}
-              >
-                <FontAwesome5 name="plus" size={18} color={isDarkMode ? "#FFF" : "#000"} />
-              </TouchableOpacity>
+                  }`}
+                  onPress={() => setShowAmendmentModal(true)}
+                  >
+                  <FontAwesome5 name="plus" size={18} color={isDarkMode ? "#FFF" : "#000"} />
+                  </TouchableOpacity>
               
               <TextInput
                 ref={inputRef}
