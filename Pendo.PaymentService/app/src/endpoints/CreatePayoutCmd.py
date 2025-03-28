@@ -20,6 +20,9 @@ class CreatePayoutCommand:
         self.UserId = UserId
         self.sendGridConfig = sendGridConfig
 
+        self.mailer = MailSender(self.sendGridConfig)
+
+
     def Execute(self):
         """
         Execute method creates a transaction record after refunding items.
@@ -27,9 +30,6 @@ class CreatePayoutCommand:
         """
 
         try:
-
-            mailer = MailSender(self.sendGridConfig)
-
             # get user and balance sheet
             user = self.PaymentRepository.GetUser(self.UserId)
 
@@ -49,12 +49,12 @@ class CreatePayoutCommand:
             self.logger.info("Got balance sheets")
             
             emailData = generateEmailData(user, userSheet.NonPending)
-            mailer.SendPayoutEmail(user.Email, emailData)
+            self.mailer.SendPayoutEmail(user.Email, emailData)
             self.logger.info("Sent Payout email to user ")
 
             admins = self.PaymentRepository.GetAdminUsers()
             for admin in admins:
-                mailer.SendPayoutEmail(admin.Email, emailData)
+                self.mailer.SendPayoutEmail(admin.Email, emailData)
                 self.logger.info("Sent Payout email to admin")
 
             self.PaymentRepository.UpdateNonPendingBalance(user.UserId, (-1 * userSheet.NonPending))
