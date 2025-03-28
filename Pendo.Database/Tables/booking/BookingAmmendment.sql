@@ -19,6 +19,7 @@ CREATE TABLE [booking].[BookingAmmendment]
   [CancellationRequest] BIT NOT NULL DEFAULT 0,
   [DriverApproval] BIT NOT NULL DEFAULT 0,
   [PassengerApproval] BIT NOT NULL DEFAULT 0,
+  [Recurrance] NVARCHAR(100) NULL,
   [CreateDate] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
   [UpdateDate] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
 

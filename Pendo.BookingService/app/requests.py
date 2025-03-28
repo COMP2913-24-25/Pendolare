@@ -21,6 +21,7 @@ class AddBookingAmmendmentRequest(BaseModel):
     CancellationRequest: bool = False
     DriverApproval: bool = False
     PassengerApproval: bool = False
+    Recurrance: Optional[str] = None
 
 class ApproveBookingAmmendmentRequest(BaseModel):
     UserId: UUID
@@ -33,11 +34,13 @@ class ApproveBookingRequest(BaseModel):
 
 class ConfirmAtPickupRequest(BaseModel):
     UserId: UUID
+    JourneyTime: datetime = None
 
 class CreateBookingRequest(BaseModel):
     UserId: UUID
     JourneyId: UUID
     JourneyTime: datetime
+    EndCommuterWindow: Optional[datetime] = None # Only required for commuter journeys - the end of the window for the current booking period
 
 class CompleteBookingRequest(BaseModel):
     UserId: UUID
