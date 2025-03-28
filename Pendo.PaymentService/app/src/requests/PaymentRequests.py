@@ -6,8 +6,9 @@ from datetime import datetime
 class GetwithUUID(BaseModel):
     UserId: UUID
 
-class MakePendingBooking(BaseModel):
+class CompletedBookingRequest(BaseModel):
     BookingId: UUID
+    LatestPrice: float
 
 class PaymentSheetRequest(BaseModel):
     UserId: UUID

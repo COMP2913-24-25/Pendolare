@@ -20,7 +20,7 @@ class MailSender:
         :param data: Data to be passed to the email template.
         :return: Response from SendGrid API.
         """
-        return self._sendEmail(to, data, self.config.pendingTemplateId)
+        return self._sendEmail(to, data, self.config.payoutTemplateId)
 
     def _sendEmail(self, to, data, template_id):
         """
@@ -42,5 +42,5 @@ class MailSender:
 def generateEmailData(driver, nonPending):
     return {
         "driver_name": driver.FirstName if driver.FirstName is not None else "(Name not set)",
-        "non_pending": nonPending
+        "non_pending": float(nonPending)
     }

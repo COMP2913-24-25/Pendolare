@@ -30,9 +30,6 @@ class CreatePayoutCommand:
             
             mailer = MailSender(self.sendGridConfig)
 
-            # reset balance to zero
-            # log transaction in db
-
             # get user and balance sheet
             user = self.PaymentRepository.GetUser(self.UserId)
 
@@ -53,11 +50,12 @@ class CreatePayoutCommand:
             
             emailData = generateEmailData(user, userSheet.NonPending)
             mailer.SendPayoutEmail(user.Email, emailData)
+            self.logger.info("Sent Payout email to user ")
 
             admins = self.PaymentRepository.GetAdminUsers()
-            self.logger.info("ADMINS: ", admins)
             for admin in admins:
                 mailer.SendPayoutEmail(admin.Email, emailData)
+                self.logger.info("Sent Payout email to admin")
 
             self.PaymentRepository.UpdateNonPendingBalance(user.UserId, (-1 * userSheet.NonPending))
 
