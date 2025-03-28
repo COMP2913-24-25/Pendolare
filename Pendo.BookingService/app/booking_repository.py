@@ -128,9 +128,11 @@ class BookingRepository():
         :param booking_id: Id of the booking.
         :return: Booking object.
         """
-        return self.db_session.query(Booking)\
+        res = self.db_session.query(Booking)\
             .join(BookingAmmendment, Booking.BookingId == BookingAmmendment.BookingId, isouter=True)\
-            .get(booking_id)
+            .filter_by(Booking.BookingId == booking_id)
+        
+        return None if len(res) == 0 else res[0]
     
     def GetExistingBooking(self, user_id, journey_id):
         """

@@ -237,7 +237,7 @@ def test_get_journey(booking_repository, mock_db_session):
     mock_db_session.query.assert_called_once_with(Journey)
 
 def test_get_booking_by_id(booking_repository, mock_db_session):
-    mock_db_session.query.return_value.get.return_value = Booking()
+    mock_db_session.query.return_value.join.return_value.filter_by.return_value = [Booking()]
     result = booking_repository.GetBookingById(1)
     assert result is not None
     mock_db_session.query.assert_called_once_with(Booking)
@@ -258,7 +258,7 @@ def test_create_booking(booking_repository, mock_db_session):
 def test_approve_booking(booking_repository, mock_db_session):
 
     booking = Booking(BookingId=1, DriverApproval=False)
-    mock_db_session.query.return_value.join.return_value.get.return_value = booking
+    mock_db_session.query.return_value.join.return_value.filter_by.return_value = [booking]
 
     result = booking_repository.ApproveBooking(1)
     
@@ -270,7 +270,7 @@ def test_update_booking_status(booking_repository, mock_db_session):
         mock_datetime.now.return_value = datetime(2025, 3, 1, 12, 0, 0)
 
         booking = Booking(BookingId=1, BookingStatusId=1)
-        mock_db_session.query.return_value.join.return_value.get.return_value = booking
+        mock_db_session.query.return_value.join.return_value.filter_by.return_value = [booking]
 
         booking_repository.UpdateBookingStatus(1, 2)
         
@@ -287,15 +287,23 @@ def test_add_booking_ammendment(booking_repository, mock_db_session):
 def test_get_booking_ammendment(booking_repository, mock_db_session):
     ammendment = MagicMock()
     ammendment.BookingId = 1
-    booking = MagicMock(UserId=1, JourneyId=1)
-    journey = MagicMock(UserId=2)
-    mock_db_session.query.return_value.get.side_effect = [ammendment, booking, User(), journey, User()]
+    booking = MagicMock()
+    booking.UserId = 1
+    booking.JourneyId = 1
+    passenger = MagicMock()
+    journey = MagicMock()
+    journey.UserId = 2
+    driver = MagicMock()
+
+    mock_db_session.query.return_value.get.return_value = ammendment
+
+    booking_repository.GetBookingById = MagicMock(return_value=booking)
+    booking_repository.GetUser = MagicMock(side_effect=[passenger, driver])
+    booking_repository.GetJourney = MagicMock(return_value=journey)
+
     result = booking_repository.GetBookingAmmendment(1)
-    assert result is not None
-    mock_db_session.query.assert_any_call(BookingAmmendment)
-    mock_db_session.query.assert_any_call(Booking)
-    mock_db_session.query.assert_any_call(User)
-    mock_db_session.query.assert_any_call(Journey)
+    assert result == (ammendment, driver, passenger, journey)
+    mock_db_session.query.assert_called_with(BookingAmmendment)
 
 def test_calculate_driver_rating_no_bookings(booking_repository, mock_db_session):
     mock_db_session.query.return_value.join.return_value.filter.return_value.count.side_effect = [0, 0]
