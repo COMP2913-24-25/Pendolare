@@ -344,3 +344,76 @@ export async function completeBooking(bookingId: string, completed: boolean): Pr
     };
   }
 }
+
+/**
+ * Rebooks an expired commuter journey
+ * Preserves the original booking duration instead of using a fixed 30-day period
+ * 
+ * @param journeyId The ID of the journey to rebook
+ * @param options Optional parameters to customize rebooking
+ * @returns Success status and message
+ */
+export const rebookCommuterJourney = async (
+  journeyId: string,
+  options?: {
+    startDate?: Date;
+    customDuration?: number;
+  }
+): Promise<{success: boolean; message?: string}> => {
+  try {
+    // Default start date is today
+    const startDate = options?.startDate || new Date();
+    
+    // First try to get the original journey details to determine duration
+    let originalDuration = options?.customDuration;
+    
+    if (!originalDuration) {
+      try {
+        const journeyResponse = await getJourneys({
+          DriverView: true
+        });
+        
+        if (journeyResponse.success) {
+          // Find the specific journey
+          const originalJourney = journeyResponse.journeys.find(j => 
+            j.JourneyId === journeyId && j.JourneyType === 2 // Make sure it's a commuter journey
+          );
+          
+          if (originalJourney && originalJourney.RepeatUntil) {
+            // Calculate the original duration in milliseconds
+            const originalStartDate = new Date(originalJourney.StartDate);
+            const originalEndDate = new Date(originalJourney.RepeatUntil);
+            const originalDurationMs = originalEndDate.getTime() - originalStartDate.getTime();
+            
+            // Convert to days, minimum 7 days, maximum 90 days
+            originalDuration = Math.max(7, Math.min(90, Math.ceil(originalDurationMs / (1000 * 60 * 60 * 24))));
+            console.log(`Using original booking duration of ${originalDuration} days`);
+          }
+        }
+      } catch (error) {
+        console.warn("Could not determine original journey duration:", error);
+      }
+      
+      // Default to 30 days if original duration is not found
+      originalDuration = originalDuration || 30;
+    }
+    
+    // Calculate end date based on duration
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + originalDuration);
+    
+    // Use the existing createBooking function
+    const result = await createBooking(journeyId, startDate, endDate);
+    
+    return {
+      success: result.success || result.Status === "Success",
+      message: result.message || result.Message
+    };
+  } catch (error) {
+    console.error("Error rebooking commuter journey:", error);
+    return {
+      success: false,
+      message: "An unexpected error occurred while rebooking"
+    };
+  }
+};

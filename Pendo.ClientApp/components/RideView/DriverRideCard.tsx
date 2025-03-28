@@ -5,6 +5,7 @@ import { useTheme } from "@/context/ThemeContext";
 import UpcomingRideDetailsModal from "./Modals/UpcomingRideDetailsModal";
 import { approveBooking, BookingDetails } from "@/services/bookingService";
 import { toHumanReadable } from "@/utils/cronTools";
+import OneClickRebook from "./OneClickRebook";
 
 interface DriverRideCardProps {
   booking: BookingDetails; // Only accept BookingDetails
@@ -50,6 +51,12 @@ const DriverRideCard = ({ booking, journeyView = false, approveBookingCallback, 
     rideTime = new Date();
   }
   
+  // Check if this is an expired commuter journey that can be rebooked
+  const isExpiredCommuter = isCommuter && 
+    journey.RepeatUntil && 
+    new Date(journey.RepeatUntil) < new Date() &&
+    status.Status !== "Cancelled";
+
   const handleApproveBooking = async () => {
     try {
       if (!approveBookingCallback) return;
@@ -89,11 +96,20 @@ const DriverRideCard = ({ booking, journeyView = false, approveBookingCallback, 
       </View>
 
       {/* Add commuter journey badge */}
-      {isCommuter && (
-        <View className="mb-2 bg-blue-100 self-start rounded-full px-2 py-1">
-          <Text className="text-blue-800 text-xs">Commuter Journey</Text>
-        </View>
-      )}
+      <View className="flex-row flex-wrap">
+        {isCommuter && (
+          <View className="mb-2 mr-2 bg-blue-100 self-start rounded-full px-2 py-1">
+            <Text className="text-blue-800 text-xs">Commuter Journey</Text>
+          </View>
+        )}
+        
+        {/* Add expired badge if applicable */}
+        {isExpiredCommuter && (
+          <View className="mb-2 bg-amber-100 self-start rounded-full px-2 py-1">
+            <Text className="text-amber-800 text-xs">Expired</Text>
+          </View>
+        )}
+      </View>
 
       <View className="mb-2">
         <Text className={`${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
@@ -123,6 +139,19 @@ const DriverRideCard = ({ booking, journeyView = false, approveBookingCallback, 
           To: {journey.EndName}
         </Text>
       </View>
+
+      {/* Show rebook button for expired commuter journeys */}
+      {isExpiredCommuter && journeyView && (
+        <OneClickRebook 
+          journeyId={journey.JourneyId}
+          originalDuration={
+            journey.RepeatUntil && journey.StartDate ? 
+            Math.ceil((new Date(journey.RepeatUntil).getTime() - new Date(journey.StartDate).getTime()) / (1000 * 60 * 60 * 24)) : 
+            undefined
+          }
+          onSuccess={approveBookingCallback}
+        />
+      )}
 
       {/* Only show passenger details if this isn't a journey view */}
       {!journeyView && (
@@ -162,6 +191,7 @@ const DriverRideCard = ({ booking, journeyView = false, approveBookingCallback, 
         driverView={true}
         journeyView={journeyView}
         onApproveJourney={status.Status === "Pending" ? handleApproveBooking : undefined}
+        showRebookOption={isExpiredCommuter}
       />
     </TouchableOpacity>
   );

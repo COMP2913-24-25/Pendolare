@@ -10,20 +10,22 @@ import { Text } from "@/components/common/ThemedText";
 import StatusBadge from "../StatusBadge";
 import CronVisualizer from "../CronVisualiser";
 import CommuterScheduleAmendmentModal from "./CommuterScheduleAmendmentModal";
+import OneClickRebook from "../OneClickRebook";
 import { BookingDetails } from "@/services/bookingService";
 import { getUserConversations } from "@/services/messageService";
 
 interface UpcomingRideDetailsModalProps {
-  booking?: BookingDetails;
+  booking: BookingDetails;
   visible: boolean;
   onClose: () => void;
   onContactDriver: () => void;
   onCancel: () => void;
   onComplete: () => void;
-  onApproveJourney?: () => void;
   isPastRide: boolean;
   driverView?: boolean;
   journeyView?: boolean;
+  onApproveJourney?: () => void;
+  showRebookOption?: boolean;
   children?: React.ReactNode;
 }
 
@@ -42,6 +44,7 @@ const UpcomingRideDetailsModal = ({
   driverView = false,
   journeyView = false,
   onApproveJourney = () => {},
+  showRebookOption = false,
   children,
 }: UpcomingRideDetailsModalProps) => {
   const { isDarkMode } = useTheme();
@@ -285,6 +288,27 @@ const UpcomingRideDetailsModal = ({
                   </View>
                 )}
               </View>
+
+              {showRebookOption && journeyView && (
+                <View className="mt-4">
+                  <Text className="font-JakartaBold mb-2">This commuter journey has expired</Text>
+                  <OneClickRebook 
+                    journeyId={journey.JourneyId}
+                    originalDuration={
+                      journey.RepeatUntil && journey.StartDate ? 
+                      Math.ceil((new Date(journey.RepeatUntil).getTime() - new Date(journey.StartDate).getTime()) / (1000 * 60 * 60 * 24)) : 
+                      undefined
+                    }
+                    onSuccess={() => {
+                      onClose();
+                      if (typeof window !== 'undefined') {
+                        // Refresh the page to show updated booking
+                        window.location.reload();
+                      }
+                    }}
+                  />
+                </View>
+              )}
 
               {!journeyView && <View className="flex-row gap-4 flex-wrap">
                 <TouchableOpacity
