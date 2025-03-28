@@ -28,6 +28,8 @@ export async function apiRequest<T>(
       headers,
     });
 
+    console.log(response)
+
     let data = null;
 
     if (forceJsonParse) {
