@@ -11,7 +11,7 @@ interface BlankModalProps {
   onClose: () => void;
 }
 
-const methods = [1, 2, 3]
+
 
 /*
   PaymentMethodsModal
@@ -20,6 +20,8 @@ const methods = [1, 2, 3]
 const PaymentMethodsModal = ({ visible, onClose }: BlankModalProps) => {
     
   const { isDarkMode } = useTheme();
+
+  const methods = PaymentMeth
 
   return (
     <Modal
