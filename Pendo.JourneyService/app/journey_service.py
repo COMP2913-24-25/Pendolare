@@ -52,7 +52,7 @@ def create_journey(JourneyParam: CreateJourneyRequest, db: Session = Depends(get
     logger.debug("Creating new journey data: %s", JourneyParam.model_dump())
 
     try:
-        check_journey_data = CheckJourneyData(JourneyParam, logger)
+        check_journey_data = CheckJourneyData(JourneyParam, logger, db)
         response = check_journey_data.check_inputs()
         logger.debug("Journey data after validation: %s", response)
     except Exception as e:
