@@ -130,7 +130,7 @@ class BookingRepository():
         """
         res = self.db_session.query(Booking)\
             .join(BookingAmmendment, Booking.BookingId == BookingAmmendment.BookingId, isouter=True)\
-            .filter_by(Booking.BookingId == booking_id)
+            .filter(Booking.BookingId == booking_id)
         
         return None if len(res) == 0 else res[0]
     
