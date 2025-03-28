@@ -11,7 +11,7 @@ environment = os.getenv("ENV", "Production")
 configPath = f"src/configuration/appsettings.{environment}.json"
 configProvider = ConfigurationProvider(configPath)
 
-engine = create_engine(configProvider.database.getDbUrl())
+engine = create_engine(configProvider.database.getDbUrl(), pool_size=20, max_overflow=-1)
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 Base = declarative_base()
 

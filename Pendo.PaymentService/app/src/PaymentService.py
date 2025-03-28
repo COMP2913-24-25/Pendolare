@@ -20,7 +20,7 @@ from .endpoints.CreatePayoutCmd import CreatePayoutCommand
 
 # database handling
 from .db.PendoDatabase import UserBalance
-from .db.PendoDatabaseProvider import get_db, Session, text, environment
+from .db.PendoDatabaseProvider import get_db, Session, text, environment, configProvider
 
 # requests and returns
 from .requests.PaymentRequests import GetwithUUID, MakePendingBooking, PaymentSheetRequest, RefundPaymentRequest, CompletedBookingRequest
@@ -60,10 +60,10 @@ def test_db(db: Session = Depends(get_db)):
 
 @app.post("/PaymentSheet", tags=["Stripe"])
 def PaymentSheet(request: PaymentSheetRequest, db: Session = Depends(get_db)) -> PaymentSheetResponse:
-    configProvider.LoadStripeConfiguration(self.db)
+    configProvider.LoadStripeConfiguration(db)
     secret = configProvider.StripeConfiguration.secret
 
-    response = PaymentSheetCommand(logging.getLogger("PaymentMethods"), request.UserId, request.Amount, secret).Execute()
+    response = PaymentSheetCommand(logging.getLogger("PaymentSheet"), request.UserId, request.Amount, secret).Execute()
 
     
     if response.Status != "success":
@@ -77,7 +77,10 @@ def PaymentMethods(request: GetwithUUID, db: Session = Depends(get_db)) -> Payme
     """
     Used to query stripe for the customers saved payment methods, to display before adding another card or contiuning with a booking
     """
-    response = PaymentMethodsCommand(logging.getLogger("PaymentMethods"), request.UserId, db).Execute()
+    configProvider.LoadStripeConfiguration(db)
+    secret = configProvider.StripeConfiguration.secret
+
+    response = PaymentMethodsCommand(logging.getLogger("PaymentMethods"), request.UserId, secret).Execute()
 
     if response.Status != "success":
         raise HTTPException(400, detail=response.Error)
