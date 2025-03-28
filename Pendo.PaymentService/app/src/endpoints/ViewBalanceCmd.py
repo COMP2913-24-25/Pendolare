@@ -34,7 +34,11 @@ class ViewBalanceCommand:
                 self.PaymentRepository.CreateUserBalance(newBalanceSheet)
                 userBalance = self.PaymentRepository.GetUserBalance(self.UserId)
 
-            return ViewBalanceResponse(Status="success", NonPending=userBalance.NonPending, Pending=userBalance.Pending)
+            weekly = self.PaymentRepository.GetWeeklyList(self.UserId)
+            if weekly is None:
+                raise Exception("Failed to get weekly balance")
+
+            return ViewBalanceResponse(Status="success", NonPending=userBalance.NonPending, Pending=userBalance.Pending, Weekly=weekly)
 
         except Exception as e:
             self.logger.error(f"Error fetching balance sheet. Error: {str(e)}")
