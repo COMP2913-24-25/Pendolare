@@ -25,7 +25,7 @@ export const useAuth = () => useContext(AuthContext);
 /* 
   AuthProvider
   Provides the auth context to the app
-  Redirects to auth if not logged in
+  Redirects to authentication if not logged in
   Redirects to home if logged in
 */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -35,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigationState = useRootNavigationState();
 
   /*
-    Check auth status on app start
+    Check authentication status on app start
   */
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log("Auth status:", authenticated);
         setIsLoggedIn(authenticated);
       } catch (error) {
-        console.error("Error checking auth status:", error);
+        console.error("Error checking authentication status:", error);
       } finally {
         setLoading(false);
       }
@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [navigationState?.key]);
 
   /*
-    Redirect based on auth status
+    Redirect based on authentication status
   */
   useEffect(() => {
     if (loading || !navigationState?.key) return;
@@ -65,14 +65,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const isOnboarding = segments.length > 1 && segments[1] === "onboarding";
 
     if (!isLoggedIn && !inAuthGroup) {
-      // Redirect to auth if not logged in
-      console.log("Redirecting to auth");
+      console.log("Redirecting to authentication");
       router.replace("/auth/sign-in");
     } else if (isLoggedIn && inAuthGroup && !isOnboarding) {
-      // If user is logged in and in auth group
-      // but not their first time, redirect to home
-      
-      // For testing purposes, always redirect to onboarding
+      // Redirect to home if logged in and not undergoing onboarding
       if (segments.length > 1 && segments[1] === "sign-in") {
         console.log("Redirecting to onboarding");
         router.replace("/auth/onboarding");

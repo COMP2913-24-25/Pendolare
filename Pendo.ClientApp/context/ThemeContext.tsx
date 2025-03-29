@@ -11,12 +11,11 @@ const ThemeContext = createContext<ThemeContextType>({
   toggleTheme: () => {},
 });
 
-/*
-  ThemeProvider
-  Provides the theme context to the app
-  Loads the theme preference from AsyncStorage on app load
-  Saves the theme preference to AsyncStorage when toggled
-*/
+/**
+ * ThemeProvider
+ * Provides the theme context to the app.
+ * Loads and initialises the theme preference from AsyncStorage.
+ */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);

@@ -4,7 +4,7 @@ import { Text } from "@/components/common/ThemedText"; // updated import
 import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 import { Rating } from "react-native-ratings";
-import CronVisualizer from "./CronVisualiser";
+import CronVisualiser from "./CronVisualiser";
 
 interface RideEntryCardProps {
   ride: {
@@ -103,7 +103,7 @@ const RideEntryCard = ({ ride, onPress }: RideEntryCardProps) => {
       </View>
       <View className="mt-2">
         {ride.recurrence && (
-            <CronVisualizer cron={ride.recurrence} endDate={ride.repeatUntil} isDarkMode={isDarkMode} />
+            <CronVisualiser cron={ride.recurrence} endDate={ride.repeatUntil} isDarkMode={isDarkMode} />
         )}
       </View>
     </TouchableOpacity>

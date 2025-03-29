@@ -1,10 +1,10 @@
 import cronParser from "cron-parser";
 
 /**
- * Converts a CRON expression to a human-readable string.
+ * Converts a CRON expression to a human‐readable string.
  * 
  * @param cron the CRON expression to parse.
- * @returns a human-readable string representing the CRON expression.
+ * @returns a human‐readable string representing the CRON expression.
  */
 export function toHumanReadable(cron: string) {
   const dayMap: { [key: string]: string } = {
@@ -152,7 +152,12 @@ export const parseCronExpression = (cronExpression: string) => {
 };
 
 /**
- * Generate a cron expression from its components
+ * Generates a CRON expression from frequency, days and time.
+ * 
+ * @param frequency - The frequency ("weekly", "fortnightly", or "monthly")
+ * @param days - Array of weekdays (as strings) on which to run the task.
+ * @param time - The time at which the task should run.
+ * @returns A valid CRON expression.
  */
 export const generateCronExpression = (
   frequency: 'weekly' | 'fortnightly' | 'monthly',

@@ -3,7 +3,7 @@ import { Text } from "@/components/common/ThemedText";
 import { useTheme } from "@/context/ThemeContext";
 import { BookingDetails } from "@/services/bookingService";
 import StatusBadge from "./StatusBadge";
-import CronVisualizer from "./CronVisualiser";
+import CronVisualiser from "./CronVisualiser";
 import { getNextCronDates } from "@/utils/cronTools";
 import OneClickRebook from "./OneClickRebook";
 import CheckoutModal, { SubRide } from "./Modals/CheckoutModal";
@@ -171,7 +171,7 @@ const UpcomingRideCard = ({ booking, onPress }: UpcomingRideCardProps) => {
       <StatusBadge statusText={status.Status} />
       {(booking.Journey.Recurrance &&     
       <View className="mt-2">
-        <CronVisualizer
+        <CronVisualiser
           cron={booking.Journey.Recurrance}
           endDate={booking.Journey.RepeatUntil ?? rideTime}
           isDarkMode={isDarkMode}
