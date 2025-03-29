@@ -15,6 +15,7 @@ CREATE TABLE [booking].[Booking]
   [DriverApproval] BIT NOT NULL DEFAULT 0, --Only relevant when no ammendments are made.
   [CreateDate] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
   [UpdateDate] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+  [BookedWindowEnd] DATETIME2 NULL, --For commuter journeys only
 
   CONSTRAINT FK_Booking_User FOREIGN KEY ([UserId]) 
   REFERENCES [identity].[User](UserId),

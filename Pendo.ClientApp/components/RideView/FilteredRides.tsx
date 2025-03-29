@@ -55,10 +55,12 @@ const FilteredRides = ({ resetFilters, setResetFilters, isDarkMode, journeyType 
 
   const getRides = async () => {
     
-    let filters : GetJourneysRequest = {};
+    let filters : GetJourneysRequest = { 
+      DriverView: false, 
+      StartDate: new Date().toISOString(),
+    };
 
     if (pickupLocation.length > 0) {
-      // Journey Service does not currently calculate deal with radius correctly. This needs to be fixed
       filters.DistanceRadius = pickupRadius;
       filters.StartLat = pickupCoords.lat;
       filters.StartLong = pickupCoords.lon;
@@ -66,7 +68,6 @@ const FilteredRides = ({ resetFilters, setResetFilters, isDarkMode, journeyType 
     }
 
     if (dropoffLocation.length > 0) {
-      // Journey Service does not currently calculate deal with radius correctly. This needs to be fixed
       filters.DistanceRadius = pickupRadius;
       filters.EndLat = dropoffCoords.lat;
       filters.EndLong = dropoffCoords.lon;
@@ -76,7 +77,7 @@ const FilteredRides = ({ resetFilters, setResetFilters, isDarkMode, journeyType 
     console.log("Getting available rides");
     try {
       if (resetFilters) {
-        filters = {};
+        filters = { DriverView: false };
         setResetFilters(false);
         setFieldDropoffLocation("");
         setFieldPickupLocation("");
@@ -84,11 +85,15 @@ const FilteredRides = ({ resetFilters, setResetFilters, isDarkMode, journeyType 
         setPickupLocation("");
       }
 
-      filters.JourneyType = journeyType;
+      if (journeyType > 0) {
+        filters.JourneyType = journeyType;
+      }
 
+      console.log("Fetching journeys with filters:", filters);
+      
       const response = await getJourneys(filters);
       if (response.success) {
-        console.log("Found available rides");
+        console.log(`Found ${response.journeys.length} available rides`);
         setFilteredRides(response.journeys);
       }
     } catch (error) {

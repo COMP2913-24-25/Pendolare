@@ -2,10 +2,14 @@ from .booking_repository import BookingRepository
 from .email_sender import generateEmailDataFromBooking
 from fastapi import status
 from .responses import StatusResponse
+from .cron_checker import getNextTimes
+from .models import Booking
+from .statuses.booking_statii import BookingStatus
+from .requests import ConfirmAtPickupRequest
 
 class ConfirmAtPickupCommand:
 
-    def __init__(self, booking_id: str, request, response, configuration_provider, email_sender, logger, dvla_client):
+    def __init__(self, booking_id: str, request : ConfirmAtPickupRequest, response, configuration_provider, email_sender, logger, dvla_client):
         self.booking_id = booking_id
         self.booking_repository = BookingRepository()
         self.request = request
@@ -21,7 +25,7 @@ class ConfirmAtPickupCommand:
         Additionally, updates the booking status to 'Pending Completion'.
         """
         try:
-            booking = self.booking_repository.GetBookingById(self.booking_id)
+            booking : Booking = self.booking_repository.GetBookingById(self.booking_id)
 
             if booking is None:
                 self.response.status_code = status.HTTP_404_NOT_FOUND
@@ -52,8 +56,29 @@ class ConfirmAtPickupCommand:
             vehicle = self.dvla_client.GetVehicleDetails(journey.RegPlate)
 
             self.logger.debug(f"Confirming booking for booking id: {self.booking_id}")
-            res = self.email_sender.SendBookingArrivalEmail(passenger.Email, generateEmailDataFromBooking(booking, driver, journey, vehicle))
+
+            times = None
+            if journey.JourneyType == 2:
+                times = getNextTimes(journey.Recurrance, self.request.JourneyTime, booking.BookedWindowEnd, 999)
+
+            startTimeOverride = times[0] if times is not None and len(times) > 0 else self.request.JourneyTime
+
+            res = self.email_sender.SendBookingArrivalEmail(passenger.Email, generateEmailDataFromBooking(booking, driver, journey, vehicle, startTimeOverride))
             self.logger.debug(f"Booking arrival email sent to {passenger.Email} for booking id: {self.booking_id} with response: {res}")
+
+            if journey.JourneyType == 2:
+
+                if len(times) == 0:
+                    self.logger.error(f"No times found for recurring journey with booking id: {self.booking_id}")
+                    return StatusResponse(Status="Failed", Message="No times found for recurring journey")
+
+                if len(times) == 1:
+                    self.logger.debug("Updating booking status to 'PendingComplettion' as only on last time before booking window end.")
+                    self.booking_repository.UpdateBookingStatus(self.booking_id, BookingStatus.PendingCompletion)
+                    return StatusResponse(Message="Booking confirmed successfully.")
+
+                self.logger.info("Commuter journey staying in confirmed status as not at end of window.")
+                return StatusResponse(Message="Booking confirmed successfully.")
 
             self.logger.debug("Updating booking status to 'Pending Completion'")
             self.booking_repository.UpdateBookingStatus(self.booking_id, 4)

@@ -1,33 +1,103 @@
 import axios from "axios";
 
-const baseUrl = "https://api.openrouteservice.org";
-
 /**
- * Get the route between two locations using the OpenRouteService API.
- * 
+ * Get a route between two points
  * @param pickup The pickup location
  * @param dropoff The dropoff location
- * @param setRouteCoordinates Callback function to set the route coordinates
- * 
- * @returns list of coordinates for the route between the two locations.
+ * @param onProgress Optional callback to receive coordinates as they're processed
+ * @returns Array of coordinates representing the route
  */
-export async function getRoute(pickup : any, dropoff : any, setRouteCoordinates : any = null)
-{
+export const getRoute = async (
+  pickup: { latitude: number; longitude: number },
+  dropoff: { latitude: number; longitude: number },
+  onProgress?: (coordinates: { latitude: number; longitude: number }[]) => void
+): Promise<{ latitude: number; longitude: number }[]> => {
+  // Validate coordinates to prevent API errors
+  if (!pickup || !dropoff || 
+      typeof pickup.latitude !== 'number' || typeof pickup.longitude !== 'number' ||
+      typeof dropoff.latitude !== 'number' || typeof dropoff.longitude !== 'number' ||
+      isNaN(pickup.latitude) || isNaN(pickup.longitude) ||
+      isNaN(dropoff.latitude) || isNaN(dropoff.longitude)) {
+    console.error("Invalid coordinates provided to getRoute:", { pickup, dropoff });
+    return [];
+  }
+  
+  try {
+    // Log the request for debugging
+    console.log(`Calculating route from ${pickup.latitude},${pickup.longitude} to ${dropoff.latitude},${dropoff.longitude}`);
+    
+    // Use a more detailed route request with alternatives and steps
     const response = await axios.get(
-        `${baseUrl}/v2/directions/driving-car?api_key=${process.env.EXPO_PUBLIC_OSR_KEY}&start=${pickup.longitude},${pickup.latitude}&end=${dropoff.longitude},${dropoff.latitude}`,
-      );
-    const coordinates = response.data.features[0].geometry.coordinates;
+      `https://router.project-osrm.org/route/v1/driving/${pickup.longitude},${pickup.latitude};${dropoff.longitude},${dropoff.latitude}?overview=full&alternatives=false&steps=true&geometries=geojson`,
+      { timeout: 5000 } // Add timeout to avoid long-hanging requests
+    );
 
-    const points = coordinates.map(
-        ([longitude, latitude]: [number, number]) => ({
-          latitude,
-          longitude,
-        }),
+    if (
+      response.data &&
+      response.data.routes &&
+      response.data.routes.length > 0 &&
+      response.data.routes[0].geometry &&
+      response.data.routes[0].geometry.coordinates
+    ) {
+      // Extract coordinates from the response
+      const coordinates = response.data.routes[0].geometry.coordinates.map(
+        (coord: [number, number]) => ({
+          latitude: coord[1],
+          longitude: coord[0],
+        })
       );
+      
+      // Early return if no coordinates are found
+      // This is a safeguard, as the above checks should ensure coordinates exist
+      if (!coordinates || coordinates.length === 0) {
+        console.warn("No valid coordinates returned from routing service");
+        return [];
+      }
+      
+      // Simplify the route if it has too many points to improve performance
+      let simplifiedCoords = coordinates;
+      if (coordinates.length > 100) {
+        // Take every nth point to reduce the number of points
+        simplifiedCoords = coordinates.filter((_: any, index: number) => index % Math.ceil(coordinates.length / 100) === 0);
+        // Always include start and end points
+        if (simplifiedCoords.length >= 2) {
+          simplifiedCoords[0] = coordinates[0];
+          simplifiedCoords[simplifiedCoords.length - 1] = coordinates[coordinates.length - 1];
+        }
+      }
+      
+      // Call progress callback if provided
+      if (onProgress) {
+        onProgress(simplifiedCoords);
+      }
 
-    if (setRouteCoordinates != null) {
-        setRouteCoordinates(points);
+      return simplifiedCoords;
+    } else {
+      console.warn("Invalid route response structure:", response.data);
+      return [];
     }
+  } catch (error) {
+    console.error("Error fetching route:", error);
+    
+    // Try a fallback to straight line if the routing service fails
+    if (pickup && dropoff) {
+      const straightLineRoute = [
+        { latitude: pickup.latitude, longitude: pickup.longitude },
+        { latitude: dropoff.latitude, longitude: dropoff.longitude },
+      ];
+      
+      console.log("Using straight line route as fallback");
+      
+      // Call progress callback if provided
+      if (onProgress) {
+        onProgress(straightLineRoute);
+      }
+      
+      return straightLineRoute;
+    }
+    
+    return [];
+  }
 }
 
 /**
@@ -52,7 +122,7 @@ export async function searchLocations(query: string, type: "pickup" | "dropoff",
     try {
       // Make a GET request to the OpenRouteService API with boundary coordinates
       const response = await axios.get(
-        `${baseUrl}/geocode/search`,
+        `https://api.openrouteservice.org/geocode/search`,
         {
           params: {
             api_key: process.env.EXPO_PUBLIC_OSR_KEY,

@@ -91,7 +91,9 @@ DECLARE @ManagerWhitelist NVARCHAR(MAX) = '
         "jameskinley24@gmail.com",
         "sc23jk2@leeds.ac.uk",
         "mundrayj@gmail.com",
-        "shayodonnell8@icloud.com"
+        "shayodonnell8@icloud.com",
+        "sc23lfg@leeds.ac.uk",
+        "alex@alexmccall.com"
     ]
 }'
 

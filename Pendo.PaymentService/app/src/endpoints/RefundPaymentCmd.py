@@ -1,3 +1,8 @@
+# 
+# RefundPayment Implementation
+# Author: Catherine Weightman
+#
+
 from ..db.PaymentRepository import PaymentRepository
 from ..db.PendoDatabase import Transaction, UserBalance
 from ..returns.PaymentReturns import StatusResponse
