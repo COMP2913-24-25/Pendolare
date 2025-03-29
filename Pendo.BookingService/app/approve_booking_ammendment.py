@@ -4,6 +4,8 @@ from .email_sender import generateEmailDataFromAmmendment
 from datetime import datetime
 from fastapi import status
 from .statuses.booking_statii import BookingStatus
+from .payment_service_api import PaymentServiceClient
+from .cron_checker import getNextTimes
 
 class ApproveBookingAmmendmentCommand:
 
@@ -14,7 +16,7 @@ class ApproveBookingAmmendmentCommand:
                  logger, 
                  email_sender, 
                  dvla_client,
-                 payment_service_client):
+                 payment_service_client : PaymentServiceClient):
         self.ammendment_id = ammendment_id
         self.request = request
         self.response = response
@@ -95,12 +97,21 @@ class ApproveBookingAmmendmentCommand:
             # Get the booking modified by ammendments
             booking = self.booking_repository.GetBookingsForUser(passenger.UserId, ammendment.BookingId)[0]
 
+            num_journeys = 1
+
+            if booking["Journey"]["JourneyType"] == 2:
+                num_journeys = len(getNextTimes(booking["Journey"]["Recurrence"], 
+                                            booking["Booking"]["RideTime"], 
+                                            booking["Booking"]["BookedWindowEnd"], 
+                                            9999))
+
             booking_id = booking["Booking"]["BookingId"]
-            amount = booking["Journey"]["Price"]
+            amount = booking["Journey"]["Price"] * num_journeys
+            # Note: The discount has already been applied to the journey price in the GetBookingsForUser method
+            
             journeyTime = booking["Journey"]["StartTime"]
             userId = self.request.UserId
 
-            # TODO: Check this with alex - surely we need to supply the bookingId???
             if not self.payment_service_client.RefundRequest(userId, 
                                                              booking_id, 
                                                              journeyTime, 

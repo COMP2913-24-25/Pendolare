@@ -2,7 +2,8 @@ import json
 from pathlib import Path
 from .configurations import DbConfiguration, SendGridConfiguration, PaymentServiceConfiguration
 from sqlalchemy.orm import Session
-from .models import Configuration  # Ensure this import matches your project structure
+from .models import Configuration 
+
 class ConfigurationProvider:
     """
     ConfigurationProvider class is responsible for loading the application configuration.
@@ -31,6 +32,7 @@ class ConfigurationProvider:
         is a JSON string.
         """
         config_row = db_session.query(Configuration).filter(Configuration.Key == "Booking.EmailConfiguration").first()
+        db_session.close()
 
         if config_row:
             email_config_data = json.loads(config_row.Value)

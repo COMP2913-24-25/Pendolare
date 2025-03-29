@@ -5,6 +5,7 @@ from app.confirm_at_pickup import ConfirmAtPickupCommand
 
 class DummyRequest:
     UserId = None
+    JourneyTime = None
 
 class DummyResponse:
     def __init__(self):
@@ -112,6 +113,7 @@ def test_successful_confirm_at_pickup(mock_repository, mock_logger, mock_email_s
     res = DummyResponse()
     cmd = get_command("booking1", req, res, mock_logger, mock_email_sender, mock_dvla_client, mock_repository)
     result = cmd.Execute()
+    print(result)
 
     mock_email_sender.SendBookingArrivalEmail.assert_called_once()
     mock_repository.UpdateBookingStatus.assert_called_with("booking1", 4)

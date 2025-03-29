@@ -1,20 +1,24 @@
+# 
+# PaymentMethods endpoint implementation
+# Author: Alexander McCall
+#
+
 from ..returns.PaymentReturns import ViewBalanceResponse, StatusResponse, SingularPaymentMethod, PaymentMethodResponse
-from ..db.PendoDatabaseProvider import configProvider
 import stripe 
 
 class PaymentMethodsCommand:
     """
-    PaymentMethodsCommand class is responsible for finding and returning the payment methods of a user.
+    PaymentMethodsCommand class is responsible for finding and returning the payment methods of a user from Stripe.
     """
 
-    def __init__(self, logger, UserId, db):
+    def __init__(self, logger, UserId, secret):
         """
         Constructor for PaymentMethodsCommand class.
         :param UserId: Id for requested user balance
         """
         self.logger = logger
         self.UserId = UserId
-        self.db = db
+        self.stripe_secret = secret
 
     def Execute(self):
         """
@@ -22,8 +26,7 @@ class PaymentMethodsCommand:
         :return: payment methods of the user.
         """
         try:            
-            configProvider.LoadStripeConfiguration(self.db)
-            stripe.api_key = configProvider.StripeConfiguration.secret
+            stripe.api_key = self.stripe_secret
         
             payment_methods = stripe.Customer.list_payment_methods(str(self.UserId))
             parsedMethods = []

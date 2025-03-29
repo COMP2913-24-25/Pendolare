@@ -1,3 +1,8 @@
+# 
+# StripeWebhook endpoint implementation
+# Author: Alexander McCall
+#
+
 from ..db.PaymentRepository import PaymentRepository
 from ..db.PendoDatabase import UserBalance
 from ..returns.PaymentReturns import StatusResponse
@@ -28,14 +33,15 @@ class StripeWebhookCommand:
             if user is None:
                 raise Exception("User not found")
 
-            self.logger.info("Got user", user)
+            self.logger.info("Got user")
             
             userBalance = self.PaymentRepository.GetUserBalance(self.UserId)
             if userBalance is None:
                 newBalanceSheet = UserBalance(UserId = self.UserId)
                 self.PaymentRepository.CreateUserBalance(newBalanceSheet)
-                
-            transaction = self.PaymentRepository.GetTransaction(self.UserId, self.Amount, 3, 5)
+            
+            #  user_id = None, booking_id = None, amount = None, status = None, typeof = None
+            transaction = self.PaymentRepository.GetTransaction(self.UserId, None, self.Amount, 3, 5)
             if transaction is None:
                 raise Exception("Transaction not found")
             

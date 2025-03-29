@@ -1,3 +1,8 @@
+# 
+# PaymentSheet endpoint implementation
+# Author: Alexander McCall
+#
+
 from ..returns.PaymentReturns import PaymentSheetResponse, StatusResponse
 from ..db.PaymentRepository import PaymentRepository
 from ..db.PendoDatabaseProvider import configProvider
@@ -9,7 +14,7 @@ class PaymentSheetCommand:
     PaymentSheetCommand class is responsible for querying a user from stripe, if non-existant then creating them, and setting up a payment intent with the value specified.
     """
 
-    def __init__(self, logger, UserId, Amount, db):
+    def __init__(self, logger, UserId, Amount, Secret):
         """
         Constructor for PaymentSheetCommand class.
         :param UserId: Id for requested user balance
@@ -19,7 +24,7 @@ class PaymentSheetCommand:
         self.logger = logger
         self.UserId = UserId
         self.Amount = int(Amount*100)
-        self.db = db
+        self.Secret = Secret
 
     def Execute(self):
         """
@@ -27,14 +32,12 @@ class PaymentSheetCommand:
         :return: payment methods of the user.
         """
         try:            
-            configProvider.LoadStripeConfiguration(self.db)
-            stripe.api_key = configProvider.StripeConfiguration.secret
+            stripe.api_key = self.Secret
 
             user = self.PaymentRepository.GetUser(self.UserId)
             if user is None:
                 raise Exception("User not found")
 
-            # fetch customer
             customer = stripe.Customer.retrieve(str(user.UserId))
 
             if customer is not None:

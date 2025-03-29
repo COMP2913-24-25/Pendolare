@@ -1,3 +1,8 @@
+# 
+# ViewBalance endpoint implementation
+# Author: Alexander McCall
+#
+
 from ..db.PaymentRepository import PaymentRepository
 from ..db.PendoDatabase import UserBalance
 from ..returns.PaymentReturns import ViewBalanceResponse, StatusResponse
@@ -26,7 +31,7 @@ class ViewBalanceCommand:
             if user is None:
                 raise Exception("User not found")
 
-            self.logger.info("Got user", user)
+            self.logger.info("Got user")
             
             userBalance = self.PaymentRepository.GetUserBalance(self.UserId)
             if userBalance is None:
@@ -34,7 +39,11 @@ class ViewBalanceCommand:
                 self.PaymentRepository.CreateUserBalance(newBalanceSheet)
                 userBalance = self.PaymentRepository.GetUserBalance(self.UserId)
 
-            return ViewBalanceResponse(Status="success", NonPending=userBalance.NonPending, Pending=userBalance.Pending)
+            weekly = self.PaymentRepository.GetWeeklyList(self.UserId)
+            if weekly is None:
+                raise Exception("Failed to get weekly balance")
+
+            return ViewBalanceResponse(Status="success", NonPending=userBalance.NonPending, Pending=userBalance.Pending, Weekly=weekly)
 
         except Exception as e:
             self.logger.error(f"Error fetching balance sheet. Error: {str(e)}")

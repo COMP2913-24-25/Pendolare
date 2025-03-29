@@ -1,3 +1,8 @@
+# 
+# Request bodies for Pendo.PaymentService
+# Author: Alexander McCall
+#
+
 from pydantic import BaseModel
 from ..db.PendoDatabase import User, UserBalance
 from uuid import UUID
@@ -6,8 +11,9 @@ from datetime import datetime
 class GetwithUUID(BaseModel):
     UserId: UUID
 
-class MakePendingBooking(BaseModel):
+class CompletedBookingRequest(BaseModel):
     BookingId: UUID
+    LatestPrice: float
 
 class PaymentSheetRequest(BaseModel):
     UserId: UUID

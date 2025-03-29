@@ -104,14 +104,15 @@ def test_passenger_completed_success(command, dummy_request, dummy_response, dum
     booking = MagicMock(BookingId="dummy_booking_id", JourneyId="journey_2", BookingStatusId=BookingStatus.PendingCompletion)
     booking.UserId = 20
     dummy_booking_repository.GetBookingById.return_value = booking
-    journey = MagicMock(JourneyId="journey_2", UserId=99)
+    dummy_booking_repository.GetBookingsForUser.return_value = [{"Journey": {"JourneyType": 1, "Price": 20}}]
+    journey = MagicMock(JourneyId="journey_2", UserId=99, JourneyType=1)
     dummy_booking_repository.GetJourney.return_value = journey
     dummy_payment_service_client.CompletedBookingRequest.return_value = True
     
     result = command.Execute()
     
     dummy_booking_repository.UpdateBookingStatus.assert_any_call("dummy_booking_id", BookingStatus.Completed)
-    dummy_payment_service_client.CompletedBookingRequest.assert_called_with("dummy_booking_id")
+    dummy_payment_service_client.CompletedBookingRequest.assert_called_with("dummy_booking_id", 20)
     assert result.Status == "Success"
     assert "completed successfully" in result.Message
 

@@ -1,13 +1,16 @@
 import { FontAwesome5 } from "@expo/vector-icons";
-import { useState } from "react";
-import { View, TouchableOpacity, Modal, ScrollView, ActivityIndicator } from "react-native";
+import { useCallback, useState } from "react";
+import { View, TouchableOpacity, Modal, ScrollView, ActivityIndicator, Alert } from "react-native";
 import Map from "../Map/Map";
 import { Text } from "@/components/common/ThemedText"; // updated
 import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 import { createBooking } from "@/services/bookingService";
-import { toHumanReadable } from "@/utils/cronTools";
+import { toHumanReadable, getNextCronDates } from "@/utils/cronTools";
 import { Rating } from "react-native-ratings";
+import CheckoutModal, { Discount, SubRide } from "./Modals/CheckoutModal";
+import { BalanceSheet, ViewBalance } from "@/services/paymentService";
+import { useFocusEffect } from "expo-router";
 
 interface RideDetailsProps {
   ride: any;
@@ -31,16 +34,96 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
     message: "",
     showMessage: false,
   });
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [subrides, setSubrides] = useState<SubRide[]>([]);
+  const [discount, setDiscount] = useState<Discount>();
+  const [userBalance, setUserBalance] = useState(0.00);
+
+  // Extract discount info if available
+  const hasDiscount = ride.Discount || 
+                     (ride.Journey && ride.Journey.Discount);
+  const discountInfo = hasDiscount ? 
+                      (ride.Discount || ride.Journey.Discount) : 
+                      null;
+  
+  // Format price with discount if applicable
+  const formatPrice = () => {
+    let formattedPrice = "";
+    
+    // Handle different price properties depending on data structure
+    const price = ride.price || ride.AdvertisedPrice;
+    
+    if (!hasDiscount) {
+      return (
+        <Text className="font-JakartaBold text-2xl text-blue-600">
+          {typeof price === 'number' ? `£${price.toFixed(2)}` : price}
+        </Text>
+      );
+    }
+    
+    // If there's a discount, calculate and display original and discounted price
+    const originalPrice = discountInfo?.OriginalPrice || price/(1-discountInfo?.DiscountPercentage);
+    const discountPercentage = discountInfo?.DiscountPercentage * 100;
+    
+    return (
+      <View>
+        <View className="flex-row items-center">
+          <Text className="font-JakartaBold text-2xl text-blue-600">
+            {typeof price === 'number' ? `£${price.toFixed(2)}` : price}
+          </Text>
+          <Text className="ml-2 line-through text-gray-500">
+            £{originalPrice.toFixed(2)}
+          </Text>
+        </View>
+        <Text className="text-xs text-green-600">
+          {discountPercentage}% discount applied
+        </Text>
+      </View>
+    );
+  };
 
   const handleBooking = async () => {
     setInBooking(true);
 
     try {
       // Extract departureTime from string or timestamp
-      const departureTime =
-        typeof ride.departureTime === "string"
-          ? new Date(ride.departureTime)
-          : new Date(ride.departureTime);
+      const departureTime = new Date(ride.departureTime);
+
+      if (ride.recurrence) {
+        const oneWeek = 604800000; // 1 week in milliseconds
+        const journeyDates = getNextCronDates(
+            ride.recurrence, 
+            departureTime, 
+            new Date(departureTime.getTime() + oneWeek), 
+            24);
+
+        // Apply discount from journey if available
+        let rideDiscount: Discount | undefined;
+        if (hasDiscount) {
+          rideDiscount = {
+            name: `${discountInfo.WeeklyJourneys} Journeys/Week Discount`,
+            amount: discountInfo.DiscountPercentage
+          };
+        } else {
+          rideDiscount = {
+            name: "Frequent Rider Discount",
+            amount: 0.1
+          };
+        }
+
+        const newSubrides : SubRide[] = journeyDates.map((date) => ({
+          journeyId: ride.JourneyId,
+          journeyDate: date,
+          price: ride.AdvertisedPrice || ride.price?.replace('£', ''),
+          parent: ride,
+        }));
+
+        setSubrides(newSubrides);
+        setDiscount(rideDiscount);
+
+        setShowCheckout(true);
+        return;
+      }
 
       const result = await createBooking(ride.JourneyId, departureTime);
 
@@ -78,22 +161,35 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
     }
   };
 
+  const handleCommuterBooking = async () => {
+    const twoWeeks = 1209600000; // 2 weeks in milliseconds
+    const result = await createBooking(ride.JourneyId, new Date(ride.departureTime), new Date(twoWeeks));
+
+    console.log("Commuter booking result:", result);
+    
+    if (result.Status !== "Error") {
+      Alert.alert("Success", "Your ride has been successfully booked!");
+      return;
+    }
+
+    Alert.alert("Error", "Failed to book your ride. Please try again.");
+    return;
+  };
+
   const dismissMessage = () => {
     setBookingStatus((prev) => ({ ...prev, showMessage: false }));
   };
 
-  /* 
-    Note: Styling and class names are derived from Tailwind CSS docs
-    https://tailwindcss.com/docs/
-    Additional design elements have been generated using Figma -> React Native (Tailwind)
-    https://www.figma.com/community/plugin/821138713091291738/figma-react-native
-    https://www.figma.com/community/plugin/1283055580669946018/tailwind-react-code-generator-by-pagesloft
-  */
   return (
     <Modal
       animationType="slide"
       transparent={true}
       visible={visible}
+      onShow={() => {
+        ViewBalance().then((balance : BalanceSheet) => {
+          setUserBalance(balance.NonPending);
+        });
+      }}
       onRequestClose={onClose}
     >
       <View className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-white"}`}>
@@ -139,9 +235,7 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
                   </View>
                 </View>
               </View>
-              <Text className="font-JakartaBold text-2xl text-blue-600">
-                {ride.price}
-              </Text>
+              {formatPrice()}
             </View>
 
             <View
@@ -163,7 +257,16 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
               </View>
               <View>
                 <Text className="text-gray-500">Price</Text>
-                <Text className="font-JakartaMedium">{ride.price}</Text>
+                <View>
+                  <Text className="font-JakartaMedium">
+                    {typeof ride.price === 'number' ? `£${ride.price.toFixed(2)}` : ride.price}
+                  </Text>
+                  {hasDiscount && (
+                    <Text className="text-xs text-green-600">
+                      {discountInfo?.DiscountPercentage * 100}% discount for {discountInfo?.WeeklyJourneys} journeys per week
+                    </Text>
+                  )}
+                </View>
               </View>
             </View>
 
@@ -183,6 +286,20 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
                   {ride.MaxPassengers} seats available
                 </Text>
               </View>
+
+              {ride.recurrence && (
+                <View className="flex-row items-center mt-2">
+                  <FontAwesome5
+                    name={icons.time}
+                    size={20}
+                    color={isDarkMode ? "#FFF" : "#666666"}
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text className="text-gray-600">
+                    {toHumanReadable(ride.recurrence)}
+                  </Text>
+                </View>
+              )}
             </View>
 
             <View className="flex-row justify-between space-x-4">
@@ -274,6 +391,15 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
           </View>
         </TouchableOpacity>
       </Modal>
+
+      <CheckoutModal 
+        visible={showCheckout} 
+        onClose={() => setShowCheckout(false)} 
+        subrides={subrides} 
+        discount={discount}
+        userBalance={userBalance}
+        isDarkMode={isDarkMode} 
+        onConfirm={() => handleCommuterBooking()} />
     </Modal>
   );
 };

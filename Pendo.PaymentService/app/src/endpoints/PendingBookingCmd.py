@@ -1,7 +1,11 @@
+# 
+# PendingBooking endpoint implementation
+# Author: Alexander McCall
+#
+
 from ..db.PaymentRepository import PaymentRepository
-from ..db.PendoDatabase import Transaction
+from ..db.PendoDatabase import Transaction, UserBalance
 from ..returns.PaymentReturns import StatusResponse, PaymentMethodResponse
-from .ViewBalanceCmd import ViewBalanceCommand
 import datetime
 
 class PendingBookingCommand:
@@ -9,7 +13,7 @@ class PendingBookingCommand:
     PendingBookingCommand class is responsible for creating a transaction record when a booking becomes pending.
     """
 
-    def __init__(self, logger, BookingId):
+    def __init__(self, logger, BookingId, LatestAmount):
         """
         Constructor for PendingBookingCommand class.
         :param BookingId
@@ -17,6 +21,7 @@ class PendingBookingCommand:
         self.PaymentRepository = PaymentRepository()
         self.logger = logger
         self.BookingId = BookingId
+        self.LatestAmount = LatestAmount
 
     def Execute(self):
         """
@@ -36,15 +41,40 @@ class PendingBookingCommand:
                 raise Exception("Not a pending booking")
 
             self.logger.info("Got Booking")
+
+            Driver = self.PaymentRepository.GetUser(pendingBooking.Journey_.UserId)
+            Booker = self.PaymentRepository.GetUser(pendingBooking.UserId)
+
+            if Driver is None:
+                raise Exception("Driver not found")
+
+            if Booker is None:
+                raise Exception("Passenger not found")
+
+            self.logger.info("Got both users")
             
             # find driver and booker, calculate price and margin
-            Driver = self.PaymentRepository.GetUserBalance(pendingBooking.Journey_.UserId)
-            Booker = self.PaymentRepository.GetUserBalance(pendingBooking.UserId)
-            Margin = round(pendingBooking.FeeMargin * pendingBooking.Journey_.AdvertisedPrice, 2)
-            Price = pendingBooking.Journey_.AdvertisedPrice - Margin
+            DriverSheet = self.PaymentRepository.GetUserBalance(Driver.UserId)
+            BookerSheet = self.PaymentRepository.GetUserBalance(Booker.UserId)
+            Margin = round(float(pendingBooking.FeeMargin) * float(self.LatestAmount), 2)
+            Price = self.LatestAmount - Margin
 
-             # ensure that booker has sufficient balance
-            if Booker.NonPending < pendingBooking.Journey_.AdvertisedPrice:
+            if DriverSheet is None:
+                self.logger.info("Driver has no balance sheet, creating")
+                newBalanceSheetDriver = UserBalance(UserId = Driver.UserId)
+                self.PaymentRepository.CreateUserBalance(newBalanceSheetDriver)
+                DriverSheet = self.PaymentRepository.GetUserBalance(Driver.UserId)
+
+            if BookerSheet is None:
+                self.logger.info("Booker has no balance sheet, creating")
+                newBalanceSheetBooker = UserBalance(UserId = Booker.UserId)
+                self.PaymentRepository.CreateUserBalance(newBalanceSheetBooker)
+                BookerSheet = self.PaymentRepository.GetUserBalance(Booker.UserId)
+
+            self.logger.info("Got both balance sheets")
+
+            # ensure that booker has sufficient balance
+            if BookerSheet.NonPending < self.LatestAmount:
                 raise Exception("Not enough user balance to set journey to pending")
 
             # increase advertiser pending balance by Booking value (minus fee!)

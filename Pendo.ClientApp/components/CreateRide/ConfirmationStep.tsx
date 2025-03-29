@@ -19,11 +19,15 @@ interface ConfirmationStepProps {
   cost: string;
   seats: string;
   date: Date;
+  bootHeight: string;
+  bootWidth: string;
+  isCommuter?: boolean;
+  selectedDiscount?: any;
 }
 
 /*
   ConfirmationStep
-  Step for confirming ride details
+  Step for confirming ride details including boot dimensions
 */
 const ConfirmationStep = ({
   isDarkMode,
@@ -32,7 +36,17 @@ const ConfirmationStep = ({
   cost,
   seats,
   date,
+  bootHeight,
+  bootWidth,
+  isCommuter = false,
+  selectedDiscount = null,
 }: ConfirmationStepProps) => {
+  // Calculate discounted price if a discount is selected
+  const originalPrice = parseFloat(cost);
+  const discountPercentage = selectedDiscount?.percentage || 0;
+  const discountedPrice = originalPrice * (1 - discountPercentage);
+  const hasDiscount = discountPercentage > 0;
+
   return (
     <View className="flex-1">
       <View
@@ -90,7 +104,19 @@ const ConfirmationStep = ({
               Price per Seat
             </Text>
           </View>
-          <Text className="text-base ml-6">£{cost}</Text>
+          {hasDiscount ? (
+            <View className="ml-6">
+              <View className="flex-row items-center">
+                <Text className="text-base line-through text-gray-500 mr-2">£{originalPrice.toFixed(2)}</Text>
+                <Text className="text-base text-green-600">£{discountedPrice.toFixed(2)}</Text>
+              </View>
+              <Text className="text-xs text-green-600">
+                {discountPercentage * 100}% discount applied
+              </Text>
+            </View>
+          ) : (
+            <Text className="text-base ml-6">£{cost}</Text>
+          )}
         </View>
 
         <View className="mb-3">
@@ -110,16 +136,58 @@ const ConfirmationStep = ({
         <View className="mb-3">
           <View className="flex-row items-center">
             <FontAwesome5
+              name="truck"
+              size={16}
+              style={{ marginRight: 8 }}
+            />
+            <Text className="text-gray-500">
+              Boot Dimensions
+            </Text>
+          </View>
+          <Text className="text-base ml-6">
+            {bootHeight || bootWidth
+              ? `${bootHeight || "N/A"}cm x ${bootWidth || "N/A"}cm`
+              : "N/A"}
+          </Text>
+        </View>
+
+        <View className="mb-3">
+          <View className="flex-row items-center">
+            <FontAwesome5
               name="clock"
               size={16}
               style={{ marginRight: 8 }}
             />
             <Text className="text-gray-500">
-              Date & Time
+              {isCommuter ? "Start Time" : "Date & Time"}
             </Text>
           </View>
           <Text className="text-base ml-6">{date.toLocaleString()}</Text>
         </View>
+
+        {isCommuter && selectedDiscount && selectedDiscount.value && (
+          <View className="mb-3">
+            <View className="flex-row items-center">
+              <FontAwesome5
+                name="tag"
+                size={16}
+                style={{ marginRight: 8 }}
+              />
+              <Text className="text-gray-500">
+                Discount
+              </Text>
+            </View>
+            <Text className="text-base ml-6">{selectedDiscount.label}</Text>
+          </View>
+        )}
+
+        {isCommuter && (
+          <View className="mt-2 p-2 bg-blue-100 rounded-lg">
+            <Text className="text-blue-800 text-center">
+              This is a commuter journey. It will repeat according to your selected schedule.
+            </Text>
+          </View>
+        )}
       </View>
     </View>
   );
