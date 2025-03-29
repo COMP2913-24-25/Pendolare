@@ -45,7 +45,7 @@ const Book = () => {
         {/* Booking Categories Section */}
         <View className="mb-1">
           <BookingCategory
-            title="Search for Journey"
+            title="Search Regular Journeys"
             description="Find available journeys to your destination"
             onPress={() => {
               setSelectedCategory("normal");
@@ -55,8 +55,8 @@ const Book = () => {
           />
 
           <BookingCategory
-            title="Commuter Journey"
-            description="Set up regular journeys for your daily commute"
+            title="Search Commuter Journeys"
+            description="Find reoccuring journeys for your daily commute"
             onPress={() => {
               setSelectedCategory("commuter");
               setResetFilters(true);
@@ -72,6 +72,7 @@ const Book = () => {
         <Modal
           visible={showCreateRideModal}
           animationType="slide"
+          presentationStyle="pageSheet"
           onRequestClose={() => setShowCreateRideModal(false)}
         >
           <CreateRide onClose={() => setShowCreateRideModal(false)} />

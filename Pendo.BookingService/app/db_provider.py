@@ -9,7 +9,8 @@ environment = os.getenv("ENV", "Production")
 configPath = f"{Path(__file__).resolve().parent}/appsettings.{environment}.json"
 configProvider = ConfigurationProvider(configPath)
 
-engine = create_engine(configProvider.database.getDbUrl())
+# value -1 means no limit - see https://docs.sqlalchemy.org/en/20/errors.html#error-3o7r
+engine = create_engine(configProvider.database.getDbUrl(), pool_size=20, max_overflow=-1)
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 Base = declarative_base()
 

@@ -45,6 +45,8 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
   const [cost, setCost] = useState("");
   const [seats, setSeats] = useState("");
   const [regPlate, setRegPlate] = useState("");
+  const [bootHeight, setBootHeight] = useState("");
+  const [bootWidth, setBootWidth] = useState("");
   
   // Date and time states
   const [date, setDate] = useState(new Date());
@@ -60,6 +62,7 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
   const [isCommuter, setIsCommuter] = useState(false);
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [frequency, setFrequency] = useState<"weekly" | "fortnightly" | "monthly">("weekly");
+  const [selectedDiscount, setSelectedDiscount] = useState({ label: "No Discount", value: null, percentage: 0 });
   
   // Search states
   const [searchResults, setSearchResults] = useState<Location[]>([]);
@@ -115,7 +118,7 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
       }
       
       // Prepare payload
-      const payload = {
+      const payload: any = {
         AdvertisedPrice: parseFloat(cost),
         StartName: pickup?.name || "",
         StartLat: pickup?.latitude,
@@ -128,16 +131,16 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
         MaxPassengers: parseInt(seats, 10),
         JourneyStatusId: 1,
         RegPlate: regPlate,
-        BootWidth: 0,
-        BootHeight: 0,
-      };
-      
-      // Add commuter-specific properties if applicable
-      if (isCommuter) {
-        payload.Recurrance = toCronString(frequency, selectedDays, date);
-        payload.RepeatUntil = endDate.toISOString();
-      } else {
-        payload.RepeatUntil = new Date(9999, 9, 9).toISOString();
+        BootHeight: Number(bootHeight),
+        BootWidth: Number(bootWidth),
+        JourneyType: isCommuter ? 2 : 1,
+        Recurrance: isCommuter ? toCronString(frequency, selectedDays, date) : undefined,
+        RepeatUntil: isCommuter ? endDate.toISOString() : new Date(9999, 9, 9).toISOString()
+      }
+
+      // Add discount ID directly from selection if available
+      if (isCommuter && selectedDiscount && selectedDiscount.value) {
+        payload.DiscountID = selectedDiscount.value;
       }
 
       console.log("Creating ride with payload:", payload);
@@ -146,6 +149,7 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
       onClose();
     } catch (error) {
       console.error("Failed to create journey:", error);
+      alert("Failed to create journey. Please try again.");
     }
   };
 
@@ -197,6 +201,10 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
               setSeats={setSeats}
               regPlate={regPlate}
               setRegPlate={setRegPlate}
+              bootHeight={bootHeight}
+              setBootHeight={setBootHeight}
+              bootWidth={bootWidth}
+              setBootWidth={setBootWidth}
             />
           )}
           
@@ -217,6 +225,8 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
               endDate={endDate}
               setStartDate={setStartDate}
               setEndDate={setEndDate}
+              selectedDiscount={selectedDiscount}
+              setSelectedDiscount={setSelectedDiscount}
             />
           )}
           
@@ -228,6 +238,10 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
               cost={cost}
               seats={seats}
               date={date}
+              bootHeight={bootHeight}
+              bootWidth={bootWidth}
+              isCommuter={isCommuter}
+              selectedDiscount={selectedDiscount}
             />
           )}
         </ScrollView>

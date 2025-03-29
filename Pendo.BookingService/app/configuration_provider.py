@@ -32,6 +32,7 @@ class ConfigurationProvider:
         is a JSON string.
         """
         config_row = db_session.query(Configuration).filter(Configuration.Key == "Booking.EmailConfiguration").first()
+        db_session.close()
 
         if config_row:
             email_config_data = json.loads(config_row.Value)

@@ -1,3 +1,8 @@
+# 
+# PaymentSheet endpoint implementation
+# Author: Alexander McCall
+#
+
 from ..returns.PaymentReturns import PaymentSheetResponse, StatusResponse
 from ..db.PaymentRepository import PaymentRepository
 from ..db.PendoDatabaseProvider import configProvider
@@ -33,7 +38,6 @@ class PaymentSheetCommand:
             if user is None:
                 raise Exception("User not found")
 
-            # fetch customer
             customer = stripe.Customer.retrieve(str(user.UserId))
 
             if customer is not None:

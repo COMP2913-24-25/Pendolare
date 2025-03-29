@@ -49,7 +49,7 @@ def mock_repository():
     booking = MagicMock(BookingId=100, JourneyId=200, BookingStatusId=1)
     repo.GetBookingAmmendment.return_value = (booking_ammendment, driver, passenger, journey)
     repo.GetBookingById.return_value = booking
-    repo.GetBookingsForUser.return_value = [{"Booking": {"BookingId": 100}, "Journey": {"Price": 50, "StartTime": "2025-03-12T12:00:00"}}]
+    repo.GetBookingsForUser.return_value = [{"Booking": {"BookingId": 100}, "Journey": {"Price": 50, "StartTime": "2025-03-12T12:00:00", "JourneyType": 1}}]
     return repo
 
 def get_command(ammendment_id, request, response, logger, email_sender, dvla_client, repository, payment_service_client):

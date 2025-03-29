@@ -1,365 +1,29 @@
 {
-    "openapi": "3.1.0",
-    "info": {
-      "title": "Pendo.BookingService.Api",
-      "version": "1.0.0"
-    },
-    "servers": [
-      {
-        "url": "/api/Booking"
-      }
-    ],
-    "paths": {
-      "/HealthCheck": {
-        "get": {
-          "tags": [
-            "HealthCheck"
-          ],
-          "summary": "Test Db",
-          "operationId": "test_db_HealthCheck_get",
-          "responses": {
-            "200": {
-              "description": "Successful Response",
-              "content": {
-                "application/json": {
-                  "schema": {
-  
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/GetBookings": {
-        "post": {
-          "tags": [
-            "Get Bookings"
-          ],
-          "summary": "Get Bookings",
-          "operationId": "get_bookings_GetBookings_post",
-          "requestBody": {
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Pendo.BookingService.Api",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api/Booking"
+    }
+  ],
+  "paths": {
+    "/HealthCheck": {
+      "get": {
+        "tags": [
+          "HealthCheck"
+        ],
+        "summary": "Test Db",
+        "operationId": "test_db_HealthCheck_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetBookingsRequest"
-                }
-              }
-            },
-            "required": true
-          },
-          "responses": {
-            "200": {
-              "description": "Successful Response",
-              "content": {
-                "application/json": {
-                  "schema": {
-  
-                  }
-                }
-              }
-            },
-            "422": {
-              "description": "Validation Error",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/HTTPValidationError"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/CreateBooking": {
-        "post": {
-          "tags": [
-            "Create Bookings"
-          ],
-          "summary": "Create Booking",
-          "operationId": "create_booking_CreateBooking_post",
-          "requestBody": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateBookingRequest"
-                }
-              }
-            },
-            "required": true
-          },
-          "responses": {
-            "200": {
-              "description": "Successful Response",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/StatusResponse"
-                  }
-                }
-              }
-            },
-            "422": {
-              "description": "Validation Error",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/HTTPValidationError"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/AddBookingAmmendment": {
-        "post": {
-          "tags": [
-            "Add Booking Ammendment"
-          ],
-          "summary": "Add Booking Ammendment",
-          "operationId": "add_booking_ammendment_AddBookingAmmendment_post",
-          "requestBody": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AddBookingAmmendmentRequest"
-                }
-              }
-            },
-            "required": true
-          },
-          "responses": {
-            "200": {
-              "description": "Successful Response",
-              "content": {
-                "application/json": {
-                  "schema": {
-  
-                  }
-                }
-              }
-            },
-            "422": {
-              "description": "Validation Error",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/HTTPValidationError"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/ApproveBookingAmmendment/{BookingAmmendmentId}": {
-        "put": {
-          "tags": [
-            "Approve Booking Ammendment"
-          ],
-          "summary": "Approve Booking Ammendment",
-          "operationId": "approve_booking_ammendment_ApproveBookingAmmendment__BookingAmmendmentId__put",
-          "parameters": [
-            {
-              "name": "BookingAmmendmentId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "uuid",
-                "title": "Bookingammendmentid"
-              }
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApproveBookingAmmendmentRequest"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Successful Response",
-              "content": {
-                "application/json": {
-                  "schema": {
-  
-                  }
-                }
-              }
-            },
-            "422": {
-              "description": "Validation Error",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/HTTPValidationError"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/ApproveBooking/{BookingId}": {
-        "put": {
-          "tags": [
-            "Approve Booking Request"
-          ],
-          "summary": "Approve Booking Request",
-          "operationId": "approve_booking_request_ApproveBooking__BookingId__put",
-          "parameters": [
-            {
-              "name": "BookingId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "uuid",
-                "title": "Bookingid"
-              }
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApproveBookingRequest"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Successful Response",
-              "content": {
-                "application/json": {
-                  "schema": {
-  
-                  }
-                }
-              }
-            },
-            "422": {
-              "description": "Validation Error",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/HTTPValidationError"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/ConfirmAtPickup/{BookingId}": {
-        "put": {
-          "tags": [
-            "Confirm At Pickup"
-          ],
-          "summary": "Confirm At Pickup",
-          "operationId": "confirm_at_pickup_ConfirmAtPickup__BookingId__put",
-          "parameters": [
-            {
-              "name": "BookingId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "uuid",
-                "title": "Bookingid"
-              }
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ConfirmAtPickupRequest"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Successful Response",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/StatusResponse"
-                  }
-                }
-              }
-            },
-            "422": {
-              "description": "Validation Error",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/HTTPValidationError"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/CompleteBooking/{BookingId}": {
-        "put": {
-          "tags": [
-            "Complete Booking"
-          ],
-          "summary": "Complete Booking",
-          "operationId": "complete_booking_CompleteBooking__BookingId__put",
-          "parameters": [
-            {
-              "name": "BookingId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "uuid",
-                "title": "Bookingid"
-              }
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CompleteBookingRequest"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Successful Response",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/StatusResponse"
-                  }
-                }
-              }
-            },
-            "422": {
-              "description": "Validation Error",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/HTTPValidationError"
-                  }
+
                 }
               }
             }
@@ -367,308 +31,682 @@
         }
       }
     },
-    "components": {
-      "schemas": {
-        "AddBookingAmmendmentRequest": {
-          "properties": {
-            "UserId": {
+    "/GetBookings": {
+      "post": {
+        "tags": [
+          "Get Bookings"
+        ],
+        "summary": "Get Bookings",
+        "operationId": "get_bookings_GetBookings_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetBookingsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/CreateBooking": {
+      "post": {
+        "tags": [
+          "Create Bookings"
+        ],
+        "summary": "Create Booking",
+        "operationId": "create_booking_CreateBooking_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBookingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/AddBookingAmmendment": {
+      "post": {
+        "tags": [
+          "Add Booking Ammendment"
+        ],
+        "summary": "Add Booking Ammendment",
+        "operationId": "add_booking_ammendment_AddBookingAmmendment_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddBookingAmmendmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ApproveBookingAmmendment/{BookingAmmendmentId}": {
+      "put": {
+        "tags": [
+          "Approve Booking Ammendment"
+        ],
+        "summary": "Approve Booking Ammendment",
+        "operationId": "approve_booking_ammendment_ApproveBookingAmmendment__BookingAmmendmentId__put",
+        "parameters": [
+          {
+            "name": "BookingAmmendmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
               "type": "string",
               "format": "uuid",
-              "title": "Userid"
-            },
-            "BookingId": {
+              "title": "Bookingammendmentid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveBookingAmmendmentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ApproveBooking/{BookingId}": {
+      "put": {
+        "tags": [
+          "Approve Booking Request"
+        ],
+        "summary": "Approve Booking Request",
+        "operationId": "approve_booking_request_ApproveBooking__BookingId__put",
+        "parameters": [
+          {
+            "name": "BookingId",
+            "in": "path",
+            "required": true,
+            "schema": {
               "type": "string",
               "format": "uuid",
               "title": "Bookingid"
-            },
-            "ProposedPrice": {
-              "anyOf": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveBookingRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
                 }
-              ],
-              "title": "Proposedprice"
-            },
-            "StartName": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Startname"
-            },
-            "StartLong": {
-              "anyOf": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Startlong"
-            },
-            "StartLat": {
-              "anyOf": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Startlat"
-            },
-            "EndName": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Endname"
-            },
-            "EndLong": {
-              "anyOf": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Endlong"
-            },
-            "EndLat": {
-              "anyOf": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Endlat"
-            },
-            "StartTime": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "format": "date-time"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Starttime"
-            },
-            "CancellationRequest": {
-              "type": "boolean",
-              "title": "Cancellationrequest",
-              "default": false
-            },
-            "DriverApproval": {
-              "type": "boolean",
-              "title": "Driverapproval",
-              "default": false
-            },
-            "PassengerApproval": {
-              "type": "boolean",
-              "title": "Passengerapproval",
-              "default": false
+              }
             }
           },
-          "type": "object",
-          "required": [
-            "UserId",
-            "BookingId"
-          ],
-          "title": "AddBookingAmmendmentRequest"
-        },
-        "ApproveBookingAmmendmentRequest": {
-          "properties": {
-            "UserId": {
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ConfirmAtPickup/{BookingId}": {
+      "put": {
+        "tags": [
+          "Confirm At Pickup"
+        ],
+        "summary": "Confirm At Pickup",
+        "operationId": "confirm_at_pickup_ConfirmAtPickup__BookingId__put",
+        "parameters": [
+          {
+            "name": "BookingId",
+            "in": "path",
+            "required": true,
+            "schema": {
               "type": "string",
               "format": "uuid",
-              "title": "Userid"
-            },
-            "DriverApproval": {
-              "type": "boolean",
-              "title": "Driverapproval",
-              "default": false
-            },
-            "PassengerApproval": {
-              "type": "boolean",
-              "title": "Passengerapproval",
-              "default": false
+              "title": "Bookingid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmAtPickupRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusResponse"
+                }
+              }
             }
           },
-          "type": "object",
-          "required": [
-            "UserId"
-          ],
-          "title": "ApproveBookingAmmendmentRequest"
-        },
-        "ApproveBookingRequest": {
-          "properties": {
-            "UserId": {
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/CompleteBooking/{BookingId}": {
+      "put": {
+        "tags": [
+          "Complete Booking"
+        ],
+        "summary": "Complete Booking",
+        "operationId": "complete_booking_CompleteBooking__BookingId__put",
+        "parameters": [
+          {
+            "name": "BookingId",
+            "in": "path",
+            "required": true,
+            "schema": {
               "type": "string",
               "format": "uuid",
-              "title": "Userid"
+              "title": "Bookingid"
             }
-          },
-          "type": "object",
-          "required": [
-            "UserId"
-          ],
-          "title": "ApproveBookingRequest"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteBookingRequest"
+              }
+            }
+          }
         },
-        "CompleteBookingRequest": {
-          "properties": {
-            "UserId": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Userid"
-            },
-            "Completed": {
-              "type": "boolean",
-              "title": "Completed"
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusResponse"
+                }
+              }
             }
           },
-          "type": "object",
-          "required": [
-            "UserId",
-            "Completed"
-          ],
-          "title": "CompleteBookingRequest"
-        },
-        "ConfirmAtPickupRequest": {
-          "properties": {
-            "UserId": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Userid"
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
             }
-          },
-          "type": "object",
-          "required": [
-            "UserId"
-          ],
-          "title": "ConfirmAtPickupRequest"
-        },
-        "CreateBookingRequest": {
-          "properties": {
-            "UserId": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Userid"
-            },
-            "JourneyId": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Journeyid"
-            },
-            "JourneyTime": {
-              "type": "string",
-              "format": "date-time",
-              "title": "Journeytime"
-            }
-          },
-          "type": "object",
-          "required": [
-            "UserId",
-            "JourneyId",
-            "JourneyTime"
-          ],
-          "title": "CreateBookingRequest"
-        },
-        "GetBookingsRequest": {
-          "properties": {
-            "UserId": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Userid"
-            }
-          },
-          "type": "object",
-          "required": [
-            "UserId"
-          ],
-          "title": "GetBookingsRequest"
-        },
-        "HTTPValidationError": {
-          "properties": {
-            "detail": {
-              "items": {
-                "$ref": "#/components/schemas/ValidationError"
-              },
-              "type": "array",
-              "title": "Detail"
-            }
-          },
-          "type": "object",
-          "title": "HTTPValidationError"
-        },
-        "StatusResponse": {
-          "properties": {
-            "Status": {
-              "type": "string",
-              "title": "Status",
-              "default": "Success"
-            },
-            "Message": {
-              "type": "string",
-              "title": "Message",
-              "default": ""
-            }
-          },
-          "type": "object",
-          "title": "StatusResponse"
-        },
-        "ValidationError": {
-          "properties": {
-            "loc": {
-              "items": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "integer"
-                  }
-                ]
-              },
-              "type": "array",
-              "title": "Location"
-            },
-            "msg": {
-              "type": "string",
-              "title": "Message"
-            },
-            "type": {
-              "type": "string",
-              "title": "Error Type"
-            }
-          },
-          "type": "object",
-          "required": [
-            "loc",
-            "msg",
-            "type"
-          ],
-          "title": "ValidationError"
+          }
         }
       }
     }
+  },
+  "components": {
+    "schemas": {
+      "AddBookingAmmendmentRequest": {
+        "properties": {
+          "UserId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Userid"
+          },
+          "BookingId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Bookingid"
+          },
+          "ProposedPrice": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposedprice"
+          },
+          "StartName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Startname"
+          },
+          "StartLong": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Startlong"
+          },
+          "StartLat": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Startlat"
+          },
+          "EndName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endname"
+          },
+          "EndLong": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endlong"
+          },
+          "EndLat": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endlat"
+          },
+          "StartTime": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Starttime"
+          },
+          "CancellationRequest": {
+            "type": "boolean",
+            "title": "Cancellationrequest",
+            "default": false
+          },
+          "DriverApproval": {
+            "type": "boolean",
+            "title": "Driverapproval",
+            "default": false
+          },
+          "PassengerApproval": {
+            "type": "boolean",
+            "title": "Passengerapproval",
+            "default": false
+          },
+          "Recurrance": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recurrance"
+          }
+        },
+        "type": "object",
+        "required": [
+          "UserId",
+          "BookingId"
+        ],
+        "title": "AddBookingAmmendmentRequest"
+      },
+      "ApproveBookingAmmendmentRequest": {
+        "properties": {
+          "UserId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Userid"
+          },
+          "DriverApproval": {
+            "type": "boolean",
+            "title": "Driverapproval",
+            "default": false
+          },
+          "PassengerApproval": {
+            "type": "boolean",
+            "title": "Passengerapproval",
+            "default": false
+          },
+          "CancellationRequest": {
+            "type": "boolean",
+            "title": "Cancellationrequest",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "UserId"
+        ],
+        "title": "ApproveBookingAmmendmentRequest"
+      },
+      "ApproveBookingRequest": {
+        "properties": {
+          "UserId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Userid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "UserId"
+        ],
+        "title": "ApproveBookingRequest"
+      },
+      "CompleteBookingRequest": {
+        "properties": {
+          "UserId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Userid"
+          },
+          "Completed": {
+            "type": "boolean",
+            "title": "Completed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "UserId",
+          "Completed"
+        ],
+        "title": "CompleteBookingRequest"
+      },
+      "ConfirmAtPickupRequest": {
+        "properties": {
+          "UserId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Userid"
+          },
+          "JourneyTime": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Journeytime"
+          }
+        },
+        "type": "object",
+        "required": [
+          "UserId"
+        ],
+        "title": "ConfirmAtPickupRequest"
+      },
+      "CreateBookingRequest": {
+        "properties": {
+          "UserId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Userid"
+          },
+          "JourneyId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Journeyid"
+          },
+          "JourneyTime": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Journeytime"
+          },
+          "EndCommuterWindow": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endcommuterwindow"
+          }
+        },
+        "type": "object",
+        "required": [
+          "UserId",
+          "JourneyId",
+          "JourneyTime"
+        ],
+        "title": "CreateBookingRequest"
+      },
+      "GetBookingsRequest": {
+        "properties": {
+          "UserId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Userid"
+          },
+          "DriverView": {
+            "type": "boolean",
+            "title": "Driverview",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "UserId"
+        ],
+        "title": "GetBookingsRequest"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "StatusResponse": {
+        "properties": {
+          "Status": {
+            "type": "string",
+            "title": "Status",
+            "default": "Success"
+          },
+          "Message": {
+            "type": "string",
+            "title": "Message",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "StatusResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
   }
+}

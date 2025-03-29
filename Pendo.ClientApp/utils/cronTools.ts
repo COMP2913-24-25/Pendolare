@@ -1,4 +1,4 @@
-import cronParser, { CronDayOfMonth, CronDayOfWeek, CronExpression, CronField, CronFieldCollection, CronHour, CronMinute, CronMonth, CronSecond } from "cron-parser";
+import cronParser from "cron-parser";
 
 /**
  * Converts a CRON expression to a human-readable string.
@@ -6,34 +6,38 @@ import cronParser, { CronDayOfMonth, CronDayOfWeek, CronExpression, CronField, C
  * @param cron the CRON expression to parse.
  * @returns a human-readable string representing the CRON expression.
  */
-export function toHumanReadable(cron : string) {
-    const dayMap: { [key: string]: string } = {
-      "0": "Sunday",
-      "1": "Monday",
-      "2": "Tuesday",
-      "3": "Wednesday",
-      "4": "Thursday",
-      "5": "Friday",
-      "6": "Saturday",
-    };
+export function toHumanReadable(cron: string) {
+  const dayMap: { [key: string]: string } = {
+    "0": "Sunday",
+    "1": "Monday",
+    "2": "Tuesday",
+    "3": "Wednesday",
+    "4": "Thursday",
+    "5": "Friday",
+    "6": "Saturday",
+  };
 
-    try {
-        const interval = cronParser.parse(cron, {});
-        const nextDate = interval.next().toDate();
-
-        const parts = cron.split(" ");
-        const time = nextDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-        const days = parts[4].split(",").map((d) => dayMap[d.trim()] || "").join(", ");
-        
-        let frequency = "Weekly"; // Default
-        if (parts[2] !== "*") frequency = "Monthly"; // Runs on specific day of the month
-        else if (parts[4].includes(",")) frequency = "Weekly"; // Multiple days
-        else if (parts[4].match(/(0|1|2|3|4|5|6)/)) frequency = "Fortnightly"; // Every 2 weeks
-
-        return `${frequency}, ${days ? `on ${days}` : "every day"} at ${time}`;
-    } catch (error) {
-        return "Invalid schedule";
+  try {
+    const parts = cron.split(" ");
+    if (parts[0].includes("/")) {
+      const minutes = parts[0].split("/")[1];
+      return `Every ${minutes} minutes`;
     }
+
+    const interval = cronParser.parse(cron, {});
+    const nextDate = interval.next().toDate();
+    const time = nextDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const days = parts[4] !== "*" ? parts[4].split(",").map((d) => dayMap[d.trim()] || "").join(", ") : "";
+
+    let frequency = "Weekly";
+    if (parts[2] !== "*") frequency = "Monthly";
+    else if (parts[4] !== "*" && parts[4].includes(",")) frequency = "Weekly";
+    else if (parts[4] !== "*" && parts[4].match(/(0|1|2|3|4|5|6)/)) frequency = "Fortnightly";
+
+    return `${frequency}, ${days ? `on ${days}` : "every day"} at ${time}`;
+  } catch (error) {
+    return "Invalid schedule";
+  }
 }
 
 /**
@@ -82,18 +86,97 @@ export function getNextCronDates(
     maxDate?: Date,
     maxDates: number = 10
   ): Date[] {
-    const results: Date[] = [];
-    const interval = cronParser.parse(cronExpression, { currentDate: startDate, endDate: maxDate });
-    
-    let nextDate = interval.next().toDate();
-    let counter = 0;
-    
-    while (counter < maxDates) {
-      results.push(new Date(nextDate));
-      counter++;
+    try{
+      const results: Date[] = [];
+      const interval = cronParser.parse(cronExpression, { currentDate: startDate, endDate: maxDate });
       
-      nextDate = interval.next().toDate();
+      if (!interval.hasNext()) {
+        console.log("No next dates available for the given CRON expression.");
+        return results;
+      }
+
+      let nextDate = interval.next().toDate();
+      let counter = 0;
+      
+      while (counter < maxDates) {
+        results.push(new Date(nextDate));
+        counter++;
+        
+        if (!interval.hasNext()) {
+          break;
+        }
+
+        nextDate = interval.next().toDate();
+      }
+      
+      console.log("Next dates: ", results.length);
+      return results;
     }
-    
-    return results;
+    catch(error){
+      console.log("Error parsing CRON expression: ", error);
+      throw error;
+    }
 }
+
+/**
+ * Parse a cron expression into its component parts
+ */
+export const parseCronExpression = (cronExpression: string) => {
+  const parts = cronExpression.split(' ');
+  
+  // Parse minutes and hours for time
+  const minutes = parseInt(parts[0]);
+  const hours = parseInt(parts[1]);
+  const startTime = new Date();
+  startTime.setHours(hours, minutes, 0, 0);
+  
+  // Determine frequency
+  let frequency: 'weekly' | 'fortnightly' | 'monthly' = 'weekly';
+  if (parts[2].includes('*/14')) {
+    frequency = 'fortnightly';
+  } else if (parts[2] !== '*') {
+    frequency = 'monthly';
+  }
+  
+  // Parse days of week
+  let days: string[] = [];
+  if (parts[4] !== '*') {
+    days = parts[4].split(',');
+  }
+  
+  return {
+    startTime,
+    frequency,
+    days
+  };
+};
+
+/**
+ * Generate a cron expression from its components
+ */
+export const generateCronExpression = (
+  frequency: 'weekly' | 'fortnightly' | 'monthly',
+  days: string[],
+  time: Date
+) => {
+  const minutes = time.getMinutes();
+  const hours = time.getHours();
+  
+  let dayOfMonth = '*';
+  let dayOfWeek = '*';
+  
+  // Set day of month or week based on frequency
+  if (frequency === 'monthly') {
+    dayOfMonth = (new Date().getDate()).toString();
+  } else {
+    // For weekly/fortnightly, use days of the week
+    if (days.length > 0) {
+      dayOfWeek = days.join(',');
+    }
+  }
+  
+  // Adjust month field for fortnightly
+  const monthField = frequency === 'fortnightly' ? '*/14' : '*';
+  
+  return `${minutes} ${hours} ${dayOfMonth} * ${dayOfWeek}`;
+};
