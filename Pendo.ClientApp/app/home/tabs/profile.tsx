@@ -19,6 +19,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { ViewBalance } from "@/services/paymentService";
 import PaymentMethodsModal from "@/components/PaymentMethodsModal"
 import RequestPayoutModal from "@/components/RequestPayoutModal"
+import { useAuth } from "@/context/AuthContext";
 
 const Profile = () => {
 
@@ -26,6 +27,7 @@ const Profile = () => {
   apiGetUser();
 
   const { isDarkMode } = useTheme();
+  const { userData, updateUserData, refreshUserData } = useAuth();
 
   const [user, setUser] = useState({ firstName: '', lastName: '', rating: 'N/A' });
   const [originalUser, setOriginalUser] = useState({ firstName: '', lastName: '', rating: 'N/A' });
@@ -34,22 +36,18 @@ const Profile = () => {
   const [payoutModalVisible, setPayoutModalVisible] = useState(false);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      const userData = await getUserObject();
-      setUser({
-        firstName: userData.firstName || '',
-        lastName: userData.lastName || '',
-        rating: userData.rating || 'N/A'
-      });
-      setOriginalUser({
-        firstName: userData.firstName || '',
-        lastName: userData.lastName || '',
-        rating: userData.rating || 'N/A'
-      });
-    };
-
-    fetchUserData();
-  }, []);
+    // Initialize from AuthContext
+    setUser({
+      firstName: userData.firstName || '',
+      lastName: userData.lastName || '',
+      rating: userData.rating || 'N/A'
+    });
+    setOriginalUser({
+      firstName: userData.firstName || '',
+      lastName: userData.lastName || '',
+      rating: userData.rating || 'N/A'
+    });
+  }, [userData]);
 
   function setPayoutModalVisibleFunc(state: boolean) {
     setTimeout(() => {
@@ -59,10 +57,11 @@ const Profile = () => {
 
   useFocusEffect(
     useCallback(() => {
+      refreshUserData();
       ViewBalance().then((result) => {
         setBalanceSheet(result);
       });
-    }, [ViewBalance, setBalanceSheet])
+    }, [refreshUserData])
   );
 
   const updateUser = (newUser: { firstName: string; lastName: string, rating: string }) => {
@@ -73,26 +72,6 @@ const Profile = () => {
   };
 
   const cardStyle = `${isDarkMode ? "bg-dark" : "bg_white"} rounded-lg shadow-sm px-5 py-3`;
-
-  useFocusEffect(
-    useCallback(() => {
-      const refreshUserData = async () => {
-        await apiGetUser();
-        const userData = await getUserObject();
-        setUser({
-          firstName: userData.firstName || '',
-          lastName: userData.lastName || '',
-          rating: userData.rating || 'N/A'
-        });
-        setOriginalUser({
-          firstName: userData.firstName || '',
-          lastName: userData.lastName || '',
-          rating: userData.rating || 'N/A'
-        });
-      };
-      refreshUserData();
-    }, [])
-  );
 
   return (
     <ThemedSafeAreaView className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-general-500"}`}>
@@ -153,7 +132,7 @@ const Profile = () => {
                   console.error("Failed to update user. Please try again.");
                   return;
                 }
-                await setUserData(user.firstName, user.lastName);
+                await updateUserData(user.firstName, user.lastName);
                 setOriginalUser({ ...user });
               }}
             />
