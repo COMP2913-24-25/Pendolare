@@ -16,8 +16,7 @@ import UpcomingRide from "@/components/RideView/UpcomingRide";
 import { icons } from "@/constants";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
-import { USER_FIRST_NAME_KEY } from "@/services/authService";
-import * as SecureStore from "expo-secure-store";
+import { getUserObject } from "@/services/authService";
 import { getBookings, completeBooking, confirmAtPickup } from "@/services/bookingService";
 import RideConfirmationCard from "@/components/RideView/RideConfirmationCard";
 import DriverPickupConfirmationCard from "@/components/RideView/DriverPickupConfirmationCard";
@@ -45,8 +44,9 @@ const Home = () => {
 
   useEffect(() => {
     const fetchUserFirstName = async () => {
-      const storedFirstName = await SecureStore.getItemAsync(USER_FIRST_NAME_KEY);
-      setUserFirstName(storedFirstName);
+      await getUserObject().then((result: any) => {
+        setUserFirstName(result.first_name);
+      })
     };
     fetchUserFirstName();
   }, []);

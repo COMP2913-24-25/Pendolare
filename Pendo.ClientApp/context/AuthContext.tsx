@@ -60,16 +60,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   */
   useEffect(() => {
     if (loading || !navigationState?.key) return;
+    const segmentsArr = segments as string[];
 
-    const inAuthGroup = segments[0] === "auth";
-    const isOnboarding = segments.length > 1 && segments[1] === "onboarding";
+    const inAuthGroup = segmentsArr[0] === "auth";
+    const isOnboarding = segmentsArr.length > 1 && segmentsArr[1] === "onboarding";
 
     if (!isLoggedIn && !inAuthGroup) {
       console.log("Redirecting to authentication");
-      router.replace("/auth/sign-in");
+      router.replace("/auth/signin");
     } else if (isLoggedIn && inAuthGroup && !isOnboarding) {
       // Redirect to home if logged in and not undergoing onboarding
-      if (segments.length > 1 && segments[1] === "sign-in") {
+      if (segmentsArr.length > 1 && segmentsArr[1] === "signin") {
         console.log("Redirecting to onboarding");
         router.replace("/auth/onboarding");
       }
@@ -82,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     await logoutService();
     setIsLoggedIn(false);
-    router.replace("/auth/sign-in");
+    router.replace("/auth/signin");
   };
 
   return (

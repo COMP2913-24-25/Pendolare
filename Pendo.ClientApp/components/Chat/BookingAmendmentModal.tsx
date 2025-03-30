@@ -19,7 +19,7 @@ interface BookingAmendmentModalProps {
   visible: boolean;
   onClose: () => void;
   onSubmit: (amendment: AddBookingAmmendmentRequest) => void;
-  isDriver?: boolean; // Add prop to indicate if the user is a driver
+  isDriver?: boolean;
 }
 
 const BookingAmendmentModal: React.FC<BookingAmendmentModalProps> = ({

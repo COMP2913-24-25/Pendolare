@@ -28,7 +28,6 @@ export interface SingularPaymentMethod {
   PaymentType: string;
 }
 export interface Discount {
-  // Update property names to match API response format
   DiscountId: string;
   WeeklyJourneys: number;
   DiscountPercentage: number;

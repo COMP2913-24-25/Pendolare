@@ -6,6 +6,7 @@ import { MESSAGE_ENDPOINTS } from "@/constants";
 
 const WS_URL = MESSAGE_API_BASE_URL;
 
+// Internal and external interfaces
 export interface ChatMessage {
   id?: string;
   type: string;
@@ -86,7 +87,7 @@ class MessageService {
   private reconnectAttempts: number = 0;
   private maxReconnectAttempts: number = 5;
   private reconnectTimeoutId: NodeJS.Timeout | null = null;
-  private messageQueue: string[] = []; // Queue for messages that couldn't be sent
+  private messageQueue: string[] = [];
   private isReconnecting: boolean = false;
 
   constructor() {
@@ -234,11 +235,10 @@ class MessageService {
           }
         } catch (error) {
           console.error("Error parsing JSON message, using fallback:", error);
-          // Try to extract partial JSON if it's truncated
+          // Try to extract partial JSON if it's truncated due to WS size limit
           try {
-            // For truncated messages, try to fix common issues
             if (typeof dataStr === 'string' && dataStr.includes('{') && !dataStr.includes('}')) {
-              dataStr += '}'; // Add missing closing brace
+              dataStr += '}';
             }
             message = JSON.parse(dataStr);
           } catch (e) {
@@ -316,7 +316,7 @@ class MessageService {
       return;
     }
     
-    // Calculate delay with exponential backoff (1s, 2s, 4s, 8s, 16s)
+    // Calculate delay with exponential backoff (1s, 2s, 4s, 8s, 16s) to prevent rate limiting
     const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
     this.reconnectAttempts++;
     

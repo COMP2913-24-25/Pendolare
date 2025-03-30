@@ -99,7 +99,7 @@ const RevenueChart = ({ weeklyData, title = "Weekly Revenue" }: RevenueChartProp
               }
             ],
           }}
-          width={chartWidth}
+          width={chartWidth || 300}
           height={220}
           chartConfig={chartConfig}
           bezier

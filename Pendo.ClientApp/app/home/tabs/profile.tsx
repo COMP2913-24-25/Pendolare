@@ -9,7 +9,7 @@ import { Text } from "@/components/common/ThemedText";
 import ThemedInputField from "@/components/common/ThemedInputField";
 import ThemedButton from "@/components/common/ThemedButton";
 
-import { USER_FIRST_NAME_KEY, USER_LAST_NAME_KEY, USER_RATING_KEY } from "@/services/authService";
+import { getUserObject, USER_FIRST_NAME_KEY, USER_LAST_NAME_KEY, USER_RATING_KEY, setUserData } from "@/services/authService";
 import * as SecureStore from "expo-secure-store";
 
 import { useState, useEffect, useCallback } from "react";
@@ -27,21 +27,29 @@ const Profile = () => {
 
   const { isDarkMode } = useTheme();
 
-  const getUser = () => {
-    return {
-      firstName: SecureStore.getItem(USER_FIRST_NAME_KEY) ?? "No first name set!",
-      lastName: SecureStore.getItem(USER_LAST_NAME_KEY) ?? "No last name set!",
-      rating: SecureStore.getItem(USER_RATING_KEY) ?? "N/A"
-    };
-  };
-
-  const originalUser = getUser();
-
-  const [user, setUser] = useState(getUser());
+  const [user, setUser] = useState({ firstName: '', lastName: '', rating: 'N/A' });
+  const [originalUser, setOriginalUser] = useState({ firstName: '', lastName: '', rating: 'N/A' });
   const [balanceSheet, setBalanceSheet] = useState({ NonPending: 0.00, Pending: 0.00 });
   const [methodsModalVisible, setMethodsModalVisible] = useState(false);
   const [payoutModalVisible, setPayoutModalVisible] = useState(false);
 
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const userData = await getUserObject();
+      setUser({
+        firstName: userData.firstName || '',
+        lastName: userData.lastName || '',
+        rating: userData.rating || 'N/A'
+      });
+      setOriginalUser({
+        firstName: userData.firstName || '',
+        lastName: userData.lastName || '',
+        rating: userData.rating || 'N/A'
+      });
+    };
+
+    fetchUserData();
+  }, []);
 
   function setPayoutModalVisibleFunc(state: boolean) {
     setTimeout(() => {
@@ -70,7 +78,17 @@ const Profile = () => {
     useCallback(() => {
       const refreshUserData = async () => {
         await apiGetUser();
-        setUser(getUser());
+        const userData = await getUserObject();
+        setUser({
+          firstName: userData.firstName || '',
+          lastName: userData.lastName || '',
+          rating: userData.rating || 'N/A'
+        });
+        setOriginalUser({
+          firstName: userData.firstName || '',
+          lastName: userData.lastName || '',
+          rating: userData.rating || 'N/A'
+        });
       };
       refreshUserData();
     }, [])
@@ -135,8 +153,8 @@ const Profile = () => {
                   console.error("Failed to update user. Please try again.");
                   return;
                 }
-                SecureStore.setItem(USER_FIRST_NAME_KEY, user.firstName);
-                SecureStore.setItem(USER_LAST_NAME_KEY, user.lastName);
+                await setUserData(user.firstName, user.lastName);
+                setOriginalUser({ ...user });
               }}
             />
           )}
@@ -170,7 +188,7 @@ const Profile = () => {
                 : "bg-white"
               }`}
             style={{ borderColor: "#888", borderWidth: 2, marginVertical: 10 }}
-            onPress={() => router.push("/home/payment/selectAmount")}
+            onPress={() => router.push("/home/payment/selectamount")}
           >
             <Text
               className={`text-lg font-JakartaBold ${isDarkMode

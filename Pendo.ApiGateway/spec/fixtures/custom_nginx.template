@@ -1,0 +1,14 @@
+# Custom Nginx configuration template for testing
+worker_processes ${{NGINX_WORKER_PROCESSES}};
+daemon off;
+
+pid pids/nginx.pid;
+error_log logs/error.log ${{LOG_LEVEL}};
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include 'nginx-kong.conf';
+}

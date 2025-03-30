@@ -1,3 +1,6 @@
+# Kong Declaraive Config utilising a dbless pattern
+# Derived from: https://docs.konghq.com/gateway/3.10.x/production/deployment-topologies/db-less-and-declarative-config
+
 _format_version: "2.1"
 _transform: true
 
@@ -5,7 +8,6 @@ services:
   - name: identity-service
     url: http://host.docker.internal:9003
     protocol: http
-    # Identity endpoints remain open (no security applied globally)
     routes:
       - name: identity-request-otp
         protocols: [http, https]
@@ -46,7 +48,18 @@ services:
         strip_path: false
         preserve_host: false
         methods: [PATCH, OPTIONS]
-        # Secure this sensitive endpoint
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [authenticated, manager]
+      - name: identity-get-user
+        protocols: [http, https]
+        paths: [/api/Identity/GetUser]
+        strip_path: false
+        preserve_host: false
+        methods: [POST, OPTIONS]
         plugins:
           - name: jwt
           - name: acl
@@ -55,9 +68,115 @@ services:
               allow: [authenticated, manager]
 
   - name: payment-service
-    url: https://payment-service.greensand-8499b34e.uksouth.azurecontainerapps.io
-    protocol: https
-    # ...waiting for routes...
+    url: http://host.docker.internal:9007
+    protocol: http
+    routes:
+      - name: payment-health-check
+        protocols: [http, https]
+        paths: [/api/PaymentService/HealthCheck]
+        strip_path: false
+        preserve_host: false
+        methods: [GET, OPTIONS]
+        plugins:
+          - name: request-transformer
+            config:
+              remove:
+                headers: ["Authorization"]
+      - name: payment-payment-sheet
+        protocols: [http, https]
+        paths: [/api/PaymentService/PaymentSheet]
+        strip_path: false
+        preserve_host: false
+        methods: [POST, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [authenticated, manager]
+      - name: payment-stripe-webhook
+        protocols: [http, https]
+        paths: [/api/PaymentService/StripeWebhook]
+        strip_path: false
+        preserve_host: false
+        methods: [POST, OPTIONS]
+        plugins:
+          - name: request-transformer
+            config:
+              remove:
+                headers: ["Authorization"]
+      - name: payment-payment-methods
+        protocols: [http, https]
+        paths: [/api/PaymentService/PaymentMethods]
+        strip_path: false
+        preserve_host: false
+        methods: [POST, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [authenticated, manager]
+      - name: payment-pending-booking
+        protocols: [http, https]
+        paths: [/api/PaymentService/PendingBooking]
+        strip_path: false
+        preserve_host: false
+        methods: [POST, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [authenticated, manager]
+      - name: payment-completed-booking
+        protocols: [http, https]
+        paths: [/api/PaymentService/CompletedBooking]
+        strip_path: false
+        preserve_host: false
+        methods: [POST, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [authenticated, manager]
+      - name: payment-view-balance
+        protocols: [http, https]
+        paths: [/api/PaymentService/ViewBalance]
+        strip_path: false
+        preserve_host: false
+        methods: [POST, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [authenticated, manager]
+      - name: payment-refund-payment
+        protocols: [http, https]
+        paths: [/api/PaymentService/RefundPayment]
+        strip_path: false
+        preserve_host: false
+        methods: [POST, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [authenticated, manager]
+      - name: payment-create-payout
+        protocols: [http, https]
+        paths: [/api/PaymentService/CreatePayout]
+        strip_path: false
+        preserve_host: false
+        methods: [POST, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [authenticated, manager]
 
   - name: booking-service
     url: http://host.docker.internal:9004
@@ -69,7 +188,6 @@ services:
         strip_path: false
         preserve_host: false
         methods: [GET, OPTIONS]
-        # Health check allows anonymous requests using a valid consumer.
         plugins:
           - name: jwt
             config:
@@ -142,21 +260,104 @@ services:
             config:
               hide_groups_header: true
               allow: [authenticated, manager]
+      - name: booking-complete-booking
+        protocols: [http, https]
+        paths:
+          - /api/Booking/CompleteBooking
+          - /api/Booking/CompleteBooking/.*
+        strip_path: false
+        preserve_host: false
+        methods: [PUT, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [authenticated, manager]
+      - name: booking-confirm-atpikcup
+        protocols: [http, https]
+        paths:
+          - /api/Booking/ConfirmAtPickup
+          - /api/Booking/ConfirmAtPickup/.*
+        strip_path: false
+        preserve_host: false
+        methods: [PUT, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [authenticated, manager]
 
   - name: journey-service
-    url: https://journey-service.greensand-8499b34e.uksouth.azurecontainerapps.io
+    url: http://host.docker.internal:9008
     protocol: https
-    # ...waiting routes...
-
-  - name: admin-api
-    url: http://127.0.0.1:8001
     routes:
-      - name: admin-api-route
+      - name: journey-health-check
         protocols: [http, https]
-        paths: [/admin-api]
-        strip_path: true
-        methods: [GET, POST, PUT, DELETE, PATCH]
-    # Typically admin API is secured externally
+        paths: [/api/Journey/HealthCheck]
+        strip_path: false
+        preserve_host: false
+        methods: [GET, OPTIONS]
+        plugins:
+          - name: request-transformer
+            config:
+              remove:
+                headers: ["Authorization"]
+      - name: journey-create-journey
+        protocols: [http, https]
+        paths:
+          - /api/Journey/CreateJourney
+        strip_path: false
+        preserve_host: false
+        methods: [POST, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [authenticated, manager]
+      - name: journey-view-journey
+        protocols: [http, https]
+        paths:
+          - /api/Journey/ViewJourney
+        strip_path: false
+        preserve_host: false
+        methods: [POST, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [authenticated, manager]
+      - name: journey-lock-journey
+        protocols: [http, https]
+        paths:
+          - /api/Journey/LockJourney
+          - /api/Journey/LockJourney/.*
+        strip_path: false
+        preserve_host: false
+        methods: [PUT, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [authenticated, manager]
+      - name: journey-adjust-price
+        protocols: [http, https]
+        paths:
+          - /api/Journey/AdjustPrice
+          - /api/Journey/AdjustPrice/.*
+        strip_path: false
+        preserve_host: false
+        methods: [PUT, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [authenticated, manager]
 
   - name: message-service
     url: http://host.docker.internal:9011
@@ -190,6 +391,20 @@ services:
             config:
               hide_groups_header: true
               allow: [authenticated, manager]
+      - name: message-support-conversation
+        protocols: [http, https]
+        paths:
+          - /api/Message/SupportConversation
+          - /api/Message/SupportConversation/.*
+        strip_path: false
+        preserve_host: false
+        methods: [GET, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [manager]
       - name: message-create-conversation
         protocols: [http, https]
         paths: [/api/Message/CreateConversation]
@@ -233,7 +448,7 @@ services:
             config:
               hide_groups_header: true
               allow: [manager]
-      - name: get-booking-fee
+      - name: admin-get-booking-fee
         protocols: [http, https]
         paths:
           - /api/Admin/GetBookingFee
@@ -247,7 +462,7 @@ services:
             config:
               hide_groups_header: true
               allow: [manager]
-      - name: get-weekly-revenue
+      - name: admin-get-weekly-revenue
         protocols: [http, https]
         paths:
           - /api/Admin/GetWeeklyRevenue
@@ -260,7 +475,7 @@ services:
           - name: acl
             config:
               hide_groups_header: true
-              allow: [anonymous, authenticated, manager]  
+              allow: [anonymous, authenticated, manager]
       - name: journey-analytics
         protocols: [http, https]
         paths:
@@ -275,7 +490,7 @@ services:
             config:
               hide_groups_header: true
               allow: [manager]
-      - name: frequent-users
+      - name: journey-frequent-users
         protocols: [http, https]
         paths:
           - /api/Admin/FrequentUsers
@@ -283,6 +498,48 @@ services:
         strip_path: false
         preserve_host: false
         methods: [GET, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [manager]
+      - name: journey-discounts-create
+        protocols: [http, https]
+        paths:
+          - /api/Admin/CreateDiscount
+          - /api/Admin/CreateDiscount/.*
+        strip_path: false
+        preserve_host: false
+        methods: [POST, OPTIONS]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [manager]
+      - name: journey-discounts-get
+        protocols: [http, https]
+        paths:
+          - /api/Admin/Discounts
+          - /api/Admin/Discounts/.*
+        strip_path: false
+        preserve_host: false
+        methods: [GET]
+        plugins:
+          - name: jwt
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow: [authenticated, manager]
+      - name: journey-discounts-manage
+        protocols: [http, https]
+        paths:
+          - /api/Admin/Discounts
+          - /api/Admin/Discounts/.*
+        strip_path: false
+        preserve_host: false
+        methods: [OPTIONS, DELETE]
         plugins:
           - name: jwt
           - name: acl
@@ -297,7 +554,8 @@ consumers:
   - username: Pendo.IdentityService
     jwt_secrets:
       - key: Pendo.IdentityService
-        secret: [[redacted]]
+        # Randomly generated secret, not used in production
+        secret: 7a3fd8625dbc03b9f08faa02eecbf90ab92c857a301bbfc1a8536bbdfcb5c1e7
         algorithm: HS256
 
 plugins:
@@ -321,9 +579,9 @@ plugins:
 
   - name: rate-limiting
     config:
-      second: 5
-      minute: 300
-      hour: 18000
+      second: 20
+      minute: 1200
+      hour: 72000
       policy: local
       hide_client_headers: false
       redis_timeout: 2000

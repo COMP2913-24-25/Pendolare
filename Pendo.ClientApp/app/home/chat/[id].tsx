@@ -53,7 +53,7 @@ const ChatDetail = () => {
   } = useChatMessages(
     id as string, 
     currentUserId,
-    typeof initialMessage !== 'undefined' ? initialMessage as string : undefined,
+    initialMessage as string,
     isDriverMode
   );
 

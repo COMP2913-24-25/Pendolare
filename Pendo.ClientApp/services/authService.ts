@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
 
 import { apiRequest } from "./apiClient";
@@ -178,9 +179,9 @@ export async function getUser(): Promise<GetUserResponse> {
 
     if (response.success) {
       // Store the user's details securely
-      await SecureStore.setItemAsync(USER_FIRST_NAME_KEY, response.firstName);
-      await SecureStore.setItemAsync(USER_LAST_NAME_KEY, response.lastName);
-      await SecureStore.setItemAsync(USER_RATING_KEY, response.userRating == -1 ? "N/A" : response.userRating.toString());
+      await AsyncStorage.setItem(USER_FIRST_NAME_KEY, response.firstName);
+      await AsyncStorage.setItem(USER_LAST_NAME_KEY, response.lastName);
+      await AsyncStorage.setItem(USER_RATING_KEY, response.userRating == -1 ? "N/A" : response.userRating.toString());
     }
 
     return response;
@@ -209,6 +210,26 @@ export async function isAuthenticated(): Promise<boolean> {
 */
 export async function getJWTToken(): Promise<string | null> {
   return SecureStore.getItemAsync(JWT_KEY);
+}
+
+/*
+  Get the user's name
+*/
+export async function getUserObject(): Promise<{firstName: string | null, lastName: string | null, rating: string | null}> {
+  const firstName = await AsyncStorage.getItem(USER_FIRST_NAME_KEY);
+  const lastName = await AsyncStorage.getItem(USER_LAST_NAME_KEY);
+  const rating = await AsyncStorage.getItem(USER_RATING_KEY);
+  
+  return { firstName, lastName, rating };
+}
+
+/*
+  Set user data in AsyncStorage
+*/
+export async function setUserData(firstName?: string, lastName?: string, rating?: string): Promise<void> {
+  if (firstName) await AsyncStorage.setItem(USER_FIRST_NAME_KEY, firstName);
+  if (lastName) await AsyncStorage.setItem(USER_LAST_NAME_KEY, lastName);
+  if (rating) await AsyncStorage.setItem(USER_RATING_KEY, rating);
 }
 
 /*
