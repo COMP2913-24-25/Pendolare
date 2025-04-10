@@ -1,3 +1,4 @@
+// Fontawesome icon mappings
 export const icons = {
   home: "home",
   search: "search",
@@ -24,12 +25,14 @@ export const icons = {
   chevronRight: "chevron-right"
 };
 
+// Onboarding messages & images
 export const onboarding = [
   {
     id: 1,
     title: "Plan your perfect ride with ease",
     description:
       "With Pendolare, you can schedule shared rides in advance, ensuring a smooth and stress-free journey.",
+    // The test pic was generated using canva's generative AI tooling
     image: require("../assets/images/test-pic.jpg"),
   },
   {
@@ -37,6 +40,7 @@ export const onboarding = [
     title: "Shared travel, smarter journeys",
     description:
       "Reduce costs and your carbon footprint by sharing rides with others heading in the same direction.",
+    // The test pic was generated using canva's generative AI tooling
     image: require("../assets/images/test-pic.jpg"),
   },
   {
@@ -44,13 +48,10 @@ export const onboarding = [
     title: "Reliable, pre-booked rides",
     description:
       "Choose your pickup time, connect with fellow travellers, and enjoy a convenient ride—on your schedule.",
+    // The test pic was generated using canva's generative AI tooling
     image: require("../assets/images/test-pic.jpg"),
   },
 ];
-
-export const data = {
-  onboarding,
-};
 
 // API Constants
 export const API_BASE_URL = "https://pendo-gateway.clsolutions.dev/api";
@@ -110,4 +111,3 @@ export const cancelReasons = [
   "Emergency",
   "Other",
 ];
-

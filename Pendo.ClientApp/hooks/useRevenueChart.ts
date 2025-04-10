@@ -11,7 +11,8 @@ interface WeeklyRevenue {
  */
 export const useRevenueChart = (weeklyData: WeeklyRevenue[]) => {
   return useMemo(() => {
-    const screenWidth = Dimensions.get('window').width - 40; // Account for padding
+    // Get screen width and account for margins
+    const screenWidth = Dimensions.get('window').width - 40;
     
     // If no data, return empty state
     if (!weeklyData || weeklyData.length === 0) {
@@ -44,7 +45,7 @@ export const useRevenueChart = (weeklyData: WeeklyRevenue[]) => {
       data,
       totalRevenue,
       averageRevenue,
-      chartWidth: Math.max(screenWidth, labels.length * 70) // Ensure enough width for all labels
+      chartWidth: Math.max(screenWidth, labels.length * 70)
     };
   }, [weeklyData]);
 };

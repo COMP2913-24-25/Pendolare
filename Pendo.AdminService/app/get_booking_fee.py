@@ -6,7 +6,7 @@ class GetBookingFeeCommand:
     """
     def __init__(self, configuration_provider, response, db_session, logger):
         """
-        Initializes the GetBookingFeeCommand.
+        Initialises the GetBookingFeeCommand.
 
         Args:
             configuration_provider (ConfigurationProvider): Provider for accessing configuration values.

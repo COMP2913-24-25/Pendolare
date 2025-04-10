@@ -18,7 +18,7 @@ import { updateUser, getUser } from "@/services/authService";
 const CaptureName = () => {
 
   if (!useAuth().isLoggedIn) {
-    router.replace("/auth/sign-in");
+    router.replace("/auth/signin");
   }
   
   const [firstName, setFirstName] = useState("");

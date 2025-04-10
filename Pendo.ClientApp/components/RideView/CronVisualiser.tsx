@@ -3,14 +3,18 @@ import { View, Text } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { toHumanReadable } from "@/utils/cronTools";
 
-interface CronVisualizerProps {
+interface CronVisualiserProps {
   cron: string; // CRON expression (e.g., "0 9 * * 1,3,5")
   endDate: Date;
   isDarkMode: boolean;
 }
 
-const CronVisualizer = ({ cron, endDate, isDarkMode } : CronVisualizerProps) => {
-  const humanReadable = useMemo(() => {return toHumanReadable(cron)}, [cron]);
+/**
+ * CronVisualiser
+ * Renders a human‐readable schedule card for a recurring journey.
+ */
+const CronVisualiser = ({ cron, endDate, isDarkMode }: CronVisualiserProps) => {
+  const humanReadable = useMemo(() => toHumanReadable(cron), [cron]);
 
   console.log(humanReadable);
 
@@ -37,4 +41,4 @@ const CronVisualizer = ({ cron, endDate, isDarkMode } : CronVisualizerProps) => 
   );
 };
 
-export default CronVisualizer;
+export default CronVisualiser;

@@ -16,8 +16,6 @@ import UpcomingRide from "@/components/RideView/UpcomingRide";
 import { icons } from "@/constants";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
-import { USER_FIRST_NAME_KEY } from "@/services/authService";
-import * as SecureStore from "expo-secure-store";
 import { getBookings, completeBooking, confirmAtPickup } from "@/services/bookingService";
 import RideConfirmationCard from "@/components/RideView/RideConfirmationCard";
 import DriverPickupConfirmationCard from "@/components/RideView/DriverPickupConfirmationCard";
@@ -33,23 +31,14 @@ const Home = () => {
   const [showAllRides, setShowAllRides] = useState(false);
   const [currentJourneyTab, setCurrentJourneyTab] = useState("Upcoming");
   const { isDarkMode } = useTheme();
-  const { logout } = useAuth();
+  const { logout, userData } = useAuth();
 
   const [upcomingRides, setUpcomingRides] = useState<Ride[]>([]);
   const [pastRides, setPastRides] = useState<Ride[]>([]);
   const [pendingCompletionRides, setPendingCompletionRides] = useState<Ride[]>([]);
   const [cancelledRides, setCancelledRides] = useState<Ride[]>([]);
   const [nextRide, setNextRide] = useState<Ride | null>(null);
-  const [userFirstName, setUserFirstName] = useState<string | null>(null);
   const [upcomingDriverRide, setUpcomingDriverRide] = useState<Ride | null>(null);
-
-  useEffect(() => {
-    const fetchUserFirstName = async () => {
-      const storedFirstName = await SecureStore.getItemAsync(USER_FIRST_NAME_KEY);
-      setUserFirstName(storedFirstName);
-    };
-    fetchUserFirstName();
-  }, []);
 
   const fetchBookings = async (driverView: boolean = false) => {
     try {
@@ -194,7 +183,7 @@ const Home = () => {
             <Text
               className={`text-2xl font-JakartaExtraBold ${isDarkMode ? "text-white" : "text-black"}`}
             >
-              Welcome {userFirstName ?? ""} 👋
+              Welcome {userData.firstName ?? ""} 👋
             </Text>
             <TouchableOpacity
               onPress={() => setShowModal(true)}

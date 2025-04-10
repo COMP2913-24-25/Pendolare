@@ -18,7 +18,7 @@ Base = declarative_base()
 SessionLocal = None
 engine = None
 
-# Only initialize database if USE_DATABASE is true
+# Only initialise database if USE_DATABASE is true
 if use_database:
     try:
         # Import here to avoid circular imports
@@ -86,7 +86,7 @@ else:
 # Dependency to get DB session
 def get_db():
     if SessionLocal is None:
-        # Return a mock session if database is not initialized
+        # Return a mock session if database is not initialised
         from unittest.mock import MagicMock
         mock_session = MagicMock(spec=Session)
         yield mock_session

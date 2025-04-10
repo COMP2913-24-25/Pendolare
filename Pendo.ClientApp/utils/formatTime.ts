@@ -1,5 +1,5 @@
 /* 
-  Utility function to format a timestamp into a human-readable string
+  Utility function to format a timestamp into a human‐readable string.
 */
 export const formatTimestamp = (timestamp: number): string => {
   const date = new Date(timestamp);

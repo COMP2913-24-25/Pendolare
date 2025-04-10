@@ -30,6 +30,6 @@ export default function Index() {
   return isLoggedIn ? (
     <Redirect href="/home/tabs/home" />
   ) : (
-    <Redirect href="/auth/sign-in" />
+    <Redirect href="/auth/signin" />
   );
 }

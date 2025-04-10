@@ -22,14 +22,6 @@ interface Conversation {
 }
 
 /*
-  Type Guard
-  Validate chat type
-*/
-const isChatType = (type: string): type is "support" | "driver" => {
-  return type === "support" || type === "driver";
-};
-
-/*
   Chat
   Screen for user chats
 */

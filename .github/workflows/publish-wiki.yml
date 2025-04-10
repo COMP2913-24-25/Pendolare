@@ -32,7 +32,7 @@ jobs:
         run: |
           mkdir -p wiki
 
-          # Initialize sidebar
+          # Initialise sidebar
           echo "### [[Home]]" > wiki/_Sidebar.md
           echo "" >> wiki/_Sidebar.md
           echo "### Documentation" >> wiki/_Sidebar.md
@@ -54,7 +54,7 @@ jobs:
             echo "* [[${name}]]" >> wiki/_Sidebar.md
           done
 
-          # Initialize service sections in sidebar
+          # Initialise service sections in sidebar
           echo "" >> wiki/_Sidebar.md
           echo "### Frontend Services" >> wiki/_Sidebar.md
           echo "" >> wiki/_Sidebar.md

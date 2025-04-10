@@ -35,9 +35,9 @@ const ChatDetail = () => {
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   const previousIdRef = useRef<string | null>(null);
   const [isDriverMode, setIsDriverMode] = useState(false);
-  const [isFetchingChat, setIsFetchingChat] = useState(false); // To track if fetch is in progress
+  const [isFetchingChat, setIsFetchingChat] = useState(false);
   
-  // Initialize chat hook
+  // Initialise chat hook
   const { 
     chat,
     setChatData,
@@ -53,7 +53,7 @@ const ChatDetail = () => {
   } = useChatMessages(
     id as string, 
     currentUserId,
-    typeof initialMessage !== 'undefined' ? initialMessage as string : undefined,
+    initialMessage as string,
     isDriverMode
   );
 

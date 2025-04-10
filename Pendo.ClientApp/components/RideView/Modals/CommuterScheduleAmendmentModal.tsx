@@ -48,7 +48,7 @@ const CommuterScheduleAmendmentModal: React.FC<CommuterScheduleAmendmentModalPro
   
   const [days, setDays] = useState<string[]>([]);
   
-  // Safely initialize dates with fallbacks
+  // Safely initialise dates with fallbacks
   const [endDate, setEndDate] = useState<Date>(
     journey.RepeatUntil instanceof Date ? journey.RepeatUntil :
     typeof journey.RepeatUntil === 'string' ? new Date(journey.RepeatUntil) :

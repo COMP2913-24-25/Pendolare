@@ -11,7 +11,7 @@ import { fetchPaymentSheetParams } from "@/services/paymentService";
 
 // stripe requirements
 import { presentPaymentSheet, StripeProvider, usePaymentSheet } from "@stripe/stripe-react-native";
-const stripe_publishable = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "NA"
+const stripe_publishable = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 
 /*
   SelectAmount
@@ -24,7 +24,7 @@ const SelectAmount = () => {
   const [customAmount, setCustomAmount] = useState('');
 
   const predefinedOptions = [10, 15, 30, 50];
-
+  
   const handleTopUp = () => {
     const amountToTopUp = customAmount || selectedAmount;
     if (amountToTopUp) {
@@ -34,7 +34,7 @@ const SelectAmount = () => {
     }
   };
 
-  // configure stripe payment sheet from endpoint with amount specified
+  // Configure stripe payment sheet from endpoint with amount specified
   const [ready, setReady] = useState(false);
   const { initPaymentSheet, presentPaymentSheet, loading } = usePaymentSheet();
   const initalisePaymentSheet = async (amountToTopUp: number) => {
@@ -154,7 +154,7 @@ const SelectAmount = () => {
             className="text-gray-500 text-lg"
           />
         </View>
-        <StripeProvider publishableKey={stripe_publishable}>
+        <StripeProvider publishableKey={stripe_publishable as string}>
           <ThemedButton title="Top Up" onPress={handleTopUp} style={{ marginVertical: 20 }} />
         </StripeProvider>
       </View>

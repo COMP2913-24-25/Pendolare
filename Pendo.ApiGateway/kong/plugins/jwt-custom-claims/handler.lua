@@ -28,6 +28,7 @@ function JwtCustomClaimsHandler:access(conf)
     if request_path:find("^" .. public_path) then
       kong.log.debug("Skipping JWT claims verification for public path: ", request_path)
       return  -- Bypass authentication
+      -- This is a fallback in case removing the auth headers in declarative doesn't work
     end
   end
 
@@ -60,8 +61,10 @@ function JwtCustomClaimsHandler:access(conf)
     end
   end
   
-
-  -- NGINX context for the request --
+  --[[
+      Nginx context for request 
+      Required to handle the deployment server's reverse proxy setup
+  --]]
 
   -- Add user info to headers for downstream services
   if conf.add_user_info_headers then
@@ -96,7 +99,7 @@ function JwtCustomClaimsHandler:access(conf)
     kong.client.authenticate(ngx.ctx.authenticated_consumer)
   end
 
-  -- NGINX context for the request --
+  -- NGINX context for request end --
   
   -- Extract user ID from NameIdentifier claim and append to request body
   local user_id = jwt_claims["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"]

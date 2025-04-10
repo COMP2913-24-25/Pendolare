@@ -8,7 +8,7 @@ import { icons } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 import { Text } from "@/components/common/ThemedText";
 import StatusBadge from "../StatusBadge";
-import CronVisualizer from "../CronVisualiser";
+import CronVisualiser from "../CronVisualiser";
 import CommuterScheduleAmendmentModal from "./CommuterScheduleAmendmentModal";
 import OneClickRebook from "../OneClickRebook";
 import { BookingDetails } from "@/services/bookingService";
@@ -278,7 +278,7 @@ const UpcomingRideDetailsModal = ({
                 {/* Schedule visualization */}
                 {isCommuterJourney && journey.Recurrance && journey.RepeatUntil && (
                   <View className="mt-4">
-                    <CronVisualizer 
+                    <CronVisualiser 
                       cron={journey.Recurrance}
                       endDate={typeof journey.RepeatUntil === 'string' 
                         ? new Date(journey.RepeatUntil) 
