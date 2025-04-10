@@ -11,7 +11,7 @@ class FrequentUsersCommand:
     """
     def __init__(self, db_session: Session, response, logger):
         """
-        Initializes the FrequentUsersCommand.
+        Initialises the FrequentUsersCommand.
 
         Args:
             db_session (Session): SQLAlchemy database session.

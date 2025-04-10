@@ -39,7 +39,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // Listen for system theme changes when in system mode
   useEffect(() => {
     if (themeMode === 'system') {
-      // No need to update state, isDarkMode will be recalculated
+      // No need to update state, isDarkMode will be recalculated on rerender
     }
   }, [systemColorScheme]);
 

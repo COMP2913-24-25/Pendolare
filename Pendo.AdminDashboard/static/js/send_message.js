@@ -163,5 +163,5 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 2000);
     });
 
-    logToConsole('WebSocket client initialized.', 'system');
+    logToConsole('WebSocket client initialised.', 'system');
 });

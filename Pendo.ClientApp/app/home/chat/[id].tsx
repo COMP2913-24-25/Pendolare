@@ -37,7 +37,7 @@ const ChatDetail = () => {
   const [isDriverMode, setIsDriverMode] = useState(false);
   const [isFetchingChat, setIsFetchingChat] = useState(false);
   
-  // Initialize chat hook
+  // Initialise chat hook
   const { 
     chat,
     setChatData,

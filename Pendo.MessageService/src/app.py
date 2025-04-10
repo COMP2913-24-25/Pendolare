@@ -33,18 +33,18 @@ websockets_logger.setLevel(logging.DEBUG)
 WS_PORT = int(os.environ.get("WS_PORT", "9010"))
 HTTP_PORT = int(os.environ.get("HTTP_PORT", "9011"))
 
-# Initialize database repository
+# Initialise database repository
 USE_DATABASE = os.environ.get("USE_DATABASE", "true").lower() == "true"
 repository = None
 if USE_DATABASE:
     try:
         repository = MessageRepository() 
-        logger.info("Database repository initialized")
+        logger.info("Database repository initialised")
     except Exception as e:
-        logger.error(f"Failed to initialize database repository: {str(e)}")
+        logger.error(f"Failed to initialise database repository: {str(e)}")
         logger.error(traceback.format_exc())
 
-# Initialize message handler with repository
+# Initialise message handler with repository
 message_handler = MessageHandler(repository=repository)
 
 async def health_check(request):

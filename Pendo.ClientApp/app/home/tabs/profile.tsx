@@ -21,11 +21,7 @@ import PaymentMethodsModal from "@/components/PaymentMethodsModal"
 import RequestPayoutModal from "@/components/RequestPayoutModal"
 import { useAuth } from "@/context/AuthContext";
 
-const Profile = () => {
-
-  //Refresh in the background when the user is on this screen
-  apiGetUser();
-
+const Profile = () => {  
   const { isDarkMode } = useTheme();
   const { userData, updateUserData, refreshUserData } = useAuth();
 
@@ -36,7 +32,7 @@ const Profile = () => {
   const [payoutModalVisible, setPayoutModalVisible] = useState(false);
 
   useEffect(() => {
-    // Initialize from AuthContext
+    // Initialise from AuthContext
     setUser({
       firstName: userData.firstName || '',
       lastName: userData.lastName || '',
@@ -57,11 +53,18 @@ const Profile = () => {
 
   useFocusEffect(
     useCallback(() => {
-      refreshUserData();
-      ViewBalance().then((result) => {
-        setBalanceSheet(result);
-      });
-    }, [refreshUserData])
+      const loadData = async () => {
+        await refreshUserData();
+        try {
+          const balance = await ViewBalance();
+          setBalanceSheet(balance);
+        } catch (error) {
+          console.error("Failed to load balance:", error);
+        }
+      };
+      
+      loadData();
+    }, [])
   );
 
   const updateUser = (newUser: { firstName: string; lastName: string, rating: string }) => {
