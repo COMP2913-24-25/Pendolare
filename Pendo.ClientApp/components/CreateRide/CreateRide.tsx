@@ -16,6 +16,7 @@ import { createJourney } from "@/services/journeyService";
 import { validateRegPlate } from "@/services/dvlaService";
 import { toCronString } from "@/utils/cronTools";
 import { searchLocations } from "@/services/locationService";
+import { costValidator, integerValidator } from "@/utils/validators";
 
 interface Location {
   name: string;
@@ -43,10 +44,16 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
   
   // Ride details states
   const [cost, setCost] = useState("");
+  const [costValidationMessage, setCostValidationMessage] = useState<string | null>(null);
+
   const [seats, setSeats] = useState("");
+
   const [regPlate, setRegPlate] = useState("");
   const [bootHeight, setBootHeight] = useState("");
+  const [bootHeightValidationMessage, setBootHeightValidationMessage] = useState<string | null>(null);
+
   const [bootWidth, setBootWidth] = useState("");
+  const [bootWidthValidationMessage, setBootWidthValidationMessage] = useState<string | null>(null);
   
   // Date and time states
   const [date, setDate] = useState(new Date());
@@ -197,14 +204,17 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
               isDarkMode={isDarkMode}
               cost={cost}
               seats={seats}
-              setCost={setCost}
-              setSeats={setSeats}
+              setCost={(value) => {costValidator(setCost, value, 1, 100, setCostValidationMessage); }}
+              costValidationMessage={costValidationMessage}
+              setSeats={(value) => {integerValidator(setSeats, value, 1, 7); }}
               regPlate={regPlate}
               setRegPlate={setRegPlate}
               bootHeight={bootHeight}
-              setBootHeight={setBootHeight}
+              setBootHeight={(value) => {integerValidator(setBootHeight, value, null, 200, setBootHeightValidationMessage); }}
+              bootHeightValidationMessage={bootHeightValidationMessage}
               bootWidth={bootWidth}
-              setBootWidth={setBootWidth}
+              setBootWidth={(value) => {integerValidator(setBootWidth, value, null, 200, setBootWidthValidationMessage); }}
+              bootWidthValidationMessage={bootWidthValidationMessage}
             />
           )}
           
