@@ -605,6 +605,5 @@ plugins:
 
   - name: jwt-custom-claims
     config:
-      require_admin_for_analytics: true
       add_user_info_headers: true
       map_user_type_to_acl: true
