@@ -57,7 +57,6 @@ describe("Plugin: " .. PLUGIN_NAME, function()
       name = PLUGIN_NAME,
       route = route_normal,
       config = {
-        require_admin_for_analytics = true,
         add_user_info_headers = true,
         map_user_type_to_acl = true
       }
@@ -67,7 +66,6 @@ describe("Plugin: " .. PLUGIN_NAME, function()
       name = PLUGIN_NAME,
       route = route_admin,
       config = {
-        require_admin_for_analytics = true,
         add_user_info_headers = true,
         map_user_type_to_acl = true
       }
@@ -77,7 +75,6 @@ describe("Plugin: " .. PLUGIN_NAME, function()
       name = PLUGIN_NAME,
       route = route_public,
       config = {
-        require_admin_for_analytics = true,
         add_user_info_headers = true,
         map_user_type_to_acl = true
       }
