@@ -327,7 +327,7 @@ async def setup_http_server():
     # Register HTTP endpoints
     app.router.add_get('/', root_handler)
     app.router.add_get('/api/Message/HealthCheck', health_check)
-    app.router.add_get('/api/Message/UserConversation', user_conversations_handler)
+    app.router.add_post('/api/Message/UserConversation', user_conversations_handler)
     app.router.add_get('/api/Message/SupportConversation', support_conversations_handler)
     app.router.add_post('/api/Message/CreateConversation', create_conversation_handler)
     

@@ -51,7 +51,7 @@ export async function createConversation(
 
 export async function getUserConversations(): Promise<GetUserConversationsResponse> {
   return await apiRequest<GetUserConversationsResponse>(MESSAGE_ENDPOINTS.GET_USER_CONVERSATIONS, {
-    method: "GET",
+    method: "POST",
   });
 }
 
@@ -277,7 +277,6 @@ class MessageService {
         if (this.listeners.error) {
           this.listeners.error(error);
         }
-        // Don't set isConnected to false here, let onclose handle the state change
       };
 
       // Handle WebSocket close event
@@ -474,7 +473,7 @@ class MessageService {
   sendMessage(content: string): boolean {
     if (!this.isWebSocketReady()) {
       console.error("Cannot send message: WebSocket not ready");
-      // Auto-reconnect if needed
+
       if (!this.isReconnecting) {
         this.connect();
       }
@@ -550,9 +549,12 @@ class MessageService {
       this.conversationId = id;
       this.historyRequested = false;
       
-      // Join conversation if already connected
-      if (this.isConnected && this.userId) {
-        this.joinConversation();
+      if (this.userId) {
+        if (!this.isConnected) {
+          this.connect();
+        } else if (this.isConnected) {
+          this.joinConversation();
+        }
       }
     }
   }
@@ -562,11 +564,11 @@ class MessageService {
     if (this.userId !== id) {
       this.userId = id;
       
-      // Register user if already connected
-      if (this.isConnected) {
+      if (!this.isConnected) {
+        this.connect();
+      } else if (this.isConnected) {
         this.registerUser();
         
-        // Join conversation if it's set
         if (this.conversationId) {
           this.joinConversation();
         }
@@ -587,7 +589,6 @@ class MessageService {
     
     if (this.ws) {
       try {
-        // Use a proper close code for normal closure
         this.ws.close(1000, "User initiated disconnect");
       } catch (error) {
         console.error("Error during disconnect:", error);
