@@ -149,11 +149,11 @@ const DriverRideCard = ({ booking, journeyView = false, approveBookingCallback, 
         <OneClickRebook 
           journeyId={journey.JourneyId}
           originalDuration={
-            journey.RepeatUntil && journey.StartDate ? 
-            Math.ceil((new Date(journey.RepeatUntil).getTime() - new Date(journey.StartDate).getTime()) / (1000 * 60 * 60 * 24)) : 
+            journey.RepeatUntil && journey.StartTime ? 
+            Math.ceil((new Date(journey.RepeatUntil).getTime() - new Date(journey.StartTime).getTime()) / (1000 * 60 * 60 * 24)) : 
             undefined
           }
-          onSuccess={approveBookingCallback}
+          onSuccess={approveBookingCallback ?? (() => {})}
         />
       )}
 

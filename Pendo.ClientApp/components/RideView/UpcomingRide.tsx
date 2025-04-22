@@ -216,8 +216,9 @@ const UpcomingRide = ({ booking, onPress }: UpcomingRideProps) => {
 
       const initialMessage = `I've cancelled our ride due to: ${reason}.`;
       router.push({
-        pathname: `/home/chat/${driverId}`,
+        pathname: '/home/chat/[id]',
         params: {
+          id: driverId,
           name: driverName,
           initialMessage
         }
