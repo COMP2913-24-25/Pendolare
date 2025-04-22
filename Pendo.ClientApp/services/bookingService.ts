@@ -3,7 +3,7 @@ import { getNextCronDates } from "@/utils/cronTools";
 import { BOOKING_ENDPOINTS } from "@/constants";
 import { getJourneys } from "./journeyService";
 
-export interface AddBookingAmmendmentRequest {
+export interface AddBookingAmendmentRequest {
   CancellationRequest: any;
   BookingId: string;
   ProposedPrice: number | null;
@@ -212,7 +212,7 @@ export async function getBookings(driverView: boolean = false): Promise<GetBooki
   }
 }
 
-export async function addBookingAmmendment(bookingAmmendment: AddBookingAmmendmentRequest): Promise<BookingResponse> {
+export async function addBookingAmmendment(bookingAmmendment: AddBookingAmendmentRequest): Promise<BookingResponse> {
   try {
     console.log(`Adding booking ammendment for booking ${bookingAmmendment.BookingId}`);
 

@@ -82,6 +82,7 @@ async def user_conversations_handler(request):
         - UserId (str)
     """
     # Parse JSON body
+
     try:
         data = await request.json()
     except Exception:
@@ -181,12 +182,12 @@ async def create_conversation_handler(request):
     
     participants = data.get("participants")
     if not participants or not isinstance(participants, list):
-        return web.json_response({"error": "participants must be a list"}, status=400)
+        return web.json_response({"error": "Participants must be a list"}, status=400)
     
 
     user_id = data.get("UserId")
     if not user_id:
-        return web.json_response({"error": "userid must be passed"}, status=400)
+        return web.json_response({"error": "UserId must be passed"}, status=400)
     
     participants.append(user_id)
     
@@ -210,7 +211,14 @@ async def create_conversation_handler(request):
             conv_participant_ids = {p.UserId for p in conv.ConversationParticipants}
             if conv_participant_ids == set(participants):
                 print("Conversation already exists")
-                return web.json_response({"error": "Conversation already exists"}, status=400)
+                response_data = {
+                    "ConversationId": str(conv.ConversationId),
+                    "Type": conv.Type,
+                    "CreateDate": conv.CreateDate.isoformat(),
+                    "UpdateDate": conv.UpdateDate.isoformat(),
+                    "Name": conv.Name or f"Conv-{conv.ConversationId}"
+                }
+                return web.json_response(response_data)
 
             
         conversation = repo.create_conversation_with_participants(conversation_type, participants, name)

@@ -12,7 +12,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { getUserConversations, createConversation, messageService } from "@/services/messageService";
 import { getCurrentUserId } from "@/services/authService";
 import BookingAmendmentModal from "@/components/Chat/BookingAmendmentModal";
-import { AddBookingAmmendmentRequest, addBookingAmmendment } from "@/services/bookingService";
+import { AddBookingAmendmentRequest, addBookingAmmendment } from "@/services/bookingService";
 import { useChatMessages } from "@/hooks/useChatMessages";
 import { getBookings } from "@/services/bookingService";
 
@@ -74,6 +74,16 @@ const ChatDetail = () => {
     getUserId();
   }, []);
 
+  useEffect(() => {
+    if (chat && currentUserId) {
+      messageService.disconnect();
+      messageService.setUserId(currentUserId);
+      messageService.setConversationId(chat.ConversationId || chat.id);
+
+      messageService.connect();
+    }
+  }, [chat?.ConversationId, currentUserId]);
+
   // Add focus effect to refresh data when screen comes into focus
   useFocusEffect(
     useCallback(() => {
@@ -86,9 +96,7 @@ const ChatDetail = () => {
     }, [currentUserId])
   );
 
-  // Add this effect to reset state when the ID parameter changes
   useEffect(() => {
-    // Skip if this is the initial render with the same ID
     if (previousIdRef.current === id) return;
     
     console.log(`Chat ID changed from ${previousIdRef.current} to ${id}`);
@@ -104,33 +112,70 @@ const ChatDetail = () => {
     }
   }, [id, currentUserId, initialMessage]);
 
-  // Determine if the current user is a driver or passenger based on their bookings/journeys
   useEffect(() => {
     const determineUserRole = async () => {
-      if (!currentUserId) return;
-      
+      if (!currentUserId || !id) return;
+
       try {
-        // First check if the user has any journeys (rides they're driving)
-        const driverBookings = await getBookings(true);
-        
-        // If user has driver bookings, they're a driver in at least some context
-        const isDriver = driverBookings.bookings?.some(booking => 
-          booking.Journey?.User?.UserId === currentUserId
-        );
-        
-        // Set driver mode based on the results
-        setIsDriverMode(isDriver);
-        console.log(`User role determined: ${isDriver ? 'Driver' : 'Passenger'}`);
-        
+        // Get all bookings (both as driver and passenger)
+        const [driverBookings, passengerBookings] = await Promise.all([
+          getBookings(true),
+          getBookings(false)
+        ]);
+
+        // Try to find a booking for this chat (by participant)
+        let foundBooking = null;
+        // Search both driver and passenger bookings for a booking with this chat participant
+        for (const booking of [...driverBookings.bookings, ...passengerBookings.bookings]) {
+          if (
+            (booking.Booking.User?.UserId === id || booking.Journey.User?.UserId === id) ||
+            (booking.Booking.User?.UserId === currentUserId || booking.Journey.User?.UserId === currentUserId)
+          ) {
+            foundBooking = booking;
+            break;
+          }
+        }
+
+        if (foundBooking) {
+          if (foundBooking.Journey.User?.UserId === currentUserId) {
+            setIsDriverMode(true);
+            console.log("User role determined: Driver");
+          } else if (foundBooking.Booking.User?.UserId === currentUserId) {
+            setIsDriverMode(false);
+            console.log("User role determined: Passenger");
+          } else {
+            setIsDriverMode(false);
+            console.log("User role determined: Unknown, defaulting to Passenger");
+          }
+        } else {
+          const isDriver = driverBookings.bookings?.some(booking =>
+            booking.Journey?.User?.UserId === currentUserId
+          );
+          setIsDriverMode(isDriver);
+        }
       } catch (error) {
         console.error("Error determining user role:", error);
-        // Default to passenger view if there's an error
         setIsDriverMode(false);
       }
     };
-    
+
     determineUserRole();
-  }, [currentUserId]);
+  }, [currentUserId, id]);
+
+  // Send initialMessage if present and chat is connected
+  useEffect(() => {
+    if (
+      typeof initialMessage === "string" &&
+      initialMessage.trim() !== "" &&
+      isConnected &&
+      chat
+    ) {
+      sendMessage(initialMessage.trim());
+      setNewMessage(""); // Clear the input after sending
+    }
+    // Only run when chat connects or initialMessage changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConnected, chat, initialMessage]);
 
   /*
     Fetch chat details
@@ -157,7 +202,6 @@ const ChatDetail = () => {
         timestamp: new Date(conv.CreateDate).getTime()
       }));
       
-      // First check for conversations with the user ID
       let selectedChat = normalisedConversations.find((c: any) => {
         // Check if conversation ID matches
         if (c.id === id || c.ConversationId === id) {
@@ -189,7 +233,6 @@ const ChatDetail = () => {
       });
       
       if (selectedChat) {
-        // Found existing chat - always use it
         console.log("Using existing chat:", selectedChat.id);
         setAutoCreateChat(false);
         setChatData(selectedChat);
@@ -197,7 +240,6 @@ const ChatDetail = () => {
         return;
       }
       
-      // No existing conversation was found
       console.log("No existing conversation found for:", id);
       
       // Only create a conversation if explicitly allowed to
@@ -207,12 +249,10 @@ const ChatDetail = () => {
         return;
       }
       
-      // Clear to create a new conversation
       console.log("Will attempt to create new conversation");
       const userName: any = typeof name === "undefined" ? id.toString() : name as string;
       
       try {
-        // Create new conversation
         console.log(`Creating new conversation with ${userName}`);
         const response = await createConversation({
           ConversationType: "direct",
@@ -222,7 +262,6 @@ const ChatDetail = () => {
         
         console.log("Conversation created successfully:", response);
         
-        // Immediately disable auto-creation to prevent further attempts
         setAutoCreateChat(false);
         
         // Set chat details
@@ -238,7 +277,6 @@ const ChatDetail = () => {
       } catch (error) {
         console.error("Failed to create conversation:", error);
         
-        // If conversation already exists but wasn't found, retry fetching
         if (String(error).includes("Conversation already exists")) {
           console.log("Conversation exists but wasn't found initially, retrying fetch");
           setTimeout(() => fetchChatData(), 1000);
@@ -272,20 +310,18 @@ const ChatDetail = () => {
   };
 
   // Handle sending a booking amendment request
-  const sendBookingAmendmentRequest = async (amendment: AddBookingAmmendmentRequest) => {
+  const sendBookingAmendmentRequest = async (amendment: AddBookingAmendmentRequest) => {
     if (!isConnected || !chat) return;
   
     try {
-      // First save the amendment to booking service
       const result = await addBookingAmmendment(amendment);
       
-      // Check for success response - handle both structures
       if (result.success || result.Status === "Success") {
         // Get the amendment ID from either response format
         const amendmentId = result.id || result.BookingAmmendmentId || "";
         console.log("Amendment created with ID:", amendmentId);
         
-        // Create a special message formatted specifically for booking amendments
+        // Create the amendment message
         const amendmentMessage = {
           type: "booking_amendment",
           from: currentUserId,
@@ -297,10 +333,8 @@ const ChatDetail = () => {
           requesterApproved: true
         };
         
-        // Log the message before sending
         console.log("Sending amendment message:", amendmentMessage);
         
-        // Send the amendment message via the sendMessage function from our hook
         const success = sendMessage(JSON.stringify(amendmentMessage));
         if (!success) {
           console.error("Failed to send amendment message");
@@ -312,7 +346,6 @@ const ChatDetail = () => {
         setShowAmendmentModal(false);
         setSelectedBookingId(null);
       } else {
-        // Handle error
         console.error("Failed to create booking amendment:", result.message || "Unknown error");
       }
     } catch (error) {

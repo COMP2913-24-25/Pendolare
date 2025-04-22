@@ -33,6 +33,7 @@ interface ConversationResponse {
   UpdateDate: string;
   Name: string;
   UserId: string;
+  participants?: string[];
 }
 
 interface GetUserConversationsResponse {
@@ -42,7 +43,8 @@ interface GetUserConversationsResponse {
 export async function createConversation(
   request: CreateConversationRequest,
 ): Promise<ConversationResponse> {
-  console.log(request)
+  console.log("Creating conversation with payload:", request);
+  
   return apiRequest<ConversationResponse>(MESSAGE_ENDPOINTS.CREATE_CONVERSATION, {
     method: "POST",
     body: JSON.stringify(request),

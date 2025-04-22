@@ -9,8 +9,8 @@ import RatingModal from "./Modals/RatingModal";
 import RideCompletionModal from "./Modals/RideCompletionModal";
 import UpcomingRideDetailsModal from "./Modals/UpcomingRideDetailsModal";
 import UpcomingRideCard from "./UpcomingRideCard";
-import { BookingDetails, User, cancelBooking, addBookingAmmendment } from "@/services/bookingService";
-import { createConversation, messageService } from "@/services/messageService";
+import { AddBookingAmendmentRequest, BookingDetails, addBookingAmmendment } from "@/services/bookingService";
+import { createConversation, messageService, getUserConversations } from "@/services/messageService";
 import { Text } from "@/components/common/ThemedText";
 import { useTheme } from "@/context/ThemeContext";
 import { getCurrentUserId } from "@/services/authService";
@@ -106,24 +106,53 @@ const UpcomingRide = ({ booking, onPress }: UpcomingRideProps) => {
 
   const handleCancel = async (reason: string) => {
     try {
-      // First, create a booking amendment
+      // First, get user ID
       const userId = await getCurrentUserId();
       
       // Check if userId is null and handle accordingly
       if (!userId) {
         console.error("Cannot cancel ride: User ID is null");
-        // Show error message or return early
         return;
       }
       
-      // Create the booking amendment request that matches the interface
-      const amendmentRequest = {
+      let conversationId = "";
+      try {
+        console.log(`Creating/getting conversation with driver ${driverName} (${driverId})`);
+        const conversationResponse = await createConversation({
+          ConversationType: "direct",
+          name: `Chat with ${driverName}`,
+          participants: [driverId]
+        });
+        conversationId = conversationResponse.ConversationId;
+        console.log("Conversation created/retrieved:", conversationId);
+      } catch (error) {
+        console.log("Error creating conversation:", error);
+        
+        // Try to find existing conversation
+        try {
+          console.log("Trying to find existing conversation");
+          const conversations = await getUserConversations();
+          // Look for conversations with this driver by name or participant
+          const existingConversation = conversations.conversations.find(c => 
+            (c.Name && c.Name.includes(driverName)) || 
+            (c.participants && c.participants.includes(driverId))
+          );
+          if (existingConversation) {
+            conversationId = existingConversation.ConversationId;
+            console.log("Found existing conversation:", conversationId);
+          }
+        } catch (fetchError) {
+          console.error("Failed to fetch existing conversations:", fetchError);
+        }
+      }
+
+      // Determine who is cancelling (driver or passenger)
+      const isCancellingDriver = booking.Journey.User?.UserId === userId;
+      const isCancellingPassenger = booking.Booking.User?.UserId === userId;
+
+      const amendmentRequest: AddBookingAmendmentRequest = {
         BookingId: booking.Booking.BookingId,
-        CancellationRequest: {
-          Reason: reason,
-          RequestedBy: userId
-        },
-        // Fill required fields with appropriate values
+        CancellationRequest: true,
         ProposedPrice: null,
         StartName: null,
         StartLong: null,
@@ -131,118 +160,78 @@ const UpcomingRide = ({ booking, onPress }: UpcomingRideProps) => {
         EndName: null,
         EndLong: null,
         EndLat: null,
-        StartTime: null,
-        DriverApproval: false,
-        PassengerApproval: true // Passenger is initiating the cancellation
+        StartTime: new Date().toISOString().split(".")[0],
+        DriverApproval: !!isCancellingDriver,
+        PassengerApproval: !!isCancellingPassenger,
       };
       
-      // Submit the amendment request
       const amendmentResult = await addBookingAmmendment(amendmentRequest);
       console.log("Booking amendment created:", amendmentResult);
       
-      // Get the amendment ID
       const amendmentId = amendmentResult.id || amendmentResult.BookingAmmendmentId;
-      
-      // Cancel the booking through the API
-      await cancelBooking(booking.Booking.BookingId, reason);
-      
-      // Create or get existing conversation with the driver
-      let conversationId = "";
-      try {
-        const conversationResponse = await createConversation({
-          ConversationType: "direct",
-          name: `Chat with ${driverName}`,
-          participants: [driverId],
-        });
-        conversationId = conversationResponse.ConversationId;
-        console.log("Conversation created/retrieved:", conversationId);
-      } catch (error) {
-        console.log("Error creating conversation:", error);
+      if (!amendmentId) {
+        console.error("No amendment ID returned from API");
+        return;
       }
       
-      // If we have a conversation ID and amendment ID, properly initialize the message service
-      // and send a formatted amendment message
       if (conversationId && amendmentId) {
-        // Set up event listeners to know when we're connected
-        const waitForConnection = new Promise<boolean>((resolve) => {
-          // Add a connected listener
-          messageService.on("connected", () => {
-            console.log("WebSocket connected, resolving promise");
+        const setupWebSocket = new Promise<boolean>((resolve) => {
+          const connectedHandler = () => {
+            console.log("WebSocket connected successfully");
+            messageService.off("connected"); // Remove listener to prevent memory leaks
             resolve(true);
-          });
+          };
           
-          // Add a timeout to prevent hanging
-          setTimeout(() => {
-            console.log("Connection timeout, proceeding anyway");
-            resolve(false);
-          }, 3000);
+          messageService.on("connected", connectedHandler);
+          messageService.setUserId(userId);
+          messageService.setConversationId(conversationId);
         });
         
-        // Set user ID first, which will start the connection if needed
-        messageService.setUserId(userId);
+        await setupWebSocket;
         
-        // Set conversation ID, which will join the conversation once connected
-        messageService.setConversationId(conversationId);
-        
-        // Wait for connection to be established
-        console.log("Waiting for WebSocket connection...");
-        const connected = await waitForConnection;
-        
-        // Remove the listener to avoid memory leaks
-        messageService.off("connected");
-        
-        // Create the amendment message
         const amendmentMessage = {
           type: "booking_amendment",
           from: userId,
           conversation_id: conversationId,
           content: JSON.stringify({
             ...amendmentRequest,
-            Type: "Cancellation", // Add for display purposes
-            Details: reason, // Add for display purposes
-            Status: "Requested" // Add for display purposes
+            Type: "Cancellation",
+            Details: reason,
+            Status: "Requested"
           }),
           amendmentId: amendmentId.toString(),
           timestamp: new Date().toISOString(),
           requesterApproved: true
         };
         
-        // Send the message - give it a few attempts
-        let messageSent = false;
-        let attempts = 0;
-        const maxAttempts = 3;
-        
-        while (!messageSent && attempts < maxAttempts) {
-          attempts++;
-          console.log(`Sending amendment message, attempt ${attempts}`);
-          
-          messageSent = messageService.sendMessage(JSON.stringify(amendmentMessage));
-          
-          if (!messageSent) {
-            console.log("Message not sent, waiting before retry");
-            // Wait a bit before retrying
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          }
-        }
-        
-        if (messageSent) {
-          console.log("Cancellation message with amendment sent successfully");
-        } else {
-          console.error("Failed to send cancellation message after multiple attempts");
-          // The chat screen will attempt to load amendment data anyway
-        }
+        messageService.sendMessage(JSON.stringify(amendmentMessage));
+        console.log("Sent cancellation message with amendment");
       }
-
+      
       // Close modals
       setShowCancelModal(false);
       await new Promise((resolve) => setTimeout(resolve, 100));
       setShowDetails(false);
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      // Navigate to chat with a friendly message explaining the cancellation
-      router.push(
-        `/home/chat/${driverId}?name=${encodeURIComponent(driverName)}&initialMessage=I've cancelled our ride due to: ${encodeURIComponent(reason)}.`
-      );
+      const initialMessage = `I've cancelled our ride due to: ${reason}.`;
+      router.push({
+        pathname: `/home/chat/${driverId}`,
+        params: {
+          name: driverName,
+          initialMessage
+        }
+      });
+
+      if (conversationId && userId) {
+        // Wait to allow navigation and connection
+        setTimeout(() => {
+          messageService.setUserId(userId);
+          messageService.setConversationId(conversationId);
+          messageService.connect();
+          messageService.sendMessage(initialMessage);
+        }, 500);
+      }
 
       console.log(`Ride cancelled for reason: ${reason}`);
     } catch (error) {

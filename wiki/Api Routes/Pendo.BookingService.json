@@ -124,7 +124,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AddBookingAmmendmentRequest"
+                "$ref": "#/components/schemas/AddBookingAmendmentRequest"
               }
             }
           },
@@ -369,7 +369,7 @@
   },
   "components": {
     "schemas": {
-      "AddBookingAmmendmentRequest": {
+      "AddBookingAmendmentRequest": {
         "properties": {
           "UserId": {
             "type": "string",
@@ -505,7 +505,7 @@
           "UserId",
           "BookingId"
         ],
-        "title": "AddBookingAmmendmentRequest"
+        "title": "AddBookingAmendmentRequest"
       },
       "ApproveBookingAmmendmentRequest": {
         "properties": {
