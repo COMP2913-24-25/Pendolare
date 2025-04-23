@@ -106,7 +106,6 @@ const ChatDetail = () => {
     const shouldAutoCreate = !!initialMessage && initialMessage !== '';
     setAutoCreateChat(shouldAutoCreate);
     
-    // If the ID has changed, fetch new chat data
     if (currentUserId) {
       fetchChatData();
     }
@@ -188,7 +187,6 @@ const ChatDetail = () => {
       // Set a flag to prevent multiple fetches
       setIsFetchingChat(true);
       
-      // Fetch conversation details from API
       console.log("Fetching conversation details for:", id);
       const response = await getUserConversations();
       
@@ -203,26 +201,22 @@ const ChatDetail = () => {
       }));
       
       let selectedChat = normalisedConversations.find((c: any) => {
-        // Check if conversation ID matches
         if (c.id === id || c.ConversationId === id) {
           console.log("Found exact conversation match by ID");
           return true;
         }
         
-        // Check if the user is a participant
         if (c.participants && c.participants.includes(id.toString())) {
           console.log("Found conversation where target is a participant");
           return true;
         }
         
-        // Check if conversation name contains the user name
         const targetName = name?.toString().toLowerCase() || id?.toString().toLowerCase();
         if (c.Name && c.Name.toLowerCase().includes(targetName)) {
           console.log("Found conversation match by name");
           return true;
         }
         
-        // Check if user is mentioned in title
         if (c.title && c.title.toLowerCase().includes(targetName)) {
           console.log("Found conversation match by title");
           return true;

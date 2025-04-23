@@ -134,13 +134,11 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
           showMessage: true,
         });
 
-        // Close the details modal after a short delay
+        // Close the details modal and reset state after a short delay
         setTimeout(() => {
-          onClose();
-          setTimeout(
-            () => setBookingStatus((prev) => ({ ...prev, showMessage: false })),
-            500,
-          );
+          setBookingStatus((prev) => ({ ...prev, showMessage: false }));
+          setShowCheckout(false); // If checkout modal is open, close it
+          onClose(); // Close the RideDetails modal
         }, 2000);
       } else {
         setBookingStatus({

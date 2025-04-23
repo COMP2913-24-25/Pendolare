@@ -1,5 +1,3 @@
-// Full Message Service Client in TypeScript
-
 import { MESSAGE_API_BASE_URL } from "@/constants";
 import { apiRequest } from "./apiClient";
 import { MESSAGE_ENDPOINTS } from "@/constants";
@@ -122,8 +120,8 @@ class MessageService {
     // Close any existing connection that might be in a bad state
     if (this.ws) {
       try {
-        this.ws.onclose = null; // Remove listener to prevent reconnect loop
-        this.ws.onerror = null; // Remove error handler
+        this.ws.onclose = null;
+        this.ws.onerror = null;
         this.ws.close();
         this.ws = null;
       } catch (error) {
@@ -140,14 +138,12 @@ class MessageService {
         console.log("Successfully connected");
         this.isConnected = true;
         this.isReconnecting = false;
-        this.reconnectAttempts = 0; // Reset reconnect attempts on successful connection
+        this.reconnectAttempts = 0;
 
-        // Send registration message to register client with userId
         if (this.userId) {
           this.registerUser();
         }
 
-        // Join the conversation once registered, if we have a conversation ID
         if (this.conversationId) {
           this.joinConversation();
         }
@@ -157,10 +153,8 @@ class MessageService {
           this.listeners.connected();
         }
 
-        // Reset history requested flag on new connection
         this.historyRequested = false;
 
-        // Process any queued messages
         this.processMessageQueue();
       };
 
@@ -186,16 +180,12 @@ class MessageService {
           if (message.type === "booking_amendment" || message.amendmentId) {
             console.log("Received booking amendment message:", message);
             
-            // Ensure type is set correctly
             message.type = "booking_amendment";
             
-            // Make sure amendmentId is preserved
             if (message.amendmentId && typeof message.content === 'string') {
               try {
-                // Try to parse content if it's a string
                 const parsedContent = JSON.parse(message.content);
                 
-                // If parsed content already has BookingId, use it directly
                 if (parsedContent.BookingId) {
                   message.content = parsedContent;
                 }
@@ -273,7 +263,6 @@ class MessageService {
         }
       };
 
-      // Handle WebSocket errors
       this.ws.onerror = (error) => {
         console.error("WebSocket error:", error);
         if (this.listeners.error) {
@@ -281,7 +270,6 @@ class MessageService {
         }
       };
 
-      // Handle WebSocket close event
       this.ws.onclose = (event) => {
         console.log("WebSocket connection closed:", event.code, event.reason);
         this.isConnected = false;
@@ -462,7 +450,7 @@ class MessageService {
         this.ws!.send(message);
       } catch (error) {
         console.error("Error sending queued message:", error);
-        // Re-queue the message
+
         this.queueMessage(message);
       }
     }
@@ -479,12 +467,10 @@ class MessageService {
       if (!this.isReconnecting) {
         this.connect();
       }
-      // Queue the message for later
       this.queueMessage(content);
       return false;
     }
 
-    // Check if this is a booking amendment message
     let message = null;
     try {
       const parsedContent = JSON.parse(content);

@@ -16,13 +16,11 @@ export interface AddBookingAmendmentRequest {
   StartTime: string | null;
   DriverApproval: boolean;
   PassengerApproval: boolean;
-  // Add commuter schedule amendment fields
   ScheduleAmendment?: boolean;
   RecurrenceCron?: string;
   RepeatUntil?: string;
 }
 
-// Update the interface to match what the server expects
 export interface ApproveBookingAmmendmentRequest {
   DriverApproval: boolean;
   PassengerApproval: boolean;
@@ -40,9 +38,9 @@ export interface CreateBookingRequest {
 
 export interface BookingResponse {
   id?: string;
-  BookingAmmendmentId?: string; // Add this to support the server response format
-  Status?: string; // Add this to support the server response format
-  Message?: string; // Add this to support the server response format
+  BookingAmmendmentId?: string;
+  Status?: string;
+  Message?: string;
   success?: boolean;
   message?: string;
 }
@@ -55,13 +53,12 @@ export interface User {
   FirstName?: string;
   LastName?: string;
   Email?: string;
-  // Add other user properties as needed
 }
 
 export interface BookingDetails {
   Booking: {
     BookingId: string;
-    User: User; // Update to use the User interface
+    User: User;
     FeeMargin: number;
     RideTime: Date;
     BookedWindowEnd?: Date;
@@ -73,7 +70,7 @@ export interface BookingDetails {
   },
   Journey: {
     JourneyId: string;
-    User: User; // Update to use the User interface
+    User: User;
     StartTime: Date;
     StartName: string;
     StartLong: number;
@@ -159,12 +156,10 @@ export async function getBookings(driverView: boolean = false): Promise<GetBooki
         booking.Journey = {};
       }
       
-      // Ensure Booking object exists
       if (!booking.Booking) {
         booking.Booking = {};
       }
       
-      // Ensure BookingStatus object exists
       if (!booking.BookingStatus) {
         booking.BookingStatus = { Status: 'Unknown' };
       }
@@ -303,25 +298,6 @@ export async function approveBooking(bookingId: string): Promise<BookingResponse
   }
 }
 
-export async function cancelBooking(bookingId: string, reason: string): Promise<BookingResponse> {
-  try {
-    console.log(`Cancelling booking ${bookingId} with reason: ${reason}`);
-    // Replace with actual API call
-    await Promise.resolve(); // use the bookingAmmendment endpoint!
-
-    return {
-      success: true,
-    };
-  } catch (error) {
-    console.error("Cancel booking error:", error);
-    return {
-      success: false,
-      message:
-        error instanceof Error ? error.message : "Failed to cancel booking",
-    };
-  }
-}
-
 export async function confirmAtPickup(bookingId: string): Promise<BookingResponse> {
   try {
     console.log("Confirming at pickup");
@@ -390,7 +366,6 @@ export const rebookCommuterJourney = async (
     // Default start date is today
     const startDate = options?.startDate || new Date();
     
-    // First try to get the original journey details to determine duration
     let originalDuration = options?.customDuration;
     
     if (!originalDuration) {
