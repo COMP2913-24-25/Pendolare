@@ -35,7 +35,17 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y libssl-dev
+        luarocks install lua_cliargs || true
+        luarocks install luasystem || true
+        luarocks install dkjson || true
+        luarocks install say || true
+        luarocks install luassert || true
+        luarocks install lua-term || true
+        luarocks install luafilesystem || true
+        luarocks install penlight || true
+        luarocks install mediator_lua || true
         luarocks install busted
+        luarocks install datafile || true
         luarocks install luacov
         luarocks install cjson
         luarocks install lua-path
