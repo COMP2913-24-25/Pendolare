@@ -90,7 +90,7 @@ jobs:
       working-directory: ./Pendo.ApiGateway
       run: |
         # Run the tests with output in JUnit format
-        busted -v --output=junit --output-file=apigateway_test_results.xml kong/plugins/jwt-custom-claims/spec
+        busted -v --output=junit kong/plugins/jwt-custom-claims/spec > apigateway_test_results.xml
 
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v2

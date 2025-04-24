@@ -77,8 +77,8 @@ async def test_user_registration(server_setup):
         
         # Yield to allow registration to complete
         await asyncio.sleep(0.1)
-        
-=        assert user_id in message_handler.user_connections
+
+        assert user_id in message_handler.user_connections
 
 
 @pytest.mark.asyncio
