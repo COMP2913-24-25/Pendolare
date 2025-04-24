@@ -82,12 +82,15 @@ jobs:
         end
         return _M
         EOF
+        # Symlink helpers for busted to find as 'spec.helpers'
+        mkdir -p spec
+        ln -sf ../kong/plugins/jwt-custom-claims/spec/helpers spec/helpers
 
     - name: Test API Gateway plugins
       working-directory: ./Pendo.ApiGateway
       run: |
         # Run the tests with output in JUnit format
-        busted -v --output=junit -o apigateway_test_results.xml kong/plugins/jwt-custom-claims/spec
+        busted -v --output=junit --output-file=apigateway_test_results.xml kong/plugins/jwt-custom-claims/spec
 
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v2

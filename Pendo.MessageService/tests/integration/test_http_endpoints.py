@@ -17,7 +17,7 @@ class TestHttpEndpoints(AioHTTPTestCase):
         self.mock_repo.create_conversation_with_participants = MagicMock()
         self.mock_repo.get_user_conversations = MagicMock()
         
-=        app['repository'] = self.mock_repo
+        app['repository'] = self.mock_repo
         
         # Register routes
         app.router.add_get('/', root_handler)
