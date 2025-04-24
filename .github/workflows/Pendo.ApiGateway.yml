@@ -44,14 +44,14 @@ jobs:
         luarocks install luafilesystem || true
         luarocks install penlight || true
         luarocks install mediator_lua || true
-        luarocks install busted
+        luarocks install busted || true
         luarocks install datafile || true
-        luarocks install luacov
-        luarocks install cjson
-        luarocks install lua-path
-        luarocks install luasocket
-        luarocks install luasec
-        luarocks install lua-resty-http
+        luarocks install luacov || true
+        luarocks install cjson || true
+        luarocks install lua-path || true
+        luarocks install luasocket || true
+        luarocks install luasec || true
+        luarocks install lua-resty-http || true
 
     - name: Setup Kong test environment
       working-directory: ./Pendo.ApiGateway
