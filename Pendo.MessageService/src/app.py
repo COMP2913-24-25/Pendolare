@@ -81,8 +81,7 @@ async def user_conversations_handler(request):
     Expects a JSON body with:
         - UserId (str)
     """
-    # Parse JSON body
-
+    
     try:
         data = await request.json()
     except Exception:
@@ -122,7 +121,6 @@ async def support_conversations_handler(request):
     Expects a JSON body with:
         - UserId (str)
     """
-    # Parse JSON body
     try:
         data = await request.json()
     except Exception:
@@ -136,12 +134,10 @@ async def support_conversations_handler(request):
     user_id = "00000000-0000-0000-0000-000000000000"
     
     try:
-        # First check if repository exists in app context (for testing)
         repo = request.app.get('repository', repository)
         if repo is None:
             return web.json_response({"error": "Repository not available"}, status=500)
             
-        # Fetch user conversations from repository and return as JSON
         conversations = repo.get_user_conversations(user_id)
         conv_list = []
         for conv in conversations:
@@ -169,13 +165,11 @@ async def create_conversation_handler(request):
       - name (str, optional)
       - participants (list of UUID strings)
     """
-    # Parse JSON body
     try:
         data = await request.json()
     except Exception:
         return web.json_response({"error": "Invalid JSON body"}, status=400)
     
-    # Validate required fields
     conversation_type = data.get("ConversationType")
     if not conversation_type:
         return web.json_response({"error": "ConversationType is required"}, status=400)
@@ -201,7 +195,6 @@ async def create_conversation_handler(request):
 
     # Create conversation with participants
     try:
-        # First check if repository exists in app context (for testing)
         repo = request.app.get('repository', repository)
         if repo is None:
             return web.json_response({"error": "Repository not available"}, status=500)
@@ -245,7 +238,6 @@ async def websocket_handler(websocket):
     logger.info(f"New WebSocket connection: ID={client_id}, Remote={remote}, Path={path}")
     
     try:
-        # Log request headers for debugging
         if request_headers:
             logger.debug(f"Client {client_id} headers: {dict(request_headers.items())}")
         

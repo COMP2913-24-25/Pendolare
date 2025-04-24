@@ -60,13 +60,9 @@ jobs:
         mkdir -p pids logs
         cp kong/plugins/jwt-custom-claims/spec/fixtures/custom_nginx.template spec/fixtures/ || true
         chmod +x spec/run.sh || true
-
-    - name: Test API Gateway plugins
-      working-directory: ./Pendo.ApiGateway
-      run: |
         # Create a mock helpers module to run standalone tests
-        mkdir -p spec/helpers
-        cat > spec/helpers/init.lua << 'EOF'
+        mkdir -p kong/plugins/jwt-custom-claims/spec/helpers
+        cat > kong/plugins/jwt-custom-claims/spec/helpers/init.lua << 'EOF'
         local _M = {}
         function _M.get_db_utils() 
           return {
@@ -86,7 +82,10 @@ jobs:
         end
         return _M
         EOF
-        
+
+    - name: Test API Gateway plugins
+      working-directory: ./Pendo.ApiGateway
+      run: |
         # Run the tests with output in JUnit format
         busted -v --output=junit -o apigateway_test_results.xml kong/plugins/jwt-custom-claims/spec
 
