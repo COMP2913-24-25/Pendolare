@@ -72,6 +72,9 @@ docker logs pendo-message-test
 ## Deployment
 Deploy the service using Docker with the provided Dockerfile and shell scripts:
 - `Dockerfile` for the application.
+
+## Additional Notes
+As the message service doesn't fully rely on RESTful requests and uses the Secure Websockets protocl the API routes below are inaccurate. 
   
 ## Contact
 - User responsible: Josh Mundray @sc232jm

@@ -81,7 +81,7 @@ async def user_conversations_handler(request):
     Expects a JSON body with:
         - UserId (str)
     """
-    # Parse JSON body
+    
     try:
         data = await request.json()
     except Exception:
@@ -121,7 +121,6 @@ async def support_conversations_handler(request):
     Expects a JSON body with:
         - UserId (str)
     """
-    # Parse JSON body
     try:
         data = await request.json()
     except Exception:
@@ -135,12 +134,10 @@ async def support_conversations_handler(request):
     user_id = "00000000-0000-0000-0000-000000000000"
     
     try:
-        # First check if repository exists in app context (for testing)
         repo = request.app.get('repository', repository)
         if repo is None:
             return web.json_response({"error": "Repository not available"}, status=500)
             
-        # Fetch user conversations from repository and return as JSON
         conversations = repo.get_user_conversations(user_id)
         conv_list = []
         for conv in conversations:
@@ -168,25 +165,23 @@ async def create_conversation_handler(request):
       - name (str, optional)
       - participants (list of UUID strings)
     """
-    # Parse JSON body
     try:
         data = await request.json()
     except Exception:
         return web.json_response({"error": "Invalid JSON body"}, status=400)
     
-    # Validate required fields
     conversation_type = data.get("ConversationType")
     if not conversation_type:
         return web.json_response({"error": "ConversationType is required"}, status=400)
     
     participants = data.get("participants")
     if not participants or not isinstance(participants, list):
-        return web.json_response({"error": "participants must be a list"}, status=400)
+        return web.json_response({"error": "Participants must be a list"}, status=400)
     
 
     user_id = data.get("UserId")
     if not user_id:
-        return web.json_response({"error": "userid must be passed"}, status=400)
+        return web.json_response({"error": "UserId must be passed"}, status=400)
     
     participants.append(user_id)
     
@@ -200,7 +195,6 @@ async def create_conversation_handler(request):
 
     # Create conversation with participants
     try:
-        # First check if repository exists in app context (for testing)
         repo = request.app.get('repository', repository)
         if repo is None:
             return web.json_response({"error": "Repository not available"}, status=500)
@@ -210,7 +204,14 @@ async def create_conversation_handler(request):
             conv_participant_ids = {p.UserId for p in conv.ConversationParticipants}
             if conv_participant_ids == set(participants):
                 print("Conversation already exists")
-                return web.json_response({"error": "Conversation already exists"}, status=400)
+                response_data = {
+                    "ConversationId": str(conv.ConversationId),
+                    "Type": conv.Type,
+                    "CreateDate": conv.CreateDate.isoformat(),
+                    "UpdateDate": conv.UpdateDate.isoformat(),
+                    "Name": conv.Name or f"Conv-{conv.ConversationId}"
+                }
+                return web.json_response(response_data)
 
             
         conversation = repo.create_conversation_with_participants(conversation_type, participants, name)
@@ -237,7 +238,6 @@ async def websocket_handler(websocket):
     logger.info(f"New WebSocket connection: ID={client_id}, Remote={remote}, Path={path}")
     
     try:
-        # Log request headers for debugging
         if request_headers:
             logger.debug(f"Client {client_id} headers: {dict(request_headers.items())}")
         
@@ -327,7 +327,7 @@ async def setup_http_server():
     # Register HTTP endpoints
     app.router.add_get('/', root_handler)
     app.router.add_get('/api/Message/HealthCheck', health_check)
-    app.router.add_get('/api/Message/UserConversation', user_conversations_handler)
+    app.router.add_post('/api/Message/UserConversation', user_conversations_handler)
     app.router.add_get('/api/Message/SupportConversation', support_conversations_handler)
     app.router.add_post('/api/Message/CreateConversation', create_conversation_handler)
     

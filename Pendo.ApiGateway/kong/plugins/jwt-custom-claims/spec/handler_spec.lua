@@ -1,5 +1,8 @@
 local PLUGIN_NAME = "jwt-custom-claims"
-local helpers = require "spec.helpers"
+local ok, helpers = pcall(require, "spec.helpers")
+if not ok then
+  helpers = require("kong.plugins.jwt-custom-claims.spec.helpers")
+end
 local cjson = require "cjson"
 local jwt_parser = require "kong.plugins.jwt.jwt_parser"
 

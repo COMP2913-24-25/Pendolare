@@ -3,7 +3,7 @@ import { Modal, View, TouchableOpacity, TextInput, ScrollView, Switch, Platform 
 import { Text } from '@/components/common/ThemedText';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
-import { AddBookingAmmendmentRequest } from '@/services/bookingService';
+import { AddBookingAmendmentRequest } from '@/services/bookingService';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { getBookings } from '@/services/bookingService';
 import { Picker } from '@react-native-picker/picker';
@@ -18,7 +18,7 @@ interface Location {
 interface BookingAmendmentModalProps {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (amendment: AddBookingAmmendmentRequest) => void;
+  onSubmit: (amendment: AddBookingAmendmentRequest) => void;
   isDriver?: boolean;
 }
 
@@ -120,7 +120,7 @@ const BookingAmendmentModal: React.FC<BookingAmendmentModalProps> = ({
       formattedStartTime = newStartTime.toISOString().split('.')[0];
     }
     
-    const amendment: AddBookingAmmendmentRequest = {
+    const amendment: AddBookingAmendmentRequest = {
       BookingId: selectedBookingId,
       CancellationRequest: isCancellation,
       ProposedPrice: newPrice ? parseFloat(newPrice) : null,

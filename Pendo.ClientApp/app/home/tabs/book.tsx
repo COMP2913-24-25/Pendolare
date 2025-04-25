@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ScrollView, View, TouchableOpacity, Modal } from "react-native";
 import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
 import BookingCategory from "@/components/BookingCategory";
@@ -16,6 +16,18 @@ const Book = () => {
   const [showCreateRideModal, setShowCreateRideModal] = useState(false);
   const [resetFilters, setResetFilters] = useState(false);
   const { isDarkMode } = useTheme();
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounced category setter
+  const handleCategorySelect = (category: string) => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
+      setSelectedCategory(category);
+      setResetFilters(true);
+    }, 300); // 300ms debounce
+  };
 
   return (
     <ThemedSafeAreaView
@@ -47,20 +59,14 @@ const Book = () => {
           <BookingCategory
             title="Search Regular Journeys"
             description="Find available journeys to your destination"
-            onPress={() => {
-              setSelectedCategory("normal");
-              setResetFilters(true);
-            }}
+            onPress={() => handleCategorySelect("normal")}
             isSelected={selectedCategory === "normal"}
           />
 
           <BookingCategory
             title="Search Commuter Journeys"
             description="Find reoccuring journeys for your daily commute"
-            onPress={() => {
-              setSelectedCategory("commuter");
-              setResetFilters(true);
-            }}
+            onPress={() => handleCategorySelect("commuter")}
             isSelected={selectedCategory === "commuter"}
           />
         </View>

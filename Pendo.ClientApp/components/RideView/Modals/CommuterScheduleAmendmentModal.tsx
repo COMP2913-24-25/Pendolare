@@ -3,7 +3,7 @@ import { Modal, View, TouchableOpacity, ScrollView, Alert, Platform } from 'reac
 import { Text } from '@/components/common/ThemedText';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
-import { AddBookingAmmendmentRequest, addBookingAmmendment, approveBookingAmmendment, BookingDetails, User } from '@/services/bookingService';
+import { AddBookingAmendmentRequest, addBookingAmmendment, approveBookingAmmendment, BookingDetails, User } from '@/services/bookingService';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { getCurrentUserId } from '@/services/authService';
 import { Picker } from '@react-native-picker/picker';
@@ -210,7 +210,7 @@ const CommuterScheduleAmendmentModal: React.FC<CommuterScheduleAmendmentModalPro
       const newCronExpression = generateCronExpression();
       
       // Create schedule amendment request
-      const amendmentRequest: AddBookingAmmendmentRequest = {
+      const amendmentRequest: AddBookingAmendmentRequest = {
         BookingId: rideDetails.BookingId,
         CancellationRequest: false,
         // Standard fields set to null as they are not needed for schedule amendments
