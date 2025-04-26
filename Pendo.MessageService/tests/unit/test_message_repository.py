@@ -43,7 +43,6 @@ def test_save_message(message_repo):
     message_type = "text"
     content = "Test message content"
     
-    # Call the method
     message = repo.save_message(conversation_id, sender_id, message_type, content)
     
     # Verify message was created with correct attributes
@@ -71,7 +70,6 @@ def test_get_messages_by_conversation_id(message_repo):
     mock_query.limit.return_value = mock_query
     mock_query.all.return_value = mock_messages
     
-    # Call the method
     conversation_id = uuid.uuid4()
     result = repo.get_messages_by_conversation_id(conversation_id)
     
@@ -80,8 +78,8 @@ def test_get_messages_by_conversation_id(message_repo):
     mock_db.query.assert_called_once_with(Messages)
     mock_query.filter.assert_called_once()
     mock_query.order_by.assert_called_once()
-    mock_query.offset.assert_called_once_with(0)  # Default skip value
-    mock_query.limit.assert_called_once_with(100)  # Default limit value
+    mock_query.offset.assert_called_once_with(0)
+    mock_query.limit.assert_called_once_with(100)
     mock_query.all.assert_called_once()
 
 
@@ -94,10 +92,8 @@ def test_get_conversation_by_id(message_repo):
     mock_conversation = MagicMock(spec=Conversations)
     mock_db.query.return_value.get.return_value = mock_conversation
     
-    # Call the method
     result = repo.get_conversation_by_id(conversation_id)
     
-    # Verify result and query calls
     assert result == mock_conversation
     mock_db.query.assert_called_once_with(Conversations)
     mock_db.query.return_value.get.assert_called_once_with(conversation_id)
@@ -107,14 +103,11 @@ def test_create_conversation(message_repo):
     """Test creating a conversation"""
     repo, mock_db = message_repo
     
-    # Test data
     conversation_type = "direct"
     name = "Test Conversation"
     
-    # Call the method
     conversation = repo.create_conversation(conversation_type, name)
     
-    # Verify conversation was created with correct attributes
     assert conversation.Type == conversation_type
     assert conversation.Name == name
     assert isinstance(conversation.ConversationId, uuid.UUID)
@@ -132,15 +125,12 @@ def test_add_user_to_conversation(message_repo):
     conversation_id = uuid.uuid4()
     user_id = uuid.uuid4()
     
-    # Call the method
     participant = repo.add_user_to_conversation(conversation_id, user_id)
     
-    # Verify participant was created with correct attributes
     assert participant.ConversationId == conversation_id
     assert participant.UserId == user_id
     assert participant.LeftAt is None
     
-    # Verify participant was added to the session and committed
     mock_db.add.assert_called_once()
     mock_db.commit.assert_called_once()
 
@@ -160,10 +150,8 @@ def test_get_user_conversations(message_repo):
     mock_query.order_by.return_value = mock_query
     mock_query.all.return_value = mock_conversations
     
-    # Call the method
     result = repo.get_user_conversations(user_id)
     
-    # Verify result and query calls
     assert result == mock_conversations
     mock_db.query.assert_called_once_with(Conversations)
     mock_query.join.assert_called_once_with(ConversationParticipants)
@@ -176,15 +164,12 @@ def test_get_user_by_id(message_repo):
     """Test getting a user by ID"""
     repo, mock_db = message_repo
     
-    # Setup mock user
     user_id = uuid.uuid4()
     mock_user = MagicMock(spec=User)
     mock_db.query.return_value.get.return_value = mock_user
     
-    # Call the method
     result = repo.get_user_by_id(user_id)
     
-    # Verify result and query calls
     assert result == mock_user
     mock_db.query.assert_called_once_with(User)
     mock_db.query.return_value.get.assert_called_once_with(user_id)
@@ -194,17 +179,14 @@ def test_create_conversation_with_participants(message_repo):
     """Test creating a conversation with participants"""
     repo, mock_db = message_repo
     
-    # Mock create_conversation and add_user_to_conversation methods
     repo.create_conversation = MagicMock()
     repo.add_user_to_conversation = MagicMock()
     repo.get_user_by_id = MagicMock()
     
-    # Setup test data
     conversation_type = "group"
     name = "Test Group"
     participants = [str(uuid.uuid4()) for _ in range(3)]
     
-    # Mock a created conversation
     mock_conversation = MagicMock(spec=Conversations)
     mock_conversation.ConversationId = uuid.uuid4()
     repo.create_conversation.return_value = mock_conversation
@@ -214,17 +196,12 @@ def test_create_conversation_with_participants(message_repo):
     mock_user.UserTypeId = 1
     repo.get_user_by_id.return_value = mock_user
     
-    # Call the method
     result = repo.create_conversation_with_participants(conversation_type, participants, name)
     
-    # Verify create_conversation was called with correct parameters
     repo.create_conversation.assert_called_once_with(conversation_type, name)
     
-    # Verify add_user_to_conversation was called for each participant
     assert repo.add_user_to_conversation.call_count == len(participants)
     
-    # Verify get_user_by_id was called for each participant
     assert repo.get_user_by_id.call_count == len(participants)
     
-    # Verify result is the created conversation
     assert result == mock_conversation
