@@ -44,8 +44,8 @@ This section serves to document all unit tests within the project. This will be 
 | `test_update_booking_fee` | `test_update_booking_fee_success` | ✅ |
 
 ### Pendo.ApiGateway
-| Test Name | Passing |
-|-----------|:------:|
+| Location | Test Name | Passing |
+|----------|-----------|:------:|
 
 ### Pendo.BookingService
 | Location | Test Name | Passing |
