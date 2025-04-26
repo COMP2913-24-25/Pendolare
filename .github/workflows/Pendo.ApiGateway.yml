@@ -27,6 +27,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.WF_PAT }}
 
     - name: Setup Lua
       uses: leafo/gh-actions-lua@v10
