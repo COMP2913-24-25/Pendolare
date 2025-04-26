@@ -114,6 +114,42 @@ This section serves to document all unit tests within the project. This will be 
 | `test_refund_request_insufficient_balance` | ✅ |
 
 ### Pendo.IdentityService
+| Test Name | Passing |
+|-----------|:------:|
+| `Update_ModifiesExistingEntity` | ✅ |
+| `Create_ReturnsModelOfCorrectType` | ✅ |
+| `Handle_UserNotFound_ReturnsFailureResponse` | ✅ |
+| `VerifyHash_WithModifiedHash_ReturnsFalse` | ✅ |
+| `VerifyHash_WithIncorrectOtp_ReturnsFalse` | ✅ |
+| `Read_Should_Return_Filtered_Entities` | ✅ |
+| `Handle_UserFound_ReturnsUserDetailsSuccessfully` | ✅ |
+| `Handle_WhenOtpExpired_ReturnsFalse` | ✅ |
+| `UtcNow_ReturnsTime` | ✅ |
+| `Create_AddsNewEntity` | ✅ |
+| `Read_WithNullFilter_ReturnsAllEntities` | ✅ |
+| `Hash_ShouldReturnValidHashAndSalt` | ✅ |
+| `GenerateToken_OfSetLength_ReturnsNumericCode(100)` | ✅ |
+| `Handle_CreatesNewUserAndSendsOtpSuccessfully("manager@test.com",2)` | ✅ |
+| `Handle_CreatesNewUserAndSendsOtpSuccessfully("mundrayj@gmail.com",1)` | ✅ |
+| `Handle_WhenOtpValid_ReturnsTrueAndJwt` | ✅ |
+| `Handle_WhenOtpInvalid_ReturnsFalse` | ✅ |
+| `Handle_UserFound_NullNames_DefaultsToEmptyString` | ✅ |
+| `GenerateToken_OfSetLength_ReturnsNumericCode(6)` | ✅ |
+| `Handle_WhenOtpLoginNotFound_ReturnsFalse` | ✅ |
+| `GenerateToken_OfSetLength_ReturnsNumericCode(20)` | ✅ |
+| `Handle_WhenUserExists_UsesExistingUser` | ✅ |
+| `GenerateToken_OfSetLength_ReturnsNumericCode(1)` | ✅ |
+| `GenerateJwt_ShouldContainCorrectClaims` | ✅ |
+| `Delete_RemovesExistingEntity` | ✅ |
+| `GenerateJwt_ShouldReturnValidToken` | ✅ |
+| `VerifyHash_WithCorrectOtp_ReturnsTrue` | ✅ |
+| `VerifyHash_WithModifiedSalt_ReturnsFalse` | ✅ |
+| `Handle_WhenMultipleUsersExist_ReturnsFalse` | ✅ |
+| `Handle_UserFound_UpdateOnlyNonEmptyValues` | ✅ |
+| `Handle_UserFound_UpdatesFirstAndLastNameSuccessfully` | ✅ |
+| `Handle_WhenEmailFails_ReturnsFalse` | ✅ |
+| `Handle_WhenUserDoesNotExist_ReturnsFalse` | ✅ |
+| `Handle_UserNotFound_ReturnsFailureResponse` | ✅ |
 
 ### Pendo.JourneyService
 
