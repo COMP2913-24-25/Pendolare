@@ -53,8 +53,8 @@ jobs:
         chmod +x ./scripts/parse-unittests.py
         python ./scripts/parse-unittests.py \
           --service AdminService \
-          --tests ./Pendo.AdminService/admin_test_results.xml \
-          --wiki wiki/Tests.md
+          --report ./Pendo.AdminService/admin_test_results.xml \
+          --wiki-file wiki/Tests.md
       
     - name: Checkout Wiki
       run: |
