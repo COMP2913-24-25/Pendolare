@@ -6,6 +6,7 @@ on:
     workflows: ["Pendo-MasterWorkflow", "Pendo-ApiGateway", "Pendo-AdminService", "Pendo-BookingService", "Pendo-JourneyService", "Pendo-MessageService", "Pendo-PaymentService", "Pendo-IdentityService"]
     types:
       - completed
+  workflow_dispatch:
 
 jobs:
   update_wiki:
