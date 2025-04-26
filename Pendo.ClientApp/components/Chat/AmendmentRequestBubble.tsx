@@ -3,12 +3,12 @@ import { View, TouchableOpacity } from 'react-native';
 import { Text } from '@/components/common/ThemedText';
 import { useTheme } from '@/context/ThemeContext';
 import { formatTimestamp } from '@/utils/formatTime';
-import { AddBookingAmmendmentRequest } from '@/services/bookingService';
+import { AddBookingAmendmentRequest } from '@/services/bookingService';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { toHumanReadable } from '@/utils/cronTools';
 
 interface AmendmentRequestBubbleProps {
-  amendment: AddBookingAmmendmentRequest;
+  amendment: AddBookingAmendmentRequest;
   amendmentId: string;
   isFromCurrentUser: boolean;
   timestamp: string;

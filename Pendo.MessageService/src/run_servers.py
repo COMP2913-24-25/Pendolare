@@ -13,7 +13,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Handle graceful shutdown
 # Derived from: https://roguelynn.com/words/asyncio-graceful-shutdowns/
 async def shutdown(signal, loop):
     """Gracefully shutdown the servers"""

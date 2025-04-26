@@ -21,8 +21,6 @@ export async function apiRequest<T>(
 
   try {
 
-    console.log(headers)
-    console.log(options.body)
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       headers,
@@ -33,13 +31,14 @@ export async function apiRequest<T>(
     if (forceJsonParse) {
       console.log("Forcing JSON parse");
 
-      data = JSON.parse(await response.text());
+      let text = await response.text();
+      data = JSON.parse(text);
 
-      console.log(data);
+      console.debug(`${endpoint} response:`, data);
     }
     else{
       data = await response.json();
-      console.log(data);
+      console.debug(`${endpoint} response:`, data);
     }
 
     if (!response.ok && !silentFail) {

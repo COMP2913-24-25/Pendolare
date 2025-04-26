@@ -293,11 +293,14 @@ const UpcomingRideDetailsModal = ({
                 <View className="mt-4">
                   <Text className="font-JakartaBold mb-2">This commuter journey has expired</Text>
                   <OneClickRebook 
-                    journeyId={journey.JourneyId}
+                    journeyId={booking.Journey.JourneyId}
                     originalDuration={
-                      journey.RepeatUntil && journey.StartDate ? 
-                      Math.ceil((new Date(journey.RepeatUntil).getTime() - new Date(journey.StartDate).getTime()) / (1000 * 60 * 60 * 24)) : 
-                      undefined
+                      booking.Journey.RepeatUntil && booking.Journey.StartTime ? 
+                        Math.ceil(
+                          (new Date(booking.Journey.RepeatUntil).getTime() - new Date(booking.Journey.StartTime).getTime()) /
+                          (1000 * 60 * 60 * 24)
+                        ) : 
+                        undefined
                     }
                     onSuccess={() => {
                       onClose();

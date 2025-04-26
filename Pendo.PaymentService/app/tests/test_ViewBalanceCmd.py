@@ -5,11 +5,6 @@ from src.db.PaymentRepository import PaymentRepository, UserBalance
 import uuid
 
 @pytest.fixture
-def mock_request():
-    request = MagicMock(UserId = uuid.uuid4())
-    return request
-
-@pytest.fixture
 def mock_logger():
     return Mock()
 
@@ -31,8 +26,8 @@ def mock_user_balance():
     return balance
 
 @pytest.fixture
-def view_balance_command(mock_request, mock_logger, mock_payment_repository):
-    command = ViewBalanceCommand(mock_request, mock_logger)
+def view_balance_command(mock_user, mock_logger, mock_payment_repository):
+    command = ViewBalanceCommand(mock_logger, mock_user.UserId)
     command.PaymentRepository = mock_payment_repository
     return command
 
@@ -40,6 +35,7 @@ def test_view_balance_success(view_balance_command, mock_user, mock_user_balance
     # Arrange
     view_balance_command.PaymentRepository.GetUser.return_value = mock_user
     view_balance_command.PaymentRepository.GetUserBalance.return_value = mock_user_balance
+    view_balance_command.PaymentRepository.GetWeeklyList.return_value = []
     
     # Act
     result = view_balance_command.Execute()
@@ -49,7 +45,7 @@ def test_view_balance_success(view_balance_command, mock_user, mock_user_balance
     assert result.NonPending == 100.00
     assert result.Pending == 50.00
 
-def test_view_balance_user_not_found(view_balance_command, mock_user):
+def test_view_balance_user_not_found(view_balance_command):
     # Arrange
     view_balance_command.PaymentRepository.GetUser.return_value = None
     
@@ -66,6 +62,7 @@ def test_view_balance_no_balance_sheet(view_balance_command, mock_user):
     # Arrange
     view_balance_command.PaymentRepository.GetUser.return_value = mock_user
     view_balance_command.PaymentRepository.GetUserBalance.side_effect = [None, MagicMock(spec=UserBalance, NonPending=0.0, Pending=0.0)]
+    view_balance_command.PaymentRepository.GetWeeklyList.return_value = []
     
     # Act
     result = view_balance_command.Execute()

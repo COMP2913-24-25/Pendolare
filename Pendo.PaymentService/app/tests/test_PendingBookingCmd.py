@@ -13,14 +13,6 @@ def mock_logger():
     return MagicMock()
 
 @pytest.fixture
-def booking_id():
-    return 1
-
-@pytest.fixture
-def latest_amount():
-    return 100.0 
-
-@pytest.fixture
 def mock_booking():
     booking = MagicMock()
     booking.BookingId = 1
@@ -32,7 +24,7 @@ def mock_booking():
     journey = MagicMock()
     journey.UserId = str(uuid.uuid4())  # Driver ID
     journey.AdvertisedPrice = 100.0
-    journey.CurrencyCode = "USD"
+    journey.CurrencyCode = "GBP"
     booking.Journey_ = journey
     return booking
 
@@ -46,7 +38,6 @@ def mock_driver():
 def mock_booker():
     booker = MagicMock()
     booker.UserId = str(uuid.uuid4())
-    booker.NonPending = 150.0  # Sufficient balance
     return booker
 
 @pytest.fixture
@@ -59,13 +50,13 @@ def mock_driver_balance():
 @pytest.fixture
 def mock_booker_balance():
     balance = MagicMock(spec=UserBalance)
-    balance.NonPending = 150.0
+    balance.NonPending = 100.0
     balance.Pending = 0.0
     return balance
 
 @pytest.fixture
-def pending_booking_command(mock_logger, booking_id, latest_amount):
-    command = PendingBookingCommand(mock_logger, booking_id, latest_amount)
+def pending_booking_command(mock_logger):
+    command = PendingBookingCommand(mock_logger, 1, 100.0)
     command.PaymentRepository = MagicMock(spec=PaymentRepository)
     return command
 
@@ -171,15 +162,17 @@ def test_pending_booking_create_driver_balance(pending_booking_command, mock_boo
     assert created_balance.UserId == mock_driver.UserId
     assert pending_booking_command.PaymentRepository.GetUserBalance.call_count == 3  # Initial check + check after creation
 
-def test_pending_booking_create_booker_balance(pending_booking_command, mock_booking, mock_driver, mock_booker, mock_driver_balance):
+def test_pending_booking_create_booker_balance(pending_booking_command, mock_booking, mock_driver, mock_booker, mock_driver_balance, mock_booker_balance):
     # Arrange
     pending_booking_command.PaymentRepository.GetBookingById.return_value = mock_booking
     pending_booking_command.PaymentRepository.GetUser.side_effect = [mock_driver, mock_booker]
-    pending_booking_command.PaymentRepository.GetUserBalance.side_effect = [mock_driver_balance, None, MagicMock(spec=UserBalance)]
+    pending_booking_command.PaymentRepository.GetUserBalance.side_effect = [mock_driver_balance, None, mock_booker_balance]
+
     pending_booking_command.PaymentRepository.UpdatePendingBalance.return_value = True
     
     # Act
     result = pending_booking_command.Execute()
+    print(result)
     
     # Assert
     assert result.Status == "success"
@@ -190,14 +183,14 @@ def test_pending_booking_create_booker_balance(pending_booking_command, mock_boo
 
 def test_pending_booking_insufficient_balance(pending_booking_command, mock_booking, mock_driver, mock_booker, mock_driver_balance, mock_booker_balance):
     # Arrange
-    mock_booker.NonPending = 50.0 
+    mock_booker_balance.NonPending = 50.0 
     pending_booking_command.PaymentRepository.GetBookingById.return_value = mock_booking
     pending_booking_command.PaymentRepository.GetUser.side_effect = [mock_driver, mock_booker]
     pending_booking_command.PaymentRepository.GetUserBalance.side_effect = [mock_driver_balance, mock_booker_balance]
     
     # Act
     result = pending_booking_command.Execute()
-    
+
     # Assert
     assert result.Status == "fail"
     assert result.Error == "Not enough user balance to set journey to pending"

@@ -92,7 +92,11 @@ const DriverRideCard = ({ booking, journeyView = false, approveBookingCallback, 
         <Text className="text-lg font-JakartaBold flex-1">
           {journeyView ? "Your Journey" : status.Status === "Pending" ? "Pending Booking" : "Upcoming Ride"}
         </Text>
-        <Text className="text-blue-600 font-JakartaBold">{`£${journey.Price.toFixed(2)}`}</Text>
+        <Text className="text-blue-600 font-JakartaBold">
+          {typeof journey.Price === "number"
+            ? `£${journey.Price.toFixed(2)}`
+            : "N/A"}
+        </Text>
       </View>
 
       {/* Add commuter journey badge */}
@@ -145,11 +149,11 @@ const DriverRideCard = ({ booking, journeyView = false, approveBookingCallback, 
         <OneClickRebook 
           journeyId={journey.JourneyId}
           originalDuration={
-            journey.RepeatUntil && journey.StartDate ? 
-            Math.ceil((new Date(journey.RepeatUntil).getTime() - new Date(journey.StartDate).getTime()) / (1000 * 60 * 60 * 24)) : 
+            journey.RepeatUntil && journey.StartTime ? 
+            Math.ceil((new Date(journey.RepeatUntil).getTime() - new Date(journey.StartTime).getTime()) / (1000 * 60 * 60 * 24)) : 
             undefined
           }
-          onSuccess={approveBookingCallback}
+          onSuccess={approveBookingCallback ?? (() => {})}
         />
       )}
 
