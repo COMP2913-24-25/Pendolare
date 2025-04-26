@@ -50,6 +50,7 @@ jobs:
 
     - name: Update Wiki
       run: |
+        chmod +x ./scripts/parse-unittests.py
         ./scripts/parse-unittests.py \
           --service AdminService \
           --tests ./Pendo.AdminService/admin_test_results.xml \
