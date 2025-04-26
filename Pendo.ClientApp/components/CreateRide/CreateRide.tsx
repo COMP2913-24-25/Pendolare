@@ -16,7 +16,8 @@ import { createJourney } from "@/services/journeyService";
 import { validateRegPlate } from "@/services/dvlaService";
 import { toCronString } from "@/utils/cronTools";
 import { searchLocations } from "@/services/locationService";
-import { costValidator, integerValidator } from "@/utils/validators";
+import { costValidator, integerValidator, stringLengthValidator } from "@/utils/validators";
+import { Alert } from "react-native";
 
 interface Location {
   name: string;
@@ -49,6 +50,8 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
   const [seats, setSeats] = useState("");
 
   const [regPlate, setRegPlate] = useState("");
+  const [regPlateValidationMessage, setRegPlateValidationMessage] = useState<string | null>(null);
+
   const [bootHeight, setBootHeight] = useState("");
   const [bootHeightValidationMessage, setBootHeightValidationMessage] = useState<string | null>(null);
 
@@ -112,18 +115,22 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
     else onClose();
   };
 
+  const canGoNext = () => {
+    switch (step) {
+      case 1:
+        return pickup && dropoff;
+      case 2:
+        return cost && regPlate;
+      case 3:
+        return isCommuter ? selectedDays.length > 0 : true;
+      default:
+        return true;
+    }
+  };
+
   // Create a new ride
   const handleCreateRide = async () => {
     try {
-      // Validate registration plate if provided
-      if (regPlate.trim()) {
-        const isPlateValid = await validateRegPlate(regPlate);
-        if (!isPlateValid) {
-          alert("Invalid registration plate. Please check and try again.");
-          return;
-        }
-      }
-      
       // Prepare payload
       const payload: any = {
         AdvertisedPrice: parseFloat(cost),
@@ -206,9 +213,10 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
               seats={seats}
               setCost={(value) => {costValidator(setCost, value, 1, 100, setCostValidationMessage); }}
               costValidationMessage={costValidationMessage}
-              setSeats={(value) => {integerValidator(setSeats, value, 1, 7); }}
+              setSeats={(value) => integerValidator(setSeats, value, 1, 7)}
               regPlate={regPlate}
-              setRegPlate={setRegPlate}
+              setRegPlate={(value) => stringLengthValidator(setRegPlate, value, 0, 7, setRegPlateValidationMessage)}
+              regPlateValidationMessage={regPlateValidationMessage}
               bootHeight={bootHeight}
               setBootHeight={(value) => {integerValidator(setBootHeight, value, null, 200, setBootHeightValidationMessage); }}
               bootHeightValidationMessage={bootHeightValidationMessage}
@@ -260,7 +268,7 @@ const CreateRide = ({ onClose }: CreateRideProps) => {
         <View className="px-5 py-4">
           <TouchableOpacity
             className={`bg-blue-600 p-4 rounded-xl ${(!pickup || !dropoff) ? "opacity-50" : ""}`}
-            onPress={handleNext}
+            onPress={() => canGoNext() ? handleNext() : Alert.alert("Please fill in all required fields.")}
             disabled={!pickup || !dropoff}
           >
             <Text className="text-white text-center font-JakartaBold text-lg">

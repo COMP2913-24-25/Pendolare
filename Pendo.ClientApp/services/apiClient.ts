@@ -33,13 +33,14 @@ export async function apiRequest<T>(
     if (forceJsonParse) {
       console.log("Forcing JSON parse");
 
-      data = JSON.parse(await response.text());
+      let text = await response.text();
+      data = JSON.parse(text);
 
-      console.log(data);
+      console.debug(`${endpoint} response:`, data);
     }
     else{
       data = await response.json();
-      console.log(data);
+      console.debug(`${endpoint} response:`, data);
     }
 
     if (!response.ok && !silentFail) {

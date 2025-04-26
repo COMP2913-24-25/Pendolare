@@ -108,8 +108,6 @@ export function getNextCronDates(
 
         nextDate = interval.next().toDate();
       }
-      
-      console.log("Next dates: ", results.length);
       return results;
     }
     catch(error){

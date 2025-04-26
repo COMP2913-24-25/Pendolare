@@ -11,6 +11,7 @@ interface CostAndSeatsStepProps {
   setSeats: (value: string) => void;
   regPlate: string;
   setRegPlate: (value: string) => void;
+  regPlateValidationMessage: string | null;
   bootHeight: string;
   bootHeightValidationMessage: string | null;
   setBootHeight: (value: string) => void;
@@ -32,6 +33,7 @@ const CostAndSeatsStep = ({
   setSeats,
   regPlate,
   setRegPlate,
+  regPlateValidationMessage,
   bootHeight,
   bootHeightValidationMessage,
   setBootHeight,
@@ -56,7 +58,7 @@ const CostAndSeatsStep = ({
               : "bg-white border-slate-200 text-black"
           }`}
           placeholderTextColor={isDarkMode ? "#9CA3AF" : "#6B7280"}
-          placeholder="Enter cost per seat"
+          placeholder="Enter total cost (£)"
         />
         {costValidationMessage !== null && (
           <Text className="mt-1 text-sm text-red-500">
@@ -87,6 +89,11 @@ const CostAndSeatsStep = ({
           placeholderTextColor={isDarkMode ? "#9CA3AF" : "#6B7280"}
           placeholder="Enter reg plate (e.g., AB12CDE)"
         />
+        {regPlateValidationMessage !== null && (
+          <Text className="mt-1 text-sm text-red-500">
+            {regPlateValidationMessage}
+          </Text>
+        )}
       </View>
 
       <View className="mb-4">
