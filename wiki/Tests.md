@@ -208,57 +208,57 @@ This section serves to document all unit tests within the project. This will be 
 | `test_websocket` | `test_websocket_connection` | ✅ |
 
 ### Pendo.PaymentService
-| Test Name | Passing |
-|-----------|:------:|
-| `test_completed_booking_constructor` | ✅ |
-| `test_completed_booking_success` | ✅ |
-| `test_completed_booking_exception` | ✅ |
-| `test_completed_booking_booking_not_found` | ✅ |
-| `test_completed_booking_transaction_creation` | ✅ |
-| `test_completed_booking_margin_calculation` | ✅ |
-| `test_create_payout_success` | ✅ |
-| `test_create_payout_user_not_found` | ✅ |
-| `test_create_payout_no_balance_sheet` | ✅ |
-| `test_create_payout_email_sending` | ✅ |
-| `test_create_payout_transaction_creation` | ✅ |
-| `test_create_payout_database_error` | ✅ |
-| `test_create_payout_constructor` | ✅ |
-| `test_payment_methods_success` | ✅ |
-| `test_payment_methods_empty` | ✅ |
-| `test_payment_methods_missing_card_data` | ✅ |
-| `test_payment_methods_exception` | ✅ |
-| `test_payment_methods_mixed_payment_types` | ✅ |
-| `test_payment_methods_sets_api_key` | ✅ |
-| `test_pending_booking_success` | ✅ |
-| `test_pending_booking_not_found` | ✅ |
-| `test_pending_booking_incorrect_status` | ✅ |
-| `test_pending_booking_driver_not_found` | ✅ |
-| `test_pending_booking_passenger_not_found` | ✅ |
-| `test_pending_booking_create_driver_balance` | ✅ |
-| `test_pending_booking_create_booker_balance` | ✅ |
-| `test_pending_booking_insufficient_balance` | ✅ |
-| `test_pending_booking_update_pending_exception` | ✅ |
-| `test_pending_booking_constructor` | ✅ |
-| `test_refund_payment_passenger_success` | ✅ |
-| `test_refund_payment_driver_refund` | ✅ |
-| `test_refund_payment_booking_not_found` | ✅ |
-| `test_refund_payment_invalid_user_type` | ✅ |
-| `test_refund_payment_no_driver_approval` | ✅ |
-| `test_refund_payment_passenger_late_cancellation` | ✅ |
-| `test_refund_payment_passenger_early_cancellation` | ✅ |
-| `test_refund_payment_balance_update_failure` | ✅ |
-| `test_refund_payment_constructor` | ✅ |
-| `test_webhook_success` | ✅ |
-| `test_webhook_user_not_found` | ✅ |
-| `test_webhook_no_user_balance` | ✅ |
-| `test_webhook_transaction_not_found` | ✅ |
-| `test_webhook_update_failure` | ✅ |
-| `test_webhook_constructor` | ✅ |
-| `test_webhook_complete_flow_with_new_balance` | ✅ |
-| `test_view_balance_success` | ✅ |
-| `test_view_balance_user_not_found` | ✅ |
-| `test_view_balance_no_balance_sheet` | ✅ |
-| `test_view_balance_repository_exception` | ✅ |
-| `test_view_balance_create_balance_failure` | ✅ |
-| `test_view_balance_constructor` | ✅ |
-| `test_view_balance_get_balance_after_create_failure` | ✅ |
+| Location | Test Name | Passing |
+|----------|-----------|:------:|
+| `test_CompletedBookingCmd` | `test_completed_booking_booking_not_found` | ✅ |
+| `test_CompletedBookingCmd` | `test_completed_booking_constructor` | ✅ |
+| `test_CompletedBookingCmd` | `test_completed_booking_exception` | ✅ |
+| `test_CompletedBookingCmd` | `test_completed_booking_margin_calculation` | ✅ |
+| `test_CompletedBookingCmd` | `test_completed_booking_success` | ✅ |
+| `test_CompletedBookingCmd` | `test_completed_booking_transaction_creation` | ✅ |
+| `test_CreatePayoutCmd` | `test_create_payout_constructor` | ✅ |
+| `test_CreatePayoutCmd` | `test_create_payout_database_error` | ✅ |
+| `test_CreatePayoutCmd` | `test_create_payout_email_sending` | ✅ |
+| `test_CreatePayoutCmd` | `test_create_payout_no_balance_sheet` | ✅ |
+| `test_CreatePayoutCmd` | `test_create_payout_success` | ✅ |
+| `test_CreatePayoutCmd` | `test_create_payout_transaction_creation` | ✅ |
+| `test_CreatePayoutCmd` | `test_create_payout_user_not_found` | ✅ |
+| `test_PaymentMethodsCmd` | `test_payment_methods_empty` | ✅ |
+| `test_PaymentMethodsCmd` | `test_payment_methods_exception` | ✅ |
+| `test_PaymentMethodsCmd` | `test_payment_methods_missing_card_data` | ✅ |
+| `test_PaymentMethodsCmd` | `test_payment_methods_mixed_payment_types` | ✅ |
+| `test_PaymentMethodsCmd` | `test_payment_methods_sets_api_key` | ✅ |
+| `test_PaymentMethodsCmd` | `test_payment_methods_success` | ✅ |
+| `test_PendingBookingCmd` | `test_pending_booking_constructor` | ✅ |
+| `test_PendingBookingCmd` | `test_pending_booking_create_booker_balance` | ✅ |
+| `test_PendingBookingCmd` | `test_pending_booking_create_driver_balance` | ✅ |
+| `test_PendingBookingCmd` | `test_pending_booking_driver_not_found` | ✅ |
+| `test_PendingBookingCmd` | `test_pending_booking_incorrect_status` | ✅ |
+| `test_PendingBookingCmd` | `test_pending_booking_insufficient_balance` | ✅ |
+| `test_PendingBookingCmd` | `test_pending_booking_not_found` | ✅ |
+| `test_PendingBookingCmd` | `test_pending_booking_passenger_not_found` | ✅ |
+| `test_PendingBookingCmd` | `test_pending_booking_success` | ✅ |
+| `test_PendingBookingCmd` | `test_pending_booking_update_pending_exception` | ✅ |
+| `test_RefundPaymentCmd` | `test_refund_payment_balance_update_failure` | ✅ |
+| `test_RefundPaymentCmd` | `test_refund_payment_booking_not_found` | ✅ |
+| `test_RefundPaymentCmd` | `test_refund_payment_constructor` | ✅ |
+| `test_RefundPaymentCmd` | `test_refund_payment_driver_refund` | ✅ |
+| `test_RefundPaymentCmd` | `test_refund_payment_invalid_user_type` | ✅ |
+| `test_RefundPaymentCmd` | `test_refund_payment_no_driver_approval` | ✅ |
+| `test_RefundPaymentCmd` | `test_refund_payment_passenger_early_cancellation` | ✅ |
+| `test_RefundPaymentCmd` | `test_refund_payment_passenger_late_cancellation` | ✅ |
+| `test_RefundPaymentCmd` | `test_refund_payment_passenger_success` | ✅ |
+| `test_StripeWebhookCmd` | `test_webhook_complete_flow_with_new_balance` | ✅ |
+| `test_StripeWebhookCmd` | `test_webhook_constructor` | ✅ |
+| `test_StripeWebhookCmd` | `test_webhook_no_user_balance` | ✅ |
+| `test_StripeWebhookCmd` | `test_webhook_success` | ✅ |
+| `test_StripeWebhookCmd` | `test_webhook_transaction_not_found` | ✅ |
+| `test_StripeWebhookCmd` | `test_webhook_update_failure` | ✅ |
+| `test_StripeWebhookCmd` | `test_webhook_user_not_found` | ✅ |
+| `test_ViewBalanceCmd` | `test_view_balance_constructor` | ✅ |
+| `test_ViewBalanceCmd` | `test_view_balance_create_balance_failure` | ✅ |
+| `test_ViewBalanceCmd` | `test_view_balance_get_balance_after_create_failure` | ✅ |
+| `test_ViewBalanceCmd` | `test_view_balance_no_balance_sheet` | ✅ |
+| `test_ViewBalanceCmd` | `test_view_balance_repository_exception` | ✅ |
+| `test_ViewBalanceCmd` | `test_view_balance_success` | ✅ |
+| `test_ViewBalanceCmd` | `test_view_balance_user_not_found` | ✅ |
