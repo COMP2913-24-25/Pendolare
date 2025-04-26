@@ -17,26 +17,41 @@ def parse_pytest_junit(path: Path):
     root = tree.getroot()
     tests = []
     for tc in root.iter("testcase"):
+        class_name = tc.attrib.get("classname", "").split(".")[-1]  #get the last part of the class name (don't need 'tests.')
         name = tc.attrib.get("name")
         passed = tc.find("failure") is None and tc.find("error") is None
-        tests.append((name, TICK if passed else CROSS))
+        tests.append((class_name, name, TICK if passed else CROSS))
     return tests
 
 def parse_nunit_trx(path: Path):
     tree = ET.parse(path)
     root = tree.getroot()
     ns = {"trx": "http://microsoft.com/schemas/VisualStudio/TeamTest/2010"}
-    tests = []
+    
+    id_to_classname = {
+        ut.attrib["id"]: ut.find(".//trx:TestMethod", ns).attrib.get("className", "")
+        for ut in root.findall(".//trx:UnitTest", ns)
+        if ut.find(".//trx:TestMethod", ns) is not None
+    } #extract class names
+
+    results = []
     for result in root.findall(".//trx:UnitTestResult", ns):
-        name = result.attrib["testName"]
-        outcome = result.attrib["outcome"]
-        tests.append((name, TICK if outcome == "Passed" else CROSS))
-    return tests
+        test_id = result.attrib["testId"]
+        class_name = id_to_classname.get(test_id, "UnknownClass")
+        test_name = result.attrib["testName"]
+        outcome = TICK if result.attrib["outcome"] == "Passed" else CROSS
+        results.append((class_name, test_name, outcome))
+
+    return results
 
 def render_md_table(tests):
-    lines = ["| Test Name | Passing |", "|-----------|:------:|"]
-    for name, status in tests:
-        lines.append(f"| `{name}` | {status} |")
+    tests.sort(key=lambda x: (x[0], x[1]))  #sort by location and test name
+
+    lines = ["| Location | Test Name | Passing |", 
+             "|----------|-----------|:------:|"]
+    for location, name, status in tests:
+        lines.append(f"| `{location}` | `{name}` | {status} |")
+
     return "\n".join(lines)
 
 def replace_section_by_header(content: str, service: str, table_md: str) -> str:

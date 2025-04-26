@@ -12,6 +12,7 @@ on:
     paths:
       - 'Pendo.PaymentService/**'
       - '.github/workflows/Pendo.PaymentService.yml'
+      - 'scripts/**'
   workflow_dispatch:
   workflow_call:
     inputs:

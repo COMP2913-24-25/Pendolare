@@ -12,6 +12,7 @@ on:
     paths:
       - 'Pendo.JourneyService/**'
       - '.github/workflows/Pendo.JourneyService.yml'
+      - 'scripts/**'
   workflow_dispatch:
   workflow_call:
     inputs:

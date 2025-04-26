@@ -12,6 +12,7 @@ on:
     paths:
       - 'Pendo.ApiGateway/**'
       - '.github/workflows/Pendo.ApiGateway.yml'
+      - 'scripts/**'
   workflow_dispatch:
   workflow_call:
     inputs:

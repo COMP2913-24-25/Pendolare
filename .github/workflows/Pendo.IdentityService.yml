@@ -12,6 +12,7 @@ on:
     paths:
       - 'Pendo.IdentityService/**'
       - '.github/workflows/Pendo.IdentityService.yml'
+      - 'scripts/**'
   workflow_dispatch:
   workflow_call:
     inputs:

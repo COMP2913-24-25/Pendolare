@@ -12,6 +12,7 @@ on:
     paths:
       - 'Pendo.AdminService/**'
       - '.github/workflows/Pendo.AdminService.yml'
+      - 'scripts/**'
   workflow_dispatch:
   workflow_call:
     inputs:

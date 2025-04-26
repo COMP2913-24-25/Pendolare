@@ -12,6 +12,7 @@ on:
     paths:
       - 'Pendo.BookingService/**'
       - '.github/workflows/Pendo.BookingService.yml'
+      - 'scripts/**'
   workflow_dispatch:
   workflow_call:
     inputs:
