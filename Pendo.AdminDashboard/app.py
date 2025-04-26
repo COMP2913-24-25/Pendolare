@@ -7,10 +7,9 @@ from message_client import MessageClient
 from config import app, api_url
 
 def check_inactivity():
-    now = datetime.utcnow()  # naive UTC datetime
+    now = datetime.utcnow()
     last_activity = session.get('last_activity')
     if last_activity:
-        # Ensure last_activity is a naive datetime if it's aware.
         if hasattr(last_activity, 'tzinfo') and last_activity.tzinfo is not None:
             last_activity = last_activity.replace(tzinfo=None)
     if last_activity and (now - last_activity).total_seconds() > app.permanent_session_lifetime.total_seconds():
