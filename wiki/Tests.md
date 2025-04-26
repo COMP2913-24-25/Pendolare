@@ -183,29 +183,29 @@ This section serves to document all unit tests within the project. This will be 
 | `test_journey_repo` | `test_lock_journey_success` | ✅ |
 
 ### Pendo.MessageService
-| Test Name | Passing |
-|-----------|:------:|
-| `test_create_conversation_handler` | ✅ |
-| `test_health_check` | ✅ |
-| `test_invalid_participants_in_create_conversation` | ✅ |
-| `test_missing_fields_in_create_conversation` | ✅ |
-| `test_root_handler` | ✅ |
-| `test_user_conversations_handler` | ✅ |
-| `test_websocket_connection` | ✅ |
-| `test_user_registration` | ✅ |
-| `test_chat_message_exchange` | ✅ |
-| `test_join_conversation` | ✅ |
-| `test_request_message_history` | ✅ |
-| `test_health_check` | ✅ |
-| `test_root_handler` | ✅ |
-| `test_websocket_handler_welcome_message` | ✅ |
-| `test_setup_http_server` | ✅ |
-| `test_setup_ws_server` | ✅ |
-| `test_register_user` | ✅ |
-| `test_remove_user` | ✅ |
-| `test_handle_chat_message` | ✅ |
-| `test_handle_join_conversation` | ✅ |
-| `test_handle_history_request` | ❌ |
+| Location | Test Name | Passing |
+|----------|-----------|:------:|
+| `TestHttpEndpoints` | `test_create_conversation_handler` | ✅ |
+| `TestHttpEndpoints` | `test_health_check` | ✅ |
+| `TestHttpEndpoints` | `test_invalid_participants_in_create_conversation` | ✅ |
+| `TestHttpEndpoints` | `test_missing_fields_in_create_conversation` | ✅ |
+| `TestHttpEndpoints` | `test_root_handler` | ✅ |
+| `TestHttpEndpoints` | `test_user_conversations_handler` | ✅ |
+| `test_app` | `test_health_check` | ✅ |
+| `test_app` | `test_root_handler` | ✅ |
+| `test_app` | `test_setup_http_server` | ✅ |
+| `test_app` | `test_setup_ws_server` | ✅ |
+| `test_app` | `test_websocket_handler_welcome_message` | ✅ |
+| `test_message_handler` | `test_handle_chat_message` | ✅ |
+| `test_message_handler` | `test_handle_history_request` | ❌ |
+| `test_message_handler` | `test_handle_join_conversation` | ✅ |
+| `test_message_handler` | `test_register_user` | ✅ |
+| `test_message_handler` | `test_remove_user` | ✅ |
+| `test_websocket` | `test_chat_message_exchange` | ✅ |
+| `test_websocket` | `test_join_conversation` | ✅ |
+| `test_websocket` | `test_request_message_history` | ✅ |
+| `test_websocket` | `test_user_registration` | ✅ |
+| `test_websocket` | `test_websocket_connection` | ✅ |
 
 ### Pendo.PaymentService
 | Test Name | Passing |
