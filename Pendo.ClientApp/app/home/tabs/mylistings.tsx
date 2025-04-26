@@ -89,7 +89,6 @@ const MyListings = () => {
     });
 
     console.log(`Fetched ${response.journeys.length} journeys`);
-    console.log(response.journeys);
 
     // Split journeys into regular and commuter types for better organization
     const regularJourneys = response.journeys.filter(j => j.JourneyType === 1);
@@ -298,11 +297,12 @@ const MyListings = () => {
 
           {currentTab === "Past" &&
             (pastJourneys.length > 0 ? (
-              pastJourneys.map((journey, index) => (
+              pastJourneys.map((booking, index) => (
                 <View key={index}>
                   <DriverRideCard 
-                    booking={convertRideToBookingDetails(journey)} 
-                    journeyView={true} 
+                    booking={booking} 
+                    journeyView={true}
+                    isCommuter={booking.Journey.JourneyType === 2} 
                   />
                 </View>
               ))

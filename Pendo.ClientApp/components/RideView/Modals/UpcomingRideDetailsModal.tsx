@@ -50,25 +50,6 @@ const UpcomingRideDetailsModal = ({
   const { isDarkMode } = useTheme();
   const [showScheduleAmendmentModal, setShowScheduleAmendmentModal] = useState(false);
 
-  useEffect(() => {
-    if (booking) {
-      console.log("Booking structure:", {
-        hasJourney: !!booking.Journey,
-        journeyType: typeof booking.Journey,
-        journeyKeys: booking.Journey ? Object.keys(booking.Journey) : [],
-        hasBooking: !!booking.Booking,
-        hasStatus: !!booking.BookingStatus
-      });
-
-      console.log("Booking details:", booking.Journey.Recurrance);
-      
-      // If Journey exists but is empty, log that specifically
-      if (booking.Journey && Object.keys(booking.Journey).length === 0) {
-        console.log("Journey object exists but is empty!");
-      }
-    }
-  }, [booking]);
-
   // Most minimal validation possible - just check if booking exists
   const isValidBooking = !!booking;
   

@@ -31,7 +31,7 @@ const Home = () => {
   const [showAllRides, setShowAllRides] = useState(false);
   const [currentJourneyTab, setCurrentJourneyTab] = useState("Upcoming");
   const { isDarkMode } = useTheme();
-  const { logout, userData } = useAuth();
+  const { logout, userData, refreshUserData } = useAuth();
 
   const [upcomingRides, setUpcomingRides] = useState<Ride[]>([]);
   const [pastRides, setPastRides] = useState<Ride[]>([]);
@@ -39,6 +39,15 @@ const Home = () => {
   const [cancelledRides, setCancelledRides] = useState<Ride[]>([]);
   const [nextRide, setNextRide] = useState<Ride | null>(null);
   const [upcomingDriverRide, setUpcomingDriverRide] = useState<Ride | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      const loadData = async () => {
+        await refreshUserData();
+      };
+      loadData();
+    }, [])
+  );
 
   const fetchBookings = async (driverView: boolean = false) => {
     try {
