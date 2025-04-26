@@ -65,7 +65,7 @@ const DriverRideCard = ({ booking, journeyView = false, approveBookingCallback, 
       const bookingId = rideDetails.BookingId;
       const response = await approveBooking(bookingId);
       
-      if (response.success) {
+      if (response.Status === "Success") {
         Alert.alert("Success", "Booking approved successfully");
         approveBookingCallback();
       } else {
@@ -78,6 +78,10 @@ const DriverRideCard = ({ booking, journeyView = false, approveBookingCallback, 
           Alert.alert("Error", response.message || "Failed to approve booking");
         }
       }
+      
+      setShowDetails(false);
+      Promise.resolve(() => setTimeout(() => {}, 100));
+
     } catch (error) {
       console.error("Error approving booking:", error);
       Alert.alert("Error", "Failed to approve booking");
