@@ -8,10 +8,15 @@ on:
       - 'Pendo.IdentityService/**'
       - '.github/workflows/Pendo.IdentityService.yml'
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      ref:
+        required: true
+        type: string
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
   issues: read
   checks: write
   pull-requests: write
@@ -42,3 +47,21 @@ jobs:
       with:
         check_name: IdentityService Test Results
         files: ./Pendo.IdentityService/Identity.Tests/TestResults/identity_test_results.trx
+
+    - name: Update Wiki
+      if: always() && github.event_name != 'pull_request'
+      run: |
+        chmod +x ./scripts/parse-unittests.py
+        python ./scripts/parse-unittests.py \
+          --service IdentityService \
+          --report ./Pendo.IdentityService/Identity.Tests/TestResults/identity_test_results.trx \
+          --wiki-file wiki/Tests.md
+      
+    - name: Checkout Wiki
+      if: always() && github.event_name != 'pull_request'
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add wiki/Tests.md
+        git commit -m "AUTO COMMIT: update Identity Service test list"
+        git push
