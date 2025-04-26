@@ -38,6 +38,8 @@ This section serves to document all unit tests within the project. This will be 
 | `test_update_booking_fee_exception` | ✅ |
 
 ### Pendo.ApiGateway
+| Test Name | Passing |
+|-----------|:------:|
 
 ### Pendo.BookingService
 | Test Name | Passing |
