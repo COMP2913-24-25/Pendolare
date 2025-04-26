@@ -44,7 +44,11 @@ Subsequent Logins
 1.	Launch the app on your phone and enter the same email address that was used to create the account initially on the signup/login page. The system will produce and send a new OTP to your registered email address.
 2.	Locate the OTP in your email inbox and enter it into the app to log in to your account.
 Note: The Pendolare app uses a One-Time Password system for further security during each login. While a new OTP is required for every login attempt, the account creation process only must be completed once.
- 
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/61b2aeb7-6b7d-4786-a963-d819e7b000db" alt="Image" width="300"/>
+</p>
+
  
 ## Logging in and out
 
@@ -61,7 +65,11 @@ This section details how to search for and view information about available jour
 1.	Click the search icon located on the bottom navigation bar. This will take you to the journey search page.
 2.	There are two different journey types available under the ‘Book a Journey’ heading. 
 a.	‘Search regular journeys’ – Use this to find a one-time journey 
-b.	‘Search commuter journeys’ – Use this to locate recurring journeys 
+b.	‘Search commuter journeys’ – Use this to locate recurring journeys
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/139261e9-f1f2-4a79-ab09-523400aa93ad" alt="Image" width="300"/>
+</p>
 
 ## Searching and filtering Regular Journeys
 
@@ -71,6 +79,9 @@ When you click "Search Regular Journeys," a list of all currently available jour
 •	Drop-off Location
 •	Journey Time
 After applying your selected filters, the list of journeys will be updated to only include those that meet your requirements.
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/6d3da087-b9fe-4a6e-b0a5-1a83422a4c5d" alt="Image" width="300"/>
+</p>
 
 ## Viewing the Regular Journey Details
 
@@ -95,6 +106,11 @@ You will receive information on:
 •	The cost of the individual journeys
 •	A price breakdown at the bottom, which includes the overall cost of the commuter journeys and possibly a frequent rider discount that has been automatically applied based on the number of journeys you are booking
 Using this, you can quickly identify the journeys that best fit your preferences and retrieve all the information you need before making a booking.
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/2eda4f1f-741f-43e1-ade6-17b5bcc31e84" alt="Image" width="300"/>
+</p>
+
  
 ## Booking a Journey
  This section explains the process of booking a selected journey through the Pendolare app.
@@ -135,6 +151,11 @@ This is the balance available for making your bookings.
 3.	Tap the + symbol and choose the part of the booking you want to change (for example, pickup location or time). The driver will get a message with your change request.
 4.	You may then communicate directly with the driver using the in-app messaging service to discuss and agree on the proposed changes to the journey.
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/c85e511f-90ff-4fdc-a13a-4292bb835d23" alt="Image" width="300"/>
+</p>
+
+
 ## Cancelling a booking 
 
 On the journey details page, locate and tap the Cancel button.
@@ -142,6 +163,11 @@ Cancellation Policy:
 1.	Cancellation is free of charge for the user if the user cancels 15 minutes or more before the scheduled journey time.
 2.	The user will be charged 75% of the agreed-upon journey fee if the user cancels less than 15 minutes till the scheduled journey time.
 Once you confirm the cancellation of your booked journey, the journey will be removed from your Upcoming Journeys and added to the Cancelled Journeys area of the app.
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/bddc251a-7923-491d-9594-f817ba42ec02" alt="Image" width="300"/>
+</p>
+
 
 ## Hosting a Journey (For Drivers)
  
@@ -175,6 +201,11 @@ To see and manage your advertised travels, go to the My Listings page. This page
 This section explains how to use the messaging features within the application to communicate with drivers and platform management
  
 To access messaging, tap the Messaging icon located on the bottom navigation bar. This will take you to your conversations. Here, you can view a list of your past conversations.
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/b547d2a9-8f4b-4bc9-9c8e-c350c2d73e1e" alt="Image" width="300"/>
+</p>
+
 
 ## Communicating with other Drivers
 After booking a journey, a new conversation with the driver can be created. You can use the in-app messaging service to propose modifications to the journey details, such as pickup location or time, and reach an agreement.
