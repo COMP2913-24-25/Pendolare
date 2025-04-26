@@ -7,11 +7,16 @@ on:
     paths:
       - 'Pendo.AdminService/**'
       - '.github/workflows/Pendo.AdminService.yml'
+  push:
+    branches: [ main, dev ]
+    paths:
+      - 'Pendo.AdminService/**'
+      - '.github/workflows/Pendo.AdminService.yml'
   workflow_dispatch:
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
   issues: read
   checks: write
   pull-requests: write
@@ -49,6 +54,7 @@ jobs:
         files: ./Pendo.AdminService/admin_test_results.xml
 
     - name: Update Wiki
+      if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
       run: |
         chmod +x ./scripts/parse-unittests.py
         python ./scripts/parse-unittests.py \
@@ -57,6 +63,7 @@ jobs:
           --wiki-file wiki/Tests.md
       
     - name: Checkout Wiki
+      if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
