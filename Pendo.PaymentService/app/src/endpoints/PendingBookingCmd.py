@@ -78,7 +78,7 @@ class PendingBookingCommand:
                 raise Exception("Not enough user balance to set journey to pending")
 
             # increase advertiser pending balance by Booking value (minus fee!)
-            Status = self.PaymentRepository.UpdatePendingBalance(Driver.UserId, Price)
+            self.PaymentRepository.UpdatePendingBalance(Driver.UserId, Price)
 
             advertiserPendingUpdate = Transaction(
                 UserId=Driver.UserId, 
