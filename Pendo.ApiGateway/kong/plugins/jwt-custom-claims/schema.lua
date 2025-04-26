@@ -8,8 +8,8 @@ return {
     { config = {
         type   = "record",
         fields = {
-          { add_user_info_headers = { type = "boolean", default = true  } },
-          { map_user_type_to_acl  = { type = "boolean", default = true  } },
+          { add_user_info_headers = { type = "boolean", default = true } },
+          { map_user_type_to_acl = { type = "boolean", default = true } },
         },
       },
     },
