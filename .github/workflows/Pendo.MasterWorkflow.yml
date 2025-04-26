@@ -1,0 +1,49 @@
+name: Batch Workflow for Pendo Services
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Git ref to test (branch, tag, SHA)'
+        required: true
+        default: 'main'
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  AdminService:
+    uses: ./.github/workflows/Pendo.AdminService.yml
+    with:
+      ref: ${{ github.event.inputs.ref }}
+
+  ApiGateway:
+    uses: ./.github/workflows/Pendo.ApiGateway.yml
+    with:
+      ref: ${{ github.event.inputs.ref }}
+
+  BookingService:
+    uses: ./.github/workflows/Pendo.BookingService.yml
+    with:
+      ref: ${{ github.event.inputs.ref }}
+
+  IdentityService:
+    uses: ./.github/workflows/Pendo.IdentityService.yml
+    with:
+      ref: ${{ github.event.inputs.ref }}
+
+  JourneyService:
+    uses: ./.github/workflows/Pendo.JourneyService.yml
+    with:
+      ref: ${{ github.event.inputs.ref }}
+
+  MessageService:
+    uses: ./.github/workflows/Pendo.MessageService.yml
+    with:
+      ref: ${{ github.event.inputs.ref }}
+
+  PaymentService:
+    uses: ./.github/workflows/Pendo.PaymentService.yml
+    with:
+      ref: ${{ github.event.inputs.ref }}

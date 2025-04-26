@@ -12,48 +12,18 @@ Each service, where possible, has a high degree of unit test coverage. In additi
 This section serves to document all unit tests within the project. This will be updated automatically when unit tests run via GitHub actions.
 
 ### Pendo.AdminService
-| Test Name | Status |
-|-----------|:------:|
-| `test_create_discount` | ❌ |
-| `test_get_discounts` | ❌ |
-| `test_delete_discount` | ❌ |
-| `test_delete_discount_not_found` | ❌ |
-| `test_create_discount_exception` | ❌ |
-| `test_delete_discount_exception` | ❌ |
-| `test_get_booking_fee_success` | ❌ |
-| `test_get_booking_fee_exception` | ❌ |
-| `test_execute_success` | ❌ |
-| `test_execute_same_week` | ❌ |
-| `test_execute_exception` | ❌ |
-| `test_no_journeys` | ❌ |
-| `test_journeys_with_available_only` | ❌ |
-| `test_journeys_with_only_cancelled_bookings` | ❌ |
-| `test_journeys_with_only_booked_future_bookings` | ❌ |
-| `test_journeys_with_only_past_bookings` | ❌ |
-| `test_journeys_with_mixed_bookings` | ❌ |
-| `test_error_handling` | ❌ |
-| `test_update_booking_fee_success` | ❌ |
-| `test_update_booking_fee_invalid_fee_margin_too_low` | ❌ |
-| `test_update_booking_fee_invalid_fee_margin_too_high` | ❌ |
-| `test_update_booking_fee_exception` | ❌ |
 
 ### Pendo.ApiGateway
-{{ ApiGateway.TestResults }}
 
 ### Pendo.BookingService
-{{ BookingService.TestResults }}
 
 ### Pendo.IdentityService
-{{ IdentityService.TestResults }}
 
 ### Pendo.JourneyService
-{{ JourneyService.TestResults }}
 
 ### Pendo.MessageService
-{{ MessageService.TestResults }}
 
 ### Pendo.PaymentService
-{{ PaymentService.TestResults }}
 
 ## Functional Tests
 **User responsible for section: Lara Glenn**

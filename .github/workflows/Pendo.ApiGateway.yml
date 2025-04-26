@@ -8,10 +8,15 @@ on:
       - 'Pendo.ApiGateway/**'
       - '.github/workflows/Pendo.ApiGateway.yml'
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      ref:
+        required: true
+        type: string
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
   issues: read
   checks: write
   pull-requests: write
@@ -86,3 +91,21 @@ jobs:
       with:
         check_name: API Gateway Test Results
         files: ./Pendo.ApiGateway/apigateway_test_results.xml
+
+    - name: Update Wiki
+      if: always() && github.event_name != 'pull_request'
+      run: |
+        chmod +x ./scripts/parse-unittests.py
+        python ./scripts/parse-unittests.py \
+          --service ApiGateway \
+          --report ./Pendo.ApiGateway/apigateway_test_results.xml \
+          --wiki-file wiki/Tests.md
+      
+    - name: Checkout Wiki
+      if: always() && github.event_name != 'pull_request'
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add wiki/Tests.md
+        git commit -m "AUTO COMMIT: update Api Gateway test list"
+        git push

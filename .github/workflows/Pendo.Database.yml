@@ -8,6 +8,11 @@ on:
       - 'Pendo.Database/**'
       - '.github/workflows/Pendo.Database.yml'
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      ref:
+        required: true
+        type: string
 
 permissions:
   id-token: write

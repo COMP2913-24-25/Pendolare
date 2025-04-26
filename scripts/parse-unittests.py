@@ -34,7 +34,7 @@ def parse_nunit_trx(path: Path):
     return tests
 
 def render_md_table(tests):
-    lines = ["| Test Name | Status |", "|-----------|:------:|"]
+    lines = ["| Test Name | Passing |", "|-----------|:------:|"]
     for name, status in tests:
         lines.append(f"| `{name}` | {status} |")
     return "\n".join(lines)
