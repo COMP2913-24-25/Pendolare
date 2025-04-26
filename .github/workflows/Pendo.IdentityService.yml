@@ -26,44 +26,73 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.WF_PAT }}
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.WF_PAT }}
 
-    - name: Setup .NET 8.0
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
+      - name: Setup .NET 8.0
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
 
-    - name: Build project
-      working-directory: ./Pendo.IdentityService
-      run: dotnet build --configuration Release
+      - name: Build project
+        working-directory: ./Pendo.IdentityService
+        run: dotnet build --configuration Release
 
-    - name: Test project
-      working-directory: ./Pendo.IdentityService
-      run: dotnet test --configuration Release --logger "trx;LogFileName=identity_test_results.trx"
+      - name: Test project
+        working-directory: ./Pendo.IdentityService
+        run: dotnet test --configuration Release --logger "trx;LogFileName=identity_test_results.trx" --results-directory ./Identity.Tests/TestResults
 
-    - name: Publish Test Results
-      uses: EnricoMi/publish-unit-test-result-action@v2
-      if: always()
-      with:
-        check_name: IdentityService Test Results
-        files: ./Pendo.IdentityService/Identity.Tests/TestResults/identity_test_results.trx
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          check_name: IdentityService Test Results
+          files: ./Pendo.IdentityService/Identity.Tests/TestResults/identity_test_results.trx
 
-    - name: Update Wiki
-      if: always() && github.event_name != 'pull_request'
-      run: |
-        chmod +x ./scripts/parse-unittests.py
-        python ./scripts/parse-unittests.py \
-          --service IdentityService \
-          --report ./Pendo.IdentityService/Identity.Tests/TestResults/identity_test_results.trx \
-          --wiki-file wiki/Tests.md
-      
-    - name: Checkout Wiki
-      if: always() && github.event_name != 'pull_request'
-      run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-        git add wiki/Tests.md
-        git commit -m "AUTO COMMIT: update Identity Service test list"
-        git push
+      - name: Upload Test Results Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: identityservice-test-results
+          path: ./Pendo.IdentityService/Identity.Tests/TestResults/identity_test_results.trx
+
+  update_wiki:
+    needs: build_test
+    if: always() && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.WF_PAT }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Download Test Results Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: identityservice-test-results
+          path: ./Pendo.IdentityService/Identity.Tests/TestResults
+
+      - name: Update Wiki
+        run: |
+          chmod +x ./scripts/parse-unittests.py
+          python ./scripts/parse-unittests.py \
+            --service IdentityService \
+            --report ./Pendo.IdentityService/Identity.Tests/TestResults/identity_test_results.trx \
+            --wiki-file wiki/Tests.md
+
+      - name: Commit Wiki Update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git diff --quiet || (
+            git add wiki/Tests.md
+            git commit -m "AUTO COMMIT: update Identity Service test list"
+            echo "Wiki updated, pushing changes..."
+            git push
+          )
