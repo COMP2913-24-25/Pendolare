@@ -37,6 +37,8 @@ jobs:
           echo "" >> wiki/_Sidebar.md
           echo "### Documentation" >> wiki/_Sidebar.md
           echo "* [[DevGuide]]" >> wiki/_Sidebar.md
+          echo "* [[UserGuide]]" >> wiki/_Sidebar.md
+          echo "* [[Tests]]" >> wiki/_Sidebar.md
           
           # Add meeting minutes dynamically to sidebar
           echo "" >> wiki/_Sidebar.md
