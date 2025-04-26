@@ -25,7 +25,7 @@ class MessageHandler:
         # User connections and sessions
         self.connections: Dict[str, object] = {}
         self.user_sessions: Dict[str, object] = {}
-        self.repository = repository  # Database repository
+        self.repository = repository
 
         # In memory data and user connections
         # Provides quick access to messages and user connections
@@ -48,7 +48,7 @@ class MessageHandler:
             None
         """
         self.connections[user_id] = websocket
-        # Create message cache for user
+
         if user_id not in self.message_cache:
             self.message_cache[user_id] = []
 
@@ -93,7 +93,6 @@ class MessageHandler:
             if isinstance(content_obj, dict):
                 # For booking amendment messages, preserve the special structure
                 if message.MessageType == 'booking_amendment':
-                    # Extract amendment ID and other needed properties
                     amendmentId = content_obj.get('amendmentId')
                     content = content_obj.get('content', content_obj)
                     additional_props['amendmentId'] = amendmentId
@@ -160,7 +159,6 @@ class MessageHandler:
             'messages': messages
         }
 
-        # Send the response only to the requesting user's websocket
         await websocket.send(json.dumps(response))
 
     async def handle_message(self, websocket, message):
@@ -232,10 +230,8 @@ class MessageHandler:
         # Store message in database if repository is available
         try:
             if self.repository:
-                # Use the actual message type instead of hardcoding 'chat'
                 message_type = message.get('type', 'chat')
                 
-                # Prepare content object based on message type
                 if message_type == 'booking_amendment':
                     # For booking amendments, preserve all properties in content
                     content = message
@@ -251,7 +247,6 @@ class MessageHandler:
                         if key not in ['from', 'conversation_id', 'content', 'type', 'timestamp']:
                             content[key] = value
                 
-                # Save with proper message type and content
                 self.repository.save_message(
                     conversation_id=conversation_id,
                     sender_id=message['from'],
@@ -261,7 +256,6 @@ class MessageHandler:
         except Exception as e:
             logger.error(f"Error saving chat message to database: {str(e)}")
         
-        # Log message for debugging
         logger.debug(f"Broadcasting message to conversation {conversation_id}: {message}")
         
         # Broadcast to all users in this conversation except the sender
@@ -285,10 +279,8 @@ class MessageHandler:
         if 'timestamp' not in message:
             message['timestamp'] = datetime.now(timezone.utc).isoformat()
         
-        # Explicitly set the message type
         message['type'] = 'booking_amendment'
         
-        # Store message in memory
         conversation_id = message['conversation_id']
         if conversation_id not in self.message_store:
             self.message_store[conversation_id] = []
@@ -331,7 +323,6 @@ class MessageHandler:
         user_id = message['user_id']
         conversation_id = message['conversation_id']
         
-        # Validate UUID formats
         try:
             # Attempt to convert to UUID objects
             user_uuid = uuid.UUID(user_id)
@@ -361,10 +352,9 @@ class MessageHandler:
             self.conversations[conversation_id] = set()
         
         self.conversations[conversation_id].add(user_id)
-        # Log join event
+
         logger.info(f"User {user_id} joined conversation {conversation_id}")
         
-        # Add user to conversation in the database with error handling
         try:
             if self.repository:
                 self.repository.add_user_to_conversation(conversation_id, user_id)

@@ -26,13 +26,13 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.x'
+        python-version: '3.11'
 
     - name: Install dependencies
       working-directory: ./Pendo.MessageService
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt requirements-test.txt
+        pip install -r requirements.txt -r requirements-test.txt
 
     - name: Test project
       working-directory: ./Pendo.MessageService
@@ -43,4 +43,4 @@ jobs:
       if: always()
       with:
         check_name: Message Service Test Results
-        files: ./Pendo.MessageService/messsage_test_results.xml
+        files: ./Pendo.MessageService/message_test_results.xml

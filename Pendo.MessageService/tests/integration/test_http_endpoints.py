@@ -17,7 +17,6 @@ class TestHttpEndpoints(AioHTTPTestCase):
         self.mock_repo.create_conversation_with_participants = MagicMock()
         self.mock_repo.get_user_conversations = MagicMock()
         
-        # Store the mock for use in tests
         app['repository'] = self.mock_repo
         
         # Register routes
@@ -73,16 +72,13 @@ class TestHttpEndpoints(AioHTTPTestCase):
         mock_conv2.UpdateDate.isoformat.return_value = "2023-01-02T12:05:00Z"
         mock_conv2.Name = "Test Conversation 2"
         
-        # Configure mock repository to return conversations
         self.mock_repo.get_user_conversations.return_value = [mock_conv1, mock_conv2]
         
-        # Send request
         resp = await self.client.post(
             '/user-conversations',
             json={"UserId": user_id}
         )
         
-        # Check response
         self.assertEqual(resp.status, 200)
         data = await resp.json()
         self.assertIn('conversations', data)
@@ -95,7 +91,8 @@ class TestHttpEndpoints(AioHTTPTestCase):
         conversation_type = "direct"
         name = "Test Conversation"
         participants = [str(uuid.uuid4()) for _ in range(2)]
-        
+        user_id = str(uuid.uuid4())
+
         # Create mock conversation
         mock_conversation = MagicMock()
         mock_conversation.ConversationId = conversation_id
@@ -103,20 +100,19 @@ class TestHttpEndpoints(AioHTTPTestCase):
         mock_conversation.Name = name
         mock_conversation.CreateDate.isoformat.return_value = "2023-01-01T12:00:00Z"
         mock_conversation.UpdateDate.isoformat.return_value = "2023-01-01T12:05:00Z"
-        
-        # Configure mock repository
+
         self.mock_repo.create_conversation_with_participants.return_value = mock_conversation
-        
-        # Send request
+
         resp = await self.client.post(
             '/create-conversation',
             json={
                 "ConversationType": conversation_type,
                 "name": name,
-                "participants": participants
+                "participants": participants,
+                "UserId": user_id
             }
         )
-        
+
         # Check response
         self.assertEqual(resp.status, 200)
         data = await resp.json()
@@ -126,10 +122,9 @@ class TestHttpEndpoints(AioHTTPTestCase):
     
     async def test_missing_fields_in_create_conversation(self):
         """Test validation for missing fields in create conversation"""
-        # Send request with missing fields
         resp = await self.client.post(
             '/create-conversation',
-            json={"name": "Test"}  # Missing ConversationType and participants
+            json={"name": "Test"}
         )
         
         # Check response
@@ -139,7 +134,6 @@ class TestHttpEndpoints(AioHTTPTestCase):
     
     async def test_invalid_participants_in_create_conversation(self):
         """Test validation for invalid participants in create conversation"""
-        # Send request with invalid participants (not a list)
         resp = await self.client.post(
             '/create-conversation',
             json={
@@ -149,7 +143,6 @@ class TestHttpEndpoints(AioHTTPTestCase):
             }
         )
         
-        # Check response
         self.assertEqual(resp.status, 400)
         data = await resp.json()
         self.assertIn('error', data)

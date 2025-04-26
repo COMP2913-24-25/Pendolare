@@ -1,5 +1,8 @@
 local PLUGIN_NAME = "jwt-custom-claims"
-local helpers = require "spec.helpers"
+local ok, helpers = pcall(require, "spec.helpers")
+if not ok then
+  helpers = require("kong.plugins.jwt-custom-claims.spec.helpers")
+end
 local cjson = require "cjson"
 local jwt_parser = require "kong.plugins.jwt.jwt_parser"
 
@@ -57,7 +60,6 @@ describe("Plugin: " .. PLUGIN_NAME, function()
       name = PLUGIN_NAME,
       route = route_normal,
       config = {
-        require_admin_for_analytics = true,
         add_user_info_headers = true,
         map_user_type_to_acl = true
       }
@@ -67,7 +69,6 @@ describe("Plugin: " .. PLUGIN_NAME, function()
       name = PLUGIN_NAME,
       route = route_admin,
       config = {
-        require_admin_for_analytics = true,
         add_user_info_headers = true,
         map_user_type_to_acl = true
       }
@@ -77,7 +78,6 @@ describe("Plugin: " .. PLUGIN_NAME, function()
       name = PLUGIN_NAME,
       route = route_public,
       config = {
-        require_admin_for_analytics = true,
         add_user_info_headers = true,
         map_user_type_to_acl = true
       }

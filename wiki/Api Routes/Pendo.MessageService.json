@@ -65,7 +65,7 @@
       }
     },
     "/UserConversation": {
-      "get": {
+      "post": {
         "tags": ["User Conversation"],
         "summary": "Get User Conversations",
         "operationId": "get_user_conversation",

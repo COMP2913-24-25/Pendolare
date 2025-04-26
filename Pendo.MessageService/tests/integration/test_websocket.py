@@ -77,8 +77,7 @@ async def test_user_registration(server_setup):
         
         # Yield to allow registration to complete
         await asyncio.sleep(0.1)
-        
-        # Check if user was registered
+
         assert user_id in message_handler.user_connections
 
 
@@ -98,7 +97,6 @@ async def test_chat_message_exchange(server_setup):
     
     # Connect first user
     async with websockets.connect(uri) as user1_ws:
-        # Skip welcome message
         await user1_ws.recv()
         
         # Register user1
@@ -109,7 +107,6 @@ async def test_chat_message_exchange(server_setup):
         
         # Connect second user
         async with websockets.connect(uri) as user2_ws:
-            # Skip welcome message
             await user2_ws.recv()
             
             # Register user2
@@ -154,33 +151,27 @@ async def test_join_conversation(server_setup):
     conversation_id = str(uuid.uuid4())
     
     async with websockets.connect(uri) as websocket:
-        # Skip welcome message
         await websocket.recv()
         
-        # Register user
         await websocket.send(json.dumps({
             "register": True,
             "user_id": user_id
         }))
         
-        # Yield to allow registration to complete
         await asyncio.sleep(0.1)
         
-        # Join conversation
         await websocket.send(json.dumps({
             "type": "join_conversation",
             "conversation_id": conversation_id,
             "user_id": user_id
         }))
         
-        # Should receive confirmation
         response = await websocket.recv()
         data = json.loads(response)
         
         assert data["type"] == "conversation_joined"
         assert data["conversation_id"] == conversation_id
         
-        # Check that user was added to conversation in handler
         assert user_id in message_handler.conversations[conversation_id]
 
 
@@ -213,26 +204,21 @@ async def test_request_message_history(server_setup):
     ]
     
     async with websockets.connect(uri) as websocket:
-        # Skip welcome message
         await websocket.recv()
         
-        # Register user
         await websocket.send(json.dumps({
             "register": True,
             "user_id": user_id
         }))
         
-        # Wait for registration
         await asyncio.sleep(0.1)
         
-        # Request message history
         await websocket.send(json.dumps({
             "type": "history_request",
             "conversation_id": conversation_id,
             "user_id": user_id
         }))
         
-        # Should receive history response
         response = await websocket.recv()
         data = json.loads(response)
         
