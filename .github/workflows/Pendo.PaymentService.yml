@@ -27,6 +27,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.WF_PAT }}
 
     - name: Setup Python
       uses: actions/setup-python@v4
