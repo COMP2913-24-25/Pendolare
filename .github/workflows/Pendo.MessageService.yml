@@ -20,10 +20,6 @@ on:
         required: true
         type: string
 
-concurrency:
-  group: wiki-update-${{ github.ref }}
-  cancel-in-progress: false
-
 permissions:
   id-token: write
   contents: write
@@ -73,6 +69,10 @@ jobs:
     needs: build_test
     if: always() && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+
+    concurrency:
+      group: wiki-update-${{ github.ref }}
+      cancel-in-progress: false
 
     steps:
       - uses: actions/checkout@v4
