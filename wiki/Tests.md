@@ -40,6 +40,76 @@ This section serves to document all unit tests within the project. This will be 
 ### Pendo.ApiGateway
 
 ### Pendo.BookingService
+| Test Name | Passing |
+|-----------|:------:|
+| `test_add_booking_ammendment_success` | ✅ |
+| `test_add_booking_ammendment_booking_not_found` | ✅ |
+| `test_approve_booking_success` | ✅ |
+| `test_approve_booking_with_ammendments` | ✅ |
+| `test_approve_booking_exception` | ✅ |
+| `test_driver_approval` | ✅ |
+| `test_passenger_approval` | ✅ |
+| `test_full_approval` | ✅ |
+| `test_full_approval_cancellation` | ✅ |
+| `test_not_authorised` | ✅ |
+| `test_booking_ammendment_not_found` | ✅ |
+| `test_driver_only_approval` | ✅ |
+| `test_passenger_only_approval` | ✅ |
+| `test_user_not_found` | ✅ |
+| `test_booking_not_found` | ✅ |
+| `test_driver_pending_completion_success` | ✅ |
+| `test_driver_booking_not_confirmed` | ✅ |
+| `test_passenger_completed_success` | ✅ |
+| `test_passenger_completed_failure` | ✅ |
+| `test_passenger_not_completed` | ✅ |
+| `test_unauthorized_user` | ✅ |
+| `test_exception_handling` | ✅ |
+| `test_get_bookings_for_user_no_ammendment` | ❌ |
+| `test_get_bookings_for_user_single_ammendment` | ❌ |
+| `test_get_bookings_for_user_multiple_ammendments` | ❌ |
+| `test_get_user` | ✅ |
+| `test_get_journey` | ✅ |
+| `test_get_booking_by_id` | ✅ |
+| `test_get_existing_booking` | ✅ |
+| `test_create_booking` | ✅ |
+| `test_approve_booking` | ✅ |
+| `test_update_booking_status` | ✅ |
+| `test_add_booking_ammendment` | ✅ |
+| `test_get_booking_ammendment` | ✅ |
+| `test_calculate_driver_rating_no_bookings` | ✅ |
+| `test_calculate_driver_rating_only_pending` | ✅ |
+| `test_calculate_driver_rating_only_completed` | ✅ |
+| `test_calculate_driver_rating_mixed_bookings` | ✅ |
+| `test_calculate_driver_rating_driver_not_found` | ✅ |
+| `test_booking_not_found` | ✅ |
+| `test_booking_not_confirmed` | ✅ |
+| `test_journey_not_found` | ✅ |
+| `test_user_not_authorised` | ✅ |
+| `test_successful_confirm_at_pickup` | ✅ |
+| `test_exception_handling` | ✅ |
+| `test_create_booking_success` | ✅ |
+| `test_create_booking_user_not_found` | ✅ |
+| `test_create_booking_journey_not_found` | ✅ |
+| `test_create_booking_already_exists` | ✅ |
+| `test_create_booking_fee_margin_not_found` | ✅ |
+| `test_create_booking_in_the_past` | ✅ |
+| `test_create_booking_commuter_no_recurrence` | ✅ |
+| `test_create_booking_get_bookings_for_user` | ✅ |
+| `test_check_time_valid` | ✅ |
+| `test_check_time_invalid` | ✅ |
+| `test_check_time_invalid_cron_expression` | ✅ |
+| `test_get_vehicle_details_success` | ✅ |
+| `test_get_vehicle_details_no_colour` | ✅ |
+| `test_get_vehicle_details_vehicle_not_found` | ✅ |
+| `test_get_vehicle_details_api_error` | ✅ |
+| `test_get_bookings_success` | ✅ |
+| `test_get_bookings_no_bookings` | ✅ |
+| `test_get_bookings_none` | ✅ |
+| `test_pending_booking_request_success` | ✅ |
+| `test_completed_booking_request_success` | ✅ |
+| `test_completed_booking_request_error` | ✅ |
+| `test_refund_request_success` | ✅ |
+| `test_refund_request_insufficient_balance` | ✅ |
 
 ### Pendo.IdentityService
 
