@@ -3,7 +3,15 @@ description: "Collect test results and update the wiki"
 
 on:
   workflow_run:
-    workflows: ["Pendo-MasterWorkflow", "Pendo-ApiGateway", "Pendo-AdminService", "Pendo-BookingService", "Pendo-JourneyService", "Pendo-MessageService", "Pendo-PaymentService", "Pendo-IdentityService"]
+    workflows: 
+        - "Pendo-MasterWorkflow"
+        - "Pendo-ApiGateway"
+        - "Pendo-AdminService" 
+        - "Pendo-BookingService" 
+        - "Pendo-JourneyService" 
+        - "Pendo-MessageService"
+        - "Pendo-PaymentService"
+        - "Pendo-IdentityService"
     types:
       - completed
   workflow_dispatch:
