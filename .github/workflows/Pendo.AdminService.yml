@@ -26,6 +26,10 @@ permissions:
   checks: write
   pull-requests: write
 
+concurrency:
+  group: wiki-update-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build_test:
     runs-on: ubuntu-latest
@@ -63,3 +67,45 @@ jobs:
         with:
           name: admin-test-results
           path: ./Pendo.AdminService/admin_test_results.xml
+
+  update_wiki:
+    needs: build_test
+    if: always() && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.WF_PAT }}
+          fetch-depth: 0
+          ref: ${{ github.ref}}
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Download Test Results Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: admin-test-results
+          path: ./Pendo.AdminService
+
+      - name: Update Wiki
+        run: |
+          chmod +x ./scripts/parse-unittests.py
+          python ./scripts/parse-unittests.py \
+            --service AdminService \
+            --report ./Pendo.AdminService/admin_test_results.xml \
+            --wiki-file wiki/Tests.md
+
+      - name: Commit Wiki Update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git diff --quiet || (
+            git add wiki/Tests.md
+            git commit -m "AUTO COMMIT: update Admin Service test list"
+            echo "Wiki updated, pushing changes..."
+            git push
+          )
