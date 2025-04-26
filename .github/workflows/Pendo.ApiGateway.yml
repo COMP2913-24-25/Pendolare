@@ -26,6 +26,10 @@ permissions:
   checks: write
   pull-requests: write
 
+concurrency:
+  group: wiki-update-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build_test:
     runs-on: ubuntu-latest
@@ -124,6 +128,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.WF_PAT }}
+          fetch-depth: 0
+          ref: ${{ github.ref}}
 
       - name: Setup Python
         uses: actions/setup-python@v4
