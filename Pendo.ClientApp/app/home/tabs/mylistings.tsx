@@ -115,11 +115,8 @@ const MyListings = () => {
         longitude: journey.EndLong,
         name: journey.EndName,
       },
-      // Add recurrence information to properly display commuter journeys
-      RecurrenceInfo: journey.JourneyType === 2 ? {
-        recurrence: journey.Recurrance,
-        repeatUntil: new Date(journey.RepeatUntil)
-      } : undefined,
+      Recurrence: journey.Recurrance,
+      RepeatUntil: journey.RepeatUntil,
       JourneyType: journey.JourneyType,
     }));
 
@@ -198,7 +195,10 @@ const MyListings = () => {
                   : "bg-white shadow"
                 : ""
             }`}
-            onPress={() => setCurrentTab("Booked")}
+            onPress={() => {
+              fetchBookings();
+              setCurrentTab("Booked");
+            }}
           >
             <Text
               className={`text-center font-JakartaMedium ${
@@ -220,7 +220,10 @@ const MyListings = () => {
                   : "bg-white shadow"
                 : ""
             }`}
-            onPress={() => setCurrentTab("Advertised")}
+            onPress={() => {
+              fetchJourneys();
+              setCurrentTab("Advertised");
+            }}
           >
             <Text
               className={`text-center font-JakartaMedium ${
@@ -242,7 +245,11 @@ const MyListings = () => {
                   : "bg-white shadow"
                 : ""
             }`}
-            onPress={() => setCurrentTab("Past")}
+            onPress={() => {
+              fetchBookings();
+              fetchJourneys();
+              setCurrentTab("Past");
+            }}
           >
             <Text
               className={`text-center font-JakartaMedium ${

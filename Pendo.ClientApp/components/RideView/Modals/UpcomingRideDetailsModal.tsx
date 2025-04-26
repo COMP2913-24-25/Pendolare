@@ -57,20 +57,11 @@ const UpcomingRideDetailsModal = ({
   let journey: Partial<BookingDetails['Journey']> = {};
   let rideDetails: Partial<BookingDetails['Booking']> = {};
   let status: Partial<BookingDetails['BookingStatus']> = { Status: "Unknown" };
-  
+
   if (isValidBooking) {
     // Check if Journey is an actual object with properties
     if (booking.Journey && typeof booking.Journey === 'object') {
       journey = booking.Journey;
-      
-      // Log any journey properties that are undefined
-      console.log("Journey property check:", {
-        startName: journey.StartName ?? "undefined",
-        endName: journey.EndName ?? "undefined",
-        price: journey.Price ?? "undefined",
-        startLat: journey.StartLat ?? "undefined",
-        endLat: journey.EndLat ?? "undefined"
-      });
     }
     
     if (booking.Booking && typeof booking.Booking === 'object') {
