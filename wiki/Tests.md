@@ -120,42 +120,42 @@ This section serves to document all unit tests within the project. This will be 
 | `test_payment_service_api` | `test_refund_request_success` | ✅ |
 
 ### Pendo.IdentityService
-| Test Name | Passing |
-|-----------|:------:|
-| `Update_ModifiesExistingEntity` | ✅ |
-| `Create_ReturnsModelOfCorrectType` | ✅ |
-| `Handle_UserNotFound_ReturnsFailureResponse` | ✅ |
-| `VerifyHash_WithModifiedHash_ReturnsFalse` | ✅ |
-| `VerifyHash_WithIncorrectOtp_ReturnsFalse` | ✅ |
-| `Read_Should_Return_Filtered_Entities` | ✅ |
-| `Handle_UserFound_ReturnsUserDetailsSuccessfully` | ✅ |
-| `Handle_WhenOtpExpired_ReturnsFalse` | ✅ |
-| `UtcNow_ReturnsTime` | ✅ |
-| `Create_AddsNewEntity` | ✅ |
-| `Read_WithNullFilter_ReturnsAllEntities` | ✅ |
-| `Hash_ShouldReturnValidHashAndSalt` | ✅ |
-| `GenerateToken_OfSetLength_ReturnsNumericCode(100)` | ✅ |
-| `Handle_CreatesNewUserAndSendsOtpSuccessfully("manager@test.com",2)` | ✅ |
-| `Handle_CreatesNewUserAndSendsOtpSuccessfully("mundrayj@gmail.com",1)` | ✅ |
-| `Handle_WhenOtpValid_ReturnsTrueAndJwt` | ✅ |
-| `Handle_WhenOtpInvalid_ReturnsFalse` | ✅ |
-| `Handle_UserFound_NullNames_DefaultsToEmptyString` | ✅ |
-| `GenerateToken_OfSetLength_ReturnsNumericCode(6)` | ✅ |
-| `Handle_WhenOtpLoginNotFound_ReturnsFalse` | ✅ |
-| `GenerateToken_OfSetLength_ReturnsNumericCode(20)` | ✅ |
-| `Handle_WhenUserExists_UsesExistingUser` | ✅ |
-| `GenerateToken_OfSetLength_ReturnsNumericCode(1)` | ✅ |
-| `GenerateJwt_ShouldContainCorrectClaims` | ✅ |
-| `Delete_RemovesExistingEntity` | ✅ |
-| `GenerateJwt_ShouldReturnValidToken` | ✅ |
-| `VerifyHash_WithCorrectOtp_ReturnsTrue` | ✅ |
-| `VerifyHash_WithModifiedSalt_ReturnsFalse` | ✅ |
-| `Handle_WhenMultipleUsersExist_ReturnsFalse` | ✅ |
-| `Handle_UserFound_UpdateOnlyNonEmptyValues` | ✅ |
-| `Handle_UserFound_UpdatesFirstAndLastNameSuccessfully` | ✅ |
-| `Handle_WhenEmailFails_ReturnsFalse` | ✅ |
-| `Handle_WhenUserDoesNotExist_ReturnsFalse` | ✅ |
-| `Handle_UserNotFound_ReturnsFailureResponse` | ✅ |
+| Location | Test Name | Passing |
+|----------|-----------|:------:|
+| `Identity.Tests.Commands.GetUserRequestHandlerTests` | `Handle_UserFound_NullNames_DefaultsToEmptyString` | ✅ |
+| `Identity.Tests.Commands.GetUserRequestHandlerTests` | `Handle_UserFound_ReturnsUserDetailsSuccessfully` | ✅ |
+| `Identity.Tests.Commands.GetUserRequestHandlerTests` | `Handle_UserNotFound_ReturnsFailureResponse` | ✅ |
+| `Identity.Tests.Commands.OtpRequestHandlerTests` | `Handle_CreatesNewUserAndSendsOtpSuccessfully("manager@test.com",2)` | ✅ |
+| `Identity.Tests.Commands.OtpRequestHandlerTests` | `Handle_CreatesNewUserAndSendsOtpSuccessfully("mundrayj@gmail.com",1)` | ✅ |
+| `Identity.Tests.Commands.OtpRequestHandlerTests` | `Handle_WhenEmailFails_ReturnsFalse` | ✅ |
+| `Identity.Tests.Commands.OtpRequestHandlerTests` | `Handle_WhenUserExists_UsesExistingUser` | ✅ |
+| `Identity.Tests.Commands.UpdateUserRequestHandlerTests` | `Handle_UserFound_UpdateOnlyNonEmptyValues` | ✅ |
+| `Identity.Tests.Commands.UpdateUserRequestHandlerTests` | `Handle_UserFound_UpdatesFirstAndLastNameSuccessfully` | ✅ |
+| `Identity.Tests.Commands.UpdateUserRequestHandlerTests` | `Handle_UserNotFound_ReturnsFailureResponse` | ✅ |
+| `Identity.Tests.Commands.VerifyOtpRequestHandlerTests` | `Handle_WhenMultipleUsersExist_ReturnsFalse` | ✅ |
+| `Identity.Tests.Commands.VerifyOtpRequestHandlerTests` | `Handle_WhenOtpExpired_ReturnsFalse` | ✅ |
+| `Identity.Tests.Commands.VerifyOtpRequestHandlerTests` | `Handle_WhenOtpInvalid_ReturnsFalse` | ✅ |
+| `Identity.Tests.Commands.VerifyOtpRequestHandlerTests` | `Handle_WhenOtpLoginNotFound_ReturnsFalse` | ✅ |
+| `Identity.Tests.Commands.VerifyOtpRequestHandlerTests` | `Handle_WhenOtpValid_ReturnsTrueAndJwt` | ✅ |
+| `Identity.Tests.Commands.VerifyOtpRequestHandlerTests` | `Handle_WhenUserDoesNotExist_ReturnsFalse` | ✅ |
+| `Identity.Tests.DataAccess.RepositoryFactoryTests` | `Create_ReturnsModelOfCorrectType` | ✅ |
+| `Identity.Tests.DataAccess.RepositoryTests` | `Create_AddsNewEntity` | ✅ |
+| `Identity.Tests.DataAccess.RepositoryTests` | `Delete_RemovesExistingEntity` | ✅ |
+| `Identity.Tests.DataAccess.RepositoryTests` | `Read_Should_Return_Filtered_Entities` | ✅ |
+| `Identity.Tests.DataAccess.RepositoryTests` | `Read_WithNullFilter_ReturnsAllEntities` | ✅ |
+| `Identity.Tests.DataAccess.RepositoryTests` | `Update_ModifiesExistingEntity` | ✅ |
+| `Identity.Tests.Util.DateTimeProviderTests` | `UtcNow_ReturnsTime` | ✅ |
+| `Identity.Tests.Util.JwtGeneratorTests` | `GenerateJwt_ShouldContainCorrectClaims` | ✅ |
+| `Identity.Tests.Util.JwtGeneratorTests` | `GenerateJwt_ShouldReturnValidToken` | ✅ |
+| `Identity.Tests.Util.NumericOtpGeneratorTests` | `GenerateToken_OfSetLength_ReturnsNumericCode(1)` | ✅ |
+| `Identity.Tests.Util.NumericOtpGeneratorTests` | `GenerateToken_OfSetLength_ReturnsNumericCode(100)` | ✅ |
+| `Identity.Tests.Util.NumericOtpGeneratorTests` | `GenerateToken_OfSetLength_ReturnsNumericCode(20)` | ✅ |
+| `Identity.Tests.Util.NumericOtpGeneratorTests` | `GenerateToken_OfSetLength_ReturnsNumericCode(6)` | ✅ |
+| `Identity.Tests.Util.OtpHasherTests` | `Hash_ShouldReturnValidHashAndSalt` | ✅ |
+| `Identity.Tests.Util.OtpHasherTests` | `VerifyHash_WithCorrectOtp_ReturnsTrue` | ✅ |
+| `Identity.Tests.Util.OtpHasherTests` | `VerifyHash_WithIncorrectOtp_ReturnsFalse` | ✅ |
+| `Identity.Tests.Util.OtpHasherTests` | `VerifyHash_WithModifiedHash_ReturnsFalse` | ✅ |
+| `Identity.Tests.Util.OtpHasherTests` | `VerifyHash_WithModifiedSalt_ReturnsFalse` | ✅ |
 
 ### Pendo.JourneyService
 | Location | Test Name | Passing |
