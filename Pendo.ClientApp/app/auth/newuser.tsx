@@ -10,6 +10,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 
 import { updateUser, getUser } from "@/services/authService";
+import { stringLengthValidator } from "@/utils/validators";
 
 /*
   CaptureName
@@ -22,7 +23,11 @@ const CaptureName = () => {
   }
   
   const [firstName, setFirstName] = useState("");
+  const [firstNameValidationMessage, setFirstNameValidationMessage] = useState<string | null>("");
+
   const [lastName, setLastName] = useState("");
+  const [lastNameValidationMessage, setLastNameValidationMessage] = useState<string | null>("");
+
   const { isDarkMode } = useTheme();
 
   /*
@@ -66,7 +71,7 @@ const CaptureName = () => {
               placeholder="Enter your first name"
               textContentType="givenName"
               value={firstName}
-              onChangeText={setFirstName}
+              onChangeText={(text) => stringLengthValidator(setFirstName, text, 1, 30, setFirstNameValidationMessage)}
               onSubmitEditing={() => Keyboard.dismiss()}
               labelStyle={isDarkMode ? "text-gray-300" : "text-gray-600"}
               containerStyle={
@@ -76,12 +81,17 @@ const CaptureName = () => {
               }
               inputStyle={isDarkMode ? "text-white" : "text-black"}
             />
+            {firstNameValidationMessage !== null && (
+            <Text className="mt-1 text-sm text-red-500">
+              {firstNameValidationMessage}
+            </Text>
+            )}
             <InputField
               label="Last Name"
               placeholder="Enter your last name"
               textContentType="familyName"
               value={lastName}
-              onChangeText={setLastName}
+              onChangeText={(text) => stringLengthValidator(setLastName, text, 1, 30, setLastNameValidationMessage)}
               labelStyle={isDarkMode ? "text-gray-300" : "text-gray-600"}
               containerStyle={
                 isDarkMode
@@ -90,10 +100,16 @@ const CaptureName = () => {
               }
               inputStyle={isDarkMode ? "text-white" : "text-black"}
             />
+            {lastNameValidationMessage !== null && (
+            <Text className="mt-1 text-sm text-red-500">
+              {lastNameValidationMessage}
+            </Text>
+            )}
             <Button
               title="Next"
               onPress={onNextPress}
               className="mt-6"
+              disabled={!firstName || !lastName}
             />
           </View>
         </View>

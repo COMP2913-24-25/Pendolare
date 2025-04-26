@@ -1,7 +1,6 @@
 import pytest
 from unittest.mock import MagicMock, patch
 from src.db.PendoDatabase import UserBalance
-from src.returns.PaymentReturns import StatusResponse
 import uuid
 
 @pytest.fixture
@@ -51,7 +50,7 @@ def test_webhook_success(stripe_webhook_command, mock_user, mock_transaction, us
     assert result.Status == "success"
     stripe_webhook_command.PaymentRepository.GetUser.assert_called_once_with(user_id)
     stripe_webhook_command.PaymentRepository.GetUserBalance.assert_called_once_with(user_id)
-    stripe_webhook_command.PaymentRepository.GetTransaction.assert_called_once_with(user_id, amount, 3, 5)
+    stripe_webhook_command.PaymentRepository.GetTransaction.assert_called_once_with(user_id, None, amount, 3, 5)
     stripe_webhook_command.PaymentRepository.UpdateTransaction.assert_called_once_with(
         mock_transaction.TransactionId, amount, 5, 5
     )
@@ -100,14 +99,14 @@ def test_webhook_transaction_not_found(stripe_webhook_command, mock_user, user_i
     # Assert
     assert result.Status == "fail"
     assert result.Error == "Transaction not found"
-    stripe_webhook_command.PaymentRepository.GetTransaction.assert_called_once_with(user_id, amount, 3, 5)
+    stripe_webhook_command.PaymentRepository.GetTransaction.assert_called_once_with(user_id, None, amount, 3, 5)
     stripe_webhook_command.logger.error.assert_called_once()
     
     # Verify that update methods were not called
     stripe_webhook_command.PaymentRepository.UpdateTransaction.assert_not_called()
     stripe_webhook_command.PaymentRepository.UpdateNonPendingBalance.assert_not_called()
 
-def test_webhook_update_failure(stripe_webhook_command, mock_user, mock_transaction, user_id, amount):
+def test_webhook_update_failure(stripe_webhook_command, mock_user, mock_transaction):
     # Arrange
     stripe_webhook_command.PaymentRepository.GetUser.return_value = mock_user
     stripe_webhook_command.PaymentRepository.GetUserBalance.return_value = MagicMock(spec=UserBalance)
@@ -152,7 +151,7 @@ def test_webhook_constructor():
         assert command.PaymentRepository == mock_repo_instance
 
 @patch('uuid.uuid4')
-def test_webhook_complete_flow_with_new_balance(mock_uuid, stripe_webhook_command, mock_user, mock_transaction, user_id, amount):
+def test_webhook_complete_flow_with_new_balance(mock_uuid, stripe_webhook_command, mock_user, mock_transaction):
     # Arrange
     mock_uuid.return_value = "test-uuid"
     stripe_webhook_command.PaymentRepository.GetUser.return_value = mock_user

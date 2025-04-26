@@ -29,7 +29,7 @@ const RideConfirmationCard = ({
             Confirm Ride Completion
           </Text>
           <Text className="text-base font-JakartaRegular">
-            Did you complete the ride with {ride.DriverName}?
+            Did you complete the ride on {(ride.RideTime as Date).toDateString()} with {ride.DriverName}?
           </Text>
         </View>
         {/* Buttons Section */}

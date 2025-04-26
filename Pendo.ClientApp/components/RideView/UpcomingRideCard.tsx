@@ -76,9 +76,6 @@ const UpcomingRideCard = ({ booking, onPress }: UpcomingRideCardProps) => {
     }));
   }
   
-  // Log the booking data to see its structure
-  console.log("UpcomingRideCard received booking:", booking);
-  
   // Check if booking is valid and has the required properties
   const isValidBooking = !!booking && 
                        typeof booking === 'object' &&

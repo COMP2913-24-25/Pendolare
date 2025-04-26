@@ -199,9 +199,14 @@ const Home = () => {
 
           {(pendingCompletionRides?.length > 0 && 
             <RideConfirmationCard ride={pendingCompletionRides[0]} onConfirmComplete={async () => {
-              await completeBooking(pendingCompletionRides[0].BookingId, true);
-              fetchBookings();
-            }} onConfirmIncomplete={() => {
+              Alert.alert("Ride Complete", "Are you sure you want to mark this ride as complete?", [
+                { text: "Cancel", onPress: () => {} },
+                { text: "Confirm", onPress: async () => {
+                  await completeBooking(pendingCompletionRides[0].BookingId, true);
+                  fetchBookings();
+                }}]);
+              }}
+            onConfirmIncomplete={() => {
               Alert.alert("Ride Incomplete", "Are you sure you want to mark this ride as incomplete?", [
                 { text: "Cancel", onPress: () => {} },
                 { text: "Confirm", onPress: async () => {

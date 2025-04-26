@@ -29,10 +29,16 @@ export async function apiRequest<T>(
     let data = null;
 
     if (forceJsonParse) {
-      data = JSON.parse(await response.text());
+      console.log("Forcing JSON parse");
+
+      let text = await response.text();
+      data = JSON.parse(text);
+
+      console.debug(`${endpoint} response:`, data);
     }
     else{
       data = await response.json();
+      console.debug(`${endpoint} response:`, data);
     }
 
     if (!response.ok && !silentFail) {
