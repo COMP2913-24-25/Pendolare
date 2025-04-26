@@ -46,6 +46,29 @@ This section serves to document all unit tests within the project. This will be 
 ### Pendo.JourneyService
 
 ### Pendo.MessageService
+| Test Name | Passing |
+|-----------|:------:|
+| `test_create_conversation_handler` | ✅ |
+| `test_health_check` | ✅ |
+| `test_invalid_participants_in_create_conversation` | ✅ |
+| `test_missing_fields_in_create_conversation` | ✅ |
+| `test_root_handler` | ✅ |
+| `test_user_conversations_handler` | ✅ |
+| `test_websocket_connection` | ✅ |
+| `test_user_registration` | ✅ |
+| `test_chat_message_exchange` | ✅ |
+| `test_join_conversation` | ✅ |
+| `test_request_message_history` | ✅ |
+| `test_health_check` | ✅ |
+| `test_root_handler` | ✅ |
+| `test_websocket_handler_welcome_message` | ✅ |
+| `test_setup_http_server` | ✅ |
+| `test_setup_ws_server` | ✅ |
+| `test_register_user` | ✅ |
+| `test_remove_user` | ✅ |
+| `test_handle_chat_message` | ✅ |
+| `test_handle_join_conversation` | ✅ |
+| `test_handle_history_request` | ❌ |
 
 ### Pendo.PaymentService
 
