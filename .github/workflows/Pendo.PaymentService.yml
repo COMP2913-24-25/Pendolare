@@ -7,6 +7,11 @@ on:
     paths:
       - 'Pendo.PaymentService/**'
       - '.github/workflows/Pendo.PaymentService.yml'
+  push:
+    branches: [ main, dev ]
+    paths:
+      - 'Pendo.PaymentService/**'
+      - '.github/workflows/Pendo.PaymentService.yml'
   workflow_dispatch:
   workflow_call:
     inputs:
@@ -26,46 +31,75 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.WF_PAT }}
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.WF_PAT }}
 
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
-    - name: Install dependencies
-      working-directory: ./Pendo.PaymentService
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: Install dependencies
+        working-directory: ./Pendo.PaymentService
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    - name: Test project
-      working-directory: ./Pendo.PaymentService/app
-      run: pytest --junitxml=payment_test_results.xml
+      - name: Test project
+        working-directory: ./Pendo.PaymentService/app
+        run: pytest --junitxml=payment_test_results.xml
 
-    - name: Publish Test Results
-      uses: EnricoMi/publish-unit-test-result-action@v2
-      if: always()
-      with:
-        check_name: PaymentService Test Results
-        files: ./Pendo.PaymentService/app/payment_test_results.xml
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          check_name: PaymentService Test Results
+          files: ./Pendo.PaymentService/app/payment_test_results.xml
 
-    - name: Update Wiki
-      if: always() && github.event_name != 'pull_request'
-      run: |
-        chmod +x ./scripts/parse-unittests.py
-        python ./scripts/parse-unittests.py \
-          --service PaymentService \
-          --report ./Pendo.PaymentService/app/payment_test_results.xml \
-          --wiki-file wiki/Tests.md
-      
-    - name: Checkout Wiki
-      if: always() && github.event_name != 'pull_request'
-      run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-        git add wiki/Tests.md
-        git commit -m "AUTO COMMIT: update Payment Service test list"
-        git push
+      - name: Upload Test Results Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: paymentservice-test-results
+          path: ./Pendo.PaymentService/app/payment_test_results.xml
+
+  update_wiki:
+    needs: build_test
+    if: always() && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.WF_PAT }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Download Test Results Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: paymentservice-test-results
+          path: ./Pendo.PaymentService/app
+
+      - name: Update Wiki
+        run: |
+          chmod +x ./scripts/parse-unittests.py
+          python ./scripts/parse-unittests.py \
+            --service PaymentService \
+            --report ./Pendo.PaymentService/app/payment_test_results.xml \
+            --wiki-file wiki/Tests.md
+
+      - name: Commit Wiki Update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git diff --quiet || (
+            git add wiki/Tests.md
+            git commit -m "AUTO COMMIT: update Payment Service test list"
+            echo "Wiki updated, pushing changes..."
+            git push
+          )
