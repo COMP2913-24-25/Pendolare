@@ -152,6 +152,29 @@ This section serves to document all unit tests within the project. This will be 
 | `Handle_UserNotFound_ReturnsFailureResponse` | ✅ |
 
 ### Pendo.JourneyService
+| Test Name | Passing |
+|-----------|:------:|
+| `test_check_inputs_success` | ✅ |
+| `test_check_inputs_missing_required_field` | ✅ |
+| `test_check_inputs_journey_type_2_missing_fields` | ✅ |
+| `test_check_inputs_journey_type_1_sets_repeat_until` | ✅ |
+| `test_filter_journeys_max_price` | ✅ |
+| `test_filter_journeys_boot_height` | ✅ |
+| `test_filter_journeys_boot_width` | ✅ |
+| `test_filter_journeys_journey_type` | ✅ |
+| `test_filter_journeys_num_passengers` | ✅ |
+| `test_filter_journeys_start_date` | ✅ |
+| `test_filter_journeys_start_location` | ✅ |
+| `test_filter_journeys_end_location` | ✅ |
+| `test_filter_journeys_journey_status` | ✅ |
+| `test_get_journeys` | ✅ |
+| `test_lock_journey_success` | ✅ |
+| `test_lock_journey_not_found` | ✅ |
+| `test_lock_journey_already_locked` | ✅ |
+| `test_create_journey` | ✅ |
+| `test_adjust_journey_success` | ✅ |
+| `test_adjust_journey_not_found` | ✅ |
+| `test_adjust_journey_invalid_price` | ✅ |
 
 ### Pendo.MessageService
 | Test Name | Passing |
