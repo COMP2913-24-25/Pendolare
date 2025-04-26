@@ -7,6 +7,11 @@ on:
     paths:
       - 'Pendo.MessageService/**'
       - '.github/workflows/Pendo.MessageService.yml'
+  push:
+    branches: [ main, dev ]
+    paths:
+      - 'Pendo.MessageService/**'
+      - '.github/workflows/Pendo.MessageService.yml'
   workflow_dispatch:
   workflow_call:
     inputs:

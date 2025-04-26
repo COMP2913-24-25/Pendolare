@@ -7,6 +7,11 @@ on:
     paths:
       - 'Pendo.BookingService/**'
       - '.github/workflows/Pendo.BookingService.yml'
+  push:
+    branches: [ main, dev ]
+    paths:
+      - 'Pendo.BookingService/**'
+      - '.github/workflows/Pendo.BookingService.yml'
   workflow_dispatch:
   workflow_call:
     inputs:

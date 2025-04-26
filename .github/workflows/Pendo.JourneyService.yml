@@ -7,6 +7,11 @@ on:
     paths:
       - 'Pendo.JourneyService/**'
       - '.github/workflows/Pendo.JourneyService.yml'
+  push:
+    branches: [ main, dev ]
+    paths:
+      - 'Pendo.JourneyService/**'
+      - '.github/workflows/Pendo.JourneyService.yml'
   workflow_dispatch:
   workflow_call:
     inputs:
