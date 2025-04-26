@@ -4,6 +4,12 @@ Each service, where possible, has a high degree of unit test coverage. In additi
 
 ## Contents
 - [Unit Tests](#unit-tests)
+  - [Pendo.ApiGateway](#pendoapigateway)
+  - [Pendo.BookingService](#pendobookingservice)
+  - [Pendo.IdentityService](#pendoidentityservice)
+  - [Pendo.JourneyService](#pendojourneyservice)
+  - [Pendo.MessageService](#pendomessageservice)
+  - [Pendo.PaymentService](#pendopaymentservice)
 - [Functional Tests](#functional-tests)
 
 ## Unit Tests
