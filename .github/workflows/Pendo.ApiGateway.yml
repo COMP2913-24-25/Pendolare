@@ -97,6 +97,36 @@ jobs:
           EOF
           mkdir -p spec
           ln -sf ../kong/plugins/jwt-custom-claims/spec/helpers spec/helpers
+          # Mock kong.plugins.jwt.jwt_parser for test environment
+          mkdir -p kong/plugins/jwt/jwt_parser
+          cat > kong/plugins/jwt/jwt_parser.lua <<'EOL'
+          local jwt_parser = {}
+          function jwt_parser.encode(claims, key, alg)
+            -- This is a dummy encoder for test purposes only
+            local cjson = require("cjson")
+            local header = { alg = alg or "HS256", typ = "JWT" }
+            local function b64(x) return (mime and mime.b64(x) or x):gsub("+", "-"):gsub("/", "_"):gsub("=", "") end
+            local header_b64 = ngx.encode_base64(cjson.encode(header)):gsub("+", "-"):gsub("/", "_"):gsub("=", "")
+            local claims_b64 = ngx.encode_base64(cjson.encode(claims)):gsub("+", "-"):gsub("/", "_"):gsub("=", "")
+            return header_b64 .. "." .. claims_b64 .. ".signature"
+          end
+          function jwt_parser:new(token)
+            -- This is a dummy parser for test purposes only
+            local cjson = require("cjson")
+            local parts = {}
+            for part in string.gmatch(token, "[^.]+") do table.insert(parts, part) end
+            local claims = {}
+            if #parts >= 2 then
+              local ok, decoded = pcall(function() return cjson.decode(ngx.decode_base64(parts[2])) end)
+              if ok and decoded then claims = decoded end
+            end
+            return setmetatable({
+              claims = claims,
+              verify_signature = function() return true end
+            }, { __index = jwt_parser }), nil
+          end
+          return jwt_parser
+          EOL
 
       - name: Test API Gateway plugins
         working-directory: ./Pendo.ApiGateway
