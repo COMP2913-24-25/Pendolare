@@ -97,44 +97,54 @@ jobs:
           EOF
           mkdir -p spec
           ln -sf ../kong/plugins/jwt-custom-claims/spec/helpers spec/helpers
+          # Mock Kong NGX global for test environment
+          cat > kong/ngx.lua <<'EOL'
+          -- Mock ngx for tests
+          local ngx = {}
+          
+          -- Base64 encoding/decoding for tests (simplified)
+          function ngx.encode_base64(input)
+            local b64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+            local s = ""
+            -- Simple mock that just returns the input for testing
+            return input
+          end
+          
+          function ngx.decode_base64(input)
+            -- Simple mock that just returns the input for testing  
+            return input
+          end
+          
+          return ngx
+          EOL
           # Mock kong.plugins.jwt.jwt_parser for test environment
           mkdir -p kong/plugins/jwt/jwt_parser
           cat > kong/plugins/jwt/jwt_parser.lua <<'EOL'
           local jwt_parser = {}
+          -- Load mock ngx for tests
+          local ngx = require "kong.ngx"
+          
           function jwt_parser.encode(claims, key, alg)
+            -- This is a dummy encoder for test purposes only
             local cjson = require("cjson")
-            local ok, mime = pcall(require, "mime")
-            local function b64(data)
-              if _G.ngx and ngx.encode_base64 then
-                return ngx.encode_base64(data):gsub("+", "-"):gsub("/", "_"):gsub("=", "")
-              elseif ok and mime and mime.b64 then
-                return mime.b64(data):gsub("\n", ""):gsub("+", "-"):gsub("/", "_"):gsub("=", "")
-              else
-                error("No base64 encoder available")
-              end
-            end
             local header = { alg = alg or "HS256", typ = "JWT" }
+            local function b64(data)
+              return ngx.encode_base64(data):gsub("+", "-"):gsub("/", "_"):gsub("=", "")
+            end
             local header_b64 = b64(cjson.encode(header))
             local claims_b64 = b64(cjson.encode(claims))
             return header_b64 .. "." .. claims_b64 .. ".signature"
           end
           function jwt_parser:new(token)
+            -- This is a dummy parser for test purposes only
             local cjson = require("cjson")
-            local ok, mime = pcall(require, "mime")
-            local function unb64(data)
-              if _G.ngx and ngx.decode_base64 then
-                return ngx.decode_base64(data)
-              elseif ok and mime and mime.unb64 then
-                return mime.unb64(data)
-              else
-                error("No base64 decoder available")
-              end
-            end
             local parts = {}
             for part in string.gmatch(token, "[^.]+") do table.insert(parts, part) end
             local claims = {}
             if #parts >= 2 then
-              local ok, decoded = pcall(function() return cjson.decode(unb64(parts[2])) end)
+              local ok, decoded = pcall(function() 
+                return cjson.decode(ngx.decode_base64(parts[2])) 
+              end)
               if ok and decoded then claims = decoded end
             end
             return setmetatable({
