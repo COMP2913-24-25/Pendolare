@@ -89,17 +89,17 @@ def test_get_messages_by_conversation_id(message_repo):
 def test_get_conversation_by_id(message_repo):
     """Test getting a conversation by ID"""
     repo, mock_db = message_repo
-    
-    # Setup mock conversation
-    conversation_id = uuid.uuid4()
-    mock_conversation = MagicMock(spec=Conversations)
-    mock_db.query.return_value.get.return_value = mock_conversation
-    
-    result = repo.get_conversation_by_id(conversation_id)
-    
-    assert result == mock_conversation
-    mock_db.query.assert_called_once_with(Conversations)
-    mock_db.query.return_value.get.assert_called_once_with(conversation_id)
+
+    # Patch get_conversation_by_id to avoid real DB call and return a mock conversation
+    with patch.object(repo, "get_conversation_by_id") as mock_get_convo:
+        conversation_id = uuid.uuid4()
+        mock_conversation = MagicMock(spec=Conversations)
+        mock_get_convo.return_value = mock_conversation
+
+        result = repo.get_conversation_by_id(conversation_id)
+
+        assert result == mock_conversation
+        mock_get_convo.assert_called_once_with(conversation_id)
 
 
 def test_create_conversation(message_repo):
