@@ -1,6 +1,8 @@
 import { getJWTToken, logout } from "./authService";
 import { API_BASE_URL } from "@/constants";
 
+import { router } from "expo-router";
+
 /*
   Make an API request to the gateway
   Returns the response data
@@ -36,6 +38,7 @@ export async function apiRequest<T>(
         if (response.status === 401) {
             console.log("Received 401 Unauthorized. Logging out.");
             await logout();
+            router.replace("/auth/signin");
             try {
                 data = JSON.parse(responseText);
             } catch (e) {
