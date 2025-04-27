@@ -100,7 +100,10 @@ jobs:
       - name: Test API Gateway plugins
         working-directory: ./Pendo.ApiGateway
         run: |
-          busted -v --output=junit kong/plugins/jwt-custom-claims/spec > apigateway_test_results.xml
+          export KONG_PREFIX=$(pwd)/kong-prefix
+          mkdir -p $KONG_PREFIX
+          # Run busted and output results to file. If busted fails, print the results file to logs and exit with error.
+          busted -v --output=junit kong/plugins/jwt-custom-claims/spec > apigateway_test_results.xml || (cat apigateway_test_results.xml && exit 1)
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
