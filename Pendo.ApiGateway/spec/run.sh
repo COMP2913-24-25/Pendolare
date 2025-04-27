@@ -16,9 +16,17 @@ if [ ! -d "./spec/kong-spec" ]; then
   git clone --depth 1 --branch 3.4.0 https://github.com/Kong/kong.git ./spec/kong-spec
 fi
 
+# Install LuaCov to handle coverage dependency
+echo "Installing LuaCov..."
+sudo luarocks install luacov || true
+
 # Set LUA_PATH to include Kong's spec helpers
 export LUA_PATH="./spec/kong-spec/spec/?.lua;./spec/kong-spec/spec/?/init.lua;./?.lua;./?/init.lua;$LUA_PATH"
 export KONG_LUA_PATH_OVERRIDE="$LUA_PATH"
+
+# Disable any coverage-related environment variables
+unset BUSTED_COVERAGE
+unset LUACOV
 
 # Print current environment for debugging
 echo "LUA_PATH: $LUA_PATH"
@@ -28,9 +36,10 @@ echo "Running tests in $(pwd)"
 mkdir -p spec/fixtures
 
 # Run the tests using busted with proper command line arguments
+# Explicitly disable coverage with --no-coverage
 set +e
 echo "Running tests..."
-busted -o junit -v -p handler_spec \
+busted -o junit -v -p handler_spec --no-coverage \
   -l "./spec/?.lua;./spec/?/init.lua;./spec/kong-spec/spec/?.lua;./spec/kong-spec/spec/?/init.lua" \
   -c "./spec/?.so;./spec/?/init.so" \
   ./kong/plugins/jwt-custom-claims/spec/handler_spec.lua > test_output.txt 2>&1
