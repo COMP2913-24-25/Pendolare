@@ -10,8 +10,8 @@ if [ ! -d "./spec/kong-spec" ]; then
   git clone --depth 1 --branch 3.4.0 https://github.com/Kong/kong.git ./spec/kong-spec
 fi
 
-# Set LUA_PATH to include Kong's spec helpers
-export LUA_PATH="./spec/kong-spec/spec/?.lua;;$LUA_PATH"
+# Set LUA_PATH to include Kong's spec helpers (both ?.lua and ?/init.lua)
+export LUA_PATH="./spec/kong-spec/spec/?.lua;./spec/kong-spec/spec/?/init.lua;;$LUA_PATH"
 
 # Run the tests using busted with JUnit output redirected to a file
 busted -v --output=junit ./kong/plugins/jwt-custom-claims/spec 2> apigateway_test_results.xml
