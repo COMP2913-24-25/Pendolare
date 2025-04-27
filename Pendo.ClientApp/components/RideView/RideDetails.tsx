@@ -85,8 +85,31 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
   const handleBooking = async () => {
     setInBooking(true);
 
+    const priceString = (ride.AdvertisedPrice || ride.price)?.toString().replace('£', '');
+    const price = parseFloat(priceString);
+
+    if (isNaN(price)) {
+        console.error("Could not parse ride price:", ride.AdvertisedPrice || ride.price);
+        setBookingStatus({
+            success: false,
+            message: "Could not determine ride price. Please try again.",
+            showMessage: true,
+        });
+        setInBooking(false);
+        return;
+    }
+
+    if (userBalance < price) {
+        setBookingStatus({
+            success: false,
+            message: `Insufficient funds. Your balance is £${userBalance.toFixed(2)}, but the ride costs £${price.toFixed(2)}. Please top up your account.`,
+            showMessage: true,
+        });
+        setInBooking(false);
+        return;
+    }
+
     try {
-      // Extract departureTime from string or timestamp
       const departureTime = new Date(ride.departureTime);
 
       if (ride.recurrence) {
@@ -111,17 +134,39 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
           };
         }
 
-        const newSubrides : SubRide[] = journeyDates.map((date) => ({
-          journeyId: ride.JourneyId,
-          journeyDate: date,
-          price: ride.AdvertisedPrice || ride.price?.replace('£', ''),
-          parent: ride,
-        }));
+        const newSubrides : SubRide[] = journeyDates.map((date) => {
+          const ridePrice = (ride.AdvertisedPrice !== undefined 
+            ? ride.AdvertisedPrice 
+            : ride.price?.replace('£', '') || '0').toString();
+            
+          return {
+            journeyId: ride.JourneyId,
+            journeyDate: date,
+            price: ridePrice,
+            parent: ride,
+          };
+        });
+
+        // Calculate total cost for the week
+        // If a discount is applied, calculate the effective total cost
+        const totalRecurringCost = newSubrides.reduce((acc, ride) => acc + parseFloat(ride.price.toString()), 0);
+        const effectiveTotalCost = rideDiscount ? totalRecurringCost * (1 - rideDiscount.amount) : totalRecurringCost;
+
+        if (userBalance < effectiveTotalCost) {
+            setBookingStatus({
+                success: false,
+                message: `Insufficient funds for weekly booking. Your balance is £${userBalance.toFixed(2)}, but the estimated weekly cost is £${effectiveTotalCost.toFixed(2)}. Please top up your account.`,
+                showMessage: true,
+            });
+            setInBooking(false);
+            return;
+        }
 
         setSubrides(newSubrides);
         setDiscount(rideDiscount);
 
         setShowCheckout(true);
+        setInBooking(false); // Stop loading indicator as checkout modal opens
         return;
       }
 
@@ -186,6 +231,9 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
       onShow={() => {
         ViewBalance().then((balance : BalanceSheet) => {
           setUserBalance(balance.NonPending);
+        }).catch(err => {
+            console.error("Failed to fetch user balance:", err);
+            setUserBalance(0); // Default to 0 if fetch fails
         });
       }}
       onRequestClose={onClose}
@@ -306,7 +354,7 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
                   inBooking ? "bg-blue-400" : "bg-blue-600"
                 } py-4 rounded-xl items-center justify-center`}
                 onPress={handleBooking}
-                disabled={inBooking}
+                disabled={inBooking || bookingStatus.showMessage}
               >
                 {inBooking ? (
                   <ActivityIndicator color="#FFFFFF" />
