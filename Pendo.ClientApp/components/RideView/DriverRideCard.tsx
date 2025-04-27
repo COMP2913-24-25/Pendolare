@@ -6,6 +6,7 @@ import UpcomingRideDetailsModal from "./Modals/UpcomingRideDetailsModal";
 import { approveBooking, BookingDetails } from "@/services/bookingService";
 import { toHumanReadable } from "@/utils/cronTools";
 import OneClickRebook from "./OneClickRebook";
+import StatusBadge from "./StatusBadge";
 
 interface DriverRideCardProps {
   booking: BookingDetails; // Only accept BookingDetails
@@ -64,7 +65,7 @@ const DriverRideCard = ({ booking, journeyView = false, approveBookingCallback, 
       const bookingId = rideDetails.BookingId;
       const response = await approveBooking(bookingId);
       
-      if (response.success) {
+      if (response.Status === "Success") {
         Alert.alert("Success", "Booking approved successfully");
         approveBookingCallback();
       } else {
@@ -77,6 +78,10 @@ const DriverRideCard = ({ booking, journeyView = false, approveBookingCallback, 
           Alert.alert("Error", response.message || "Failed to approve booking");
         }
       }
+      
+      setShowDetails(false);
+      Promise.resolve(() => setTimeout(() => {}, 100));
+
     } catch (error) {
       console.error("Error approving booking:", error);
       Alert.alert("Error", "Failed to approve booking");
@@ -158,30 +163,15 @@ const DriverRideCard = ({ booking, journeyView = false, approveBookingCallback, 
       )}
 
       {/* Only show passenger details if this isn't a journey view */}
-      {!journeyView && (
         <View className="flex-row justify-between items-center mt-2">
+          {!journeyView && (
           <Text
-            className={`${isDarkMode ? "text-gray-300" : "text-gray-600"} flex-1`}
+            className={`font-bold ${isDarkMode ? "text-gray-300" : "text-gray-600"} flex-1`}
           >
-            Passenger: {rideDetails.User?.Name || "Pending"}
-          </Text>
-          <View
-            className={`px-2 py-1 rounded-full ${
-              status.Status === "Pending"
-                ? "bg-yellow-500"
-                : status.Status === "Confirmed"
-                ? "bg-green-500"
-                : status.Status === "Cancelled"
-                ? "bg-red-500"
-                : "bg-blue-500"
-            }`}
-          >
-            <Text className="text-white text-xs font-JakartaMedium">
-              {status.Status}
-            </Text>
-          </View>
+            Passenger: {rideDetails.User?.FirstName || "Pending"}
+          </Text>)}
+          <StatusBadge statusText={status.Status} />
         </View>
-      )}
 
       {/* Details Modal */}
       <UpcomingRideDetailsModal
