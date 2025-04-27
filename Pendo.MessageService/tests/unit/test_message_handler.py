@@ -62,7 +62,7 @@ async def test_handle_chat_message(message_handler):
     from_user = str(uuid.uuid4())
     to_user = str(uuid.uuid4())
     conversation_id = str(uuid.uuid4())
-    content = "Hello, this is a test message"
+    Content = "Hello, this is a test message"
     
     from_socket = MagicMock()
     to_socket = MagicMock()
@@ -79,14 +79,14 @@ async def test_handle_chat_message(message_handler):
         "type": "chat",
         "from": from_user,
         "conversation_id": conversation_id,
-        "content": content
+        "Content": Content
     }
     
     await handler._handle_chat_message(message)
     
     assert conversation_id in handler.message_store
     assert len(handler.message_store[conversation_id]) == 1
-    assert handler.message_store[conversation_id][0]["content"] == content
+    assert handler.message_store[conversation_id][0]["Content"] == Content
     
     handler._broadcast_to_conversation.assert_called_once()
 
@@ -165,14 +165,14 @@ async def test_handle_history_request(message_handler):
             "type": "chat",
             "from": "test-user-1",
             "conversation_id": conversation_id,
-            "content": "Test message 1",
+            "Content": "Test message 1",
             "timestamp": datetime.now().isoformat()
         },
         {
             "type": "chat",
             "from": "test-user-2",
             "conversation_id": conversation_id,
-            "content": "Test message 2",
+            "Content": "Test message 2",
             "timestamp": datetime.now().isoformat()
         }
     ]
@@ -202,7 +202,7 @@ async def test_handle_history_request(message_handler):
     assert len(sent_messages) == 1
     assert sent_messages[0]["type"] == "history_response"
     assert len(sent_messages[0]["messages"]) == 2
-    assert sent_messages[0]["messages"][0]["content"] == "Test message 1"
+    assert sent_messages[0]["messages"][0]["Content"] == "Test message 1"
 
 
 @pytest.mark.asyncio
@@ -247,7 +247,7 @@ async def test_broadcast_to_conversation(message_handler):
     
     message = {
         "type": "chat",
-        "content": "Test broadcast message",
+        "Content": "Test broadcast message",
         "from": user1_id
     }
     
