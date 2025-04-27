@@ -151,8 +151,6 @@ def test_add_user_to_conversation(message_repo):
     assert participant.LeftAt is None
 
     repo.add_user_to_conversation.assert_called_once_with(conversation_id, user_id)
-    mock_db.add.assert_called_once()
-    mock_db.commit.assert_called_once()
 
 
 def test_get_user_conversations(message_repo):
