@@ -46,6 +46,7 @@ This section serves to document all unit tests within the project. This will be 
 ### Pendo.ApiGateway
 | Location | Test Name | Passing |
 |----------|-----------|:------:|
+| `jwt-custom-claims` | `test_mock_run` | ✅ |
 
 ### Pendo.BookingService
 | Location | Test Name | Passing |
