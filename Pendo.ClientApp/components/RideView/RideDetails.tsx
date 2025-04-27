@@ -16,13 +16,14 @@ interface RideDetailsProps {
   ride: any;
   visible: boolean;
   onClose: () => void;
+  onBookingSuccess?: () => void;
 }
 
 /*
   RideDetails
   Modal component for displaying ride details and booking
 */
-const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
+const RideDetails = ({ ride, visible, onClose, onBookingSuccess }: RideDetailsProps) => { // Add onBookingSuccess here
   const { isDarkMode } = useTheme();
   const [inBooking, setInBooking] = useState(false);
   const [bookingStatus, setBookingStatus] = useState<{
@@ -181,9 +182,9 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
 
         // Close the details modal and reset state after a short delay
         setTimeout(() => {
+          onClose();
           setBookingStatus((prev) => ({ ...prev, showMessage: false }));
-          setShowCheckout(false); // If checkout modal is open, close it
-          onClose(); // Close the RideDetails modal
+          onBookingSuccess?.();
         }, 2000);
       } else {
         setBookingStatus({
@@ -200,23 +201,56 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
         showMessage: true,
       });
     } finally {
-      setInBooking(false);
+      if (!showCheckout) {
+          setInBooking(false);
+      }
     }
   };
 
   const handleCommuterBooking = async () => {
-    const twoWeeks = 1209600000; // 2 weeks in milliseconds
-    const result = await createBooking(ride.JourneyId, new Date(ride.departureTime), new Date(twoWeeks));
-
-    console.log("Commuter booking result:", result);
-    
-    if (result.Status !== "Error") {
-      Alert.alert("Success", "Your ride has been successfully booked!");
+    if (!subrides || subrides.length === 0) {
+      console.error("No subrides selected for commuter booking.");
+      setBookingStatus({ success: false, message: "No dates selected for booking.", showMessage: true });
       return;
     }
 
-    Alert.alert("Error", "Failed to book your ride. Please try again.");
-    return;
+    const firstRideDate = subrides[0]?.journeyDate;
+    const lastRideDate = subrides[subrides.length - 1]?.journeyDate;
+
+    if (!firstRideDate || !lastRideDate) {
+        console.error("Invalid dates in subrides for commuter booking.");
+        setBookingStatus({ success: false, message: "Invalid dates selected for booking.", showMessage: true });
+        return;
+    }
+
+    setInBooking(true);
+    setShowCheckout(false);
+
+    try {
+      const journeyIdToBook = ride.JourneyId;
+      if (!journeyIdToBook) {
+          throw new Error("Journey ID is missing for commuter booking.");
+      }
+
+      const result = await createBooking(journeyIdToBook, firstRideDate, lastRideDate);
+
+      if (result.success || result.Status === "Success") {
+        setBookingStatus({ success: true, message: "Commuter ride successfully booked!", showMessage: true });
+        setTimeout(() => {
+          onClose();
+          setBookingStatus((prev) => ({ ...prev, showMessage: false }));
+          onBookingSuccess?.();
+        }, 2000);
+      } else {
+        setBookingStatus({ success: false, message: result.message || "Failed to book commuter ride.", showMessage: true });
+      }
+    } catch (error) {
+        console.error("Commuter booking error:", error);
+        const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred during commuter booking.";
+        setBookingStatus({ success: false, message: errorMessage, showMessage: true });
+    } finally {
+      setInBooking(false);
+    }
   };
 
   const dismissMessage = () => {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { ScrollView, View, TouchableOpacity, Modal } from "react-native";
 import ThemedSafeAreaView from "@/components/common/ThemedSafeAreaView";
 import BookingCategory from "@/components/BookingCategory";
@@ -14,7 +14,8 @@ import FilteredRides from "@/components/RideView/FilteredRides";
 const Book = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("normal");
   const [showCreateRideModal, setShowCreateRideModal] = useState(false);
-  const [resetFilters, setResetFilters] = useState(false);
+  const [resetFiltersFlag, setResetFiltersFlag] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const { isDarkMode } = useTheme();
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -25,9 +26,21 @@ const Book = () => {
     }
     debounceRef.current = setTimeout(() => {
       setSelectedCategory(category);
-      setResetFilters(true);
+      setResetFiltersFlag(true);
+      setRefreshKey(prev => prev + 1);
     }, 300); // 300ms debounce
   };
+
+  // Callback to trigger refresh in FilteredRides after successful booking
+  const triggerRefresh = useCallback(() => {
+    console.log("Triggering refresh via refreshKey increment");
+    setRefreshKey(prev => prev + 1);
+  }, []);
+
+  // Callback to signal filters have been reset in child
+  const onFiltersReset = useCallback(() => {
+    setResetFiltersFlag(false);
+  }, []);
 
   return (
     <ThemedSafeAreaView
@@ -37,15 +50,14 @@ const Book = () => {
         className="px-5"
         contentContainerStyle={{ paddingBottom: 120 }}
       >
-          {/* Create Ride Button */}
-          <Text className={`text-2xl font-JakartaBold my-5 ${isDarkMode ? "text-white" : "text-black"}`}>Advertise your Journey</Text>
-          <TouchableOpacity
-            className="bg-blue-500 p-4 rounded-lg mb-5"
-            onPress={() => setShowCreateRideModal(true)}
-          >
-
+        {/* Create Ride Button */}
+        <Text className={`text-2xl font-JakartaBold my-5 ${isDarkMode ? "text-white" : "text-black"}`}>Advertise your Journey</Text>
+        <TouchableOpacity
+          className="bg-blue-500 p-4 rounded-lg mb-5"
+          onPress={() => setShowCreateRideModal(true)}
+        >
           <Text className="text-md font-JakartaSemiBold text-white text-center">Create a Ride</Text>
-          </TouchableOpacity>
+        </TouchableOpacity>
 
         {/* Header Section */}
         <Text
@@ -72,7 +84,14 @@ const Book = () => {
         </View>
 
         {/* Available Journeys or Commuter Section */}
-        <FilteredRides resetFilters={resetFilters} setResetFilters={setResetFilters} isDarkMode={isDarkMode} journeyType={selectedCategory === "commuter" ? 2 : 1} />
+        <FilteredRides
+          key={refreshKey}
+          resetFilters={resetFiltersFlag}
+          onFiltersReset={onFiltersReset}
+          isDarkMode={isDarkMode}
+          journeyType={selectedCategory === "commuter" ? 2 : 1}
+          onBookingSuccess={triggerRefresh}
+        />
 
         {/* Create Ride Modal */}
         <Modal
