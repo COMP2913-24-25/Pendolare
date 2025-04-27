@@ -26,7 +26,7 @@ import ChatMessages from "@/components/Chat/ChatMessages";
   Screen for viewing and sending messages in a chat
 */
 const ChatDetail = () => {
-  const { id, name, initialMessage } = useLocalSearchParams();
+  const { id, name, initialMessage, autoCreateChat: autoCreateChatParam } = useLocalSearchParams();
   const [newMessage, setNewMessage] = useState(typeof initialMessage === "undefined" ? "" : initialMessage as string);
   const { isDarkMode } = useTheme();
   const [currentUserId, setCurrentUserId] = useState<string>("");
@@ -36,7 +36,8 @@ const ChatDetail = () => {
   const previousIdRef = useRef<string | null>(null);
   const [isDriverMode, setIsDriverMode] = useState(false);
   const [isFetchingChat, setIsFetchingChat] = useState(false);
-  
+  const [autoCreateChat, setAutoCreateChat] = useState(false);
+
   // Initialise chat hook
   const { 
     chat,
@@ -48,8 +49,6 @@ const ChatDetail = () => {
     connectionError,
     sendMessage,
     handleAmendmentApproval,
-    autoCreateChat,
-    setAutoCreateChat
   } = useChatMessages(
     id as string, 
     currentUserId,
@@ -97,19 +96,22 @@ const ChatDetail = () => {
   );
 
   useEffect(() => {
+    setAutoCreateChat(autoCreateChatParam === 'true');
+  }, [autoCreateChatParam]);
+
+  useEffect(() => {
     if (previousIdRef.current === id) return;
     
     console.log(`Chat ID changed from ${previousIdRef.current} to ${id}`);
     previousIdRef.current = id as string;
     
-    // Only auto-create when there's an initial message
-    const shouldAutoCreate = !!initialMessage && initialMessage !== '';
+    const shouldAutoCreate = autoCreateChatParam === 'true' || (!!initialMessage && initialMessage !== '');
     setAutoCreateChat(shouldAutoCreate);
     
     if (currentUserId) {
       fetchChatData();
     }
-  }, [id, currentUserId, initialMessage]);
+  }, [id, currentUserId, initialMessage, autoCreateChatParam]);
 
   useEffect(() => {
     const determineUserRole = async () => {
@@ -228,7 +230,6 @@ const ChatDetail = () => {
       
       if (selectedChat) {
         console.log("Using existing chat:", selectedChat.id);
-        setAutoCreateChat(false);
         setChatData(selectedChat);
         setIsFetchingChat(false);
         return;
@@ -237,8 +238,8 @@ const ChatDetail = () => {
       console.log("No existing conversation found for:", id);
       
       // Only create a conversation if explicitly allowed to
-      if (!autoCreateChat || typeof initialMessage === 'undefined' || initialMessage === '') {
-        console.log("Auto-creation disabled or no initial message. Not creating a new chat.");
+      if (!autoCreateChat) {
+        console.log("Auto-creation disabled. Not creating a new chat.");
         setIsFetchingChat(false);
         return;
       }
@@ -270,6 +271,7 @@ const ChatDetail = () => {
         });
       } catch (error) {
         console.error("Failed to create conversation:", error);
+        setAutoCreateChat(false);
         
         if (String(error).includes("Conversation already exists")) {
           console.log("Conversation exists but wasn't found initially, retrying fetch");
@@ -281,6 +283,7 @@ const ChatDetail = () => {
     } catch (error) {
       console.error("Error in fetchChatData:", error);
       setIsFetchingChat(false);
+      setAutoCreateChat(false);
     }
   };
 
