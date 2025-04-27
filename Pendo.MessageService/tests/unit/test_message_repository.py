@@ -24,13 +24,12 @@ def mock_db_session():
 
 
 @pytest.fixture
-def message_repo(mock_db):
+def message_repo(mock_db_session):
     """Create a message repository with mocked database session"""
     with patch('src.db.MessageRepository.get_db') as mock_get_db:
-        mock_get_db.return_value.__iter__.return_value = iter([mock_db])
+        mock_get_db.return_value = iter([mock_db_session])
         repo = MessageRepository()
-        repo.db_session = mock_db
-        return repo, mock_db
+        return repo, mock_db_session
 
 
 def test_save_message(message_repo):
