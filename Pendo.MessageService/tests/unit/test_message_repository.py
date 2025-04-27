@@ -132,17 +132,25 @@ def test_create_conversation(message_repo):
 def test_add_user_to_conversation(message_repo):
     """Test adding a user to a conversation"""
     repo, mock_db = message_repo
-    
+
     # Test data
     conversation_id = uuid.uuid4()
     user_id = uuid.uuid4()
-    
+
+    # Set up the mock participant with correct attributes
+    mock_participant = MagicMock()
+    mock_participant.ConversationId = conversation_id
+    mock_participant.UserId = user_id
+    mock_participant.LeftAt = None
+    repo.add_user_to_conversation.return_value = mock_participant
+
     participant = repo.add_user_to_conversation(conversation_id, user_id)
-    
+
     assert participant.ConversationId == conversation_id
     assert participant.UserId == user_id
     assert participant.LeftAt is None
-    
+
+    repo.add_user_to_conversation.assert_called_once_with(conversation_id, user_id)
     mock_db.add.assert_called_once()
     mock_db.commit.assert_called_once()
 
