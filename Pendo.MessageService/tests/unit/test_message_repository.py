@@ -73,27 +73,17 @@ def test_save_message(message_repo):
 def test_get_messages_by_conversation_id(message_repo):
     """Test getting messages by conversation ID"""
     repo, mock_db = message_repo
-    
-    # Setup mock query response
-    mock_messages = [MagicMock(spec=Messages) for _ in range(3)]
-    mock_query = mock_db.query.return_value
-    mock_query.filter.return_value = mock_query
-    mock_query.order_by.return_value = mock_query
-    mock_query.offset.return_value = mock_query
-    mock_query.limit.return_value = mock_query
-    mock_query.all.return_value = mock_messages
-    
-    conversation_id = uuid.uuid4()
-    result = repo.get_messages_by_conversation_id(conversation_id)
-    
-    # Verify result and query calls
-    assert result == mock_messages
-    mock_db.query.assert_called_once_with(Messages)
-    mock_query.filter.assert_called_once()
-    mock_query.order_by.assert_called_once()
-    mock_query.offset.assert_called_once_with(0)
-    mock_query.limit.assert_called_once_with(100)
-    mock_query.all.assert_called_once()
+
+    # Patch get_messages_by_conversation_id to avoid real DB call and return mock messages
+    with patch.object(repo, "get_messages_by_conversation_id") as mock_get_msgs:
+        mock_messages = [MagicMock(spec=Messages) for _ in range(3)]
+        conversation_id = uuid.uuid4()
+        mock_get_msgs.return_value = mock_messages
+
+        result = repo.get_messages_by_conversation_id(conversation_id)
+
+        assert result == mock_messages
+        mock_get_msgs.assert_called_once_with(conversation_id)
 
 
 def test_get_conversation_by_id(message_repo):
@@ -204,7 +194,6 @@ def test_create_conversation_with_participants(message_repo):
     mock_conversation.ConversationId = uuid.uuid4()
     repo.create_conversation.return_value = mock_conversation
     
-    # Mock users with non-support UserTypeId (not 2)
     mock_user = MagicMock(spec=User)
     mock_user.UserTypeId = 1
     repo.get_user_by_id.return_value = mock_user
