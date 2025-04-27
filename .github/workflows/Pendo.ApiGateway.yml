@@ -41,7 +41,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y lua5.1 luarocks
           sudo luarocks install busted
-          sudo luarocks install luacov-reporter-junit
 
       - name: Run Kong plugin tests
         working-directory: ./Pendo.ApiGateway
