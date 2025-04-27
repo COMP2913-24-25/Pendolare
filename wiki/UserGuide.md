@@ -193,16 +193,15 @@ This is the balance available for making your bookings.
 
 ### Cancelling a booking 
 
-On the journey details page, locate and tap the Cancel button.
-Cancellation Policy:
+1.	Navigate to the Upcoming Bookings area of the app. Tap on the journey you wish to cancel to view its details.
+2.	To begin a modify request via the messaging interface, search for a plus sign (+) on the lefthand side of the messaging service.
+3.	Tap the + symbol and select 'Request Cancellation'.
+4.	The request will then display in chat and an email will be sent signalling cancellation.
+
+#### Cancellation Policy:
 1.	Cancellation is free of charge for the user if the user cancels 15 minutes or more before the scheduled journey time.
 2.	The user will be charged 75% of the agreed-upon journey fee if the user cancels less than 15 minutes till the scheduled journey time.
 Once you confirm the cancellation of your booked journey, the journey will be removed from your Upcoming Journeys and added to the Cancelled Journeys area of the app.
-
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/bddc251a-7923-491d-9594-f817ba42ec02" alt="Image" width="300"/>
-</p>
-
 
 ### Hosting a Journey (For Drivers)
  
