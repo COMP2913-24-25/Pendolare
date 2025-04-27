@@ -10,6 +10,13 @@ from src.db.PendoDatabase import Messages, Conversations, ConversationParticipan
 @pytest.fixture
 def mock_db_session():
     """Fixture to create a mock DB session"""
+
+    from src.db.PendoDatabase import Base
+    from src.db.PendoDatabaseProvider import engine
+
+    if engine is not None:
+        Base.metadata.create_all(bind=engine)
+
     mock_session = MagicMock()
     mock_session.query = MagicMock(return_value=mock_session)
     mock_session.filter = MagicMock(return_value=mock_session)
