@@ -1,4 +1,4 @@
-import { getJWTToken } from "./authService";
+import { getJWTToken, logout } from "./authService";
 import { API_BASE_URL } from "@/constants";
 
 /*
@@ -19,35 +19,60 @@ export async function apiRequest<T>(
     ...(options.headers || {}),
   };
 
+  let response: Response | null = null;
+
   try {
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       headers,
     });
 
-    let data = null;
+    let data: any = null;
+
+    const responseText = await response.text(); 
+
+    if (!response.ok) {
+        if (response.status === 401) {
+            console.log("Received 401 Unauthorized. Logging out.");
+            await logout();
+            try {
+                data = JSON.parse(responseText);
+            } catch (e) {
+                data = { message: responseText || response.statusText || "Unauthorized" };
+            }
+        } else if (!silentFail) {
+            try {
+                data = JSON.parse(responseText);
+            } catch (e) {
+                data = { message: responseText || `API request failed: ${response.statusText}` };
+            }
+        }
+        throw new Error(data?.message || `API request failed with status ${response.status}`);
+    }
 
     if (forceJsonParse) {
       console.log("Forcing JSON parse");
-
-      let text = await response.text();
-      data = JSON.parse(text);
-
-      console.debug(`${endpoint} response:`, data);
+      try {
+        data = JSON.parse(responseText);
+        console.debug(`${endpoint} response:`, data);
+      } catch (e) {
+        console.error(`Failed to force JSON parse for ${endpoint}:`, e);
+        throw new Error(`Invalid JSON received from ${endpoint}`);
+      }
+    } else {
+        try {
+            data = JSON.parse(responseText);
+            console.debug(`${endpoint} response:`, data);
+        } catch (e) {
+             console.warn(`Response from ${endpoint} was not valid JSON, returning raw text.`);
+             data = responseText;
+        }
     }
-    else{
-      data = await response.json();
-      console.debug(`${endpoint} response:`, data);
-    }
 
-    if (!response.ok && !silentFail) {
-      throw new Error(data.message || `API request failed: ${response}`);
-    }
-
-    return data;
+    return data as T;
   } catch (error) {
-    console.error(`API request failed for ${endpoint}:`, error);
-    throw error;
+    console.error(`API request failed for ${endpoint}:`, error); 
+    throw error; 
   }
 }
