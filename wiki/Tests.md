@@ -272,3 +272,42 @@ This section serves to document all unit tests within the project. This will be 
 | `test_ViewBalanceCmd` | `test_view_balance_repository_exception` | ✅ |
 | `test_ViewBalanceCmd` | `test_view_balance_success` | ✅ |
 | `test_ViewBalanceCmd` | `test_view_balance_user_not_found` | ✅ |
+
+## Functional Tests
+
+Test ID | Description | Expected Results | Actual Results
+--------| ----------- | ---------------- | ---------------
+1.1 | Navigate to the sign-in page. Enter valid email address. Submit form. | User should receive OTP email notification that will allow them to give account details (Name) and sign in. | User received OTP email notification. They were able to enter their first and last name and successfully signed in.
+1.2 | Navigate to the sign-in page. Enter invalid email address: no @ character; no .com/.uk ending. | User receives an error message. Message explains the reason for the error. | An error message was displayed. No OTP was sent.
+1.3 | Navigate to the login page. Enter valid email address. Click “Login” to verify and access the app. | User should receive OTP email notification that contains a code. User enters code on the app and is logged in. | User received the OTP email, entered the code in the app, and successfully logged in.
+2.1 | Navigate to Top Up Balance page in account settings. Choose account to top up. Add valid card details. | Card details are securely stored for when the user wants to top up their card. | User entered valid card details, which were securely saved for future top-ups.
+2.2 | Select stored card during checkout. Complete transaction. | Payment is successfully carried out. | Stored card was available at checkout. The user completed the transaction successfully, and stored cards were visible in account settings.
+4.1 | Navigate to the one-time journey section. Set the search criteria. | Available one-time journeys are displayed. User is able to look through them. | Available one-time journeys are displayed. User was able to browse through them.
+4.2 | Navigate to the commuter journeys section. Set the search criteria. | Available commuter journeys are displayed. User is able to look through them. | Option to view commuter journeys appeared. When selected, available commuter journeys were displayed.
+4.3 | Click on a journey listing. | Journey details (date, time, cost, pick-up and end-point locations) are shown. | Journey details including name, driver rating, price, pick-up, and destination were displayed as expected.
+5.1 | Enter search criteria. Execute search. | Journeys matching criteria are displayed. | Journeys matching the search criteria were displayed correctly.
+5.2 | Open list view. | Journeys are displayed visually in list format. | Journeys were presented clearly in list format.
+6.1 | Choose a journey. Confirm booking. | User is sent a confirmation message stating that booking is successful. | The app displayed a confirmation notification.
+7.1 | Enter payment details. Confirm transaction. | Payment is processed successfully. Booking confirmation email is evidence of successful transaction. | An email was sent to the user confirming the payment had been processed and the booking was pending.
+7.2 | Use card with insufficient funds. | Payment is declined with an appropriate error message. | Error is shown on checkout page stating that the user’s balance is insufficient and providing information on the required funds needed to book the journey.
+8.1 | Complete booking. Check registered email. | Confirmation email is received. | Confirmation email was successfully received.
+9.1 | Complete booking. Navigate to Upcoming Journeys page. | Booking details are stored and accessible to the user. | Booking details were available on the Upcoming Journeys page, with an option to contact the driver.
+10.1 | Set cost, time, location, number of passengers, extras. | Settings are saved correctly. | All configured settings were saved correctly and visible under the advertised tab on the “My Listings” page.
+11.1 | Book a journey through the booking service. | Journey no longer appears in available listings. | Once booked, the journey was hidden from the list of available journeys.
+12.1 | Save a recurring commute. Rebook with one click. | Journey is rebooked easily. Confirmation email sent. | Recurring commuter journeys were rebooked successfully.
+13.1 | Cancel 15 min before journey time. | Cancellation follows the policy. Cancellation is at no cost to user. | Cancellation follows policy: free cancellation within 15 minutes.
+13.2 | Cancel with less than 15 min left before journey time. | Cancellation follows the policy. The user that cancelled is charged for 75% of the agreed journey cost. | Cancellation follows policy: user is charged 75% of journey cost when cancelled with less than 15 minutes remaining.
+14.1 | User (driver) arrives at designated pick-up location. Sends a message to user. | Other user (passenger) receives the message and knows the driver is at pick-up location. | Passenger receives a notification when driver arrives at pick-up location.
+15.1 | Check booking details. Open map. | Map displays the location. | The map correctly displays the pick-up and drop-off locations on the map. The pick-up location is marked by a green marker while the drop-off location is marked by a red marker.
+16.1 | Complete journey. Leave a rating. | Option to confirm or deny that a ride was completed. Rating is recorded on driver account. | User can confirm ride completion and leave a rating successfully.
+17.1 | Edit details before confirmation. | User and Driver negotiate changes. Changes are applied to journey details. Changes reflected in bookings section. | User and driver can negotiate and apply booking changes; updates reflected in booking details.
+18.1 | Navigate to “My Listings” area. | Bookings are displayed correctly. | Upcoming displayed correctly. Cancelled journeys not displayed.
+19.1 | View weekly income for driver. | Earnings are shown. | This feature was not implemented.
+20.1 | View weekly income for driver. | Weekly earnings are plotted graphically. | This feature was not implemented.
+21.1 | Update booking fee percentage. | Success message that the booking fee has been updated. | Admin dashboard displayed a success message confirming the update of the booking fee.
+22.1 | Access reports on Manager website. | Weekly income (0.5% of bookings) is displayed. | Weekly income is shown on the dashboard as a graph.
+23.1 | View financial report graph. | Income is displayed visually. | Weekly revenue since the start of that week is shown.
+24.1 | Driver sets unavailable dates. | Commute is disabled, and users are notified. | This was not implemented.
+25.1 | Book > 4 trips in a week. | Discount is automatically applied. | Discount was correctly applied to qualifying commuter bookings. Savings were shown during checkout.
+26.1 | Open messaging service. Report issue. | Management receives message. | Management receives message from the user and is able to communicate with them.
+26.2 | Open messaging service. Communicate with other user(s). | Other user(s) send and receive messages. | Users can send and receive messages successfully.
