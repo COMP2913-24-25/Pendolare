@@ -69,7 +69,7 @@ The Client App is the main user interface for Pendolare.
 
 This section describes how to create a new account within the Pendolare App.
 
-1.	Begin by downloading the app from the appropriate app store (e.g., Apple App Store, Google Play Store). After the download is complete, open the app on your phone.
+1.	Start the Expo server (see startup guide linked above).
 
 2.	When you open the app, you will be automatically directed to the account login and signup screen.
 
