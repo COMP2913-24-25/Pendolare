@@ -1,6 +1,9 @@
 local PLUGIN_NAME = "jwt-custom-claims"
 local helpers = require "spec.helpers"
-local cjson = require "cjson"
+local ok, cjson = pcall(require, "cjson")
+if not ok then
+  error("lua-cjson is not installed or not found in LUA_PATH. Please install it using 'luarocks install lua-cjson'.")
+end
 local jwt_parser = require "kong.plugins.jwt.jwt_parser"
 
 --[[
