@@ -1,11 +1,47 @@
+# User Guide
+
+## Table of Contents
+
+   * [Table of Contents](#table-of-contents)
+   * [Introduction](#introduction)
+      * [Key features of the platform](#key-features-of-the-platform)
+        + [User Features](#user-features)
+        + [Management Features](#management-features)
+   * [Client App (Pendolare)](#client-app-pendolare)
+      + [Account Creation](#account-creation)
+      + [Logging in and out](#logging-in-and-out)
+      + [Searching for a Journey](#searching-for-a-journey)
+      + [Searching and filtering Regular Journeys](#searching-and-filtering-regular-journeys)
+      + [Viewing the Regular Journey Details](#viewing-the-regular-journey-details)
+      + [Searching and Filtering Commuter Journeys](#searching-and-filtering-commuter-journeys)
+      + [Viewing Commuter Journey Details](#viewing-commuter-journey-details)
+      + [Booking a Journey](#booking-a-journey)
+      + [Payment process ](#payment-process)
+      + [Modifying or cancelling a booking](#modifying-or-cancelling-a-booking)
+      + [Modifying a booking](#modifying-a-booking)
+      + [Cancelling a booking ](#cancelling-a-booking)
+      + [Hosting a Journey (For Drivers)](#hosting-a-journey-for-drivers)
+      + [Setting a commuter journey ](#setting-a-commuter-journey)
+      + [Messaging & Notifications](#messaging--notifications)
+      + [Communicating with other Drivers](#communicating-with-other-drivers)
+      + [Contacting Management](#contacting-management)
+   * [Admin Dashboard](#admin-dashboard)
+      + [Login](#login)
+      + [Weekly Revenue and Graph of Weekly Income](#weekly-revenue-and-graph-of-weekly-income)
+   * [Configuring Booking Fees and Discounts](#configuring-booking-fees-and-discounts)
+      + [Configure the booking fee](#configure-the-booking-fee)
+      + [Configure discounts](#configure-discounts)
+      + [Messaging](#messaging)
+
+<!-- TOC end -->
 
 ## Introduction
   
-Pendolare is a journey sharing platform built using a microservices architecture. The application enables users to create, book and manage journeys whilst enabling a real-time messaging service between passengers and drivers. It features a secure authentication system for signing up and logging in, payment integration, and a booking system.
+Pendolare is a journey sharing platform built using a microservice architecture combined with a web app and mobile app. The application enables users to create, book and manage journeys whilst enabling a real-time messaging service between passengers and drivers. It features a secure authentication system for signing up and logging in, payment integration, and a booking system.
+
+### Key features of the platform
  
-Key features of the platform
- 
-User Features
+#### User Features
 
 Users can:
 •	Create and manage their accounts
@@ -15,7 +51,7 @@ Users can:
 •	Rate the driver after the journey has been completed
 •	View past, cancelled and upcoming journeys
  
-Management Features
+#### Management Features
 
 Managers can:
 •	View journey details
@@ -23,14 +59,17 @@ Managers can:
 •	Modify the booking fee
 •	Create, view and delete discounts for users
 •	Provide customer support for users facing issues with their bookings using the in-app messaging service
- 
-## Getting Started
- 
-## Account Creation
+
+## Client App (Pendolare)
+
+The Client App is the main user interface for Pendolare.
+> Instructions on how to run the application can be found [**here**](Pendo.ClientApp).
+
+### Account Creation
 
 This section describes how to create a new account within the Pendolare App.
 
-1.	Begin by downloading the app from the appropriate app store (e.g., Apple App Store, Google Play Store). After the download is complete, open the app on your phone.
+1.	Start the Expo server (see startup guide linked above).
 
 2.	When you open the app, you will be automatically directed to the account login and signup screen.
 
@@ -44,26 +83,31 @@ Subsequent Logins
 1.	Launch the app on your phone and enter the same email address that was used to create the account initially on the signup/login page. The system will produce and send a new OTP to your registered email address.
 2.	Locate the OTP in your email inbox and enter it into the app to log in to your account.
 Note: The Pendolare app uses a One-Time Password system for further security during each login. While a new OTP is required for every login attempt, the account creation process only must be completed once.
- 
- 
-## Logging in and out
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/61b2aeb7-6b7d-4786-a963-d819e7b000db" alt="Image" width="300"/>
+</p>
+
+### Logging in and out
 
 1.	Navigate to your Settings by tapping the rightmost button on the bottom navigation bar.
 2.	In the top right corner, tap the blue Account Settings icon.
 3.	From the options presented, select the Sign Out button
 4.	You will be logged out and returned to the login/signup screen.
-
-## Using Pendolare
  
-## Searching for a Journey
+### Searching for a Journey
 
 This section details how to search for and view information about available journeys within the app.
 1.	Click the search icon located on the bottom navigation bar. This will take you to the journey search page.
 2.	There are two different journey types available under the ‘Book a Journey’ heading. 
 a.	‘Search regular journeys’ – Use this to find a one-time journey 
-b.	‘Search commuter journeys’ – Use this to locate recurring journeys 
+b.	‘Search commuter journeys’ – Use this to locate recurring journeys
 
-## Searching and filtering Regular Journeys
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/139261e9-f1f2-4a79-ab09-523400aa93ad" alt="Image" width="300"/>
+</p>
+
+### Searching and filtering Regular Journeys
 
 When you click "Search Regular Journeys," a list of all currently available journeys will appear. To narrow your search, you can use filters based on the following criteria:
 •	Pickup Location
@@ -71,8 +115,11 @@ When you click "Search Regular Journeys," a list of all currently available jour
 •	Drop-off Location
 •	Journey Time
 After applying your selected filters, the list of journeys will be updated to only include those that meet your requirements.
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/6d3da087-b9fe-4a6e-b0a5-1a83422a4c5d" alt="Image" width="300"/>
+</p>
 
-## Viewing the Regular Journey Details
+### Viewing the Regular Journey Details
 
 When you find a journey that interests you, tap on it to view more information such as:
 •	Driver Name
@@ -83,20 +130,24 @@ When you find a journey that interests you, tap on it to view more information s
 •	Departure Date and Time
 •	Available Seats
 
-## Searching and Filtering Commuter Journeys
+### Searching and Filtering Commuter Journeys
 
 The filtering options for commuter trips are identical to those for regular trips (pickup location, search radius, drop-off location, and journey time).
 The list of available commuter journeys will show which days of the week the driver usually offers this recurring journey.
 
-## Viewing Commuter Journey Details
+### Viewing Commuter Journey Details
 Tap on a commuter journey from the list to get more information about a recurring journey you want to book.
 You will receive information on:
 •	The date and times of the individual journeys
 •	The cost of the individual journeys
 •	A price breakdown at the bottom, which includes the overall cost of the commuter journeys and possibly a frequent rider discount that has been automatically applied based on the number of journeys you are booking
 Using this, you can quickly identify the journeys that best fit your preferences and retrieve all the information you need before making a booking.
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/2eda4f1f-741f-43e1-ade6-17b5bcc31e84" alt="Image" width="300"/>
+</p>
  
-## Booking a Journey
+### Booking a Journey
  This section explains the process of booking a selected journey through the Pendolare app.
 1.	Once you have chosen a journey and checked the details, book it by tapping the ‘booking’ button at the bottom of the journey details page. 
 
@@ -110,7 +161,7 @@ The booking journey will now display in the app’s 'Upcoming Journeys’ area. 
 •	Start communicating with the driver of your scheduled journey
 •	Cancel your booking, although this depends on the cancellation policy 
 
-## Payment process 
+### Payment process 
 
 This section outlines how to manage your in-app balance and payment methods.
 Navigate to your Account Settings in the app, which displays two types of balances:
@@ -125,17 +176,22 @@ This is the balance available for making your bookings.
 
 3.	If you have a non-pending balance, press the "Request Payout" button to transfer the money to your bank account.
 
-## Modifying or cancelling a booking
+### Modifying or cancelling a booking
  This section explains how to modify or cancel an existing booking
 
-## Modifying a booking
+### Modifying a booking
 
 1.	Navigate to the Upcoming Bookings area of the app. Tap on the journey you wish to modify or cancel to view its details.
 2.	To begin a modify request via the messaging interface, search for a plus sign (+) on the lefthand side of the messaging service.
 3.	Tap the + symbol and choose the part of the booking you want to change (for example, pickup location or time). The driver will get a message with your change request.
 4.	You may then communicate directly with the driver using the in-app messaging service to discuss and agree on the proposed changes to the journey.
 
-## Cancelling a booking 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/c85e511f-90ff-4fdc-a13a-4292bb835d23" alt="Image" width="300"/>
+</p>
+
+
+### Cancelling a booking 
 
 On the journey details page, locate and tap the Cancel button.
 Cancellation Policy:
@@ -143,7 +199,12 @@ Cancellation Policy:
 2.	The user will be charged 75% of the agreed-upon journey fee if the user cancels less than 15 minutes till the scheduled journey time.
 Once you confirm the cancellation of your booked journey, the journey will be removed from your Upcoming Journeys and added to the Cancelled Journeys area of the app.
 
-## Hosting a Journey (For Drivers)
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/bddc251a-7923-491d-9594-f817ba42ec02" alt="Image" width="300"/>
+</p>
+
+
+### Hosting a Journey (For Drivers)
  
 Creating and managing journeys
 This section guides drivers on how to create and manage their advertised journeys on the platform.
@@ -155,7 +216,7 @@ To create a ride, go to the "Journey" section of the app. Then, tap the "Create 
 •	The date and time of your journey
 •	Your vehicle’s boot size (height and width) – although this is optional 
 
-## Setting a commuter journey 
+### Setting a commuter journey 
 
 If you are offering a recurring journey, tap the Commuter Journey button.
 You will be given the following options:
@@ -171,15 +232,19 @@ To see and manage your advertised travels, go to the My Listings page. This page
 •	Displaying the journeys that you are currently advertising
 •	Displaying your previous journeys
   
-## Messaging & Notifications
+### Messaging & Notifications
 This section explains how to use the messaging features within the application to communicate with drivers and platform management
  
 To access messaging, tap the Messaging icon located on the bottom navigation bar. This will take you to your conversations. Here, you can view a list of your past conversations.
 
-## Communicating with other Drivers
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/b547d2a9-8f4b-4bc9-9c8e-c350c2d73e1e" alt="Image" width="300"/>
+</p>
+
+### Communicating with other Drivers
 After booking a journey, a new conversation with the driver can be created. You can use the in-app messaging service to propose modifications to the journey details, such as pickup location or time, and reach an agreement.
 
-## Contacting Management
+### Contacting Management
 To contact Pendolare management for support or inquiries, tap the Contact Support button on the in-app messaging screen.
  You will be asked to pick a category for your request to ensure that it is sent to the correct team.  The possible categories include:
 •	Billing and Payments 
@@ -187,3 +252,61 @@ To contact Pendolare management for support or inquiries, tap the Contact Suppor
 •	Disputes and issues.
 •	General Enquiries
 When you pick a category, your request will be sent to the management team, who will be able to assist you.
+
+## Admin Dashboard
+
+The Admin Dashboard offers management staff tools to observe revenue information, configure business logic, and respond to support requests from users.
+
+The website is available at [https://pendo-manager.clsolutions.dev/dashboard](https://pendo-manager.clsolutions.dev/dashboard). It works on desktop or mobile.
+
+| Desktop Screenshot | Mobile Screenshot |
+|:------------------:|:------------------:|
+| ![Desktop Screenshot](images/admindash.png) | ![Mobile Screenshot](images/mobile.png) |
+
+
+### Login
+
+Specific emails associated with company management have been reserved manager status. You are only permitted to use the Admin Dashboard if your account holds such status. Unauthorised users will not be able to log in.
+
+Enter your email, then check your inbox for an OTP. Make sure to check spam if you can't see it.
+
+### Weekly Revenue and Graph of Weekly Income
+
+The Weekly Revenue section displays the total revenue earned within the last 7 days from the date observed.
+
+The weekly income graph shows the profits made over the last six weeks. The horizontal axis shows the lower bound from which the bar records revenue from, while the vertical axis shows revenue from the week.
+
+You can hover your mouse cursor over the bars to view a specific value for each week.
+
+![Graph Screenshot](images/inspectgraph.png)
+
+## Configuring Booking Fees and Discounts
+
+### Configure the booking fee
+
+This feature allows managers to specify an app-wide booking fee. To set the fee:
+
+- Enter the desired percentage.
+- Click the Update button to save your changes.
+- Once changed, this new booking fee will apply to all new bookings that are made.
+
+![Booking Fee Screenshot](images/typebookingfee.png)
+
+### Configure discounts
+
+This feature enables managers to create and manage discount offers for users.  
+To create a new discount:
+
+- Select the 'Create New Discount' button and input the discount details.
+- Once established, discounts can be seen in this area, so managers are able to modify or delete them as required.
+
+![Create Discount Screenshot](images/createnewdiscount.png)
+**Note:** You may not be able to delete an existing discount. This means that it is in use by a current journey, and the journey must be completed or cancelled before the discount can be removed.
+
+![Delete Booking Fail Screenshot](images/deletefail.png)
+
+### Messaging
+
+The messaging area allows managers to communicate with users who require support. When a user initiates a support request, it will appear in this section. Managers can click on a conversation to review the message and respond directly from the dashboard, allowing for efficient communication between users and managers.
+
+![Support Chat Screenshot](images/supportchat.png)
