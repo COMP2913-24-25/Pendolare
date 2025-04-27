@@ -62,7 +62,7 @@ async def test_handle_chat_message(message_handler):
     from_user = str(uuid.uuid4())
     to_user = str(uuid.uuid4())
     conversation_id = str(uuid.uuid4())
-    Content = "Hello, this is a test message"
+    content_value = "Hello, this is a test message"  # Renamed variable to avoid conflict
     
     from_socket = MagicMock()
     to_socket = MagicMock()
@@ -79,14 +79,14 @@ async def test_handle_chat_message(message_handler):
         "type": "chat",
         "from": from_user,
         "conversation_id": conversation_id,
-        "Content": Content
+        "content": content_value  # Changed 'Content' to 'content'
     }
     
     await handler._handle_chat_message(message)
     
     assert conversation_id in handler.message_store
     assert len(handler.message_store[conversation_id]) == 1
-    assert handler.message_store[conversation_id][0]["Content"] == Content
+    assert handler.message_store[conversation_id][0]["content"] == content_value # Changed 'Content' to 'content'
     
     handler._broadcast_to_conversation.assert_called_once()
 
