@@ -16,18 +16,6 @@ if [ ! -d "./spec/kong-spec" ]; then
   git clone --depth 1 --branch 3.4.0 https://github.com/Kong/kong.git ./spec/kong-spec
 fi
 
-# Create a specification for busted to test the plugin
-cat > spec_config.lua << EOF
-return {
-  coverage = false,
-  pattern = "handler_spec",
-  output = "junit",
-  verbose = true,
-  lpath = "./spec/?.lua;./spec/?/init.lua;./spec/kong-spec/spec/?.lua;./spec/kong-spec/spec/?/init.lua",
-  cpath = "./spec/?.so;./spec/?/init.so"
-}
-EOF
-
 # Set LUA_PATH to include Kong's spec helpers
 export LUA_PATH="./spec/kong-spec/spec/?.lua;./spec/kong-spec/spec/?/init.lua;./?.lua;./?/init.lua;$LUA_PATH"
 export KONG_LUA_PATH_OVERRIDE="$LUA_PATH"
@@ -39,16 +27,20 @@ echo "Running tests in $(pwd)"
 # Create directory structure expected by busted
 mkdir -p spec/fixtures
 
-# Run the tests using busted
+# Run the tests using busted with proper command line arguments
 set +e
 echo "Running tests..."
-busted --config=spec_config.lua ./kong/plugins/jwt-custom-claims/spec/handler_spec.lua > test_output.txt
+busted -o junit -v -p handler_spec \
+  -l "./spec/?.lua;./spec/?/init.lua;./spec/kong-spec/spec/?.lua;./spec/kong-spec/spec/?/init.lua" \
+  -c "./spec/?.so;./spec/?/init.so" \
+  ./kong/plugins/jwt-custom-claims/spec/handler_spec.lua > test_output.txt 2>&1
 TEST_EXIT_CODE=$?
 set -e
 
 # Generate proper XML output regardless of test result
 if [ $TEST_EXIT_CODE -ne 0 ]; then
   echo "Tests failed with exit code $TEST_EXIT_CODE"
+  cat test_output.txt
   if [ ! -s apigateway_test_results.xml ]; then
     # Create a failing test result if no results generated
     cat > apigateway_test_results.xml << EOF
@@ -56,7 +48,7 @@ if [ $TEST_EXIT_CODE -ne 0 ]; then
 <testsuites>
   <testsuite name="Kong Plugin Tests" tests="1" errors="1" failures="0" skip="0">
     <testcase classname="jwt-custom-claims" name="test_setup_failed">
-      <error message="Test setup failed">Unable to run tests. See logs for details.</error>
+      <error message="Test setup failed"><![CDATA[$(cat test_output.txt)]]></error>
     </testcase>
   </testsuite>
 </testsuites>
@@ -74,4 +66,4 @@ fi
 echo "Test results written to apigateway_test_results.xml"
 
 # Clean up
-rm -rf $KONG_PREFIX spec_config.lua test_output.txt
+rm -rf $KONG_PREFIX test_output.txt
