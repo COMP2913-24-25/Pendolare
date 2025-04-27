@@ -36,10 +36,19 @@ jobs:
         with:
           token: ${{ secrets.WF_PAT }}
 
-      - name: Install Lua and Luarocks
+      - name: Install Base Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y lua5.1 luarocks
+          sudo apt-get install -y wget curl build-essential lua5.1 dnsutils
+
+      - name: Download and Install Kong
+        run: |
+          wget https://download.konghq.com/gateway-3.4.x-ubuntu-amd64/pool/all/k/kong/kong_3.4.0_amd64.deb -O kong-3.4.0.deb
+          sudo dpkg -i kong-3.4.0.deb || sudo apt-get -f install -y
+
+      - name: Install Luarocks and Busted
+        run: |
+          sudo apt-get install -y luarocks
           sudo luarocks install busted
 
       - name: Run Kong plugin tests
