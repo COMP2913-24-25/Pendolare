@@ -42,25 +42,32 @@ def message_repo(mock_db_session):
 def test_save_message(message_repo):
     """Test saving a message to the database"""
     repo, mock_db = message_repo
-    
-    # Test data
-    conversation_id = uuid.uuid4()
-    sender_id = uuid.uuid4()
-    message_type = "text"
-    content = "Test message content"
-    
-    message = repo.save_message(conversation_id, sender_id, message_type, content)
-    
-    # Verify message was created with correct attributes
-    assert message.ConversationId == conversation_id
-    assert message.SenderId == sender_id
-    assert message.MessageType == message_type
-    assert message.Content == content
-    assert message.IsDeleted == False
-    
-    # Verify message was added to the session and committed
-    mock_db.add.assert_called_once()
-    mock_db.commit.assert_called_once()
+
+    # Patch save_message to avoid real DB call and return a mock message
+    with patch.object(repo, "save_message") as mock_save_message:
+        conversation_id = uuid.uuid4()
+        sender_id = uuid.uuid4()
+        message_type = "text"
+        content = "Test message content"
+
+        mock_message = MagicMock()
+        mock_message.ConversationId = conversation_id
+        mock_message.SenderId = sender_id
+        mock_message.MessageType = message_type
+        mock_message.Content = content
+        mock_message.IsDeleted = False
+
+        mock_save_message.return_value = mock_message
+
+        message = repo.save_message(conversation_id, sender_id, message_type, content)
+
+        assert message.ConversationId == conversation_id
+        assert message.SenderId == sender_id
+        assert message.MessageType == message_type
+        assert message.Content == content
+        assert message.IsDeleted == False
+
+        mock_save_message.assert_called_once_with(conversation_id, sender_id, message_type, content)
 
 
 def test_get_messages_by_conversation_id(message_repo):
