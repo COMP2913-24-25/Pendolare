@@ -18,6 +18,7 @@ import PaymentMethodsModal from "@/components/PaymentMethodsModal"
 import RequestPayoutModal from "@/components/RequestPayoutModal"
 import { useAuth } from "@/context/AuthContext";
 import { stringLengthValidator } from "@/utils/validators";
+import { icons } from "@/constants";
 
 const Profile = () => {  
   const { isDarkMode } = useTheme();
@@ -77,16 +78,18 @@ const Profile = () => {
   return (
     <ThemedSafeAreaView className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-general-500"}`}>
       {/* Header */}
-      <ThemedView className="flex-row justify-between items-center px-5 my-5">
-        <Text className="text-2xl font-JakartaBold my-5">My Profile</Text>
-        <ThemedButton
+      <ThemedView className="flex-row justify-between items-center px-5 pt-5 pb-2">
+        <Text className="text-2xl font-JakartaBold">My Profile</Text>
+
+        <TouchableOpacity
           onPress={() => router.push("/home/settings")}
-          title=""
-          IconLeft={() => (
-            <FontAwesome5 name="cog" size={24} color="currentColor" />
-          )}
-          className="w-16 h-16 ml-6 rounded-l-full"
-        />
+        >
+          <FontAwesome5 
+            name={icons.cog} 
+            size={24} 
+            color={isDarkMode ? "#CBD5E1" : "#64748B"}
+          />
+        </TouchableOpacity>
       </ThemedView>
 
       <ScrollView
@@ -94,7 +97,7 @@ const Profile = () => {
         className="px-5"
       >
         {/* Profile Image */}
-        <ThemedView className={`items-center my-5 ${cardStyle}`}>
+        <ThemedView className={`items-center my-3 ${cardStyle}`}>
           <ThemedView className="items-center mt-3">
             {user.rating === "N/A" ? (
               <Text className="text-lg font-Jakarta">No driver rating yet!</Text>
@@ -108,7 +111,7 @@ const Profile = () => {
         </ThemedView>
 
         {/* Profile Information */}
-        <ThemedView className={cardStyle}>
+        <ThemedView className={`${cardStyle} mb-4`}>
           <ThemedInputField
             label="First name"
             value={user.firstName}
@@ -152,7 +155,7 @@ const Profile = () => {
         </ThemedView>
 
         {/* User's Balance */}
-        <ThemedView className={cardStyle} style={{ marginTop: 25 }}>
+        <ThemedView className={`${cardStyle} mb-4`}>
           <ThemedInputField
             label="Pending Balance"
             value={"£" + balanceSheet.Pending.toFixed(2).toString()}

@@ -9,7 +9,7 @@ export async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {},
   forceJsonParse: boolean = false,
-  silentFail: boolean = false,
+  silentFail: boolean = true, // Flag to suppress specific errors
 ): Promise<T> {
   const jwt = await getJWTToken();
 
@@ -48,6 +48,7 @@ export async function apiRequest<T>(
                 data = { message: responseText || `API request failed: ${response.statusText}` };
             }
         }
+        // Throw error for non-ok responses, but respect silentFail for logging later
         throw new Error(data?.message || `API request failed with status ${response.status}`);
     }
 
@@ -72,7 +73,11 @@ export async function apiRequest<T>(
 
     return data as T;
   } catch (error) {
-    console.error(`API request failed for ${endpoint}:`, error); 
+    // Only log the error if silentFail is false
+    if (!silentFail) {
+      console.error(`API request failed for ${endpoint}:`, error); 
+    }
+    // Always re-throw the error to be handled by the caller service
     throw error; 
   }
 }
