@@ -147,17 +147,16 @@ const UpcomingRideDetailsModal = ({
     try {
       // Find existing conversation first
       const existingConversations = await getUserConversations();
-      
-      // Navigate to existing conversation if found
+
       router.push({
         pathname: '/home/chat/[id]',
-        params: { 
+        params: {
           id: personId,
           name: personName,
-          // Don't include an initial message to prevent auto-conversation creation
+          autoCreateChat: 'true'
         }
       });
-      
+
       // Close the modal after navigating
       onClose();
     } catch (error) {
@@ -295,22 +294,13 @@ const UpcomingRideDetailsModal = ({
                   </Text>
                 </TouchableOpacity>
 
-                {isPastRide ? (
+                {isPastRide && (
                   <TouchableOpacity
                     onPress={onComplete}
                     className="flex-1 bg-green-600 p-4 rounded-xl"
                   >
                     <Text className="text-white text-center font-JakartaBold">
                       Confirm Completion
-                    </Text>
-                  </TouchableOpacity>
-                ) : (
-                  <TouchableOpacity
-                    onPress={onCancel}
-                    className="flex-1 bg-red-600 p-4 rounded-xl"
-                  >
-                    <Text className="text-white text-center font-JakartaBold">
-                      Cancel Ride
                     </Text>
                   </TouchableOpacity>
                 )}

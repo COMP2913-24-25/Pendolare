@@ -6,13 +6,14 @@ import RideDetails from "@/components/RideView/RideDetails";
 
 interface RideEntryProps {
   ride: any;
+  onBookingSuccess?: () => void;
 }
 
 /*
   RideEntry
   Ride entry component for displaying a ride
 */
-const RideEntry = ({ ride }: RideEntryProps) => {
+const RideEntry = ({ ride, onBookingSuccess }: RideEntryProps) => { // Add onBookingSuccess here
   const [showDetails, setShowDetails] = useState(false);
 
   // Normalise the ride object from journey data
@@ -39,6 +40,7 @@ const RideEntry = ({ ride }: RideEntryProps) => {
         ride={normalisedRide}
         visible={showDetails}
         onClose={() => setShowDetails(false)}
+        onBookingSuccess={onBookingSuccess}
       />
     </>
   );

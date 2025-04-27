@@ -19,10 +19,12 @@ export const icons = {
   alert: "exclamation-circle",
   support: "headset",
   car: "car",
+  card: "credit-card",
   flag: "flag",
   repeat: "redo",
   list: "clipboard-list",
-  chevronRight: "chevron-right"
+  chevronRight: "chevron-right",
+  cog: "cog",
 };
 
 // Onboarding messages & images

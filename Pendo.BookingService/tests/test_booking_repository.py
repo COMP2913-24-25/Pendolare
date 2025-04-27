@@ -92,6 +92,7 @@ def test_get_bookings_for_user_no_ammendment(booking_repository):
             "Description": 'Booking is confirmed'
         },
         "Journey": {
+            "Discount": None,
             "JourneyId": 1,
             "User": 1,
             "StartTime": '2025-03-02T09:00:00',
@@ -143,6 +144,7 @@ def test_get_bookings_for_user_single_ammendment(booking_repository):
             "Description": 'Booking is confirmed'
         },
         "Journey": {
+            "Discount": None,
             "JourneyId": 1,
             "User": 1,
             "StartTime": "2025-03-02T11:00:00",
@@ -205,6 +207,7 @@ def test_get_bookings_for_user_multiple_ammendments(booking_repository):
             "Description": 'Booking is confirmed'
         },
         "Journey": {
+            "Discount": None,
             "JourneyId": 1,
             "User": 1,
             "StartTime": "2025-03-02T12:00:00",
