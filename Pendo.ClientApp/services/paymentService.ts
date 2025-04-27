@@ -133,7 +133,7 @@ export const ViewBalance = async (): Promise<BalanceSheet> => {
 
   } catch (error) {
     // Keep logging errors for ViewBalance as they might not be expected
-    console.error("ViewBalance error:", error); 
+    console.warn("ViewBalance error:", error); 
     return {
       Status: "fail",
       Pending: 0.00,
