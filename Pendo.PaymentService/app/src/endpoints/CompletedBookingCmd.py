@@ -102,7 +102,6 @@ class CompletedBookingCommand:
             )
 
             self.PaymentRepository.CreateTransaction(driver_final_transaction)
-            self.PaymentRepository.UpdateBookingStatus(self.BookingId, 4)
 
             return StatusResponse(Status="success")
 

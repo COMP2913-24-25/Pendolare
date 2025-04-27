@@ -50,36 +50,45 @@ const Settings = () => {
         </View>
 
         {/* Settings Options Section */}
-        <View
-          className={
-            isDarkMode ? "bg-slate-700 rounded-xl" : "bg-gray-50 rounded-xl"
-          }
-        >
+        <View className="mt-4">
           {/* Theme Selector */}
           <TouchableOpacity 
-            className="flex-row justify-between items-center p-4 border-b border-gray-200"
+            className={`flex-row justify-between items-center p-4 mb-3 rounded-lg ${
+              isDarkMode ? "bg-slate-800" : "bg-gray-50"
+            } shadow-sm`}
             onPress={() => setDropdownVisible(true)}
           >
             <View className="flex-row items-center">
-              <View className="w-8 h-8 bg-blue-100 rounded-full items-center justify-center mr-3">
-                <FontAwesome5 name="moon" size={16} color="#2563EB" />
+              <View className={`w-10 h-10 rounded-full items-center justify-center mr-4 ${
+                isDarkMode ? "bg-blue-900" : "bg-blue-50"
+              }`}>
+                <FontAwesome5 
+                  name={themeMode === "dark" ? "moon" : "sun"} 
+                  size={18} 
+                  color={isDarkMode ? "#60A5FA" : "#3B82F6"} 
+                />
               </View>
-              <Text
-                className={`text-lg font-JakartaMedium ${isDarkMode ? "text-white" : "text-black"}`}
-              >
-                Theme
-              </Text>
+              <View>
+                <Text
+                  className={`text-base font-JakartaMedium ${isDarkMode ? "text-white" : "text-black"}`}
+                >
+                  App Theme
+                </Text>
+                <Text className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                  Change the appearance of the app
+                </Text>
+              </View>
             </View>
             <View className="flex-row items-center">
               <Text
-                className={`mr-2 ${isDarkMode ? "text-white" : "text-gray-600"}`}
+                className={`mr-2 ${isDarkMode ? "text-blue-400" : "text-blue-600"} font-JakartaMedium`}
               >
                 {getThemeLabel()}
               </Text>
               <FontAwesome5
-                name="chevron-down"
-                size={16}
-                color={isDarkMode ? "#FFF" : "#000"}
+                name="chevron-right"
+                size={14}
+                color={isDarkMode ? "#60A5FA" : "#3B82F6"}
               />
             </View>
           </TouchableOpacity>
@@ -101,7 +110,7 @@ const Settings = () => {
           <View 
             className={`absolute bottom-0 w-full ${
               isDarkMode ? "bg-slate-800" : "bg-white"
-            } rounded-t-xl p-4`}
+            } rounded-t-xl p-5`}
           >
             <Text 
               className={`text-xl font-JakartaBold mb-4 ${
@@ -113,9 +122,9 @@ const Settings = () => {
             {themeOptions.map((option) => (
               <RNTouchableOpacity
                 key={option.value}
-                className={`py-3 px-4 mb-2 rounded-lg ${
+                className={`py-3 px-4 mb-2 rounded-lg flex-row justify-between items-center ${
                   themeMode === option.value 
-                    ? isDarkMode ? "bg-blue-900" : "bg-blue-100" 
+                    ? isDarkMode ? "bg-blue-900/50" : "bg-blue-50" 
                     : isDarkMode ? "bg-slate-700" : "bg-gray-100"
                 }`}
                 onPress={() => {
@@ -123,19 +132,39 @@ const Settings = () => {
                   setDropdownVisible(false);
                 }}
               >
-                <Text 
-                  className={`text-lg ${
-                    themeMode === option.value
-                      ? "text-blue-500 font-JakartaBold"
-                      : isDarkMode ? "text-white" : "text-black"
-                  }`}
-                >
-                  {option.label}
-                </Text>
+                <View className="flex-row items-center">
+                  <View className={`w-8 h-8 rounded-full items-center justify-center mr-3 ${
+                    isDarkMode ? "bg-slate-800" : "bg-white"
+                  }`}>
+                    <FontAwesome5 
+                      name={option.value === "dark" ? "moon" : option.value === "light" ? "sun" : "sync"} 
+                      size={16} 
+                      color={themeMode === option.value 
+                        ? isDarkMode ? "#60A5FA" : "#3B82F6" 
+                        : isDarkMode ? "#9CA3AF" : "#6B7280"} 
+                    />
+                  </View>
+                  <Text 
+                    className={`text-base ${
+                      themeMode === option.value
+                        ? isDarkMode ? "text-blue-400 font-JakartaBold" : "text-blue-600 font-JakartaBold"
+                        : isDarkMode ? "text-white" : "text-black"
+                    }`}
+                  >
+                    {option.label}
+                  </Text>
+                </View>
+                {themeMode === option.value && (
+                  <FontAwesome5
+                    name="check"
+                    size={16}
+                    color={isDarkMode ? "#60A5FA" : "#3B82F6"}
+                  />
+                )}
               </RNTouchableOpacity>
             ))}
             <RNTouchableOpacity
-              className={`py-3 px-4 mt-2 rounded-lg ${isDarkMode ? "bg-slate-700" : "bg-gray-200"}`}
+              className={`py-4 px-4 mt-3 rounded-lg ${isDarkMode ? "bg-slate-700" : "bg-gray-200"}`}
               onPress={() => setDropdownVisible(false)}
             >
               <Text className={`text-center font-JakartaBold ${isDarkMode ? "text-white" : "text-black"}`}>

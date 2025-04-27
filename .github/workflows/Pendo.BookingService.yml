@@ -7,11 +7,22 @@ on:
     paths:
       - 'Pendo.BookingService/**'
       - '.github/workflows/Pendo.BookingService.yml'
+  push:
+    branches: [ main, dev ]
+    paths:
+      - 'Pendo.BookingService/**'
+      - '.github/workflows/Pendo.BookingService.yml'
+      - 'scripts/**'
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      ref:
+        required: true
+        type: string
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
   issues: read
   checks: write
   pull-requests: write
@@ -21,26 +32,81 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.WF_PAT }}
 
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
-    - name: Install dependencies
-      working-directory: ./Pendo.BookingService
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: Install dependencies
+        working-directory: ./Pendo.BookingService
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    - name: Test project
-      working-directory: ./Pendo.BookingService
-      run: pytest --junitxml=booking_test_results.xml
+      - name: Test project
+        working-directory: ./Pendo.BookingService
+        run: pytest --junitxml=booking_test_results.xml
 
-    - name: Publish Test Results
-      uses: EnricoMi/publish-unit-test-result-action@v2
-      if: always()
-      with:
-        check_name: BookingService Test Results
-        files: ./Pendo.BookingService/booking_test_results.xml
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          check_name: BookingService Test Results
+          files: ./Pendo.BookingService/booking_test_results.xml
+
+      - name: Upload Test Results Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bookingservice-test-results
+          path: ./Pendo.BookingService/booking_test_results.xml
+
+  update_wiki:
+    needs: build_test
+    if: always() && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+
+    concurrency:
+      group: wiki-update-${{ github.ref }}
+      cancel-in-progress: false
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.WF_PAT }}
+          fetch-depth: 0
+          ref: ${{ github.ref}}
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Download Test Results Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: bookingservice-test-results
+          path: ./Pendo.BookingService
+
+      - name: Update Wiki
+        run: |
+          chmod +x ./scripts/parse-unittests.py
+          python ./scripts/parse-unittests.py \
+            --service BookingService \
+            --report ./Pendo.BookingService/booking_test_results.xml \
+            --wiki-file wiki/Tests.md
+
+      - name: Commit Wiki Update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git diff --quiet || (
+            git add wiki/Tests.md
+            git commit -m "AUTO COMMIT: update Booking Service test list"
+            echo "Wiki updated, pushing changes..."
+            git push
+          )

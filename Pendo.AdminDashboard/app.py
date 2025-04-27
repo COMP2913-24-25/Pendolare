@@ -7,10 +7,11 @@ from message_client import MessageClient
 from config import app, api_url
 
 def check_inactivity():
-    now = datetime.now().replace(tzinfo=None)
+    now = datetime.utcnow()
     last_activity = session.get('last_activity')
     if last_activity:
-        last_activity = last_activity.replace(tzinfo=None)
+        if hasattr(last_activity, 'tzinfo') and last_activity.tzinfo is not None:
+            last_activity = last_activity.replace(tzinfo=None)
     if last_activity and (now - last_activity).total_seconds() > app.permanent_session_lifetime.total_seconds():
         session.clear()
         flash('You have been logged out due to inactivity.', 'warning')
@@ -256,7 +257,7 @@ def delete_discount(discount_id):
         app.logger.info("Discount deleted successfully: %s", discount_id)
     else:
         app.logger.error("Failed to delete discount: %s", discount_id)
-    flash("Discount deleted successfully." if success else "Failed to delete discount.", "success" if success else "danger")
+    flash("Discount deleted successfully." if success else "Failed to delete discount. This discount option may be in use by a journey.", "success" if success else "danger")
     return redirect(url_for('dashboard'))
 
 @app.route('/ping')

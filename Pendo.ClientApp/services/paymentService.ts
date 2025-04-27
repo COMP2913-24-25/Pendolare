@@ -58,13 +58,27 @@ export async function PaymentMethods(): Promise<PaymentMethodResponse> {
         method: "POST",
         body: JSON.stringify({}),
       },
+      true,
       true
     );
+
+    if (response.Status === "fail") {
+        return {
+            Status: "fail",
+            Methods: []
+        };
+    }
 
     return response;
 
   } catch (error) {
-    console.error("View Balance error:", error);
+    if (error instanceof Error && error.message.includes("400")) {
+        // Don't log the expected 400 error
+    } else {
+        // Log other unexpected errors
+        console.error("PaymentMethods error:", error);
+    }
+    // Return the fail state regardless
     return {
       Status: "fail",
       Methods: []
@@ -118,7 +132,8 @@ export const ViewBalance = async (): Promise<BalanceSheet> => {
     return response;
 
   } catch (error) {
-    console.error("Payout error:", error);
+    // Keep logging errors for ViewBalance as they might not be expected
+    console.warn("ViewBalance error:", error); 
     return {
       Status: "fail",
       Pending: 0.00,

@@ -16,13 +16,14 @@ interface RideDetailsProps {
   ride: any;
   visible: boolean;
   onClose: () => void;
+  onBookingSuccess?: () => void;
 }
 
 /*
   RideDetails
   Modal component for displaying ride details and booking
 */
-const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
+const RideDetails = ({ ride, visible, onClose, onBookingSuccess }: RideDetailsProps) => { // Add onBookingSuccess here
   const { isDarkMode } = useTheme();
   const [inBooking, setInBooking] = useState(false);
   const [bookingStatus, setBookingStatus] = useState<{
@@ -85,8 +86,31 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
   const handleBooking = async () => {
     setInBooking(true);
 
+    const priceString = (ride.AdvertisedPrice || ride.price)?.toString().replace('£', '');
+    const price = parseFloat(priceString);
+
+    if (isNaN(price)) {
+        console.error("Could not parse ride price:", ride.AdvertisedPrice || ride.price);
+        setBookingStatus({
+            success: false,
+            message: "Could not determine ride price. Please try again.",
+            showMessage: true,
+        });
+        setInBooking(false);
+        return;
+    }
+
+    if (userBalance < price) {
+        setBookingStatus({
+            success: false,
+            message: `Insufficient funds. Your balance is £${userBalance.toFixed(2)}, but the ride costs £${price.toFixed(2)}. Please top up your account.`,
+            showMessage: true,
+        });
+        setInBooking(false);
+        return;
+    }
+
     try {
-      // Extract departureTime from string or timestamp
       const departureTime = new Date(ride.departureTime);
 
       if (ride.recurrence) {
@@ -111,17 +135,39 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
           };
         }
 
-        const newSubrides : SubRide[] = journeyDates.map((date) => ({
-          journeyId: ride.JourneyId,
-          journeyDate: date,
-          price: ride.AdvertisedPrice || ride.price?.replace('£', ''),
-          parent: ride,
-        }));
+        const newSubrides : SubRide[] = journeyDates.map((date) => {
+          const ridePrice = (ride.AdvertisedPrice !== undefined 
+            ? ride.AdvertisedPrice 
+            : ride.price?.replace('£', '') || '0').toString();
+            
+          return {
+            journeyId: ride.JourneyId,
+            journeyDate: date,
+            price: ridePrice,
+            parent: ride,
+          };
+        });
+
+        // Calculate total cost for the week
+        // If a discount is applied, calculate the effective total cost
+        const totalRecurringCost = newSubrides.reduce((acc, ride) => acc + parseFloat(ride.price.toString()), 0);
+        const effectiveTotalCost = rideDiscount ? totalRecurringCost * (1 - rideDiscount.amount) : totalRecurringCost;
+
+        if (userBalance < effectiveTotalCost) {
+            setBookingStatus({
+                success: false,
+                message: `Insufficient funds for weekly booking. Your balance is £${userBalance.toFixed(2)}, but the estimated weekly cost is £${effectiveTotalCost.toFixed(2)}. Please top up your account.`,
+                showMessage: true,
+            });
+            setInBooking(false);
+            return;
+        }
 
         setSubrides(newSubrides);
         setDiscount(rideDiscount);
 
         setShowCheckout(true);
+        setInBooking(false); // Stop loading indicator as checkout modal opens
         return;
       }
 
@@ -134,13 +180,11 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
           showMessage: true,
         });
 
-        // Close the details modal after a short delay
+        // Close the details modal and reset state after a short delay
         setTimeout(() => {
           onClose();
-          setTimeout(
-            () => setBookingStatus((prev) => ({ ...prev, showMessage: false })),
-            500,
-          );
+          setBookingStatus((prev) => ({ ...prev, showMessage: false }));
+          onBookingSuccess?.();
         }, 2000);
       } else {
         setBookingStatus({
@@ -157,23 +201,56 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
         showMessage: true,
       });
     } finally {
-      setInBooking(false);
+      if (!showCheckout) {
+          setInBooking(false);
+      }
     }
   };
 
   const handleCommuterBooking = async () => {
-    const twoWeeks = 1209600000; // 2 weeks in milliseconds
-    const result = await createBooking(ride.JourneyId, new Date(ride.departureTime), new Date(twoWeeks));
-
-    console.log("Commuter booking result:", result);
-    
-    if (result.Status !== "Error") {
-      Alert.alert("Success", "Your ride has been successfully booked!");
+    if (!subrides || subrides.length === 0) {
+      console.error("No subrides selected for commuter booking.");
+      setBookingStatus({ success: false, message: "No dates selected for booking.", showMessage: true });
       return;
     }
 
-    Alert.alert("Error", "Failed to book your ride. Please try again.");
-    return;
+    const firstRideDate = subrides[0]?.journeyDate;
+    const lastRideDate = subrides[subrides.length - 1]?.journeyDate;
+
+    if (!firstRideDate || !lastRideDate) {
+        console.error("Invalid dates in subrides for commuter booking.");
+        setBookingStatus({ success: false, message: "Invalid dates selected for booking.", showMessage: true });
+        return;
+    }
+
+    setInBooking(true);
+    setShowCheckout(false);
+
+    try {
+      const journeyIdToBook = ride.JourneyId;
+      if (!journeyIdToBook) {
+          throw new Error("Journey ID is missing for commuter booking.");
+      }
+
+      const result = await createBooking(journeyIdToBook, firstRideDate, lastRideDate);
+
+      if (result.success || result.Status === "Success") {
+        setBookingStatus({ success: true, message: "Commuter ride successfully booked!", showMessage: true });
+        setTimeout(() => {
+          onClose();
+          setBookingStatus((prev) => ({ ...prev, showMessage: false }));
+          onBookingSuccess?.();
+        }, 2000);
+      } else {
+        setBookingStatus({ success: false, message: result.message || "Failed to book commuter ride.", showMessage: true });
+      }
+    } catch (error) {
+        console.error("Commuter booking error:", error);
+        const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred during commuter booking.";
+        setBookingStatus({ success: false, message: errorMessage, showMessage: true });
+    } finally {
+      setInBooking(false);
+    }
   };
 
   const dismissMessage = () => {
@@ -188,6 +265,9 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
       onShow={() => {
         ViewBalance().then((balance : BalanceSheet) => {
           setUserBalance(balance.NonPending);
+        }).catch(err => {
+            console.error("Failed to fetch user balance:", err);
+            setUserBalance(0); // Default to 0 if fetch fails
         });
       }}
       onRequestClose={onClose}
@@ -308,7 +388,7 @@ const RideDetails = ({ ride, visible, onClose }: RideDetailsProps) => {
                   inBooking ? "bg-blue-400" : "bg-blue-600"
                 } py-4 rounded-xl items-center justify-center`}
                 onPress={handleBooking}
-                disabled={inBooking}
+                disabled={inBooking || bookingStatus.showMessage}
               >
                 {inBooking ? (
                   <ActivityIndicator color="#FFFFFF" />

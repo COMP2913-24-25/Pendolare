@@ -12,7 +12,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { getUserConversations, createConversation, messageService } from "@/services/messageService";
 import { getCurrentUserId } from "@/services/authService";
 import BookingAmendmentModal from "@/components/Chat/BookingAmendmentModal";
-import { AddBookingAmmendmentRequest, addBookingAmmendment } from "@/services/bookingService";
+import { AddBookingAmendmentRequest, addBookingAmmendment } from "@/services/bookingService";
 import { useChatMessages } from "@/hooks/useChatMessages";
 import { getBookings } from "@/services/bookingService";
 
@@ -26,7 +26,7 @@ import ChatMessages from "@/components/Chat/ChatMessages";
   Screen for viewing and sending messages in a chat
 */
 const ChatDetail = () => {
-  const { id, name, initialMessage } = useLocalSearchParams();
+  const { id, name, initialMessage, autoCreateChat: autoCreateChatParam } = useLocalSearchParams();
   const [newMessage, setNewMessage] = useState(typeof initialMessage === "undefined" ? "" : initialMessage as string);
   const { isDarkMode } = useTheme();
   const [currentUserId, setCurrentUserId] = useState<string>("");
@@ -36,7 +36,8 @@ const ChatDetail = () => {
   const previousIdRef = useRef<string | null>(null);
   const [isDriverMode, setIsDriverMode] = useState(false);
   const [isFetchingChat, setIsFetchingChat] = useState(false);
-  
+  const [autoCreateChat, setAutoCreateChat] = useState(false);
+
   // Initialise chat hook
   const { 
     chat,
@@ -48,8 +49,6 @@ const ChatDetail = () => {
     connectionError,
     sendMessage,
     handleAmendmentApproval,
-    autoCreateChat,
-    setAutoCreateChat
   } = useChatMessages(
     id as string, 
     currentUserId,
@@ -74,6 +73,16 @@ const ChatDetail = () => {
     getUserId();
   }, []);
 
+  useEffect(() => {
+    if (chat && currentUserId) {
+      messageService.disconnect();
+      messageService.setUserId(currentUserId);
+      messageService.setConversationId(chat.ConversationId || chat.id);
+
+      messageService.connect();
+    }
+  }, [chat?.ConversationId, currentUserId]);
+
   // Add focus effect to refresh data when screen comes into focus
   useFocusEffect(
     useCallback(() => {
@@ -86,51 +95,88 @@ const ChatDetail = () => {
     }, [currentUserId])
   );
 
-  // Add this effect to reset state when the ID parameter changes
   useEffect(() => {
-    // Skip if this is the initial render with the same ID
+    setAutoCreateChat(autoCreateChatParam === 'true');
+  }, [autoCreateChatParam]);
+
+  useEffect(() => {
     if (previousIdRef.current === id) return;
     
     console.log(`Chat ID changed from ${previousIdRef.current} to ${id}`);
     previousIdRef.current = id as string;
     
-    // Only auto-create when there's an initial message
-    const shouldAutoCreate = !!initialMessage && initialMessage !== '';
+    const shouldAutoCreate = autoCreateChatParam === 'true' || (!!initialMessage && initialMessage !== '');
     setAutoCreateChat(shouldAutoCreate);
     
-    // If the ID has changed, fetch new chat data
     if (currentUserId) {
       fetchChatData();
     }
-  }, [id, currentUserId, initialMessage]);
+  }, [id, currentUserId, initialMessage, autoCreateChatParam]);
 
-  // Determine if the current user is a driver or passenger based on their bookings/journeys
   useEffect(() => {
     const determineUserRole = async () => {
-      if (!currentUserId) return;
-      
+      if (!currentUserId || !id) return;
+
       try {
-        // First check if the user has any journeys (rides they're driving)
-        const driverBookings = await getBookings(true);
-        
-        // If user has driver bookings, they're a driver in at least some context
-        const isDriver = driverBookings.bookings?.some(booking => 
-          booking.Journey?.User?.UserId === currentUserId
-        );
-        
-        // Set driver mode based on the results
-        setIsDriverMode(isDriver);
-        console.log(`User role determined: ${isDriver ? 'Driver' : 'Passenger'}`);
-        
+        // Get all bookings (both as driver and passenger)
+        const [driverBookings, passengerBookings] = await Promise.all([
+          getBookings(true),
+          getBookings(false)
+        ]);
+
+        // Try to find a booking for this chat (by participant)
+        let foundBooking = null;
+        // Search both driver and passenger bookings for a booking with this chat participant
+        for (const booking of [...driverBookings.bookings, ...passengerBookings.bookings]) {
+          if (
+            (booking.Booking.User?.UserId === id || booking.Journey.User?.UserId === id) ||
+            (booking.Booking.User?.UserId === currentUserId || booking.Journey.User?.UserId === currentUserId)
+          ) {
+            foundBooking = booking;
+            break;
+          }
+        }
+
+        if (foundBooking) {
+          if (foundBooking.Journey.User?.UserId === currentUserId) {
+            setIsDriverMode(true);
+            console.log("User role determined: Driver");
+          } else if (foundBooking.Booking.User?.UserId === currentUserId) {
+            setIsDriverMode(false);
+            console.log("User role determined: Passenger");
+          } else {
+            setIsDriverMode(false);
+            console.log("User role determined: Unknown, defaulting to Passenger");
+          }
+        } else {
+          const isDriver = driverBookings.bookings?.some(booking =>
+            booking.Journey?.User?.UserId === currentUserId
+          );
+          setIsDriverMode(isDriver);
+        }
       } catch (error) {
         console.error("Error determining user role:", error);
-        // Default to passenger view if there's an error
         setIsDriverMode(false);
       }
     };
-    
+
     determineUserRole();
-  }, [currentUserId]);
+  }, [currentUserId, id]);
+
+  // Send initialMessage if present and chat is connected
+  useEffect(() => {
+    if (
+      typeof initialMessage === "string" &&
+      initialMessage.trim() !== "" &&
+      isConnected &&
+      chat
+    ) {
+      sendMessage(initialMessage.trim());
+      setNewMessage(""); // Clear the input after sending
+    }
+    // Only run when chat connects or initialMessage changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConnected, chat, initialMessage]);
 
   /*
     Fetch chat details
@@ -143,7 +189,6 @@ const ChatDetail = () => {
       // Set a flag to prevent multiple fetches
       setIsFetchingChat(true);
       
-      // Fetch conversation details from API
       console.log("Fetching conversation details for:", id);
       const response = await getUserConversations();
       
@@ -157,28 +202,23 @@ const ChatDetail = () => {
         timestamp: new Date(conv.CreateDate).getTime()
       }));
       
-      // First check for conversations with the user ID
       let selectedChat = normalisedConversations.find((c: any) => {
-        // Check if conversation ID matches
         if (c.id === id || c.ConversationId === id) {
           console.log("Found exact conversation match by ID");
           return true;
         }
         
-        // Check if the user is a participant
         if (c.participants && c.participants.includes(id.toString())) {
           console.log("Found conversation where target is a participant");
           return true;
         }
         
-        // Check if conversation name contains the user name
         const targetName = name?.toString().toLowerCase() || id?.toString().toLowerCase();
         if (c.Name && c.Name.toLowerCase().includes(targetName)) {
           console.log("Found conversation match by name");
           return true;
         }
         
-        // Check if user is mentioned in title
         if (c.title && c.title.toLowerCase().includes(targetName)) {
           console.log("Found conversation match by title");
           return true;
@@ -189,30 +229,25 @@ const ChatDetail = () => {
       });
       
       if (selectedChat) {
-        // Found existing chat - always use it
         console.log("Using existing chat:", selectedChat.id);
-        setAutoCreateChat(false);
         setChatData(selectedChat);
         setIsFetchingChat(false);
         return;
       }
       
-      // No existing conversation was found
       console.log("No existing conversation found for:", id);
       
       // Only create a conversation if explicitly allowed to
-      if (!autoCreateChat || typeof initialMessage === 'undefined' || initialMessage === '') {
-        console.log("Auto-creation disabled or no initial message. Not creating a new chat.");
+      if (!autoCreateChat) {
+        console.log("Auto-creation disabled. Not creating a new chat.");
         setIsFetchingChat(false);
         return;
       }
       
-      // Clear to create a new conversation
       console.log("Will attempt to create new conversation");
       const userName: any = typeof name === "undefined" ? id.toString() : name as string;
       
       try {
-        // Create new conversation
         console.log(`Creating new conversation with ${userName}`);
         const response = await createConversation({
           ConversationType: "direct",
@@ -222,7 +257,6 @@ const ChatDetail = () => {
         
         console.log("Conversation created successfully:", response);
         
-        // Immediately disable auto-creation to prevent further attempts
         setAutoCreateChat(false);
         
         // Set chat details
@@ -237,8 +271,8 @@ const ChatDetail = () => {
         });
       } catch (error) {
         console.error("Failed to create conversation:", error);
+        setAutoCreateChat(false);
         
-        // If conversation already exists but wasn't found, retry fetching
         if (String(error).includes("Conversation already exists")) {
           console.log("Conversation exists but wasn't found initially, retrying fetch");
           setTimeout(() => fetchChatData(), 1000);
@@ -249,6 +283,7 @@ const ChatDetail = () => {
     } catch (error) {
       console.error("Error in fetchChatData:", error);
       setIsFetchingChat(false);
+      setAutoCreateChat(false);
     }
   };
 
@@ -272,20 +307,18 @@ const ChatDetail = () => {
   };
 
   // Handle sending a booking amendment request
-  const sendBookingAmendmentRequest = async (amendment: AddBookingAmmendmentRequest) => {
+  const sendBookingAmendmentRequest = async (amendment: AddBookingAmendmentRequest) => {
     if (!isConnected || !chat) return;
   
     try {
-      // First save the amendment to booking service
       const result = await addBookingAmmendment(amendment);
       
-      // Check for success response - handle both structures
       if (result.success || result.Status === "Success") {
         // Get the amendment ID from either response format
         const amendmentId = result.id || result.BookingAmmendmentId || "";
         console.log("Amendment created with ID:", amendmentId);
         
-        // Create a special message formatted specifically for booking amendments
+        // Create the amendment message
         const amendmentMessage = {
           type: "booking_amendment",
           from: currentUserId,
@@ -297,10 +330,8 @@ const ChatDetail = () => {
           requesterApproved: true
         };
         
-        // Log the message before sending
         console.log("Sending amendment message:", amendmentMessage);
         
-        // Send the amendment message via the sendMessage function from our hook
         const success = sendMessage(JSON.stringify(amendmentMessage));
         if (!success) {
           console.error("Failed to send amendment message");
@@ -312,7 +343,6 @@ const ChatDetail = () => {
         setShowAmendmentModal(false);
         setSelectedBookingId(null);
       } else {
-        // Handle error
         console.error("Failed to create booking amendment:", result.message || "Unknown error");
       }
     } catch (error) {

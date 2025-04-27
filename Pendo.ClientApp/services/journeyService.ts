@@ -73,25 +73,19 @@ export interface GetJourneysRequest {
 export async function getJourneys(filters?: GetJourneysRequest): Promise<GetJourneyResponse> {
     try {
         console.log("Getting journeys with filters:", filters);
-        const response = await apiRequest<any>(
+        const response = await apiRequest<JourneyDetails[]>(
             JOURNEY_ENDPOINTS.GET_JOURNEYS,
             {
                 method: "POST",
                 body: JSON.stringify(filters || {})
-            }
+            },
+            true
         );
-        // If response does not have "journeys", assume response is the array of journeys.
-        if (!("journeys" in response)) {
-            return {
-                success: true,
-                journeys: Array.isArray(response) ? response : [],
-            };
+        
+        return {
+            success: true,
+            journeys: response
         }
-        // Ensure that response has a success property.
-        if (typeof response.success === "undefined") {
-            response.success = true;
-        }
-        return { ...response };
     } catch (error) {
         console.error("Get journeys error:", error);
         return {

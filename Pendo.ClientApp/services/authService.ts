@@ -268,10 +268,15 @@ export async function getCurrentUserId(): Promise<string | null> {
 }
 
 /*
-  Log out by clearing the secure storage
+  Log out by clearing the secure storage and async storage
 */
 export async function logout(): Promise<void> {
   await SecureStore.deleteItemAsync(JWT_KEY);
   await SecureStore.deleteItemAsync(USER_EMAIL_KEY);
   await SecureStore.deleteItemAsync(IS_NEW_USER_KEY);
+
+  await AsyncStorage.removeItem(USER_FIRST_NAME_KEY);
+  await AsyncStorage.removeItem(USER_LAST_NAME_KEY);
+  await AsyncStorage.removeItem(USER_RATING_KEY);
+  console.log("Cleared auth tokens and user data.");
 }

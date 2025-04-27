@@ -10,6 +10,7 @@ const Layout = () => {
     <Stack initialRouteName="signin">
       <Stack.Screen name="signin" options={{ headerShown: false }} />
       <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
+      <Stack.Screen name="newuser" options={{ headerShown: false }} />
     </Stack>
   );
 };

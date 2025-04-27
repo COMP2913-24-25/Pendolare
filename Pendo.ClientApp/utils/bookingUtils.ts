@@ -24,6 +24,7 @@ export interface Ride {
     name: string;
   };
   Recurrence?: string;
+  RepeatUntil?: Date;
   JourneyType?: number;
   EndBookingWindow?: Date;
 }
@@ -65,7 +66,8 @@ export function convertRideToBookingDetails(ride: Ride): BookingDetails {
         UserId: ride.DriverId || '',
         Name: ride.DriverName || 'Driver'
       },
-      Recurrance: ride.Recurrence || undefined
+      Recurrance: ride.Recurrence || undefined,
+      RepeatUntil: ride.RepeatUntil || undefined
     }
   };
 }

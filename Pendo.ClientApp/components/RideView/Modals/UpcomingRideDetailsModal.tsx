@@ -50,25 +50,6 @@ const UpcomingRideDetailsModal = ({
   const { isDarkMode } = useTheme();
   const [showScheduleAmendmentModal, setShowScheduleAmendmentModal] = useState(false);
 
-  useEffect(() => {
-    if (booking) {
-      console.log("Booking structure:", {
-        hasJourney: !!booking.Journey,
-        journeyType: typeof booking.Journey,
-        journeyKeys: booking.Journey ? Object.keys(booking.Journey) : [],
-        hasBooking: !!booking.Booking,
-        hasStatus: !!booking.BookingStatus
-      });
-
-      console.log("Booking details:", booking.Journey.Recurrance);
-      
-      // If Journey exists but is empty, log that specifically
-      if (booking.Journey && Object.keys(booking.Journey).length === 0) {
-        console.log("Journey object exists but is empty!");
-      }
-    }
-  }, [booking]);
-
   // Most minimal validation possible - just check if booking exists
   const isValidBooking = !!booking;
   
@@ -76,20 +57,11 @@ const UpcomingRideDetailsModal = ({
   let journey: Partial<BookingDetails['Journey']> = {};
   let rideDetails: Partial<BookingDetails['Booking']> = {};
   let status: Partial<BookingDetails['BookingStatus']> = { Status: "Unknown" };
-  
+
   if (isValidBooking) {
     // Check if Journey is an actual object with properties
     if (booking.Journey && typeof booking.Journey === 'object') {
       journey = booking.Journey;
-      
-      // Log any journey properties that are undefined
-      console.log("Journey property check:", {
-        startName: journey.StartName ?? "undefined",
-        endName: journey.EndName ?? "undefined",
-        price: journey.Price ?? "undefined",
-        startLat: journey.StartLat ?? "undefined",
-        endLat: journey.EndLat ?? "undefined"
-      });
     }
     
     if (booking.Booking && typeof booking.Booking === 'object') {
@@ -175,17 +147,16 @@ const UpcomingRideDetailsModal = ({
     try {
       // Find existing conversation first
       const existingConversations = await getUserConversations();
-      
-      // Navigate to existing conversation if found
+
       router.push({
         pathname: '/home/chat/[id]',
-        params: { 
+        params: {
           id: personId,
           name: personName,
-          // Don't include an initial message to prevent auto-conversation creation
+          autoCreateChat: 'true'
         }
       });
-      
+
       // Close the modal after navigating
       onClose();
     } catch (error) {
@@ -293,11 +264,14 @@ const UpcomingRideDetailsModal = ({
                 <View className="mt-4">
                   <Text className="font-JakartaBold mb-2">This commuter journey has expired</Text>
                   <OneClickRebook 
-                    journeyId={journey.JourneyId}
+                    journeyId={booking.Journey.JourneyId}
                     originalDuration={
-                      journey.RepeatUntil && journey.StartDate ? 
-                      Math.ceil((new Date(journey.RepeatUntil).getTime() - new Date(journey.StartDate).getTime()) / (1000 * 60 * 60 * 24)) : 
-                      undefined
+                      booking.Journey.RepeatUntil && booking.Journey.StartTime ? 
+                        Math.ceil(
+                          (new Date(booking.Journey.RepeatUntil).getTime() - new Date(booking.Journey.StartTime).getTime()) /
+                          (1000 * 60 * 60 * 24)
+                        ) : 
+                        undefined
                     }
                     onSuccess={() => {
                       onClose();
@@ -320,22 +294,13 @@ const UpcomingRideDetailsModal = ({
                   </Text>
                 </TouchableOpacity>
 
-                {isPastRide ? (
+                {isPastRide && (
                   <TouchableOpacity
                     onPress={onComplete}
                     className="flex-1 bg-green-600 p-4 rounded-xl"
                   >
                     <Text className="text-white text-center font-JakartaBold">
                       Confirm Completion
-                    </Text>
-                  </TouchableOpacity>
-                ) : (
-                  <TouchableOpacity
-                    onPress={onCancel}
-                    className="flex-1 bg-red-600 p-4 rounded-xl"
-                  >
-                    <Text className="text-white text-center font-JakartaBold">
-                      Cancel Ride
                     </Text>
                   </TouchableOpacity>
                 )}

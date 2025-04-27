@@ -14,6 +14,27 @@ import ThemedView from "@/components/common/ThemedView";
 
 SplashScreen.preventAutoHideAsync();
 
+const logLevel = process.env.EXPO_PUBLIC_LOG_LEVEL || "info";
+
+console.log("Log level set to:", logLevel);
+
+switch (logLevel) {
+  case "info":
+    console.debug = () => {};
+    break;
+  case "warn":
+    console.debug = () => {};
+    console.info = () => {};
+    console.log = () => {};
+    break;
+  case "error":
+    console.debug = () => {};
+    console.info = () => {};
+    console.log = () => {};
+    console.warn = () => {};
+    break;
+}
+
 const publishableKey = process.env.EXPO_PUBLIC_PUBLISH_KEY;
 
 const Header = ({ className }: { className?: string }) => {

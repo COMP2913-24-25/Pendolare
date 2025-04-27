@@ -109,15 +109,18 @@ const SignIn = () => {
       const response = await verifyOTP(verification.code);
 
       if (response.authenticated) {
-        setIsLoggedIn(true);
         // Redirect to onboarding instead of home when new user.
         if (response.isNewUser) {
+          setIsLoggedIn(true);
           router.replace("/auth/newuser");
           return;
         }
 
         // Otherwise get user and go to home
-        getUser().then(() => router.replace("/home/tabs/home"));
+        getUser().then(() => {
+          setIsLoggedIn(true);
+          router.replace("/home/tabs/home")
+      });
       } else {
         setVerification({
           ...verification,

@@ -5,7 +5,6 @@ from unittest.mock import patch, MagicMock
 import logging
 import json
 
-# Configure logging for tests
 # Derivied from: https://docs.python.org/3/howto/logging.html
 @pytest.fixture(scope="session", autouse=True)
 def configure_logging():
@@ -16,7 +15,6 @@ def configure_logging():
     )
     yield
 
-# Mock environment variables for tests
 # Derived from: https://docs.python.org/3/library/unittest.mock.html#patch-dict
 @pytest.fixture(scope="session", autouse=True)
 def mock_env_vars():
@@ -30,7 +28,6 @@ def mock_env_vars():
     }):
         yield
 
-# Mock configuration provider
 @pytest.fixture(scope="session", autouse=True)
 def mock_config_provider():
     """Mock configuration provider for tests"""
@@ -71,14 +68,12 @@ def mock_config_provider():
     
     yield
     
-    # Clean up - remove the file
     try:
         if os.path.exists(config_path):
             os.remove(config_path)
     except:
         pass
 
-# Ensure the src directory is in sys.path
 @pytest.fixture(scope="session", autouse=True)
 def add_src_to_path():
     """Add src directory to Python path"""
@@ -86,7 +81,6 @@ def add_src_to_path():
     if src_path not in sys.path:
         sys.path.insert(0, src_path)
 
-# Database session mock for repository tests
 @pytest.fixture
 def mock_db():
     """Create a mock database session"""
@@ -95,18 +89,14 @@ def mock_db():
     
     mock_session = MagicMock(spec=Session)
     
-    with patch('src.db.PendoDatabaseProvider.get_db') as mock_get_db:
-        mock_get_db.return_value.__iter__.return_value = iter([mock_session])
-        yield mock_session
+    yield mock_session
 
-# Mock MessageRepository for integration tests
 @pytest.fixture
 def mock_repository():
     """Create a mock repository for integration tests"""
     with patch('src.app.repository') as mock_repo:
         yield mock_repo
 
-# Mock WebSocket client for testing
 @pytest.fixture
 def mock_websocket():
     """Create a mock WebSocket client"""
@@ -126,10 +116,9 @@ def mock_websocket():
     
     return MockWebSocket()
 
-# Fixture to create a test message handler instance
 @pytest.fixture
 def create_message_handler():
-    """Factory function to create message handler instances"""
+    """Fixture to create message handler instances"""
     from src.message_handler import MessageHandler
     from unittest.mock import MagicMock
     

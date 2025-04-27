@@ -1,5 +1,5 @@
 name: Pendo-ApiGateway
-description: "Build and test the API Gateway and custom plugins"
+description: "Build and test the ApiGateway Kong plugin"
 
 on:
   pull_request:
@@ -7,11 +7,22 @@ on:
     paths:
       - 'Pendo.ApiGateway/**'
       - '.github/workflows/Pendo.ApiGateway.yml'
+  push:
+    branches: [ main, dev ]
+    paths:
+      - 'Pendo.ApiGateway/**'
+      - '.github/workflows/Pendo.ApiGateway.yml'
+      - 'scripts/**'
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      ref:
+        required: true
+        type: string
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
   issues: read
   checks: write
   pull-requests: write
@@ -21,68 +32,87 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.WF_PAT }}
 
-    - name: Setup Lua
-      uses: leafo/gh-actions-lua@v10
-      with:
-        luaVersion: "5.1"
+      - name: Install Base Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget curl build-essential lua5.1 dnsutils
 
-    - name: Setup LuaRocks
-      uses: leafo/gh-actions-luarocks@v4
+      - name: Download and Install Kong
+        run: |
+          wget https://download.konghq.com/gateway-3.4.x-ubuntu-amd64/pool/all/k/kong/kong_3.4.0_amd64.deb -O kong-3.4.0.deb
+          sudo dpkg -i kong-3.4.0.deb || sudo apt-get -f install -y
 
-    - name: Install Kong dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libssl-dev
-        luarocks install busted
-        luarocks install luacov
-        luarocks install cjson
-        luarocks install lua-path
-        luarocks install luasocket
-        luarocks install luasec
-        luarocks install lua-resty-http
+      - name: Install Luarocks and Busted
+        run: |
+          sudo apt-get install -y luarocks
+          sudo luarocks install busted
 
-    - name: Setup Kong test environment
-      working-directory: ./Pendo.ApiGateway
-      run: |
-        mkdir -p spec/fixtures
-        mkdir -p pids logs
-        cp kong/plugins/jwt-custom-claims/spec/fixtures/custom_nginx.template spec/fixtures/ || true
-        chmod +x spec/run.sh || true
+      - name: Run Kong plugin tests
+        working-directory: ./Pendo.ApiGateway
+        run: |
+          chmod +x ./spec/run.sh
+          ./spec/run.sh
 
-    - name: Test API Gateway plugins
-      working-directory: ./Pendo.ApiGateway
-      run: |
-        # Create a mock helpers module to run standalone tests
-        mkdir -p spec/helpers
-        cat > spec/helpers/init.lua << 'EOF'
-        local _M = {}
-        function _M.get_db_utils() 
-          return {
-            services = { insert = function() return {} end },
-            routes = { insert = function() return {} end },
-            plugins = { insert = function() return {} end }
-          }
-        end
-        function _M.start_kong() return true end
-        function _M.stop_kong() return true end
-        function _M.proxy_client() 
-          return {
-            get = function() return {status = 200, body = '{"headers":{}}' } end,
-            post = function() return {status = 200, body = '{"headers":{}, "json":{}}' } end,
-            close = function() end
-          }
-        end
-        return _M
-        EOF
-        
-        # Run the tests with output in JUnit format
-        busted -v --output=junit -o apigateway_test_results.xml kong/plugins/jwt-custom-claims/spec
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          check_name: ApiGateway Test Results
+          files: ./Pendo.ApiGateway/apigateway_test_results.xml
 
-    - name: Publish Test Results
-      uses: EnricoMi/publish-unit-test-result-action@v2
-      if: always()
-      with:
-        check_name: API Gateway Test Results
-        files: ./Pendo.ApiGateway/apigateway_test_results.xml
+      - name: Upload Test Results Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: apigateway-test-results
+          path: ./Pendo.ApiGateway/apigateway_test_results.xml
+
+  update_wiki:
+    needs: build_test
+    if: always() && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+
+    concurrency:
+      group: wiki-update-${{ github.ref }}
+      cancel-in-progress: false
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.WF_PAT }}
+          fetch-depth: 0
+          ref: ${{ github.ref}}
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Download Test Results Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: apigateway-test-results
+          path: ./Pendo.ApiGateway
+
+      - name: Update Wiki
+        run: |
+          chmod +x ./scripts/parse-unittests.py
+          python ./scripts/parse-unittests.py \
+            --service ApiGateway \
+            --report ./Pendo.ApiGateway/apigateway_test_results.xml \
+            --wiki-file wiki/Tests.md
+
+      - name: Commit Wiki Update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git diff --quiet || (
+            git add wiki/Tests.md
+            git commit -m "AUTO COMMIT: update ApiGateway test list"
+            echo "Wiki updated, pushing changes..."
+            git push
+          )

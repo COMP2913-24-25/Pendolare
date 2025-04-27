@@ -89,7 +89,6 @@ const MyListings = () => {
     });
 
     console.log(`Fetched ${response.journeys.length} journeys`);
-    console.log(response.journeys);
 
     // Split journeys into regular and commuter types for better organization
     const regularJourneys = response.journeys.filter(j => j.JourneyType === 1);
@@ -116,11 +115,8 @@ const MyListings = () => {
         longitude: journey.EndLong,
         name: journey.EndName,
       },
-      // Add recurrence information to properly display commuter journeys
-      RecurrenceInfo: journey.JourneyType === 2 ? {
-        recurrence: journey.Recurrance,
-        repeatUntil: new Date(journey.RepeatUntil)
-      } : undefined,
+      Recurrence: journey.Recurrance,
+      RepeatUntil: journey.RepeatUntil,
       JourneyType: journey.JourneyType,
     }));
 
@@ -199,7 +195,10 @@ const MyListings = () => {
                   : "bg-white shadow"
                 : ""
             }`}
-            onPress={() => setCurrentTab("Booked")}
+            onPress={() => {
+              fetchBookings();
+              setCurrentTab("Booked");
+            }}
           >
             <Text
               className={`text-center font-JakartaMedium ${
@@ -221,7 +220,10 @@ const MyListings = () => {
                   : "bg-white shadow"
                 : ""
             }`}
-            onPress={() => setCurrentTab("Advertised")}
+            onPress={() => {
+              fetchJourneys();
+              setCurrentTab("Advertised");
+            }}
           >
             <Text
               className={`text-center font-JakartaMedium ${
@@ -243,7 +245,11 @@ const MyListings = () => {
                   : "bg-white shadow"
                 : ""
             }`}
-            onPress={() => setCurrentTab("Past")}
+            onPress={() => {
+              fetchBookings();
+              fetchJourneys();
+              setCurrentTab("Past");
+            }}
           >
             <Text
               className={`text-center font-JakartaMedium ${
@@ -298,11 +304,12 @@ const MyListings = () => {
 
           {currentTab === "Past" &&
             (pastJourneys.length > 0 ? (
-              pastJourneys.map((journey, index) => (
+              pastJourneys.map((booking, index) => (
                 <View key={index}>
                   <DriverRideCard 
-                    booking={convertRideToBookingDetails(journey)} 
-                    journeyView={true} 
+                    booking={booking} 
+                    journeyView={true}
+                    isCommuter={booking.Journey.JourneyType === 2} 
                   />
                 </View>
               ))

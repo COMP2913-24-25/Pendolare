@@ -9,9 +9,6 @@ import { Text } from "@/components/common/ThemedText";
 import ThemedInputField from "@/components/common/ThemedInputField";
 import ThemedButton from "@/components/common/ThemedButton";
 
-import { getUserObject, USER_FIRST_NAME_KEY, USER_LAST_NAME_KEY, USER_RATING_KEY, setUserData } from "@/services/authService";
-import * as SecureStore from "expo-secure-store";
-
 import { useState, useEffect, useCallback } from "react";
 import { Rating } from "react-native-ratings";
 import { getUser as apiGetUser, updateUser as apiUpdateUser } from "@/services/authService";
@@ -20,12 +17,17 @@ import { ViewBalance } from "@/services/paymentService";
 import PaymentMethodsModal from "@/components/PaymentMethodsModal"
 import RequestPayoutModal from "@/components/RequestPayoutModal"
 import { useAuth } from "@/context/AuthContext";
+import { stringLengthValidator } from "@/utils/validators";
+import { icons } from "@/constants";
 
 const Profile = () => {  
   const { isDarkMode } = useTheme();
   const { userData, updateUserData, refreshUserData } = useAuth();
 
   const [user, setUser] = useState({ firstName: '', lastName: '', rating: 'N/A' });
+  const [firstNameValidationMessage, setFirstNameValidationMessage] = useState<string | null>(null);
+  const [lastNameValidationMessage, setLastNameValidationMessage] = useState<string | null>(null);
+
   const [originalUser, setOriginalUser] = useState({ firstName: '', lastName: '', rating: 'N/A' });
   const [balanceSheet, setBalanceSheet] = useState({ NonPending: 0.00, Pending: 0.00 });
   const [methodsModalVisible, setMethodsModalVisible] = useState(false);
@@ -68,9 +70,6 @@ const Profile = () => {
   );
 
   const updateUser = (newUser: { firstName: string; lastName: string, rating: string }) => {
-    if (newUser.firstName.length > 30 || newUser.lastName.length > 30) {
-      return;
-    }
     setUser(newUser);
   };
 
@@ -79,16 +78,18 @@ const Profile = () => {
   return (
     <ThemedSafeAreaView className={`flex-1 ${isDarkMode ? "bg-slate-900" : "bg-general-500"}`}>
       {/* Header */}
-      <ThemedView className="flex-row justify-between items-center px-5 my-5">
-        <Text className="text-2xl font-JakartaBold my-5">My Profile</Text>
-        <ThemedButton
+      <ThemedView className="flex-row justify-between items-center px-5 pt-5 pb-2">
+        <Text className="text-2xl font-JakartaBold">My Profile</Text>
+
+        <TouchableOpacity
           onPress={() => router.push("/home/settings")}
-          title=""
-          IconLeft={() => (
-            <FontAwesome5 name="cog" size={24} color="currentColor" />
-          )}
-          className="w-16 h-16 ml-6 rounded-l-full"
-        />
+        >
+          <FontAwesome5 
+            name={icons.cog} 
+            size={24} 
+            color={isDarkMode ? "#CBD5E1" : "#64748B"}
+          />
+        </TouchableOpacity>
       </ThemedView>
 
       <ScrollView
@@ -96,7 +97,7 @@ const Profile = () => {
         className="px-5"
       >
         {/* Profile Image */}
-        <ThemedView className={`items-center my-5 ${cardStyle}`}>
+        <ThemedView className={`items-center my-3 ${cardStyle}`}>
           <ThemedView className="items-center mt-3">
             {user.rating === "N/A" ? (
               <Text className="text-lg font-Jakarta">No driver rating yet!</Text>
@@ -110,24 +111,35 @@ const Profile = () => {
         </ThemedView>
 
         {/* Profile Information */}
-        <ThemedView className={cardStyle}>
+        <ThemedView className={`${cardStyle} mb-4`}>
           <ThemedInputField
             label="First name"
             value={user.firstName}
             editable={true}
             containerStyle="mb-4"
-            onChangeText={(text) => updateUser({ ...user, firstName: text })}
+            onChangeText={(text) => stringLengthValidator((value) => updateUser({ ...user, firstName: value }), text, 1, 30, setFirstNameValidationMessage)}
           />
+          {firstNameValidationMessage !== null && (
+          <Text className="mt-1 text-sm text-red-500">
+            {firstNameValidationMessage}
+          </Text>
+          )}
           <ThemedInputField
             label="Last name"
             value={user.lastName}
             editable={true}
             containerStyle="mb-4"
-            onChangeText={(text) => updateUser({ ...user, lastName: text })}
+            onChangeText={(text) => stringLengthValidator((value) => updateUser({ ...user, lastName: value }), text, 1, 30, setLastNameValidationMessage)}
           />
+          {lastNameValidationMessage !== null && (
+          <Text className="mt-1 text-sm text-red-500">
+            {lastNameValidationMessage}
+          </Text>
+          )}
           {(originalUser.firstName != user.firstName || originalUser.lastName != user.lastName) && (
             <ThemedButton
               title="Save Changes"
+              disabled={user.firstName.length < 1 || user.lastName.length < 1}
               onPress={async () => {
                 let result = await apiUpdateUser(user.firstName, user.lastName);
                 if (!result) {
@@ -143,7 +155,7 @@ const Profile = () => {
         </ThemedView>
 
         {/* User's Balance */}
-        <ThemedView className={cardStyle} style={{ marginTop: 25 }}>
+        <ThemedView className={`${cardStyle} mb-4`}>
           <ThemedInputField
             label="Pending Balance"
             value={"£" + balanceSheet.Pending.toFixed(2).toString()}
