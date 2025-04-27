@@ -83,9 +83,9 @@ This section serves to document all unit tests within the project. This will be 
 | `test_booking_repository` | `test_create_booking` | ✅ |
 | `test_booking_repository` | `test_get_booking_ammendment` | ✅ |
 | `test_booking_repository` | `test_get_booking_by_id` | ✅ |
-| `test_booking_repository` | `test_get_bookings_for_user_multiple_ammendments` | ❌ |
-| `test_booking_repository` | `test_get_bookings_for_user_no_ammendment` | ❌ |
-| `test_booking_repository` | `test_get_bookings_for_user_single_ammendment` | ❌ |
+| `test_booking_repository` | `test_get_bookings_for_user_multiple_ammendments` | ✅ |
+| `test_booking_repository` | `test_get_bookings_for_user_no_ammendment` | ✅ |
+| `test_booking_repository` | `test_get_bookings_for_user_single_ammendment` | ✅ |
 | `test_booking_repository` | `test_get_existing_booking` | ✅ |
 | `test_booking_repository` | `test_get_journey` | ✅ |
 | `test_booking_repository` | `test_get_user` | ✅ |
