@@ -62,7 +62,7 @@ async def test_handle_chat_message(message_handler):
     from_user = str(uuid.uuid4())
     to_user = str(uuid.uuid4())
     conversation_id = str(uuid.uuid4())
-    content = "Hello, this is a test message"
+    content_value = "Hello, this is a test message"
     
     from_socket = MagicMock()
     to_socket = MagicMock()
@@ -79,14 +79,14 @@ async def test_handle_chat_message(message_handler):
         "type": "chat",
         "from": from_user,
         "conversation_id": conversation_id,
-        "content": content
+        "content": content_value
     }
     
     await handler._handle_chat_message(message)
     
     assert conversation_id in handler.message_store
     assert len(handler.message_store[conversation_id]) == 1
-    assert handler.message_store[conversation_id][0]["content"] == content
+    assert handler.message_store[conversation_id][0]["content"] == content_value
     
     handler._broadcast_to_conversation.assert_called_once()
 
@@ -160,24 +160,24 @@ async def test_handle_history_request(message_handler):
     user_id = str(uuid.uuid4())
     conversation_id = str(uuid.uuid4())
     
-    test_messages = [
-        {
-            "type": "chat",
-            "from": "test-user-1",
-            "conversation_id": conversation_id,
-            "content": "Test message 1",
-            "timestamp": datetime.now().isoformat()
-        },
-        {
-            "type": "chat",
-            "from": "test-user-2",
-            "conversation_id": conversation_id,
-            "content": "Test message 2",
-            "timestamp": datetime.now().isoformat()
-        }
-    ]
-    
-    handler.message_store[conversation_id] = test_messages
+    # Create mock message objects mimicking the SQLAlchemy model
+    mock_msg1 = MagicMock()
+    mock_msg1.MessageId = uuid.uuid4()
+    mock_msg1.ConversationId = conversation_id
+    mock_msg1.SenderId = "test-user-1"
+    mock_msg1.MessageType = "chat"
+    mock_msg1.Content = "Test message 1"
+    mock_msg1.CreateDate = datetime.now()
+
+    mock_msg2 = MagicMock()
+    mock_msg2.MessageId = uuid.uuid4()
+    mock_msg2.ConversationId = conversation_id
+    mock_msg2.SenderId = "test-user-2"
+    mock_msg2.MessageType = "chat"
+    mock_msg2.Content = "Test message 2"
+    mock_msg2.CreateDate = datetime.now()
+
+    test_messages_from_repo = [mock_msg1, mock_msg2]
     
     mock_socket = MagicMock()
     sent_messages = []
@@ -188,8 +188,8 @@ async def test_handle_history_request(message_handler):
     
     mock_socket.send = mock_send
     
-    # Have the repository return the same test messages
-    mock_repo.get_messages_by_conversation_id.return_value = test_messages
+    # Have the repository return the mock model objects
+    mock_repo.get_messages_by_conversation_id.return_value = test_messages_from_repo
     
     request = {
         "conversation_id": conversation_id,
@@ -198,11 +198,14 @@ async def test_handle_history_request(message_handler):
     
     await handler._handle_history_request(mock_socket, request)
     
-    # Check response: expect 2 messages from memory cache/repository
+    # Check response: expect 2 messages from the repository
+    mock_repo.get_messages_by_conversation_id.assert_called_once_with(conversation_id)
     assert len(sent_messages) == 1
     assert sent_messages[0]["type"] == "history_response"
     assert len(sent_messages[0]["messages"]) == 2
-    assert sent_messages[0]["messages"][0]["content"] == "Test message 1"
+
+    assert sent_messages[0]["messages"][0]["content"] == "Test message 1" 
+    assert sent_messages[0]["messages"][1]["content"] == "Test message 2"
 
 
 @pytest.mark.asyncio

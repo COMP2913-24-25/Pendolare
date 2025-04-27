@@ -89,9 +89,7 @@ def mock_db():
     
     mock_session = MagicMock(spec=Session)
     
-    with patch('src.db.PendoDatabaseProvider.get_db') as mock_get_db:
-        mock_get_db.return_value.__iter__.return_value = iter([mock_session])
-        yield mock_session
+    yield mock_session
 
 @pytest.fixture
 def mock_repository():
