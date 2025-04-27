@@ -71,8 +71,8 @@ jobs:
         run: |
           mkdir -p spec/fixtures
           mkdir -p pids logs
-          # Corrected source path for custom_nginx.template
-          cp spec/fixtures/custom_nginx.template spec/fixtures/ || true
+          # Corrected source path for custom_nginx.template copy
+          cp kong/plugins/jwt-custom-claims/spec/fixtures/custom_nginx.template spec/fixtures/ || true
           chmod +x spec/run.sh || true
           mkdir -p kong/plugins/jwt-custom-claims/spec/helpers
           cat > kong/plugins/jwt-custom-claims/spec/helpers/init.lua << 'EOF'
@@ -103,8 +103,10 @@ jobs:
         run: |
           export KONG_PREFIX=$(pwd)/kong-prefix
           mkdir -p $KONG_PREFIX
-          # Prepend current directory to LUA_PATH
-          export LUA_PATH="./?.lua;./?/init.lua;$LUA_PATH"
+          # Set LUA_PATH and LUA_CPATH using luarocks paths and prepend current dir
+          eval $(luarocks path --bin)
+          export LUA_PATH="./?.lua;./?/init.lua;$(luarocks path --lr-path);$LUA_PATH"
+          export LUA_CPATH="$(luarocks path --lr-cpath);$LUA_CPATH"
           # Run busted and output results to file. If busted fails, print the results file to logs and exit with error.
           busted -v --output=junit kong/plugins/jwt-custom-claims/spec > apigateway_test_results.xml || (cat apigateway_test_results.xml && exit 1)
 
