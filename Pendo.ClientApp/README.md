@@ -1,33 +1,57 @@
 # Pendolare Client App
 
-Pendolare is a mobile client application allowing for interaction between the user and the various services. This client app is built using React Native and Expo, and leverages modern UI theming and a WebSocket-based messaging service to deliver real-time chat functionality.
+Pendolare is a mobile ride-sharing application that connects passengers with drivers for convenient, affordable journeys. This client app is built using React Native and Expo, providing a seamless experience across platforms.
 
 ## Overview
 
 The Pendolare Client App provides the following core functionalities:
-- View available journeys in real time.
-- Create and manage their own journeys.
-- Book rides on available journeys, enabling efficient shared transportation.
-- Real-time chat between users, drivers, and support agents.
-- Profile management with dynamic theming.
-- Integration with in-house & external services via APIs.
+- User authentication via email OTP
+- Browse and book available rides
+- Create and advertise your own journeys
+- Real-time chat between passengers, drivers, and support
+- Secure payments via Stripe integration
+- Account management with balance top-up and payouts
+- Commuter rides for recurring travel needs
+- Ride confirmations and completion tracking
+- Dark/light theme customisation
 
-## CURRENT Features
+## Features
 
-- **Real-time Messaging:** Communicate instantly via WebSocket with message delivery and status indicators.
-- **Theming Support:** Automatic dark/light mode support based on user preferences.
-- **Profile Management:** View and update your profile information.
-- **Support Chat:** Easily contact support when you need help.
-- **"Responsive" (WIP) Design:** Built with Tailwind CSS for consistent styling across devices.
+- **Authentication:** Secure OTP-based email authentication system
+- **Journey Management:**
+  - Browse available journeys with filtering options
+  - Book rides based on location and preferences
+  - Advertise your own journeys as a driver
+  - Manage commuter (recurring) journeys
+  - Track upcoming, past, and canceled journeys
+- **Real-time Chat:** Communicate with drivers, passengers, and support via WebSocket
+- **Payment System:**
+  - Top up account balance via Stripe
+  - Request payouts for earnings
+  - Manage payment methods
+  - Track earnings and revenue
+- **Location Services:**
+  - Interactive maps for journey visualisation
+  - Location search and selection
+  - Route calculation between pickup and dropoff points
+- **Profile Management:**
+  - View and update profile information
+  - Track driver ratings
+  - Manage personal details
+- **Theming:** Support for dark/light mode based on system preferences or user selection
 
 ## Tech Stack
 
 - **Framework:** React Native with Expo
+- **Language:** TypeScript
 - **Navigation:** Expo Router
-- **State Management:** React hooks and context API
+- **State Management:** React Context API
 - **Styling:** Tailwind CSS & NativeWind
-- **Authentication:** Clerk
-- **Real-time Communication:** WebSocket
+- **Payments:** Stripe React Native SDK
+- **Location:** Maps integration with geolocation services
+- **Real-time Communication:** WebSockets
+- **Data Storage:** AsyncStorage and SecureStore
+- **API Communication:** Custom API client with JWT authentication
 
 ## Prerequisites
 
@@ -42,10 +66,10 @@ The Pendolare Client App provides the following core functionalities:
 
 ```bash
 # Clone the repository
-git clone [repository-url]
+git clone https://github.com/your-org/software-engineering-project-team-2.git
 
 # Navigate to the project directory
-cd Pendo.ClientApp
+cd software-engineering-project-team-2/Pendo.ClientApp
 
 # Install dependencies
 npm install
@@ -53,34 +77,44 @@ npm install
 
 ### Configuration
 
-1. Copy the provided `.env` file or create your own based on `.env.example`.
-2. Update environment variables:
-   - `EXPO_PUBLIC_PUBLISH_KEY`
-   - `EXPO_PUBLIC_OSR_KEY`
-   - `CLERK_SECRET_KEY`
-   - Additional configuration as required by your environment.
+1. Create an `.env` file based on `.env.example` with the following variables:
+   - `EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY` - Your Stripe publishable key
+   - `EXPO_PUBLIC_OSR_KEY` - OpenRouteService API key
+   - `EXPO_PUBLIC_DVLA_KEY` - DVLA API key (for UK vehicle registration validation)
+   - API base URLs for services
 
 ### Running the App
 
 ```bash
-# For development mode
-npm run start
+# Start the development server
+npm start
 
-# For tunnel mode (if required)
+# Run with tunnel for external device testing
 npm run start-tunnel
 ```
 
-## Deployment
+## Project Structure
 
-- Build the app using Expo build or EAS.
-- Ensure all environment variables are set in the production environment.
-- Monitor application logs and user feedback for iterative improvements.
+- `/app` - Main application screens and navigation
+- `/components` - Reusable UI components
+- `/constants` - Application constants and configuration
+- `/context` - React Context providers
+- `/hooks` - Custom React hooks
+- `/services` - API services and external integrations
+- `/utils` - Utility functions and helpers
 
-## Testing
+## Key Services
 
-- N/A
-  
-## Monitoring and Logging
+- **Authentication Service:** Handles user login, registration, and session management
+- **Booking Service:** Manages ride bookings, confirmations, and completions
+- **Journey Service:** Provides journey creation and discovery functionality
+- **Message Service:** Real-time chat functionality via WebSockets
+- **Payment Service:** Integrates with Stripe for financial transactions
+- **Location Service:** Manages location search and route calculations
 
-- Application metrics are collected and logged.
-- For performance and error tracking, suitable monitoring tools are integrated.
+## Development Notes
+
+- Uses Expo's managed workflow for easier development and deployment
+- Implements JWT-based authentication with secure token storage
+- Features responsive design for various device sizes
+- Supports both light and dark themes via context
