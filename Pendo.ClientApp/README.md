@@ -66,7 +66,7 @@ The Pendolare Client App provides the following core functionalities:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/software-engineering-project-team-2.git
+git clone https://github.com/COMP2913/software-engineering-project-team-2.git
 
 # Navigate to the project directory
 cd software-engineering-project-team-2/Pendo.ClientApp
