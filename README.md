@@ -2,8 +2,9 @@
   <h1>Pendolare</h1>
   <p>A microservices-based platform for ride sharing</p>
   <p>University of Leeds Software Engineering Project - Team 2</p>
-  <p><small>Note: any visible API keys have been invalidated prior to publication.</small></p>
 </div>
+
+<p align="center"><sub><i>Note: any visible API keys have been invalidated prior to publication.</i></sub></p>
 
 <div align="center">
 
